@@ -3,6 +3,7 @@
 
 import logging
 
+# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 import reagent.types as rlt
@@ -10,8 +11,14 @@ from reagent.core.dataclasses import dataclass
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.envs.wrappers.recsim import ValueWrapper
 from reagent.gym.preprocessors.default_preprocessors import RecsimObsPreprocessor
+
+# pyre-fixme[21]: Could not find module `recsim`.
 from recsim import choice_model, utils
+
+# pyre-fixme[21]: Could not find module `recsim.environments`.
 from recsim.environments import interest_evolution, interest_exploration
+
+# pyre-fixme[21]: Could not find module `recsim.simulator`.
 from recsim.simulator import environment, recsim_gym
 
 
@@ -42,6 +49,7 @@ class RecSim(EnvWrapper):
                 "Multiselect interest exploration not implemented"
             )
 
+    # pyre-fixme[11]: Annotation `Env` is not defined as a type.
     def make(self) -> gym.Env:
         env_config = {
             "slate_size": self.slate_size,
@@ -85,6 +93,7 @@ class RecSim(EnvWrapper):
         return state, r, t, i
 
 
+# pyre-fixme[11]: Annotation `IEvUserModel` is not defined as a type.
 class MulticlickIEvUserModel(interest_evolution.IEvUserModel):
     def simulate_response(self, documents):
         responses = [self._response_model_ctor() for _ in documents]
@@ -102,6 +111,7 @@ class MulticlickIEvUserModel(interest_evolution.IEvUserModel):
         return responses
 
 
+# pyre-fixme[11]: Annotation `IEvUserState` is not defined as a type.
 class UserState(interest_evolution.IEvUserState):
     def score_document(self, doc_obs):
         scores = super().score_document(doc_obs)

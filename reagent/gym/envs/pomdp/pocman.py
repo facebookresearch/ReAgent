@@ -9,7 +9,11 @@ import logging
 from typing import NamedTuple
 
 import numpy as np
+
+# pyre-fixme[21]: Could not find module `gym`.
 from gym import Env
+
+# pyre-fixme[21]: Could not find module `gym.spaces`.
 from gym.spaces import Box, Discrete
 
 
@@ -211,6 +215,7 @@ def select_maze(maze):
         raise ValueError("Maze size can only be micro or mini. ")
 
 
+# pyre-fixme[11]: Annotation `Env` is not defined as a type.
 class PocManEnv(Env):
     def __init__(self):
         self.board = select_maze("micro")

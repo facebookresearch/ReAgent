@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+# pyre-fixme[21]: Could not find module `gym`.
 import gym
+
+# pyre-fixme[21]: Could not find module `gym_minigrid`.
 import gym_minigrid  # noqa
 import numpy as np
 from gym import spaces
+
+# pyre-fixme[21]: Could not find module `gym_minigrid.minigrid`.
 from gym_minigrid.minigrid import DIR_TO_VEC
 
 
 NUM_DIRECTIONS = len(DIR_TO_VEC)
 
 
+# pyre-fixme[11]: Annotation `ObservationWrapper` is not defined as a type.
 class SimpleObsWrapper(gym.core.ObservationWrapper):
     """
     Encode the agent's position & direction in a one-hot vector

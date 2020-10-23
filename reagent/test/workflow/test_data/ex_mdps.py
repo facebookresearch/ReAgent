@@ -7,7 +7,9 @@ import pandas
 
 
 def generate_discrete_mdp_pandas_df(
-    multi_steps: bool, use_seq_num_diff_as_time_diff: bool
+    multi_steps: bool,
+    use_seq_num_diff_as_time_diff: bool
+    # pyre-fixme[11]: Annotation `DataFrame` is not defined as a type.
 ) -> Tuple[pandas.DataFrame, str]:
     # Simulate the following MDP:
     # state: 0, action: 7 ('L'), reward: 0,
@@ -57,6 +59,7 @@ def generate_discrete_mdp_pandas_df(
     action_probabilities = [0.3, 0.4, 0.5, 0.6]
 
     ds = "2019-07-17"
+    # pyre-fixme[16]: Module `pandas` has no attribute `DataFrame`.
     df = pandas.DataFrame(
         {
             "mdp_id": mdp_ids,
@@ -134,6 +137,7 @@ def generate_parametric_mdp_pandas_df(
     action_probabilities = [0.3, 0.4, 0.5, 0.6]
 
     ds = "2019-07-17"
+    # pyre-fixme[16]: Module `pandas` has no attribute `DataFrame`.
     df = pandas.DataFrame(
         {
             "mdp_id": mdp_ids,

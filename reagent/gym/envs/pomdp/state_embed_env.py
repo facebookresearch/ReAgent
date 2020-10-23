@@ -12,10 +12,13 @@ import logging
 from collections import deque
 from typing import Optional
 
+# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 import reagent.types as rlt
 import torch
+
+# pyre-fixme[21]: Could not find module `gym.spaces`.
 from gym.spaces import Box
 from reagent.gym.envs import EnvWrapper
 from reagent.models.world_model import MemoryNetwork
@@ -25,6 +28,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+# pyre-fixme[11]: Annotation `Env` is not defined as a type.
 class StateEmbedEnvironment(gym.Env):
     def __init__(
         self,
@@ -35,12 +39,14 @@ class StateEmbedEnvironment(gym.Env):
         state_max_value: Optional[float] = None,
     ):
         self.env = gym_env
+        # pyre-fixme[16]: `EnvWrapper` has no attribute `unwrapped`.
         self.unwrapped.spec = self.env.unwrapped.spec
         self.max_embed_seq_len = max_embed_seq_len
         self.mdnrnn = mdnrnn
         self.embed_size = self.mdnrnn.num_hiddens
         self.raw_state_dim = self.env.observation_space.shape[0]  # type: ignore
         self.state_dim = self.embed_size + self.raw_state_dim
+        # pyre-fixme[16]: `EnvWrapper` has no attribute `action_space`.
         if isinstance(self.env.action_space, gym.spaces.Discrete):
             self.is_discrete_action = True
             self.action_dim = self.env.action_space.n

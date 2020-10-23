@@ -4,13 +4,17 @@
 import copy
 import logging
 
+# pyre-fixme[21]: Could not find module `gym`.
 import gym
+
+# pyre-fixme[21]: Could not find module `gym.spaces.dict`.
 import gym.spaces.dict
 
 
 logger = logging.getLogger(__name__)
 
 
+# pyre-fixme[11]: Annotation `ObservationWrapper` is not defined as a type.
 class ValueWrapper(gym.core.ObservationWrapper):
     KEY = "value"
 

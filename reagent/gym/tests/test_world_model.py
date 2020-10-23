@@ -5,6 +5,7 @@ import os
 import unittest
 from typing import Dict, List, Optional
 
+# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 import reagent.types as rlt
@@ -25,6 +26,8 @@ from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import RewardOptions
+
+# pyre-fixme[21]: Could not find module `tqdm`.
 from tqdm import tqdm
 
 
@@ -46,6 +49,7 @@ def print_mdnrnn_losses(epoch, batch_num, losses):
 
 
 def calculate_feature_importance(
+    # pyre-fixme[11]: Annotation `Env` is not defined as a type.
     env: gym.Env,
     trainer: MDNRNNTrainer,
     use_gpu: bool,
@@ -90,7 +94,9 @@ def calculate_feature_sensitivity(
     use_gpu: bool,
     test_batch: rlt.MemoryNetworkInput,
 ):
+    # pyre-fixme[16]: `EnvWrapper` has no attribute `action_space`.
     assert isinstance(env.action_space, gym.spaces.Discrete)
+    # pyre-fixme[16]: `EnvWrapper` has no attribute `observation_space`.
     assert isinstance(env.observation_space, gym.spaces.Box)
     assert len(env.observation_space.shape) == 1
     state_dim = env.observation_space.shape[0]
@@ -167,6 +173,7 @@ def train_mdnrnn_and_compute_feature_stats(
 ):
     """ Train MDNRNN Memory Network and compute feature importance/sensitivity. """
     env: gym.Env = Gym(env_name=env_name)
+    # pyre-fixme[16]: `Gym` has no attribute `seed`.
     env.seed(SEED)
 
     manager = model.value
@@ -236,7 +243,9 @@ def create_embed_rl_dataset(
     hidden_dim: int,
     use_gpu: bool,
 ):
+    # pyre-fixme[16]: `EnvWrapper` has no attribute `action_space`.
     assert isinstance(env.action_space, gym.spaces.Discrete)
+    # pyre-fixme[16]: `EnvWrapper` has no attribute `observation_space`.
     assert isinstance(env.observation_space, gym.spaces.Box)
     assert len(env.observation_space.shape) == 1
     logger.info("Starting to create embedded RL Dataset!")
@@ -284,6 +293,7 @@ def train_mdnrnn_and_train_on_embedded_env(
 ):
     """ Train an agent on embedded states by the MDNRNN. """
     env = Gym(env_name=env_name)
+    # pyre-fixme[16]: `Gym` has no attribute `seed`.
     env.seed(SEED)
 
     embedding_manager = embedding_model.value

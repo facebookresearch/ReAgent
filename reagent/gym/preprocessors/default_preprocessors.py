@@ -10,6 +10,8 @@ import numpy as np
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
+
+# pyre-fixme[21]: Could not find module `gym`.
 from gym import Env, spaces
 
 
@@ -34,6 +36,7 @@ class RecsimObsPreprocessor:
         self.box_keys = box_keys
 
     @classmethod
+    # pyre-fixme[11]: Annotation `Env` is not defined as a type.
     def create_from_env(cls, env: Env, **kwargs):
         obs_space = env.observation_space
         assert isinstance(obs_space, spaces.Dict)

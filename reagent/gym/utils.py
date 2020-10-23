@@ -4,6 +4,7 @@
 import logging
 from typing import Dict
 
+# pyre-fixme[21]: Could not find module `gym`.
 from gym import spaces
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import add_replay_buffer_post_step
@@ -16,6 +17,8 @@ from reagent.test.base.utils import (
     only_continuous_action_normalizer,
     only_continuous_normalizer,
 )
+
+# pyre-fixme[21]: Could not find module `tqdm`.
 from tqdm import tqdm
 
 
@@ -78,6 +81,7 @@ def fill_replay_buffer(env, replay_buffer: ReplayBuffer, desired_size: int):
 
 
 def build_state_normalizer(env: EnvWrapper):
+    # pyre-fixme[16]: `EnvWrapper` has no attribute `observation_space`.
     if isinstance(env.observation_space, spaces.Box):
         assert (
             len(env.observation_space.shape) == 1
@@ -95,6 +99,7 @@ def build_state_normalizer(env: EnvWrapper):
 
 
 def build_action_normalizer(env: EnvWrapper):
+    # pyre-fixme[16]: `EnvWrapper` has no attribute `action_space`.
     action_space = env.action_space
     if isinstance(action_space, spaces.Discrete):
         return only_continuous_normalizer(
@@ -117,6 +122,7 @@ def build_action_normalizer(env: EnvWrapper):
 
 def build_normalizer(env: EnvWrapper) -> Dict[str, NormalizationData]:
     try:
+        # pyre-fixme[16]: `EnvWrapper` has no attribute `normalization_data`.
         return env.normalization_data
     except AttributeError:
         # TODO: make this a property of EnvWrapper?
@@ -125,6 +131,7 @@ def build_normalizer(env: EnvWrapper) -> Dict[str, NormalizationData]:
             return {
                 NormalizationKey.STATE: NormalizationData(
                     dense_normalization_parameters=only_continuous_normalizer(
+                        # pyre-fixme[16]: `RecSim` has no attribute `observation_space`.
                         list(range(env.observation_space["user"].shape[0]))
                     )
                 ),

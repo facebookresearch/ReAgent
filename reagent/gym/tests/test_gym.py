@@ -7,9 +7,13 @@ import unittest
 from typing import Optional
 
 import numpy as np
+
+# pyre-fixme[21]: Could not find module `pytest`.
 import pytest
 import pytorch_lightning as pl
 import torch
+
+# pyre-fixme[21]: Could not find module `parameterized`.
 from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_episode import train_post_episode
@@ -29,6 +33,8 @@ from reagent.training.trainer import Trainer
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import RewardOptions
 from torch.utils.tensorboard import SummaryWriter
+
+# pyre-fixme[21]: Could not find module `tqdm`.
 from tqdm import trange
 
 
@@ -74,7 +80,8 @@ curr_dir = os.path.dirname(__file__)
 
 
 class TestGym(HorizonTestBase):
-    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
+    # pyre-fixme[56]: Pyre was not able to infer the type of the decorator
+    #  `parameterized.parameterized.expand`.
     @parameterized.expand(GYM_TESTS)
     def test_gym_cpu(self, name: str, config_path: str):
         logger.info(f"Starting {name} on CPU")
@@ -85,7 +92,6 @@ class TestGym(HorizonTestBase):
         )
         logger.info(f"{name} passes!")
 
-    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(GYM_TESTS)
     @pytest.mark.serial
     # pyre-fixme[56]: Argument `not torch.cuda.is_available()` to decorator factory
@@ -314,7 +320,9 @@ def run_test_episode_buffer(
 
     post_episode_callback = train_post_episode(env, trainer, use_gpu)
 
+    # pyre-fixme[16]: `EnvWrapper` has no attribute `seed`.
     env.seed(SEED)
+    # pyre-fixme[16]: `EnvWrapper` has no attribute `action_space`.
     env.action_space.seed(SEED)
 
     train_rewards = train_policy(

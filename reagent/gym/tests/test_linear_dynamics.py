@@ -6,6 +6,8 @@ import time
 import unittest
 
 import numpy as np
+
+# pyre-fixme[21]: Could not find module `scipy.linalg`.
 import scipy.linalg as linalg
 from reagent.gym.envs import Gym
 
