@@ -9,7 +9,7 @@ import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import field
 from reagent.core.tracker import observable
-from reagent.models.seq2slate import BaselineNet, Seq2SlateTransformerNet
+from reagent.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import Seq2SlateParameters
 from reagent.torch_utils import gather
@@ -101,30 +101,9 @@ class Seq2SlateSimulationTrainer(Trainer):
         self.policy_gradient_interval = policy_gradient_interval
         self.print_interval = print_interval
         self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
-        self.permutation_index = torch.tensor(
-            list(
-                permutations(
-                    # pyre-fixme[6]: Expected `Iterable[Variable[itertools._T]]` for
-                    #  1st param but got `Tensor`.
-                    torch.arange(seq2slate_net.max_src_seq_len),
-                    seq2slate_net.max_tgt_seq_len,
-                )
-            ),
-            device=self.device,
-        ).long()
-
-        if self.sim_param.distance_penalty is not None:
-            assert self.sim_param.distance_penalty >= 0
-            self.permutation_distance = (
-                torch.tensor(
-                    [swap_dist(x.tolist()) for x in self.permutation_index],
-                    device=self.device,
-                )
-                .unsqueeze(1)
-                .float()
-            )
-            self.MAX_DISTANCE = torch.max(self.permutation_distance)
-
+        self.MAX_DISTANCE = (
+            seq2slate_net.max_src_seq_len * (seq2slate_net.max_src_seq_len - 1) / 2
+        )
         self.trainer = Seq2SlateTrainer(
             seq2slate_net,
             minibatch_size,
@@ -144,33 +123,39 @@ class Seq2SlateSimulationTrainer(Trainer):
         components = ["seq2slate_net"]
         return components
 
-    def _simulated_training_input(
-        self, training_input, simulation_action, sim_distance
-    ):
-        batch_size, max_tgt_seq_len = simulation_action.shape
-        simulate_slate_features = rlt.FeatureData(
-            float_features=gather(
-                training_input.src_seq.float_features, simulation_action
-            )
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
+    @torch.no_grad()
+    def _simulated_training_input(self, training_input: rlt.PreprocessedRankingInput):
+        rank_output = self.seq2slate_net(
+            training_input,
+            mode=Seq2SlateMode.RANK_MODE,
+            tgt_seq_len=self.seq2slate_net.max_tgt_seq_len,
+            greedy=False,
         )
-        simulation_sample_propensities = torch.tensor(
-            [1.0 / len(self.permutation_index)], device=self.device
-        ).repeat(batch_size, 1)
+        model_propensities = rank_output.ranked_per_seq_probs
+        model_actions_with_offset = rank_output.ranked_tgt_out_idx
+        model_actions = model_actions_with_offset - 2
+
+        batch_size = model_actions_with_offset.shape[0]
+        simulated_slate_features = gather(
+            training_input.src_seq.float_features, model_actions
+        )
 
         if not self.reward_name_and_net:
             self.reward_name_and_net = _load_reward_net(
                 self.sim_param.reward_name_path, self.use_gpu
             )
 
-        sim_slate_reward = torch.zeros_like(training_input.slate_reward)
+        sim_slate_reward = torch.zeros(batch_size, 1, device=self.device)
         for name, reward_net in self.reward_name_and_net.items():
             weight = self.sim_param.reward_name_weight[name]
             sr = reward_net(
                 training_input.state.float_features,
                 training_input.src_seq.float_features,
-                simulate_slate_features.float_features,
+                simulated_slate_features,
                 training_input.src_src_mask,
-                simulation_action + 2,  # offset by 2 reserved symbols
+                model_actions_with_offset,
             ).detach()
             assert sr.ndim == 2, f"Slate reward {name} output should be 2-D tensor"
             sim_slate_reward += weight * sr
@@ -184,6 +169,15 @@ class Seq2SlateSimulationTrainer(Trainer):
         # guard-rail sequence similarity
         distance_penalty = self.sim_param.distance_penalty
         if distance_penalty is not None:
+            sim_distance = (
+                torch.tensor(
+                    # pyre-fixme[16]: `int` has no attribute `__iter__`.
+                    [swap_dist(x.tolist()) for x in model_actions],
+                    device=self.device,
+                )
+                .unsqueeze(1)
+                .float()
+            )
             sim_slate_reward += distance_penalty * (self.MAX_DISTANCE - sim_distance)
 
         assert (
@@ -194,34 +188,19 @@ class Seq2SlateSimulationTrainer(Trainer):
             state=training_input.state.float_features,
             candidates=training_input.src_seq.float_features,
             device=self.device,
-            action=simulation_action,
+            # pyre-fixme[6]: Expected `Optional[torch.Tensor]` for 4th param but got
+            #  `int`.
+            action=model_actions,
             slate_reward=sim_slate_reward,
-            logged_propensities=simulation_sample_propensities,
+            logged_propensities=model_propensities,
         )
-
         return on_policy_input
 
     def train(self, training_batch: rlt.PreprocessedTrainingBatch):
         assert type(training_batch) is rlt.PreprocessedTrainingBatch
         training_input = training_batch.training_input
         assert isinstance(training_input, rlt.PreprocessedRankingInput)
-
-        batch_size = training_input.state.float_features.shape[0]
-
-        # randomly pick a permutation for every slate
-        random_indices = torch.randint(0, len(self.permutation_index), (batch_size,))
-        simulation_action = self.permutation_index[random_indices]
-        if self.sim_param.distance_penalty is not None:
-            sim_distance = self.permutation_distance[random_indices]
-        else:
-            sim_distance = None
-
-        with torch.no_grad():
-            # format data according to the new ordering
-            training_input = self._simulated_training_input(
-                training_input, simulation_action, sim_distance
-            )
-
+        training_input = self._simulated_training_input(training_input)
         return self.trainer.train(
             rlt.PreprocessedTrainingBatch(
                 training_input=training_input, extras=training_batch.extras
