@@ -7,6 +7,8 @@ from collections import OrderedDict
 from reagent.core.tracker import observable
 from reagent.tensorboardX import SummaryWriterContext
 from torch.utils.data import IterableDataset
+
+# pyre-fixme[21]: Could not find module `tqdm`.
 from tqdm import tqdm
 
 

@@ -9,6 +9,8 @@ import os
 import sys
 
 import click
+
+# pyre-fixme[21]: Could not find module `ruamel.yaml`.
 from ruamel.yaml import YAML
 
 

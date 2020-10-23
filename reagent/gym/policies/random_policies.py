@@ -3,6 +3,7 @@
 
 from typing import List, Optional
 
+# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 import reagent.types as rlt
@@ -13,6 +14,7 @@ from reagent.gym.policies.scorers.discrete_scorer import apply_possible_actions_
 from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 
 
+# pyre-fixme[11]: Annotation `Env` is not defined as a type.
 def make_random_policy_for_env(env: gym.Env):
     if isinstance(env.action_space, gym.spaces.Discrete):
         # discrete action space

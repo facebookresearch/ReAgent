@@ -4,6 +4,7 @@
 import logging
 from typing import Any, Callable, List, Tuple
 
+# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 from reagent.gym.types import Transition
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 try:
+    # pyre-fixme[21]: Could not find module `recsim.simulator.recsim_gym`.
     from recsim.simulator.recsim_gym import RecSimGymEnv
 
     HAS_RECSIM = True
@@ -26,6 +28,7 @@ except ImportError:
 ReplayBufferInserter = Callable[[ReplayBuffer, Transition], None]
 
 
+# pyre-fixme[11]: Annotation `Env` is not defined as a type.
 def make_replay_buffer_inserter(env: gym.Env) -> ReplayBufferInserter:
     if HAS_RECSIM and isinstance(env.unwrapped, RecSimGymEnv):
         return RecSimReplayBufferInserter.create_for_env(env)

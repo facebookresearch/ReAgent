@@ -9,6 +9,7 @@ import os
 from dataclasses import field  # noqa
 from typing import TYPE_CHECKING, Any, Optional
 
+# pyre-fixme[21]: Could not find module `pydantic`.
 import pydantic
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 

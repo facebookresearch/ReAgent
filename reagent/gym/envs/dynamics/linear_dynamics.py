@@ -7,13 +7,18 @@ https://www.argmin.net/2018/02/08/lqr/
 import logging
 
 import numpy as np
+
+# pyre-fixme[21]: Could not find module `gym`.
 from gym import Env
+
+# pyre-fixme[21]: Could not find module `gym.spaces`.
 from gym.spaces import Box
 
 
 logger = logging.getLogger(__name__)
 
 
+# pyre-fixme[11]: Annotation `Env` is not defined as a type.
 class LinDynaEnv(Env):
     """
     A linear dynamical system characterized by A, B, Q, and R.

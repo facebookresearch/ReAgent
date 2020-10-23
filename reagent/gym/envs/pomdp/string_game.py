@@ -18,7 +18,11 @@ from collections import deque
 
 import numpy as np
 import torch
+
+# pyre-fixme[21]: Could not find module `gym`.
 from gym import Env
+
+# pyre-fixme[21]: Could not find module `gym.spaces`.
 from gym.spaces import Box, Discrete
 
 
@@ -31,6 +35,7 @@ STATE_DIM = ACTION_DIM = len(CHARACTERS)
 SEQ_LEN = 3
 
 
+# pyre-fixme[11]: Annotation `Env` is not defined as a type.
 class StringGameEnv(Env):
     def __init__(self, max_steps=MAX_STEP):
         np.random.seed(123)

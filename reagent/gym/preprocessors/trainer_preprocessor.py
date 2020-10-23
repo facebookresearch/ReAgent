@@ -7,6 +7,7 @@ import inspect
 import logging
 from typing import Dict, Optional
 
+# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 import reagent.types as rlt
@@ -30,7 +31,11 @@ REPLAY_BUFFER_MAKER_MAP = {}
 
 
 def make_trainer_preprocessor(
-    trainer: Trainer, device: torch.device, env: gym.Env, maker_map: Dict
+    trainer: Trainer,
+    device: torch.device,
+    # pyre-fixme[11]: Annotation `Env` is not defined as a type.
+    env: gym.Env,
+    maker_map: Dict,
 ):
     if isinstance(trainer, ReAgentLightningModule):
         sig = inspect.signature(trainer.train_step_gen)
@@ -108,7 +113,6 @@ class DiscreteDqnInputMaker:
         try:
             return cls(
                 num_actions=action_space.n,
-                # pyre-fixme[16]: `Env` has no attribute `trainer_preprocessor`.
                 trainer_preprocessor=env.trainer_preprocessor,
             )
         except AttributeError:

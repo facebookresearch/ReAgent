@@ -10,6 +10,8 @@ import numpy as np
 import torch
 from reagent.core.configuration import make_config_class
 from reagent.tensorboardX import SummaryWriterContext
+
+# pyre-fixme[21]: Could not find module `ruamel.yaml`.
 from ruamel.yaml import YAML
 
 

@@ -3,6 +3,7 @@
 
 import logging
 
+# pyre-fixme[21]: Could not find module `numpy.testing`.
 import numpy.testing as npt
 import torch
 

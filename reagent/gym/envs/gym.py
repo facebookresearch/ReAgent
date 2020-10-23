@@ -3,11 +3,14 @@
 import logging
 from typing import Optional, Tuple
 
+# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 import reagent.types as rlt
 import torch
 from gym import spaces
+
+# pyre-fixme[21]: Could not find module `gym_minigrid.wrappers`.
 from gym_minigrid.wrappers import ReseedWrapper
 from reagent.core.dataclasses import dataclass
 from reagent.gym.envs.env_wrapper import EnvWrapper
@@ -22,6 +25,7 @@ class Gym(EnvWrapper):
     env_name: str
     set_max_steps: Optional[int] = None
 
+    # pyre-fixme[11]: Annotation `Env` is not defined as a type.
     def make(self) -> gym.Env:
         kwargs = {}
         if self.set_max_steps is not None:
@@ -33,6 +37,7 @@ class Gym(EnvWrapper):
         return env
 
     def obs_preprocessor(self, obs: np.ndarray) -> rlt.FeatureData:
+        # pyre-fixme[16]: `Gym` has no attribute `observation_space`.
         obs_space = self.observation_space
         if isinstance(obs_space, spaces.Box):
             return rlt.FeatureData(torch.tensor(obs).float().unsqueeze(0))
@@ -45,6 +50,7 @@ class Gym(EnvWrapper):
     def serving_obs_preprocessor(
         self, obs: np.ndarray
     ) -> Tuple[torch.Tensor, torch.Tensor]:
+        # pyre-fixme[16]: `Gym` has no attribute `observation_space`.
         obs_space = self.observation_space
         if not isinstance(obs_space, spaces.Box):
             raise NotImplementedError(f"{obs_space} not supported!")

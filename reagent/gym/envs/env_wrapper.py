@@ -5,6 +5,7 @@ import abc
 import logging
 from typing import Callable, Optional
 
+# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 import reagent.types as rlt
@@ -29,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+# pyre-fixme[11]: Annotation `Wrapper` is not defined as a type.
 class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
     """ Wrapper around it's environment, to simplify configuration. """
 
@@ -41,6 +43,7 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
         )
 
     @abc.abstractmethod
+    # pyre-fixme[11]: Annotation `Env` is not defined as a type.
     def make(self) -> gym.Env:
         pass
 
@@ -64,6 +67,7 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
 
     def action_extractor(self, actor_output: rlt.ActorOutput) -> torch.Tensor:
         action = actor_output.action
+        # pyre-fixme[16]: `EnvWrapper` has no attribute `action_space`.
         action_space = self.action_space
         # Canonical rule to return one-hot encoded actions for discrete
         assert (
@@ -89,6 +93,7 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
 
     def serving_action_extractor(self, actor_output: rlt.ActorOutput) -> torch.Tensor:
         action = actor_output.action
+        # pyre-fixme[16]: `EnvWrapper` has no attribute `action_space`.
         action_space = self.action_space
         assert (
             len(action.shape) == 2 and action.shape[0] == 1
@@ -131,6 +136,7 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
             "max_steps",
         ]
         for key in possible_keys:
+            # pyre-fixme[16]: `EnvWrapper` has no attribute `env`.
             res = getattr(self.env, key, None)
             if res is not None:
                 return res
@@ -138,4 +144,5 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
 
     @property
     def possible_actions_mask(self) -> Optional[np.ndarray]:
+        # pyre-fixme[16]: `EnvWrapper` has no attribute `env`.
         return getattr(self.env, "possible_actions_mask", None)

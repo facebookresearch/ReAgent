@@ -6,6 +6,7 @@ import logging
 import random
 from typing import Optional
 
+# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 import pandas as pd
@@ -50,6 +51,7 @@ def offline_gym(
 
     replay_buffer = ReplayBuffer(replay_capacity=num_train_transitions, batch_size=1)
     fill_replay_buffer(env, replay_buffer, num_train_transitions)
+    # pyre-fixme[16]: `Gym` has no attribute `action_space`.
     if isinstance(env.action_space, gym.spaces.Discrete):
         is_discrete_action = True
     else:
@@ -68,6 +70,7 @@ def timeline_operator(pkl_path: str, input_table_spec: TableSpec):
     Then call the timeline operator.
     """
 
+    # pyre-fixme[16]: Module `pd` has no attribute `read_pickle`.
     pd_df = pd.read_pickle(pkl_path)
     spark = get_spark_session()
     df = spark.createDataFrame(pd_df)

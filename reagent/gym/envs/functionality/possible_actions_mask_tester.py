@@ -9,8 +9,11 @@ The Q-value of each action to converge to the (discounted) value of the MDP.
 The value of the MDP should be 10 * max_steps = 200
 """
 
+# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
+
+# pyre-fixme[21]: Could not find module `gym.spaces`.
 from gym.spaces import Box, Discrete
 
 
@@ -24,6 +27,7 @@ def _get_state(step_idx, max_steps):
     return zeros
 
 
+# pyre-fixme[11]: Annotation `Env` is not defined as a type.
 class PossibleActionsMaskTester(gym.Env):
     def __init__(self):
         self.max_steps = 20

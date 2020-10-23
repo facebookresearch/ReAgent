@@ -6,8 +6,12 @@ import pprint
 import unittest
 
 import numpy as np
+
+# pyre-fixme[21]: Could not find module `pytest`.
 import pytest
 import torch
+
+# pyre-fixme[21]: Could not find module `parameterized`.
 from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
 from reagent.gym.envs import Gym
@@ -20,6 +24,8 @@ from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import RewardOptions
 from torch.utils.tensorboard import SummaryWriter
+
+# pyre-fixme[21]: Could not find module `tqdm`.
 from tqdm import tqdm
 
 
@@ -49,7 +55,8 @@ curr_dir = os.path.dirname(__file__)
 
 
 class TestGymOffline(HorizonTestBase):
-    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
+    # pyre-fixme[56]: Pyre was not able to infer the type of the decorator
+    #  `parameterized.parameterized.expand`.
     @parameterized.expand(GYM_TESTS)
     def test_gym_offline_cpu(self, name: str, config_path: str):
         self.run_from_config(
@@ -59,7 +66,6 @@ class TestGymOffline(HorizonTestBase):
         )
         logger.info(f"{name} passes!")
 
-    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(GYM_TESTS)
     @pytest.mark.serial
     # pyre-fixme[56]: Argument `not torch.cuda.is_available()` to decorator factory
@@ -94,7 +100,9 @@ def run_test_offline(
     use_gpu: bool,
 ):
     env = Gym(env_name=env_name)
+    # pyre-fixme[16]: `Gym` has no attribute `seed`.
     env.seed(SEED)
+    # pyre-fixme[16]: `Gym` has no attribute `action_space`.
     env.action_space.seed(SEED)
     normalization = build_normalizer(env)
     logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
