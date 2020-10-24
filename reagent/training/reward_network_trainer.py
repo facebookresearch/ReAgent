@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 from enum import Enum
+from typing import Optional
 
 import reagent.types as rlt
 import torch
@@ -20,13 +21,28 @@ class LossFunction(Enum):
     L1Loss = "L1_Loss"
 
 
-def _get_loss_function(loss_fn: LossFunction):
+def _get_loss_function(loss_fn: LossFunction, reward_ignore_threshold):
+    reduction_type = "mean"
+    if reward_ignore_threshold is not None:
+        reduction_type = "none"
+
     if loss_fn == LossFunction.MSE:
-        return torch.nn.MSELoss(reduction="mean")
+        torch_fn = torch.nn.MSELoss(reduction=reduction_type)
     elif loss_fn == LossFunction.SmoothL1Loss:
-        return torch.nn.SmoothL1Loss(reduction="mean")
+        torch_fn = torch.nn.SmoothL1Loss(reduction=reduction_type)
     elif loss_fn == LossFunction.L1Loss:
-        return torch.nn.L1Loss(reduction="mean")
+        torch_fn = torch.nn.L1Loss(reduction=reduction_type)
+
+    if reward_ignore_threshold is None:
+        return torch_fn
+
+    def wrapper_loss_fn(target, pred):
+        loss = torch_fn(target, pred)
+        loss = loss[target <= reward_ignore_threshold]
+        assert len(loss) > 0, "reward ignore threshold set too small"
+        return torch.mean(loss)
+
+    return wrapper_loss_fn
 
 
 class RewardNetTrainer(Trainer):
@@ -39,6 +55,7 @@ class RewardNetTrainer(Trainer):
             default_factory=Optimizer__Union.default
         ),
         loss_type: LossFunction = LossFunction.MSE,
+        reward_ignore_threshold: Optional[float] = None,
     ) -> None:
         self.reward_net = reward_net
         self.use_gpu = use_gpu
@@ -46,7 +63,8 @@ class RewardNetTrainer(Trainer):
         self.minibatch = 0
         self.opt = optimizer.make_optimizer(self.reward_net.parameters())
         self.loss_type = loss_type
-        self.loss_fn = _get_loss_function(loss_type)
+        self.loss_fn = _get_loss_function(loss_type, reward_ignore_threshold)
+        self.reward_ignore_threshold = reward_ignore_threshold
 
     def train(self, training_batch: rlt.PreprocessedTrainingBatch):
         training_input = training_batch.training_input
