@@ -211,14 +211,14 @@ class RankingEvaluationPageHandler(PageHandler):
 class RewardNetTrainingPageHandler(PageHandler):
     def __init__(self, trainer):
         super().__init__(trainer)
-        self.mse_loss = []
+        self.loss = []
 
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
-        mse_loss = self.trainer_or_evaluator.train(tdp)
-        self.results.append({"mse": mse_loss.cpu().numpy()})
+        loss = self.trainer_or_evaluator.train(tdp)
+        self.results.append({"loss": loss.cpu().numpy()})
 
     def finish(self):
-        self.mse_loss.append(float(self.get_mean_loss(loss_name="mse")))
+        self.loss.append(float(self.get_mean_loss(loss_name="loss")))
         self.refresh_results()
 
 
