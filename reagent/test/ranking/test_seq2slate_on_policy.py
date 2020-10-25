@@ -42,7 +42,7 @@ output_arch_list = [
 temperature_list = [1.0, 2.0]
 
 
-class TestSeq2Slate(unittest.TestCase):
+class TestSeq2SlateOnPolicy(unittest.TestCase):
     def setUp(self):
         np.random.seed(0)
         random.seed(0)
@@ -169,7 +169,12 @@ class TestSeq2Slate(unittest.TestCase):
             device,
         )
         batch = create_batch(
-            batch_size, candidate_num, candidate_dim, device, diverse_input=False
+            batch_size,
+            candidate_num,
+            candidate_dim,
+            device,
+            ON_POLICY,
+            diverse_input=False,
         )
         batch = rlt.PreprocessedRankingInput.from_input(
             state=batch.state.float_features,
@@ -196,7 +201,7 @@ class TestSeq2Slate(unittest.TestCase):
         )
 
     @parameterized.expand(itertools.product(output_arch_list, temperature_list))
-    def test_seq2slate_transformer_onplicy_basic_logic(self, output_arch, temperature):
+    def test_seq2slate_transformer_onpolicy_basic_logic(self, output_arch, temperature):
         """
         Test basic logic of seq2slate on policy sampling
         """
@@ -215,7 +220,12 @@ class TestSeq2Slate(unittest.TestCase):
             device,
         )
         batch = create_batch(
-            batch_size, candidate_num, candidate_dim, device, diverse_input=False
+            batch_size,
+            candidate_num,
+            candidate_dim,
+            device,
+            ON_POLICY,
+            diverse_input=False,
         )
 
         action_to_propensity_map = {}
