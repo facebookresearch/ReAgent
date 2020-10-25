@@ -421,23 +421,27 @@ class PreprocessedRankingInput(TensorDataClass):
         # Shape checking
         assert len(state.shape) == 2
         assert len(candidates.shape) == 3
+        state = state.to(device)
+        candidates = candidates.to(device)
+
         if action is not None:
             assert len(action.shape) == 2
+            action = action.to(device)
         if logged_propensities is not None:
             assert (
                 len(logged_propensities.shape) == 2
                 and logged_propensities.shape[1] == 1
             )
+            logged_propensities = logged_propensities.to(device)
 
         batch_size, candidate_num, candidate_dim = candidates.shape
         if slate_reward is not None:
             assert len(slate_reward.shape) == 2 and slate_reward.shape[1] == 1
+            slate_reward = slate_reward.to(device)
         if position_reward is not None:
             # pyre-fixme[16]: `Optional` has no attribute `shape`.
             assert position_reward.shape == action.shape
-
-        state = state.to(device)
-        candidates = candidates.to(device)
+            position_reward = position_reward.to(device)
 
         src_in_idx = (
             torch.arange(candidate_num, device=device).repeat(batch_size, 1) + 2
