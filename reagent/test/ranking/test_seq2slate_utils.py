@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 MODEL_TRANSFORMER = "transformer"
 ON_POLICY = "on_policy"
+OFF_POLICY = "off_policy"
 SIMULATION = "simulation"
 
 
@@ -35,6 +36,12 @@ def create_trainer(seq2slate_net, learning_method, batch_size, learning_rate, de
     if learning_method == ON_POLICY:
         seq2slate_params = Seq2SlateParameters(
             on_policy=True, learning_method=LearningMethod.REINFORCEMENT_LEARNING
+        )
+        trainer_cls = Seq2SlateTrainer
+    elif learning_method == OFF_POLICY:
+        seq2slate_params = Seq2SlateParameters(
+            on_policy=False,
+            learning_method=LearningMethod.REINFORCEMENT_LEARNING,
         )
         trainer_cls = Seq2SlateTrainer
     elif learning_method == SIMULATION:
@@ -95,7 +102,7 @@ def post_preprocess_batch(
         model_propensity, model_action, reward = rank_on_policy_and_eval(
             seq2slate_net, batch, candidate_num, greedy=False
         )
-        on_policy_batch = rlt.PreprocessedRankingInput.from_input(
+        batch = rlt.PreprocessedRankingInput.from_input(
             state=batch.state.float_features,
             candidates=batch.src_seq.float_features,
             device=device,
@@ -107,25 +114,76 @@ def post_preprocess_batch(
         logger.info(
             f"Epoch {epoch} mean model_propensity: {torch.mean(model_propensity)}"
         )
-        return on_policy_batch
+    elif learning_method == OFF_POLICY:
+        # scaling reward helps converge faster
+        if epoch == 0:
+            batch.slate_reward = -(batch.slate_reward ** 2)
     return batch
 
 
-def create_batch(batch_size, candidate_num, candidate_dim, device, diverse_input=False):
-    state = torch.zeros(batch_size, 1)  # fake state, we only use candidates
-    # # city coordinates are spread in [0, 4]
-    candidates = torch.randint(5, (batch_size, candidate_num, candidate_dim)).float()
-    if not diverse_input:
+FIX_CANDIDATES = None
+
+
+@torch.no_grad()
+def create_batch(
+    batch_size,
+    candidate_num,
+    candidate_dim,
+    device,
+    learning_method,
+    diverse_input=False,
+):
+    # fake state, we only use candidates
+    state = torch.zeros(batch_size, 1)
+    if diverse_input:
+        # city coordinates are spread in [0, 4]
+        candidates = torch.randint(
+            5, (batch_size, candidate_num, candidate_dim)
+        ).float()
+    else:
         # every training data has the same nodes as the input cities
-        candidates[1:] = candidates[0]
-    batch = rlt.PreprocessedRankingInput.from_input(
-        state=state.to(device), candidates=candidates.to(device), device=device
-    )
+        global FIX_CANDIDATES
+        if FIX_CANDIDATES is None or FIX_CANDIDATES.shape != (
+            batch_size,
+            candidate_num,
+            candidate_dim,
+        ):
+            candidates = torch.randint(
+                5, (batch_size, candidate_num, candidate_dim)
+            ).float()
+            candidates[1:] = candidates[0]
+            FIX_CANDIDATES = candidates
+        else:
+            candidates = FIX_CANDIDATES
+
+    batch_dict = {
+        "state": state,
+        "candidates": candidates,
+        "device": device,
+    }
+    if learning_method == OFF_POLICY:
+        # using data from a uniform sampling policy
+        action = torch.stack([torch.randperm(candidate_num) for _ in range(batch_size)])
+        propensity = torch.full((batch_size, 1), 1.0 / 720)
+        ranked_cities = gather(candidates, action)
+        reward = compute_reward(ranked_cities)
+        batch_dict["action"] = action
+        batch_dict["logged_propensities"] = propensity
+        batch_dict["slate_reward"] = -reward
+
+    batch = rlt.PreprocessedRankingInput.from_input(**batch_dict)
+    logger.info("Generate one batch")
     return batch
 
 
 def create_train_and_test_batches(
-    batch_size, candidate_num, candidate_dim, device, num_train_batches, diverse_input
+    batch_size,
+    candidate_num,
+    candidate_dim,
+    device,
+    num_train_batches,
+    learning_method,
+    diverse_input,
 ):
     train_batches = [
         create_batch(
@@ -133,6 +191,7 @@ def create_train_and_test_batches(
             candidate_num,
             candidate_dim,
             device,
+            learning_method,
             diverse_input=diverse_input,
         )
         for _ in range(num_train_batches)
@@ -144,6 +203,7 @@ def create_train_and_test_batches(
             candidate_num,
             candidate_dim,
             device,
+            learning_method,
             diverse_input=diverse_input,
         )
     else:
@@ -221,7 +281,13 @@ def run_seq2slate_tsp(
     eval_sample_size = 1
 
     train_batches, test_batch = create_train_and_test_batches(
-        batch_size, candidate_num, candidate_dim, device, num_batches, diverse_input
+        batch_size,
+        candidate_num,
+        candidate_dim,
+        device,
+        num_batches,
+        learning_method,
+        diverse_input,
     )
     best_test_possible_reward = compute_best_reward(test_batch.src_seq.float_features)
 
