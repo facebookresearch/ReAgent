@@ -86,7 +86,7 @@ commands:
             curl -s "https://get.sdkman.io" | bash
             source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk version
-            sdk install java 8.0.265.hs-adpt
+            sdk install java 8.0.272.hs-adpt
             sdk install scala
             sdk install maven
             sdk install spark 2.4.6
