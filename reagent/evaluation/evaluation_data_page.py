@@ -336,6 +336,7 @@ class EvaluationDataPage(NamedTuple):
         rewards = trainer.boost_rewards(rewards, actions)
         model_values = trainer.q_network_cpe(states)[:, 0:num_actions]
         optimal_q_values, _ = trainer.get_detached_q_values(states)
+        # Do we ever really use eval_action_idxs?
         eval_action_idxs = trainer.get_max_q_values(
             optimal_q_values, possible_actions_mask
         )[1]
