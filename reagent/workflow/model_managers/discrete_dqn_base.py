@@ -61,7 +61,9 @@ class DiscreteDQNBase(ModelManager):
     def create_policy(self, serving: bool) -> Policy:
         """ Create an online DiscreteDQN Policy from env. """
         if serving:
-            return create_predictor_policy_from_model(self.build_serving_module())
+            return create_predictor_policy_from_model(
+                self.build_serving_module(), rl_parameters=self.rl_parameters
+            )
         else:
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.

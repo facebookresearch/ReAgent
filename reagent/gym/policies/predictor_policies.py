@@ -8,13 +8,17 @@ import reagent.types as rlt
 import torch
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.gym.policies import Policy
-from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
+from reagent.gym.policies.samplers.discrete_sampler import (
+    GreedyActionSampler,
+    SoftmaxActionSampler,
+)
 from reagent.gym.policies.samplers.top_k_sampler import TopKSampler
 from reagent.gym.policies.scorers.discrete_scorer import (
     discrete_dqn_serving_scorer,
     parametric_dqn_serving_scorer,
 )
 from reagent.gym.policies.scorers.slate_q_scorer import slate_q_serving_scorer
+from reagent.parameters import RLParameters
 
 
 if IS_FB_ENVIRONMENT:
@@ -38,7 +42,8 @@ def create_predictor_policy_from_model(serving_module, **kwargs) -> Policy:
     """
     module_name = serving_module.original_name
     if module_name.endswith("DiscreteDqnPredictorWrapper"):
-        return DiscreteDQNPredictorPolicy(serving_module)
+        rl_parameters = kwargs.get("rl_parameters", None)
+        return DiscreteDQNPredictorPolicy(serving_module, rl_parameters)
     elif module_name.endswith("ActorPredictorWrapper"):
         return ActorPredictorPolicy(predictor=ActorPredictorUnwrapper(serving_module))
     elif module_name.endswith("ParametricDqnPredictorWrapper"):
@@ -69,8 +74,11 @@ def create_predictor_policy_from_model(serving_module, **kwargs) -> Policy:
 
 
 class DiscreteDQNPredictorPolicy(Policy):
-    def __init__(self, wrapped_dqn_predictor):
-        self.sampler = GreedyActionSampler()
+    def __init__(self, wrapped_dqn_predictor, rl_parameters: Optional[RLParameters]):
+        if rl_parameters and rl_parameters.softmax_policy:
+            self.sampler = SoftmaxActionSampler(temperature=rl_parameters.temperature)
+        else:
+            self.sampler = GreedyActionSampler()
         self.scorer = discrete_dqn_serving_scorer(
             q_network=DiscreteDqnPredictorUnwrapper(wrapped_dqn_predictor)
         )
