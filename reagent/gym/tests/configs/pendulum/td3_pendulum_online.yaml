@@ -7,7 +7,6 @@ model:
       rl:
         gamma: 0.99
         target_update_rate: 0.005
-      minibatch_size: 256
       q_network_optimizer:
         Adam:
           lr: 0.01
@@ -44,3 +43,4 @@ num_eval_episodes: 20
 # Though maximal score is 0, we set lower bar to let tests finish in time
 passing_score_bar: -750
 use_gpu: false
+minibatch_size: 256
