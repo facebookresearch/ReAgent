@@ -16,9 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 class LossFunction(Enum):
-    MSE = "MSE_LOSS"
+    MSE = "MSE_Loss"
     SmoothL1Loss = "SmoothL1_Loss"
     L1Loss = "L1_Loss"
+    BCELoss = "BCE_Loss"
 
 
 def _get_loss_function(loss_fn: LossFunction, reward_ignore_threshold):
@@ -32,14 +33,21 @@ def _get_loss_function(loss_fn: LossFunction, reward_ignore_threshold):
         torch_fn = torch.nn.SmoothL1Loss(reduction=reduction_type)
     elif loss_fn == LossFunction.L1Loss:
         torch_fn = torch.nn.L1Loss(reduction=reduction_type)
+    elif loss_fn == LossFunction.BCELoss:
+        torch_fn = torch.nn.BCELoss(reduction=reduction_type)
 
     if reward_ignore_threshold is None:
         return torch_fn
 
-    def wrapper_loss_fn(target, pred):
-        loss = torch_fn(target, pred)
-        loss = loss[target <= reward_ignore_threshold]
-        assert len(loss) > 0, "reward ignore threshold set too small"
+    def wrapper_loss_fn(pred, target):
+        loss = torch_fn(pred, target)
+        # ignore abnormal reward only during training
+        if pred.requires_grad:
+            loss = loss[target <= reward_ignore_threshold]
+            assert len(loss) > 0, (
+                f"reward ignore threshold set too small. target={target}, "
+                f"threshold={reward_ignore_threshold}"
+            )
         return torch.mean(loss)
 
     return wrapper_loss_fn
