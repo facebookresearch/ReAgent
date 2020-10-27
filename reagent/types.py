@@ -823,17 +823,20 @@ class PolicyGradientInput(TensorDataClass):
     action: torch.Tensor
     reward: torch.Tensor
     log_prob: torch.Tensor
+    possible_actions_mask: Optional[torch.Tensor] = None
 
     @classmethod
     def input_prototype(cls):
         num_classes = 5
         batch_size = 10
         state_dim = 3
+        action_dim = 2
         return cls(
             state=FeatureData(float_features=torch.randn(batch_size, state_dim)),
             action=F.one_hot(torch.randint(high=num_classes, size=(batch_size,))),
             reward=torch.rand(batch_size),
             log_prob=torch.log(torch.rand(batch_size)),
+            possible_actions_mask=torch.ones(batch_size, action_dim),
         )
 
 
