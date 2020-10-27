@@ -17,6 +17,7 @@ class FullyConnected(DiscreteDQNNetBuilder):
     sizes: List[int] = field(default_factory=lambda: [256, 128])
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     dropout_ratio: float = 0.0
+    use_batch_norm: bool = False
 
     def __post_init_post_parse__(self):
         super().__init__()
@@ -38,4 +39,5 @@ class FullyConnected(DiscreteDQNNetBuilder):
             sizes=self.sizes,
             activations=self.activations,
             dropout_ratio=self.dropout_ratio,
+            use_batch_norm=self.use_batch_norm,
         )

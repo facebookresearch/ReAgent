@@ -44,9 +44,16 @@ class FullyConnectedDQN(ModelBase):
     def input_prototype(self):
         return rlt.FeatureData(self.fc.input_prototype())
 
-    def forward(self, state: rlt.FeatureData) -> torch.Tensor:
+    def forward(
+        self,
+        state: rlt.FeatureData,
+        possible_actions_mask: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
         float_features = state.float_features
         x = self.fc(float_features)
         if self.num_atoms is not None:
             x = x.view(float_features.shape[0], self.action_dim, self.num_atoms)
+        if possible_actions_mask is not None:
+            # subtract huge value from impossible actions to force their probabilities to 0
+            x -= (1 - possible_actions_mask.float()) * 1e10
         return x
