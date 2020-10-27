@@ -58,8 +58,8 @@ class Optimizer:
     optimizer: torch.optim.Optimizer
     lr_schedulers: List[torch.optim.lr_scheduler._LRScheduler]
 
-    def step(self):
-        self.optimizer.step()
+    def step(self, closure=None):
+        self.optimizer.step(closure=closure)
         for lr_scheduler in self.lr_schedulers:
             lr_scheduler.step()
 
