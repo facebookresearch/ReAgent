@@ -3,9 +3,7 @@
 import logging
 
 from reagent.core import aggregators as agg
-from reagent.core.observers import (
-    IntervalAggregatingObserver,
-)
+from reagent.core.observers import IntervalAggregatingObserver
 from reagent.workflow.reporters.actor_critic_reporter import ActorCriticReporter
 
 
