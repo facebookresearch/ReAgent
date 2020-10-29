@@ -71,7 +71,12 @@ class Reinforce(Trainer):
     def train(self, training_batch: rlt.PolicyGradientInput) -> None:
         actions = training_batch.action
         rewards = training_batch.reward.detach()
-        scores = self.scorer(training_batch.state, training_batch.possible_actions_mask)
+        if training_batch.possible_actions_mask:
+            scores = self.scorer(
+                training_batch.state, training_batch.possible_actions_mask
+            )
+        else:
+            scores = self.scorer(training_batch.state)
         characteristic_eligibility = self.sampler.log_prob(scores, actions).float()
         offset_reinforcement = discounted_returns(
             torch.clamp(rewards, max=self.params.reward_clip).clone(), self.params.gamma
