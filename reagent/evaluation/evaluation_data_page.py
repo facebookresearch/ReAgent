@@ -152,7 +152,6 @@ class EvaluationDataPage(NamedTuple):
         ).reshape(-1, 1)
 
         ranked_tgt_out_seq = training_input.src_seq.float_features[
-            # pyre-fixme[16]: `Tensor` has no attribute `repeat_interleave`.
             torch.arange(batch_size, device=device).repeat_interleave(tgt_seq_len),
             rank_output.ranked_tgt_out_idx.flatten() - 2,
         ].reshape(batch_size, tgt_seq_len, candidate_dim)

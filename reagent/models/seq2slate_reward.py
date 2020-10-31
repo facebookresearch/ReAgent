@@ -112,7 +112,6 @@ class Seq2SlateGRURewardNet(Seq2SlateRewardNetBase):
         # unselected_idx stores indices of items that are not included in the slate
         unselected_idx = torch.ones(batch_size, src_seq_len, device=device)
         unselected_idx[
-            # pyre-fixme[16]: `Tensor` has no attribute `repeat_interleave`.
             torch.arange(batch_size, device=device).repeat_interleave(
                 torch.tensor(tgt_seq_len, device=device)
             ),

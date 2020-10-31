@@ -31,7 +31,7 @@ def slate_q_scorer(num_candidates: int, q_network: ModelBase) -> Scorer:
 def slate_q_serving_scorer(num_candidates: int, q_network: torch.nn.Module) -> Scorer:
     @torch.no_grad()
     def score(state: rlt.FeatureData) -> torch.Tensor:
-        # pyre-fixme[16]: `Tensor` has no attribute `repeat_interleave`.
+        # pyre-fixme[28]: Unexpected keyword argument `axis`.
         tiled_state = state.float_features.repeat_interleave(
             repeats=num_candidates, axis=0
         )
