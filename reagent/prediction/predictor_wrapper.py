@@ -379,6 +379,52 @@ class RankingActorPredictorWrapper(torch.jit.ScriptModule):
         return action
 
 
+class LearnVMSlateWithPreprocessor(ModelBase):
+    def __init__(
+        self,
+        num_candidates: int,
+        slate_size: int,
+        mlp: torch.nn.Module,
+        state_preprocessor: Preprocessor,
+        candidate_preprocessor: Preprocessor,
+    ):
+        super().__init__()
+        self.num_candidates = num_candidates
+        self.slate_size = slate_size
+        self.mlp = mlp
+        self.state_preprocessor = state_preprocessor
+        self.candidate_preprocessor = candidate_preprocessor
+
+    def input_prototype(self):
+        candidate_input_prototype = self.candidate_preprocessor.input_prototype()
+        return (
+            self.state_preprocessor.input_prototype(),
+            (
+                candidate_input_prototype[0].repeat((1, self.num_candidates, 1)),
+                candidate_input_prototype[1].repeat((1, self.num_candidates, 1)),
+            ),
+        )
+
+    def forward(self, state_vp, candidate_vp):
+        batch_size = state_vp[0].shape[0]
+        state_feats = self.state_preprocessor(*state_vp)
+        candidate_feats = self.candidate_preprocessor(
+            candidate_vp[0].view(
+                batch_size * self.num_candidates,
+                len(self.candidate_preprocessor.sorted_features),
+            ),
+            candidate_vp[1].view(
+                batch_size * self.num_candidates,
+                len(self.candidate_preprocessor.sorted_features),
+            ),
+        ).view(batch_size, self.num_candidates, -1)
+        input = rlt.FeatureData(
+            float_features=state_feats, candidate_docs=rlt.DocList(candidate_feats)
+        )
+        scores = self.mlp(input).view(batch_size, self.num_candidates)
+        return scores.argsort(dim=1, descending=True)[:, : self.slate_size]
+
+
 class Seq2SlateWithPreprocessor(ModelBase):
     def __init__(
         self,
