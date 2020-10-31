@@ -127,15 +127,20 @@ class Seq2SlateSimulationTrainer(Trainer):
     #  its type `no_grad` is not callable.
     @torch.no_grad()
     def _simulated_training_input(self, training_input: rlt.PreprocessedRankingInput):
-        rank_output = self.seq2slate_net(
-            training_input,
-            mode=Seq2SlateMode.RANK_MODE,
-            tgt_seq_len=self.seq2slate_net.max_tgt_seq_len,
-            greedy=False,
-        )
-        model_propensities = rank_output.ranked_per_seq_probs
-        model_actions_with_offset = rank_output.ranked_tgt_out_idx
-        model_actions = model_actions_with_offset - 2
+        # precision error may cause invalid actions
+        valid_output = False
+        while not valid_output:
+            rank_output = self.seq2slate_net(
+                training_input,
+                mode=Seq2SlateMode.RANK_MODE,
+                tgt_seq_len=self.seq2slate_net.max_tgt_seq_len,
+                greedy=False,
+            )
+            model_propensities = rank_output.ranked_per_seq_probs
+            model_actions_with_offset = rank_output.ranked_tgt_out_idx
+            model_actions = model_actions_with_offset - 2
+            if torch.all(model_actions >= 0):
+                valid_output = True
 
         batch_size = model_actions_with_offset.shape[0]
         simulated_slate_features = gather(
