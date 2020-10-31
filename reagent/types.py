@@ -321,7 +321,6 @@ class FeatureData(TensorDataClass):
             len(feat.shape) == 2
         ), f"Need feat shape to be (batch_size, feature_dim), got {feat.shape}."
         batch_size, _ = feat.shape
-        # pyre-fixme[16]: `Tensor` has no attribute `repeat_interleave`.
         tiled_feat = feat.repeat_interleave(repeats=num_tiles, dim=0)
         return FeatureData(float_features=tiled_feat)
 
