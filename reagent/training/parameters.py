@@ -7,6 +7,7 @@ from reagent.types import BaseDataClass
 from .c51_trainer import C51Trainer
 from .dqn_trainer import DQNTrainer
 from .parametric_dqn_trainer import ParametricDQNTrainer
+from .ppo_trainer import PPOTrainer
 from .qrdqn_trainer import QRDQNTrainer
 from .ranking.seq2slate_trainer import Seq2SlateTrainer
 from .reward_network_trainer import RewardNetTrainer
@@ -113,4 +114,17 @@ class RewardNetworkTrainerParameters:
     ],
 )
 class Seq2SlateTrainerParameters(BaseDataClass):
+    pass
+
+
+@make_config_class(
+    PPOTrainer.__init__,
+    blacklist=[
+        "policy",
+        "optimizer",
+        "optimizer_value_net",
+        "value_net",
+    ],
+)
+class PPOTrainerParameters:
     pass
