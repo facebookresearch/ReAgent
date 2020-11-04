@@ -71,7 +71,7 @@ class Reinforce(Trainer):
     def train(self, training_batch: rlt.PolicyGradientInput) -> None:
         actions = training_batch.action
         rewards = training_batch.reward.detach()
-        if training_batch.possible_actions_mask:
+        if training_batch.possible_actions_mask is not None:
             scores = self.scorer(
                 training_batch.state, training_batch.possible_actions_mask
             )
