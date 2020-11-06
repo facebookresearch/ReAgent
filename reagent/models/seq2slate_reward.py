@@ -233,8 +233,11 @@ class Seq2SlateTransformerRewardNet(Seq2SlateRewardNetBase):
         self.decoder = Decoder(
             DecoderLayer(dim_model, c(attn), c(attn), c(ff)), num_stacked_layers
         )
-        self.positional_encoding = PositionalEncoding(
-            dim_model, max_len=2 * (max_src_seq_len + max_tgt_seq_len)
+        self.positional_encoding_encoder = PositionalEncoding(
+            dim_model, max_len=max_src_seq_len
+        )
+        self.positional_encoding_decoder = PositionalEncoding(
+            dim_model, max_len=max_tgt_seq_len + 1
         )
         self.proj = nn.Linear(dim_model, 1)
         self.decoder_start_vec = nn.Parameter(
@@ -261,8 +264,8 @@ class Seq2SlateTransformerRewardNet(Seq2SlateRewardNetBase):
         # Input at each encoder step is actually concatenation of state_embed
         # and candidate embed. state_embed is replicated at each encoding step.
         # src_embed shape: batch_size, src_seq_len, dim_model
-        src_embed = self.positional_encoding(
-            torch.cat((state_embed, candidate_embed), dim=2), self.max_src_seq_len
+        src_embed = self.positional_encoding_encoder(
+            torch.cat((state_embed, candidate_embed), dim=2)
         )
 
         # encoder_output shape: batch_size, src_seq_len, dim_model
@@ -288,8 +291,8 @@ class Seq2SlateTransformerRewardNet(Seq2SlateRewardNetBase):
         )
 
         # tgt_embed: batch_size, seq_len, dim_model
-        tgt_embed = self.positional_encoding(
-            torch.cat((state_embed, candidate_embed), dim=2), tgt_seq_len
+        tgt_embed = self.positional_encoding_decoder(
+            torch.cat((state_embed, candidate_embed), dim=2)
         )
 
         # output of decoder will be later transformed into probabilities over symbols.
@@ -309,19 +312,6 @@ class Seq2SlateTransformerRewardNet(Seq2SlateRewardNetBase):
         batch_size, tgt_seq_len, candidate_dim = input.tgt_out_seq.float_features.shape
         assert self.max_tgt_seq_len == tgt_seq_len
 
-        # shape: batch_szie, tgt_seq_len + 1
-        tgt_in_idx = torch.cat(
-            (
-                torch.full(
-                    (batch_size, 1),
-                    DECODER_START_SYMBOL,
-                    device=device,
-                    dtype=torch.long,
-                ),
-                input.tgt_out_idx,
-            ),
-            dim=1,
-        )
         tgt_tgt_mask = subsequent_mask(tgt_seq_len + 1, device)
         # shape: batch_size, tgt_seq_len + 1, candidate_dim
         tgt_in_seq = torch.cat(

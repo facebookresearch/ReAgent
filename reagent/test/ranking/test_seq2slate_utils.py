@@ -108,7 +108,9 @@ def post_preprocess_batch(
             device=device,
             action=model_action,
             logged_propensities=model_propensity,
-            slate_reward=-reward,  # negate because we want to minimize
+            # negate because we want to minimize
+            # scale reward helps converge faster
+            slate_reward=-(reward ** 2),
         )
         logger.info(f"Epoch {epoch} mean on_policy reward: {torch.mean(reward)}")
         logger.info(

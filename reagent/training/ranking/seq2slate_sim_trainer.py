@@ -155,6 +155,7 @@ class Seq2SlateSimulationTrainer(Trainer):
         sim_slate_reward = torch.zeros(batch_size, 1, device=self.device)
         for name, reward_net in self.reward_name_and_net.items():
             weight = self.sim_param.reward_name_weight[name]
+            power = self.sim_param.reward_name_power[name]
             sr = reward_net(
                 training_input.state.float_features,
                 training_input.src_seq.float_features,
@@ -163,7 +164,7 @@ class Seq2SlateSimulationTrainer(Trainer):
                 model_actions_with_offset,
             ).detach()
             assert sr.ndim == 2, f"Slate reward {name} output should be 2-D tensor"
-            sim_slate_reward += weight * sr
+            sim_slate_reward += weight * (sr ** power)
 
         # guard-rail reward prediction range
         reward_clamp = self.sim_param.reward_clamp
