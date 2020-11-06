@@ -24,6 +24,7 @@ from reagent.model_utils.seq2slate_utils import (
     subsequent_mask,
 )
 from reagent.models.base import ModelBase
+from reagent.torch_utils import gather
 from torch.nn.parallel.distributed import DistributedDataParallel
 
 
@@ -264,23 +265,17 @@ class Embedder(nn.Module):
 
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, dim_model, max_len=5000):
+    def __init__(self, dim_model, max_len):
         super(PositionalEncoding, self).__init__()
+        self.pos_embed = nn.Embedding(max_len, dim_model)
 
-        # Compute the positional encodings once in log space.
-        pe = torch.zeros(max_len, dim_model)
-        position = torch.arange(0.0, max_len).unsqueeze(1)
-        div_term = torch.exp(
-            torch.arange(0.0, dim_model, 2) * -(math.log(10000.0) / dim_model)
+    def forward(self, x):
+        device = x.device
+        batch_size, seq_len, _ = x.shape
+        position_idx = (
+            torch.arange(0, seq_len).unsqueeze(0).repeat(batch_size, 1).to(device)
         )
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-        pe = pe.unsqueeze(0)
-        # pe shape: 1, max_len, dim_model
-        self.register_buffer("pe", pe)
-
-    def forward(self, x, seq_len):
-        x = x + self.pe[:, :seq_len]
+        x = x + self.pos_embed(position_idx)
         return x
 
 
@@ -390,8 +385,11 @@ class Seq2SlateTransformerModel(nn.Module):
 
         self.candidate_embedder = Embedder(candidate_dim, dim_model // 2)
         self.state_embedder = Embedder(state_dim, dim_model // 2)
-        self.positional_encoding = PositionalEncoding(
-            dim_model, max_len=2 * (max_src_seq_len + max_tgt_seq_len)
+        self.positional_encoding_encoder = PositionalEncoding(
+            dim_model, max_len=max_src_seq_len
+        )
+        self.positional_encoding_decoder = PositionalEncoding(
+            dim_model, max_len=max_tgt_seq_len
         )
         # Initialize parameters with Glorot / fan_avg.
         for p in self.parameters():
@@ -545,14 +543,7 @@ class Seq2SlateTransformerModel(nn.Module):
 
         assert greedy is not None
         for l in range(tgt_seq_len):
-            tgt_in_seq = (
-                candidate_features[
-                    torch.arange(batch_size, device=device).repeat_interleave(l + 1),
-                    tgt_in_idx.flatten(),
-                ]
-                .view(batch_size, l + 1, -1)
-                .to(device)
-            )
+            tgt_in_seq = gather(candidate_features, tgt_in_idx)
             tgt_src_mask = src_src_mask[:, : l + 1, :]
             # shape batch_size, l + 1, candidate_size
             logits = self.decode(
@@ -661,15 +652,11 @@ class Seq2SlateTransformerModel(nn.Module):
 
         # encoder_output shape: batch_size, src_seq_len, dim_model
         # tgt_out_idx shape: batch_size, tgt_seq_len
-        device = encoder_output.device
         batch_size, tgt_seq_len = tgt_out_idx.shape
 
         # order encoder_output by tgt_out_idx
         # slate_encoder_output shape: batch_size, tgt_seq_len, dim_model
-        slate_encoder_output = encoder_output[
-            torch.arange(batch_size, device=device).repeat_interleave(tgt_seq_len),
-            (tgt_out_idx - 2).flatten(),
-        ].reshape(batch_size, tgt_seq_len, -1)
+        slate_encoder_output = gather(encoder_output, tgt_out_idx - 2)
         # encoder_scores shape: batch_size, tgt_seq_len
         return self.encoder_scorer(slate_encoder_output).squeeze()
 
@@ -691,8 +678,8 @@ class Seq2SlateTransformerModel(nn.Module):
         # Input at each encoder step is actually concatenation of state_embed
         # and candidate embed. state_embed is replicated at each encoding step.
         # src_embed shape: batch_size, src_seq_len, dim_model
-        src_embed = self.positional_encoding(
-            torch.cat((state_embed, candidate_embed), dim=2), self.max_src_seq_len
+        src_embed = self.positional_encoding_encoder(
+            torch.cat((state_embed, candidate_embed), dim=2)
         )
 
         # encoder_output shape: batch_size, src_seq_len, dim_model
@@ -730,8 +717,8 @@ class Seq2SlateTransformerModel(nn.Module):
             )
 
             # tgt_embed: batch_size, tgt_seq_len, dim_model
-            tgt_embed = self.positional_encoding(
-                torch.cat((state_embed, candidate_embed), dim=2), tgt_seq_len
+            tgt_embed = self.positional_encoding_decoder(
+                torch.cat((state_embed, candidate_embed), dim=2)
             )
 
             # output of decoder will be later transformed into probabilities over symbols.

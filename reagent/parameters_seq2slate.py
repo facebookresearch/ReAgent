@@ -47,6 +47,7 @@ class IPSClamp(BaseDataClass):
 @dataclass(frozen=True)
 class SimulationParameters(BaseDataClass):
     reward_name_weight: Dict[str, float]
+    reward_name_power: Dict[str, float]
     reward_name_path: Dict[str, str]
     reward_clamp: Optional[RewardClamp] = None
     # penalize sequences far away from prod

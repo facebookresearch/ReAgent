@@ -303,12 +303,9 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
         Solve Traveling Salesman Problem. Data comes from multiple sets of cities.
 
         4 cities
-        batch size 512, lr=0.00005, num batches 300: 1788sec
-        batch size 4096, lr=0.00005, num batch 300: 917 sec
-        batch size 4096, lr=0.00005, num batch 150: 948 sec
-        batch size 8192, lr=0.0001, num batch 100: 1166 sec
-        batch size 8192, lr=0.00005, num batch 100: 817 sec
-        batch size 10240, lr=0.00005, num batch 100: 1828 sec
+        with reward scaled:
+        batch size 4096, lr=0.00005, finish in 8 epochs
+        batch size 4096, lr=0.0001, finish in 6 epochs
         """
         device = torch.device("cuda")
         batch_size = 4096
@@ -318,7 +315,7 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
         hidden_size = 128
         num_candidates = 4
         diverse_input = True
-        learning_rate = 0.00005
+        learning_rate = 0.0001
         learning_method = ON_POLICY
         run_seq2slate_tsp(
             MODEL_TRANSFORMER,
