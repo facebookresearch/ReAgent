@@ -20,6 +20,7 @@ class RewardNetEvaluator:
         self.trainer = trainer
         self.loss = []
         self.rewards = []
+        self.pred_rewards = []
         self.best_model = None
         self.best_model_loss = 1e9
 
@@ -37,11 +38,11 @@ class RewardNetEvaluator:
             reward = eval_tdp.training_input.reward
         assert reward is not None
 
-        loss = self.trainer.loss_fn(
-            reward_net(eval_tdp.training_input).predicted_reward, reward
-        )
+        pred_reward = reward_net(eval_tdp.training_input).predicted_reward
+        loss = self.trainer.loss_fn(pred_reward, reward)
         self.loss.append(loss.flatten().detach().cpu())
         self.rewards.append(reward.flatten().detach().cpu())
+        self.pred_rewards.append(pred_reward.flatten().detach().cpu())
 
         reward_net.train(reward_net_prev_mode)
 
@@ -49,9 +50,14 @@ class RewardNetEvaluator:
     def evaluate_post_training(self):
         mean_loss = np.mean(self.loss)
         logger.info(f"Evaluation {self.trainer.loss_type}={mean_loss}")
-        eval_res = {"loss": mean_loss, "rewards": torch.cat(self.rewards)}
+        eval_res = {
+            "loss": mean_loss,
+            "rewards": torch.cat(self.rewards),
+            "pred_rewards": torch.cat(self.pred_rewards),
+        }
         self.loss = []
         self.rewards = []
+        self.pred_rewards = []
 
         if mean_loss < self.best_model_loss:
             self.best_model_loss = mean_loss
