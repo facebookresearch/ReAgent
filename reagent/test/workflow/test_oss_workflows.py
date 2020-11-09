@@ -17,8 +17,6 @@ from click.testing import CliRunner
 from reagent.parameters import NormalizationParameters
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.workflow.types import Dataset
-
-# pyre-fixme[21]: Could not find module `ruamel.yaml`.
 from ruamel.yaml import YAML
 
 

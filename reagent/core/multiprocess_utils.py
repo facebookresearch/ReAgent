@@ -4,7 +4,6 @@
 from functools import partial
 from typing import Any, Callable, Dict, List
 
-# pyre-fixme[21]: Could not find module `cloudpickle`.
 import cloudpickle
 
 

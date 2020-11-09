@@ -5,7 +5,6 @@ import logging
 from collections import OrderedDict
 from typing import Callable, Dict, List
 
-# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 import reagent.types as rlt
@@ -145,7 +144,6 @@ class OraclePVM(RecSim):
         # num_docs x num_scores where i,j coordinate is jth score for ith doc
         scores = np.array(
             [
-                # pyre-fixme[16]: `OraclePVM` has no attribute `score_fns`.
                 [score_fn(user_feat, doc_feat) for score_fn in self.score_fns]
                 for _k, doc_feat in doc_feats.items()
             ]

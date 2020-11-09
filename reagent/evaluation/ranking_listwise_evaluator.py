@@ -10,8 +10,6 @@ import torch.nn as nn
 from reagent.core.tracker import observable
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode
 from reagent.types import PreprocessedTrainingBatch
-
-# pyre-fixme[21]: Could not find module `sklearn.metrics`.
 from sklearn.metrics import (
     average_precision_score,
     dcg_score,
@@ -123,24 +121,16 @@ class RankingListwiseEvaluator:
             base_scores[logged_idx[i]] = score_bar
             # average_precision_score accepts 1D arrays
             # dcg & ndcg accepts 2D arrays
-            # pyre-fixme[16]: Module `sklearn` has no attribute `metrics`.
             batch_mean_ap.append(average_precision_score(truth_scores, ranked_scores))
-            # pyre-fixme[16]: Module `sklearn` has no attribute `metrics`.
             batch_base_map.append(average_precision_score(truth_scores, base_scores))
-            # pyre-fixme[16]: Module `sklearn` has no attribute `metrics`.
             batch_auc.append(roc_auc_score(truth_scores, ranked_scores))
-            # pyre-fixme[16]: Module `sklearn` has no attribute `metrics`.
             batch_base_auc.append(roc_auc_score(truth_scores, base_scores))
             ranked_scores = np.expand_dims(ranked_scores, axis=0)
             truth_scores = np.expand_dims(truth_scores, axis=0)
             base_scores = np.expand_dims(base_scores, axis=0)
-            # pyre-fixme[16]: Module `sklearn` has no attribute `metrics`.
             batch_dcg.append(dcg_score(truth_scores, ranked_scores))
-            # pyre-fixme[16]: Module `sklearn` has no attribute `metrics`.
             batch_ndcg.append(ndcg_score(truth_scores, ranked_scores))
-            # pyre-fixme[16]: Module `sklearn` has no attribute `metrics`.
             batch_base_dcg.append(dcg_score(truth_scores, base_scores))
-            # pyre-fixme[16]: Module `sklearn` has no attribute `metrics`.
             batch_base_ndcg.append(ndcg_score(truth_scores, base_scores))
 
         self.notify_observers(

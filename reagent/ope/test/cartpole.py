@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import logging
 
-# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import torch
 from reagent.ope.estimators.sequential_estimators import (

@@ -14,8 +14,6 @@ from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.preprocessing import identify_types
 from reagent.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
 from scipy import stats
-
-# pyre-fixme[21]: Could not find module `scipy.stats.mstats`.
 from scipy.stats.mstats import mquantiles
 
 
