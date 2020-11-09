@@ -3,7 +3,6 @@
 
 import logging
 
-# pyre-fixme[21]: Could not find module `gym.envs.registration`.
 from gym.envs.registration import register, registry
 
 

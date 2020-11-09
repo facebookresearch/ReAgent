@@ -52,7 +52,6 @@ def train_seq2reward(
     fill_replay_buffer(env, train_replay_buffer, num_train_transitions)
     num_batch_per_epoch = train_replay_buffer.size // batch_size
     logger.info("Made RBs, starting to train now!")
-    # pyre-fixme[16]: `EnvWrapper` has no attribute `observation_space`.
     state_dim = env.observation_space.shape[0]
     for epoch in range(num_train_epochs):
         for i in range(num_batch_per_epoch):
@@ -97,7 +96,6 @@ def train_seq2reward_and_compute_reward_mse(
 ):
     """ Train Seq2Reward Network and compute reward mse. """
     env = Gym(env_name=env_name)
-    # pyre-fixme[16]: `Gym` has no attribute `seed`.
     env.seed(SEED)
 
     manager = model.value
@@ -133,7 +131,6 @@ def train_seq2reward_and_compute_reward_mse(
     else:
         # load a pretrained model, and just evaluate it
         trainer.seq2reward_network.load_state_dict(torch.load(saved_seq2reward_path))
-    # pyre-fixme[16]: `Gym` has no attribute `observation_space`.
     state_dim = env.observation_space.shape[0]
     with torch.no_grad():
         trainer.seq2reward_network.eval()

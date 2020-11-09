@@ -23,9 +23,7 @@ def _dense_to_sparse(dense: np.ndarray) -> List[Dict[str, float]]:
 
 
 def replay_buffer_to_pre_timeline_df(
-    is_discrete_action: bool,
-    replay_buffer: ReplayBuffer
-    # pyre-fixme[11]: Annotation `DataFrame` is not defined as a type.
+    is_discrete_action: bool, replay_buffer: ReplayBuffer
 ) -> pd.DataFrame:
     """ Format needed for uploading dataset to Hive, and then run timeline. """
     n = replay_buffer.size
@@ -79,5 +77,4 @@ def replay_buffer_to_pre_timeline_df(
     if possible_actions is not None:
         rows["possible_actions"] = possible_actions
 
-    # pyre-fixme[16]: Module `pd` has no attribute `DataFrame`.
     return pd.DataFrame.from_dict(rows)

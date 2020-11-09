@@ -17,7 +17,6 @@ bounded by -500.
 """
 import random
 
-# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 import reagent.types as rlt
@@ -69,7 +68,6 @@ def clamp(x, lo, hi):
 class ChangingArms(EnvWrapper):
     num_arms: int = NUM_ARMS
 
-    # pyre-fixme[11]: Annotation `Env` is not defined as a type.
     def make(self) -> gym.Env:
         return ChangingArmsEnv(self.num_arms)
 
