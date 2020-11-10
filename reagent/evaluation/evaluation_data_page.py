@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+from __future__ import annotations
+
 import logging
 import math
-from typing import NamedTuple, Optional, cast
+from typing import TYPE_CHECKING, NamedTuple, Optional, cast
 
 import numpy as np
 import torch
@@ -12,9 +14,12 @@ from reagent import types as rlt
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode
 from reagent.models.seq2slate import Seq2SlateTransformerNet
 from reagent.torch_utils import masked_softmax
-from reagent.training import ParametricDQNTrainer
-from reagent.training.dqn_trainer import DQNTrainer
-from reagent.training.trainer import Trainer
+
+
+if TYPE_CHECKING:
+    from reagent.training import ParametricDQNTrainer
+    from reagent.training.dqn_trainer import DQNTrainer
+    from reagent.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)
