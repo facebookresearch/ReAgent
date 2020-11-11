@@ -324,6 +324,21 @@ class FeatureData(TensorDataClass):
         tiled_feat = feat.repeat_interleave(repeats=num_tiles, dim=0)
         return FeatureData(float_features=tiled_feat)
 
+    def concat_user_doc(self):
+        assert not self.has_float_features_only, "only works when DocList present"
+        assert self.float_features.dim() == 2  # batch_size x state_dim
+        batch_size, state_dim = self.float_features.shape
+        # batch_size x num_docs x candidate_dim
+        assert self.candidate_docs.float_features.dim() == 3
+        assert len(self.candidate_docs.float_features) == batch_size
+        _, num_docs, candidate_dim = self.candidate_docs.float_features.shape
+        state_tiled = (
+            torch.repeat_interleave(self.float_features, num_docs, dim=0)
+            .reshape(batch_size, num_docs, state_dim)
+            .float()
+        )
+        return torch.cat((state_tiled, self.candidate_docs.float_features), dim=2)
+
 
 def _embed_states(x: FeatureData) -> FeatureData:
     """
