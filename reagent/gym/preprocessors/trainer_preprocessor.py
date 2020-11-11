@@ -424,8 +424,9 @@ REPLAY_BUFFER_MAKER_MAP = {
 
 
 class PolicyGradientInputMaker:
-    def __init__(self, num_actions: Optional[int] = None):
+    def __init__(self, num_actions: Optional[int] = None, recsim_obs: bool = False):
         self.num_actions = num_actions
+        self.recsim_obs = recsim_obs
 
     @classmethod
     def create_for_env(cls, env: gym.Env):
@@ -434,8 +435,32 @@ class PolicyGradientInputMaker:
             return cls(action_space.n)
         elif isinstance(action_space, gym.spaces.Box):
             return cls()
+        elif isinstance(action_space, gym.spaces.MultiDiscrete):
+            return cls(recsim_obs=True)
         else:
             raise NotImplementedError()
+
+    def _get_recsim_state(self, observation):
+        def _stack(slates):
+            obs = rlt.FeatureData(
+                float_features=torch.from_numpy(
+                    np.stack(np.array([slate["user"] for slate in slates]))
+                ),
+                candidate_docs=rlt.DocList(
+                    float_features=torch.from_numpy(
+                        np.stack(np.array([slate["doc"] for slate in slates]))
+                    )
+                ),
+            )
+            return obs
+
+        def _stack_slate(slate):
+            return {
+                "user": slate["user"],
+                "doc": np.stack(np.array(list(slate["doc"].values()))),
+            }
+
+        return _stack([_stack_slate(slate) for slate in observation])
 
     def __call__(self, trajectory: Trajectory):
         action = torch.from_numpy(np.stack(trajectory.action).squeeze())
@@ -443,10 +468,15 @@ class PolicyGradientInputMaker:
             action = F.one_hot(action, self.num_actions).float()
             assert len(action.shape) == 2, f"{action.shape}"
             # one hot makes shape (batch_size, num_actions)
-        return rlt.PolicyGradientInput(
-            state=rlt.FeatureData(
+        state = (
+            self._get_recsim_state(trajectory.observation)
+            if self.recsim_obs
+            else rlt.FeatureData(
                 torch.from_numpy(np.stack(trajectory.observation)).float()
-            ),
+            )
+        )
+        return rlt.PolicyGradientInput(
+            state=state,
             action=action,
             reward=torch.tensor(trajectory.reward),
             log_prob=torch.tensor(trajectory.log_prob),

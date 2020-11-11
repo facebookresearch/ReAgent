@@ -15,7 +15,7 @@ from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_episode import train_post_episode
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
 from reagent.gym.datasets.replay_buffer_dataset import ReplayBufferDataset
-from reagent.gym.envs import Env__Union
+from reagent.gym.envs import Env__Union, ToyVM
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.envs.gym import Gym
 from reagent.gym.policies.policy import Policy
@@ -136,6 +136,37 @@ class TestGym(HorizonTestBase):
             num_eval_episodes=100,
         )
 
+    def test_toyvm(self):
+        env = ToyVM(slate_size=5, initial_seed=42)
+        from reagent.models import MLPScorer
+
+        slate_scorer = MLPScorer(
+            input_dim=3, log_transform=True, layer_sizes=[64], concat=False
+        )
+
+        from reagent.samplers import FrechetSort
+
+        torch.manual_seed(42)
+        policy = Policy(slate_scorer, FrechetSort(log_scores=True, topk=5, equiv_len=5))
+        from reagent.training.reinforce import Reinforce, ReinforceParams
+        from reagent.optimizer.union import classes
+
+        trainer = Reinforce(
+            policy,
+            ReinforceParams(
+                gamma=0, optimizer=classes["Adam"](lr=1e-1, weight_decay=1e-3)
+            ),
+        )
+
+        run_test_episode_buffer(
+            env,
+            policy,
+            trainer,
+            num_train_episodes=500,
+            passing_score_bar=120,
+            num_eval_episodes=100,
+        )
+
 
 def train_policy(
     env: EnvWrapper,
@@ -185,7 +216,11 @@ def eval_policy(
     )
 
     eval_rewards = evaluate_for_n_episodes(
-        n=num_eval_episodes, env=env, agent=agent, max_steps=env.max_steps
+        n=num_eval_episodes,
+        env=env,
+        agent=agent,
+        max_steps=env.max_steps,
+        num_processes=1,
     ).squeeze(1)
 
     logger.info("============Eval rewards==============")

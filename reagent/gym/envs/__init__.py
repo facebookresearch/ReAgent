@@ -36,6 +36,7 @@ for env_name, rel_module_path in ENV_CLASSES:
 try:
     from .oracle_pvm import OraclePVM  # noqa
     from .recsim import RecSim  # noqa
+    from .toy_vm import ToyVM  # noqa
 
     HAS_RECSIM = True
 except ImportError:
@@ -50,6 +51,7 @@ __all__ = list(
             "ChangingArms",
             "RecSim" if HAS_RECSIM else None,
             "OraclePVM" if HAS_RECSIM else None,
+            "ToyVM" if HAS_RECSIM else None,
         ],
     )
 )
