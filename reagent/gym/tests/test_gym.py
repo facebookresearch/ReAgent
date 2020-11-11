@@ -118,8 +118,8 @@ class TestGym(HorizonTestBase):
 
         policy = Policy(scorer=cartpole_scorer, sampler=SoftmaxActionSampler())
 
-        from reagent.training.reinforce import Reinforce, ReinforceParams
         from reagent.optimizer.union import classes
+        from reagent.training.reinforce import Reinforce, ReinforceParams
 
         trainer = Reinforce(
             policy,

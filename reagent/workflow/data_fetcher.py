@@ -398,8 +398,8 @@ def infer_metrics_names(df, multi_steps: Optional[int]):
 
 
 def rand_string(length):
-    import string
     import random
+    import string
 
     """Generate a random string of fixed length """
     letters = string.ascii_lowercase
