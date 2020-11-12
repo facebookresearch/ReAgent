@@ -45,6 +45,7 @@ class DiscreteRandomPolicy(Policy):
         self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
     ) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
+        # pyre-fixme[35]: Target cannot be annotated.
         obs: torch.Tensor = obs.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
         assert obs.shape[0] == 1, f"obs has shape {obs.shape} (0th dim != 1)"
@@ -82,6 +83,7 @@ class MultiDiscreteRandomPolicy(Policy):
     def act(
         self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
     ) -> rlt.ActorOutput:
+        # pyre-fixme[35]: Target cannot be annotated.
         obs: torch.Tensor = obs.float_features
         batch_size, _ = obs.shape
 
@@ -130,6 +132,7 @@ class ContinuousRandomPolicy(Policy):
         self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
     ) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
+        # pyre-fixme[35]: Target cannot be annotated.
         obs: torch.Tensor = obs.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
         batch_size = obs.size(0)
