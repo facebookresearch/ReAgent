@@ -15,7 +15,6 @@ from reagent.model_utils.seq2slate_utils import Seq2SlateMode
 from reagent.models.seq2slate import Seq2SlateTransformerNet
 from reagent.torch_utils import masked_softmax
 
-
 if TYPE_CHECKING:
     from reagent.training import ParametricDQNTrainer
     from reagent.training.dqn_trainer import DQNTrainer
