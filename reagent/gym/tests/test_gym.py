@@ -148,8 +148,8 @@ class TestGym(HorizonTestBase):
 
         torch.manual_seed(42)
         policy = Policy(slate_scorer, FrechetSort(log_scores=True, topk=5, equiv_len=5))
-        from reagent.training.reinforce import Reinforce, ReinforceParams
         from reagent.optimizer.union import classes
+        from reagent.training.reinforce import Reinforce, ReinforceParams
 
         trainer = Reinforce(
             policy,
