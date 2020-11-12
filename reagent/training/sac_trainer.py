@@ -69,7 +69,6 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
         """
         super().__init__()
         self.rl_parameters = rl
-
         self.q1_network = q1_network
         self.q2_network = q2_network
         self.q_network_optimizer = q_network_optimizer

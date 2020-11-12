@@ -61,12 +61,11 @@ class TD3Trainer(RLTrainerMixin, ReAgentLightningModule):
                 to smooth q-value estimates
             delayed_policy_update (optional): the ratio of q network updates
                 to target and policy network updates
-            minibatches_per_step (optional): the number of minibatch updates
+            minibatches_per_step (optional, TODO: currently unused): the number of minibatch updates
                 per training step
         """
         super().__init__()
         self.rl_parameters = rl
-
         self.minibatch_size = minibatch_size
         self.minibatches_per_step = minibatches_per_step or 1
 

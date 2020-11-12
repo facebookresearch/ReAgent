@@ -80,8 +80,6 @@ class ReAgentLightningModule(pl.LightningModule):
 
     # pyre-fixme[14]: `training_step` overrides method defined in `LightningModule`
     #  inconsistently.
-    # pyre-fixme[14]: `training_step` overrides method defined in `LightningModule`
-    #  inconsistently.
     def training_step(self, batch, batch_idx: int, optimizer_idx: int):
         if self._training_step_generator is None:
             self._training_step_generator = self.train_step_gen(batch, batch_idx)

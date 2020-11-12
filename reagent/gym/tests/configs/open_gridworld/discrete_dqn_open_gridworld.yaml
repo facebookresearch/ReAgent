@@ -21,7 +21,6 @@ model:
         softmax_policy: true
         q_network_loss: mse
       double_q_learning: true
-      minibatch_size: 512
       minibatches_per_step: 1
       optimizer:
         Adam:
@@ -40,3 +39,4 @@ num_train_episodes: 125
 num_eval_episodes: 20
 passing_score_bar: 0.9
 use_gpu: false
+minibatch_size: 512
