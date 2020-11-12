@@ -37,6 +37,7 @@ def identify_and_train_network(
     publisher: Optional[ModelPublisher__Union] = None,
 ) -> RLTrainingOutput:
     if use_gpu is None:
+        # pyre-fixme[35]: Target cannot be annotated.
         use_gpu: bool = torch.cuda.is_available()
 
     manager = model.value
