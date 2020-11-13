@@ -34,8 +34,8 @@ for env_name, rel_module_path in ENV_CLASSES:
 
 
 try:
+    from .recsim import RecSim  # usort:skip # noqa
     from .oracle_pvm import OraclePVM  # noqa
-    from .recsim import RecSim  # noqa
     from .toy_vm import ToyVM  # noqa
 
     HAS_RECSIM = True
