@@ -97,8 +97,11 @@ class DQNTrainer(DQNTrainerBaseLightning):
             reward_network, q_network_cpe, q_network_cpe_target, optimizer=optimizer
         )
 
-        # pyre-fixme[6]: Expected `Sized` for 1st param but got `Optional[List[str]]`.
-        self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
+        self.reward_boosts = torch.nn.Parameter(
+            # pyre-fixme[6]: Expected `Sized` for 1st param but got `Optional[List[str]]`.
+            torch.zeros([1, len(self._actions)]),
+            requires_grad=False,
+        )
         if rl.reward_boost is not None:
             # pyre-fixme[16]: `Optional` has no attribute `keys`.
             for k in rl.reward_boost.keys():
@@ -154,7 +157,6 @@ class DQNTrainer(DQNTrainerBaseLightning):
     def train_step_gen(self, training_batch: rlt.DiscreteDqnInput, batch_idx: int):
         # TODO: calls to _maybe_run_optimizer removed, should be replaced with Trainer parameter
         assert isinstance(training_batch, rlt.DiscreteDqnInput)
-
         boosted_rewards = self.boost_rewards(
             training_batch.reward, training_batch.action
         )
