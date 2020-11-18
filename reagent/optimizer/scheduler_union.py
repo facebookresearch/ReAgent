@@ -6,6 +6,7 @@ from typing import List
 import reagent.optimizer.uninferrable_schedulers as cannot_be_inferred
 import torch
 from reagent.core.configuration import make_config_class, param_hash
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.tagged_union import TaggedUnion
 
 from .scheduler import LearningRateSchedulerConfig
@@ -14,6 +15,13 @@ from .utils import is_torch_lr_scheduler
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+
+cannot_be_inferred_modules = [cannot_be_inferred]
+if IS_FB_ENVIRONMENT:
+    import reagent.optimizer.fb.uninferrable_schedulers as fb_cannot_be_inferred
+
+    cannot_be_inferred_modules.append(fb_cannot_be_inferred)
 
 
 def get_torch_lr_schedulers() -> List[str]:
@@ -27,9 +35,15 @@ def get_torch_lr_schedulers() -> List[str]:
 
 classes = {}
 for name in get_torch_lr_schedulers():
-    if hasattr(cannot_be_inferred, name):
+    cannot_be_inferred_module = None
+    for module in cannot_be_inferred_modules:
+        if hasattr(module, name):
+            cannot_be_inferred_module = module
+            break
+
+    if cannot_be_inferred_module is not None:
         # these were manually filled in.
-        subclass = getattr(cannot_be_inferred, name)
+        subclass = getattr(cannot_be_inferred_module, name)
     else:
         torch_lr_scheduler_class = getattr(torch.optim.lr_scheduler, name)
         subclass = type(
