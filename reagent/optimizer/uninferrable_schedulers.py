@@ -20,20 +20,6 @@ from .scheduler import LearningRateSchedulerConfig
 
 
 @dataclass(frozen=True)
-class LambdaLR(LearningRateSchedulerConfig):
-    # lr_lambda is Callable, FBL doesn't support
-    # TODO(T67530507) Add function factory (FBL doesn't allow callables)
-    pass
-
-
-@dataclass(frozen=True)
-class MultiplicativeLR(LearningRateSchedulerConfig):
-    # lr_lambda is Callable, FBL doesn't support
-    # TODO(T67530507) Add function factory (FBL doesn't allow callables)
-    pass
-
-
-@dataclass(frozen=True)
 class StepLR(LearningRateSchedulerConfig):
     step_size: int
     gamma: float = 0.1
@@ -58,25 +44,6 @@ class CosineAnnealingLR(LearningRateSchedulerConfig):
     T_max: int
     eta_min: float = 0
     last_epoch: int = -1
-
-
-@dataclass(frozen=True)
-class CyclicLR(LearningRateSchedulerConfig):
-    # scale_fn is Callable, which FBL doesn't support.
-    # TODO(T67530507) Add function factory (FBL doesn't allow callables)
-    pass
-    # base_lr: Union[float, List[float]]
-    # max_lr: Union[float, List[float]]
-    # step_size_up: int = 2000
-    # step_size_down: Optional[int] = None
-    # mode: str = "triangular"
-    # gamma: float = 1.0
-    # scale_fn: Optional[Callable[[int], float]] = None
-    # scale_mode: str = "cycle"
-    # cycle_momentum: bool = True
-    # base_momentum: float = 0.8
-    # max_momentum: float = 0.9
-    # last_epoch: int = -1
 
 
 @dataclass(frozen=True)
