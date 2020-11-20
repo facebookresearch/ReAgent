@@ -15,6 +15,7 @@ from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
+from reagent.workflow.reporters.slate_q_reporter import SlateQReporter
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
@@ -139,6 +140,9 @@ class SlateQBase(ModelManager):
         reward_options: RewardOptions,
     ) -> Dataset:
         raise NotImplementedError("Write for OSS")
+
+    def get_reporter(self):
+        return SlateQReporter()
 
     def train(
         self,

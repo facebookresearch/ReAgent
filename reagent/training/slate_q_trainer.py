@@ -2,26 +2,25 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List, Optional
+from typing import Optional
 
 import reagent.parameters as rlp
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.dataclasses import field
-from reagent.optimizer.union import Optimizer__Union
-from reagent.training.dqn_trainer_base import DQNTrainerBase
-
+from reagent.optimizer import Optimizer__Union, SoftUpdate
+from reagent.training.reagent_lightning_module import ReAgentLightningModule
+from reagent.training.rl_trainer_pytorch import RLTrainerMixin
 
 logger = logging.getLogger(__name__)
 
 
-class SlateQTrainer(DQNTrainerBase):
+class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
     def __init__(
         self,
         q_network,
         q_network_target,
-        use_gpu: bool = False,
         # Start SlateQTrainerParameters
         rl: rlp.RLParameters = field(  # noqa: B008
             default_factory=lambda: rlp.RLParameters(maxq_learning=False)
@@ -35,18 +34,38 @@ class SlateQTrainer(DQNTrainerBase):
             default_factory=lambda: rlp.EvaluationParameters(calc_cpe_in_training=False)
         ),
     ) -> None:
-        super().__init__(rl, use_gpu=use_gpu)
-        self.minibatches_per_step = 1
-        self.minibatch_size = minibatch_size
+        """
+        Args:
+            q_network: states, action -> q-value
+            rl (optional): an instance of the RLParameter class, which
+                defines relevant hyperparameters
+            optimizer (optional): the optimizer class and
+                optimizer hyperparameters for the q network(s) optimizer
+            single_selection (optional): TBD
+            minibatch_size (optional): the size of the minibatch
+            evaluation (optional): TBD
+        """
+        super().__init__()
+        self.rl_parameters = rl
+
         self.single_selection = single_selection
 
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self.q_network_optimizer = optimizer.make_optimizer(self.q_network.parameters())
+        self.q_network_optimizer = optimizer
 
-    def warm_start_components(self) -> List[str]:
-        components = ["q_network", "q_network_target", "q_network_optimizer"]
-        return components
+    def configure_optimizers(self):
+        optimizers = []
+
+        optimizers.append(
+            self.q_network_optimizer.make_optimizer(self.q_network.parameters())
+        )
+
+        target_params = list(self.q_network_target.parameters())
+        source_params = list(self.q_network.parameters())
+        optimizers.append(SoftUpdate(target_params, source_params, tau=self.tau))
+
+        return optimizers
 
     def _action_docs(
         self,
@@ -74,21 +93,17 @@ class SlateQTrainer(DQNTrainerBase):
             state.repeat_interleave(slate_size, dim=0), slate.as_feature_data()
         ).view(batch_size, slate_size)
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
-    @torch.no_grad()
-    def train(self, training_batch: rlt.SlateQInput):
+    def train_step_gen(self, training_batch: rlt.SlateQInput, batch_idx: int):
         assert isinstance(
             training_batch, rlt.SlateQInput
         ), f"learning input is a {type(training_batch)}"
-        self.minibatch += 1
 
         reward = training_batch.reward
         reward_mask = training_batch.reward_mask
 
         discount_tensor = torch.full_like(reward, self.gamma)
 
-        if self.maxq_learning:
+        if self.rl_parameters.maxq_learning:
             raise NotImplementedError("Q-Learning for SlateQ is not implemented")
         else:
             # SARSA (Use the target network)
@@ -105,7 +120,9 @@ class SlateQTrainer(DQNTrainerBase):
                 value = F.softmax(value, dim=1)
             next_q_values = torch.sum(
                 self._get_unmasked_q_values(
-                    self.q_network_target, training_batch.next_state, next_action_docs
+                    self.q_network_target,
+                    training_batch.next_state,
+                    next_action_docs,
                 )
                 * value,
                 dim=1,
@@ -123,31 +140,29 @@ class SlateQTrainer(DQNTrainerBase):
         if self.single_selection:
             target_q_values = target_q_values[reward_mask]
 
-        with torch.enable_grad():
-            # Get Q-value of action taken
-            action_docs = self._action_docs(training_batch.state, training_batch.action)
-            q_values = self._get_unmasked_q_values(
-                self.q_network, training_batch.state, action_docs
-            )
-            if self.single_selection:
-                q_values = q_values[reward_mask]
-            all_action_scores = q_values.detach()
-
-            value_loss = self.q_network_loss(q_values, target_q_values)
-            td_loss = value_loss.detach()
-            value_loss.backward()
-            self._maybe_run_optimizer(
-                self.q_network_optimizer, self.minibatches_per_step
-            )
-
-        # Use the soft update rule to update target network
-        self._maybe_soft_update(
-            self.q_network, self.q_network_target, self.tau, self.minibatches_per_step
+        # Get Q-value of action taken
+        action_docs = self._action_docs(training_batch.state, training_batch.action)
+        q_values = self._get_unmasked_q_values(
+            self.q_network, training_batch.state, action_docs
         )
+        if self.single_selection:
+            q_values = q_values[reward_mask]
+
+        all_action_scores = q_values.detach()
+
+        value_loss = F.mse_loss(q_values, target_q_values)
+        yield value_loss
 
         if not self.single_selection:
             all_action_scores = all_action_scores.sum(dim=1, keepdim=True)
 
-        self.loss_reporter.report(
-            td_loss=td_loss, model_values_on_logged_actions=all_action_scores
+        # Logging at the end to schedule all the cuda operations first
+        self.reporter.log(
+            td_loss=value_loss,
+            model_values_on_logged_actions=all_action_scores,
         )
+
+        # Use the soft update rule to update the target networks
+        result = self.soft_update_result()
+        self.log("td_loss", value_loss, prog_bar=True)
+        yield result
