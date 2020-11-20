@@ -9,7 +9,6 @@ model:
     slate_feature_id: 1  # filler
     slate_score_id: [42, 42]  # filler
     trainer_param:
-      minibatch_size: 128
       optimizer:
         Adam:
           lr: 0.001
@@ -28,3 +27,4 @@ num_train_episodes: 200
 num_eval_episodes: 20
 passing_score_bar: 154.0
 use_gpu: false
+minibatch_size: 128

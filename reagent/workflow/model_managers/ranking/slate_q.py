@@ -27,7 +27,6 @@ class SlateQ(SlateQBase):
     )
     net_builder: ParametricDQNNetBuilder__Union = field(
         # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
-        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         default_factory=lambda: ParametricDQNNetBuilder__Union(
             FullyConnected=FullyConnected()
         )
@@ -44,9 +43,10 @@ class SlateQ(SlateQBase):
         self._q_network: Optional[ModelBase] = None
         self.eval_parameters = self.trainer_param.evaluation
 
+    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
+    #  inconsistently.
     def build_trainer(self) -> SlateQTrainer:
         net_builder = self.net_builder.value
-        # pyre-fixme[16]: `SlateQ` has no attribute `_q_network`.
         # pyre-fixme[16]: `SlateQ` has no attribute `_q_network`.
         self._q_network = net_builder.build_q_network(
             self.state_normalization_data, self.item_normalization_data
@@ -58,8 +58,6 @@ class SlateQ(SlateQBase):
         return SlateQTrainer(
             q_network=self._q_network,
             q_network_target=q_network_target,
-            use_gpu=self.use_gpu,
-            # pyre-fixme[16]: `SlateQTrainerParameters` has no attribute `asdict`.
             # pyre-fixme[16]: `SlateQTrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),
         )
