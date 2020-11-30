@@ -10,21 +10,19 @@ import torch
 import torch.nn.functional as F
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
-from reagent.optimizer.union import Optimizer__Union
-from reagent.training.dqn_trainer_base import DQNTrainerBase
-
+from reagent.optimizer import Optimizer__Union, SoftUpdate
+from reagent.training.dqn_trainer_base import DQNTrainerBaseLightning
 
 logger = logging.getLogger(__name__)
 
 
-class ParametricDQNTrainer(DQNTrainerBase):
+class ParametricDQNTrainer(DQNTrainerBaseLightning):
     @resolve_defaults
     def __init__(
         self,
         q_network,
         q_network_target,
         reward_network,
-        use_gpu: bool = False,
         # Start ParametricDQNTrainerParameters
         rl: rlp.RLParameters = field(default_factory=rlp.RLParameters),  # noqa: B008
         double_q_learning: bool = True,
@@ -34,7 +32,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
             default_factory=Optimizer__Union.default
         ),
     ) -> None:
-        super().__init__(rl, use_gpu=use_gpu)
+        super().__init__(rl)
 
         self.double_q_learning = double_q_learning
         self.minibatch_size = minibatch_size
@@ -42,21 +40,21 @@ class ParametricDQNTrainer(DQNTrainerBase):
 
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self.q_network_optimizer = optimizer.make_optimizer(self.q_network.parameters())
-
         self.reward_network = reward_network
-        self.reward_network_optimizer = optimizer.make_optimizer(
-            self.reward_network.parameters()
-        )
+        self.optimizer = optimizer
 
-    def warm_start_components(self):
-        return [
-            "q_network",
-            "q_network_target",
-            "q_network_optimizer",
-            "reward_network",
-            "reward_network_optimizer",
-        ]
+    def configure_optimizers(self):
+        optimizers = []
+        optimizers.append(self.optimizer.make_optimizer(self.q_network.parameters()))
+        optimizers.append(
+            self.optimizer.make_optimizer(self.reward_network.parameters())
+        )
+        # soft-update
+        target_params = list(self.q_network_target.parameters())
+        source_params = list(self.q_network.parameters())
+        optimizers.append(SoftUpdate(target_params, source_params, tau=self.tau))
+
+        return optimizers
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
@@ -67,11 +65,7 @@ class ParametricDQNTrainer(DQNTrainerBase):
         q_values_target = self.q_network_target(state, action)
         return q_values, q_values_target
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
-    @torch.no_grad()
-    def train(self, training_batch: rlt.ParametricDqnInput) -> None:
-        self.minibatch += 1
+    def train_step_gen(self, training_batch: rlt.ParametricDqnInput, batch_idx: int):
         reward = training_batch.reward
         not_terminal = training_batch.not_terminal.float()
         discount_tensor = torch.full_like(reward, self.gamma)
@@ -122,48 +116,38 @@ class ParametricDQNTrainer(DQNTrainerBase):
             target_q_values.shape[-1] == 1
         ), f"{target_q_values.shape} doesn't end with 1"
 
-        with torch.enable_grad():
-            # Get Q-value of action taken
-            q_values = self.q_network(training_batch.state, training_batch.action)
-            assert (
-                target_q_values.shape == q_values.shape
-            ), f"{target_q_values.shape} != {q_values.shape}."
-            td_loss = self.q_network_loss(q_values, target_q_values)
-            td_loss.backward()
-            self._maybe_run_optimizer(
-                self.q_network_optimizer, self.minibatches_per_step
-            )
+        # Get Q-value of action taken
+        q_values = self.q_network(training_batch.state, training_batch.action)
+        assert (
+            target_q_values.shape == q_values.shape
+        ), f"{target_q_values.shape} != {q_values.shape}."
+        td_loss = self.q_network_loss(q_values, target_q_values)
+        yield td_loss
 
-        # Use the soft update rule to update target network
-        self._maybe_soft_update(
-            self.q_network, self.q_network_target, self.tau, self.minibatches_per_step
+        # pyre-fixme[16]: Optional type has no attribute `metrics`.
+        if training_batch.extras.metrics is not None:
+            metrics_reward_concat_real_vals = torch.cat(
+                (reward, training_batch.extras.metrics), dim=1
+            )
+        else:
+            metrics_reward_concat_real_vals = reward
+
+        # get reward estimates
+        reward_estimates = self.reward_network(
+            training_batch.state, training_batch.action
         )
+        reward_loss = F.mse_loss(
+            reward_estimates.squeeze(-1),
+            metrics_reward_concat_real_vals.squeeze(-1),
+        )
+        yield reward_loss
 
-        with torch.enable_grad():
-            # pyre-fixme[16]: Optional type has no attribute `metrics`.
-            if training_batch.extras.metrics is not None:
-                metrics_reward_concat_real_vals = torch.cat(
-                    (reward, training_batch.extras.metrics), dim=1
-                )
-            else:
-                metrics_reward_concat_real_vals = reward
-
-            # get reward estimates
-            reward_estimates = self.reward_network(
-                training_batch.state, training_batch.action
-            )
-            reward_loss = F.mse_loss(
-                reward_estimates.squeeze(-1),
-                metrics_reward_concat_real_vals.squeeze(-1),
-            )
-            reward_loss.backward()
-            self._maybe_run_optimizer(
-                self.reward_network_optimizer, self.minibatches_per_step
-            )
-
-        self.loss_reporter.report(
+        self.reporter.log(
             td_loss=td_loss.detach().cpu(),
             reward_loss=reward_loss.detach().cpu(),
             logged_rewards=reward,
             model_values_on_logged_actions=q_values.detach().cpu(),
         )
+
+        # Use the soft update rule to update target network
+        yield self.soft_update_result()

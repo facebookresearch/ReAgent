@@ -152,9 +152,7 @@ class ParametricDQNBase(ModelManager):
         assert self.reward_options is not None
         if self._metrics_to_score is None:
             # pyre-fixme[16]: `ParametricDQNBase` has no attribute `_metrics_to_score`.
-            # pyre-fixme[16]: `ParametricDQNBase` has no attribute `_metrics_to_score`.
             self._metrics_to_score = get_metrics_to_score(
-                # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
                 # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
                 self._reward_options.metric_reward_values
             )
