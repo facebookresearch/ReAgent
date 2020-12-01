@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, List, Optional
 
 import numpy as np
 import reagent.types as rlt
@@ -260,26 +260,36 @@ class FixedLengthSequences:
         self,
         keys: List[str],
         sequence_id: int,
-        expected_length: int,
+        expected_length: Optional[int] = None,
         *,
         to_keys: Optional[List[str]] = None,
     ):
         self.keys = keys
         self.sequence_id = sequence_id
         self.to_keys = to_keys or keys
+        assert len(self.to_keys) == len(keys)
         self.expected_length = expected_length
 
     def __call__(self, data):
-        for i, key in enumerate(self.keys):
+        for key, to_key in zip(self.keys, self.to_keys):
             offsets, value = data[key][self.sequence_id]
+            expected_length = self.expected_length
+            if expected_length is None:
+                if len(offsets) > 1:
+                    # If batch size is larger than 1, just use the offsets
+                    expected_length = (offsets[1] - offsets[0]).item()
+                else:
+                    # If batch size is 1
+                    expected_length = value[0].shape[0]
+                self.expected_length = expected_length
             expected_offsets = torch.arange(
-                0, offsets.shape[0] * self.expected_length, self.expected_length
+                0, offsets.shape[0] * expected_length, expected_length
             )
             assert all(
                 expected_offsets == offsets
             ), f"Unexpected offsets for {key} {self.sequence_id}: {offsets}"
 
-            data[self.to_keys[i]] = value
+            data[to_key] = value
         return data
 
 
@@ -302,3 +312,29 @@ class SlateView:
             data[k] = value.view(-1, self.slate_size, dim)
 
         return data
+
+
+class FixedLengthSequenceDenseNormalization:
+    def __init__(
+        self,
+        keys: List[str],
+        sequence_id: int,
+        normalization_data: NormalizationData,
+        expected_length: Optional[int] = None,
+        device: Optional[torch.device] = None,
+    ):
+        to_keys = [f"{k}:{sequence_id}" for k in keys]
+        self.fixed_length_sequences = FixedLengthSequences(
+            keys, sequence_id, to_keys=to_keys, expected_length=expected_length
+        )
+        self.dense_normalization = DenseNormalization(
+            to_keys, normalization_data, device=device
+        )
+        # We will override this in __call__()
+        self.slate_view = SlateView(to_keys, slate_size=-1)
+
+    def __call__(self, data):
+        data = self.fixed_length_sequences(data)
+        data = self.dense_normalization(data)
+        self.slate_view.slate_size = self.fixed_length_sequences.expected_length
+        return self.slate_view(data)
