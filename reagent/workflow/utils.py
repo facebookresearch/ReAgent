@@ -111,7 +111,7 @@ def gather_eval_data(
 
 
 def train_and_evaluate_generic(
-    train_dataset: Dataset,
+    train_dataset: Optional[Dataset],
     eval_dataset: Optional[Dataset],
     trainer: RLTrainer,
     num_epochs: int,
@@ -121,6 +121,9 @@ def train_and_evaluate_generic(
     evaluator: Evaluator,
     reader_options: Optional[ReaderOptions] = None,
 ) -> None:
+    assert (
+        train_dataset is not None
+    ), "train_dataset should not be None; the type signature is only to aid code migration"
     reader_options = reader_options or ReaderOptions()
     epoch_iterator = EpochIterator(num_epochs=num_epochs)
     train_dataset_size = get_table_row_count(train_dataset.parquet_url)
@@ -191,6 +194,7 @@ def train_eval_lightning(
     train_dataset,
     eval_dataset,
     trainer_module,
+    data_module,
     num_epochs,
     use_gpu,
     batch_preprocessor=None,
@@ -198,7 +202,7 @@ def train_eval_lightning(
     checkpoint_path: Optional[str] = None,
 ) -> pl.Trainer:
     reader_options = reader_options or ReaderOptions()
-    datamodule = PetastormLightningDataModule(
+    datamodule = data_module or PetastormLightningDataModule(
         train_dataset, eval_dataset, batch_preprocessor, reader_options
     )
     # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.

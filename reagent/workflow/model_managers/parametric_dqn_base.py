@@ -18,6 +18,7 @@ from reagent.preprocessing.normalization import (
     get_num_output_features,
 )
 from reagent.preprocessing.types import InputColumn
+from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.types import (
@@ -163,8 +164,9 @@ class ParametricDQNBase(ModelManager):
 
     def train(
         self,
-        train_dataset: Dataset,
+        train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
+        data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
     ) -> RLTrainingOutput:

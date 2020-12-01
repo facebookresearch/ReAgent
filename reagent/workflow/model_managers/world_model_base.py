@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import logging
 from typing import Dict, List, Optional, Tuple
 
@@ -7,6 +6,7 @@ from reagent.core.dataclasses import dataclass
 from reagent.gym.policies.policy import Policy
 from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
+from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.types import (
     Dataset,
@@ -59,8 +59,9 @@ class WorldModelBase(ModelManager):
 
     def train(
         self,
-        train_dataset: Dataset,
+        train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
+        data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
     ) -> RLTrainingOutput:

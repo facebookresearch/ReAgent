@@ -8,7 +8,7 @@ import numpy as np
 import reagent.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.evaluation.evaluator import Evaluator, get_metrics_to_score
+from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.models.base import ModelBase
@@ -20,6 +20,7 @@ from reagent.preprocessing.batch_preprocessor import (
 )
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
+from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
@@ -130,10 +131,7 @@ class ActorCriticBase(ModelManager):
         assert len(self.action_float_features) > 0, "You must set action_float_features"
         return get_feature_config(self.action_float_features)
 
-    def run_feature_identification(
-        self, input_table_spec: TableSpec
-    ) -> Dict[str, NormalizationData]:
-        # Run state feature identification
+    def get_state_preprocessing_options(self) -> PreprocessingOptions:
         state_preprocessing_options = (
             self._state_preprocessing_options or PreprocessingOptions()
         )
@@ -144,12 +142,9 @@ class ActorCriticBase(ModelManager):
         state_preprocessing_options = state_preprocessing_options._replace(
             whitelist_features=state_features
         )
+        return state_preprocessing_options
 
-        state_normalization_parameters = identify_normalization_parameters(
-            input_table_spec, InputColumn.STATE_FEATURES, state_preprocessing_options
-        )
-
-        # Run action feature identification
+    def get_action_preprocessing_options(self) -> PreprocessingOptions:
         action_preprocessing_options = (
             self._action_preprocessing_options or PreprocessingOptions()
         )
@@ -169,8 +164,23 @@ class ActorCriticBase(ModelManager):
             whitelist_features=action_features,
             feature_overrides={fid: action_feature_override for fid in action_features},
         )
+        return action_preprocessing_options
+
+    def run_feature_identification(
+        self, input_table_spec: TableSpec
+    ) -> Dict[str, NormalizationData]:
+        # Run state feature identification
+        state_normalization_parameters = identify_normalization_parameters(
+            input_table_spec,
+            InputColumn.STATE_FEATURES,
+            self.get_state_preprocessing_options(),
+        )
+
+        # Run action feature identification
         action_normalization_parameters = identify_normalization_parameters(
-            input_table_spec, InputColumn.ACTION, action_preprocessing_options
+            input_table_spec,
+            InputColumn.ACTION,
+            self.get_action_preprocessing_options(),
         )
 
         return {
@@ -222,11 +232,13 @@ class ActorCriticBase(ModelManager):
     # TODO: deprecate, once we deprecate internal page handlers
     def train(
         self,
-        train_dataset: Dataset,
+        train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
+        data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
     ) -> RLTrainingOutput:
+
         batch_preprocessor = self.build_batch_preprocessor()
         reporter = self.get_reporter()
         # pyre-fixme[16]: `Trainer` has no attribute `set_reporter`.
@@ -239,6 +251,7 @@ class ActorCriticBase(ModelManager):
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
             trainer_module=self.trainer,
+            data_module=data_module,
             num_epochs=num_epochs,
             use_gpu=self.use_gpu,
             batch_preprocessor=batch_preprocessor,
