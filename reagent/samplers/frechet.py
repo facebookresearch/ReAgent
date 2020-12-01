@@ -74,7 +74,7 @@ class FrechetSort(Sampler):
         number of items and it can be difficult to enumerate them."""
         assert scores.dim() == 2, "sample_action only accepts batches"
         log_scores = scores if self.log_scores else torch.log(scores)
-        perturbed = log_scores + self.gumbel_noise.sample((scores.shape[1],))
+        perturbed = log_scores + self.gumbel_noise.sample(scores.shape)
         action = torch.argsort(perturbed.detach(), descending=True)
         if self.topk is not None:
             action = action[: self.topk]
@@ -86,9 +86,9 @@ class FrechetSort(Sampler):
         list of permutations only considering the top `equiv_len` ranks?"""
         log_scores = scores if self.log_scores else torch.log(scores)
         s = self.select_indices(log_scores, action)
-        n = len(log_scores)
+        n = log_scores.shape[-1]
         p = self.upto if self.upto is not None else n
         return -sum(
             torch.log(torch.exp((s[k:] - s[k]) * self.shape).sum(dim=0))
-            for k in range(p)  # pyre-ignore
+            for k in range(p)
         )
