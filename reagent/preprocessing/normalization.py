@@ -261,6 +261,9 @@ def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
     feature_override = None
     if norm_params["feature_overrides"] is not None:
         feature_override = norm_params["feature_overrides"].get(feature_name, None)
+    feature_override = feature_override or norm_params.get(
+        "default_feature_override", None
+    )
 
     feature_values = np.array(feature_value_list, dtype=np.float32)
     assert not (np.any(np.isinf(feature_values))), "Feature values contain infinity"
