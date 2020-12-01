@@ -19,6 +19,7 @@ from reagent.preprocessing.batch_preprocessor import (
 )
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.preprocessing.types import InputColumn
+from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
@@ -151,8 +152,9 @@ class DiscreteDQNBase(ModelManager):
 
     def train(
         self,
-        train_dataset: Dataset,
+        train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
+        data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
     ) -> RLTrainingOutput:
@@ -172,6 +174,7 @@ class DiscreteDQNBase(ModelManager):
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
             trainer_module=self.trainer,
+            data_module=None,
             num_epochs=num_epochs,
             use_gpu=self.use_gpu,
             batch_preprocessor=batch_preprocessor,

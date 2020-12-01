@@ -13,6 +13,7 @@ from reagent.core.registry_meta import RegistryMeta
 from reagent.parameters import NormalizationData
 from reagent.tensorboardX import summary_writer_context
 from reagent.training import ReAgentLightningModule, Trainer
+from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.types import (
     Dataset,
     ModuleNameToEntityId,
@@ -76,6 +77,18 @@ class ModelManager(metaclass=RegistryMeta):
     def reward_options(self, reward_options: RewardOptions):
         assert self._reward_options is None
         self._reward_options = reward_options
+
+    def get_data_module(
+        self,
+        *,
+        input_table_spec: Optional[TableSpec] = None,
+        reward_options: Optional[RewardOptions] = None,
+        setup_data: Optional[Dict[str, bytes]] = None,
+        reader_options: Optional[ReaderOptions] = None,
+    ) -> Optional[ReAgentDataModule]:
+        # Return the data module. If this is not None, then `run_feature_identification` &
+        # `query_data` will not be run.
+        return None
 
     @abc.abstractmethod
     def run_feature_identification(
@@ -193,13 +206,15 @@ class ModelManager(metaclass=RegistryMeta):
 
     def train_workflow(
         self,
-        train_dataset: Dataset,
+        train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
-        normalization_data_map: Dict[str, NormalizationData],
+        *,
         num_epochs: int,
         use_gpu: bool,
         named_model_ids: ModuleNameToEntityId,
         child_workflow_id: int,
+        setup_data: Optional[Dict[str, bytes]] = None,
+        normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
         reward_options: Optional[RewardOptions] = None,
         reader_options: Optional[ReaderOptions] = None,
         resource_options: Optional[ResourceOptions] = None,
@@ -207,6 +222,21 @@ class ModelManager(metaclass=RegistryMeta):
     ) -> RLTrainingOutput:
         writer = SummaryWriter()
         logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
+
+        if setup_data is not None:
+            data_module = self.get_data_module(
+                setup_data=setup_data, reader_options=reader_options
+            )
+            assert data_module is not None
+            data_module.setup()
+        else:
+            data_module = None
+
+        if normalization_data_map is None:
+            assert data_module is not None
+            normalization_data_map = data_module.get_normalization_data_map(
+                self.required_normalization_keys
+            )
 
         warmstart_input_path = warmstart_path or None
         self.initialize_trainer(
@@ -225,7 +255,7 @@ class ModelManager(metaclass=RegistryMeta):
 
         with summary_writer_context(writer):
             train_output = self.train(
-                train_dataset, eval_dataset, num_epochs, reader_options
+                train_dataset, eval_dataset, data_module, num_epochs, reader_options
             )
 
         output_paths = {}
@@ -241,8 +271,9 @@ class ModelManager(metaclass=RegistryMeta):
     @abc.abstractmethod
     def train(
         self,
-        train_dataset: Dataset,
+        train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
+        data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
     ) -> RLTrainingOutput:

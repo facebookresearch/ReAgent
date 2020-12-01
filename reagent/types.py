@@ -641,8 +641,8 @@ class BaseInput(TensorDataClass):
             "not_terminal": self.not_terminal,
         }
 
-    @classmethod
-    def from_dict(cls, batch):
+    @staticmethod
+    def from_dict(batch):
         id_list_features = batch.get(InputColumn.STATE_ID_LIST_FEATURES, None) or {}
         id_score_list_features = (
             batch.get(InputColumn.STATE_ID_SCORE_LIST_FEATURES, None) or {}
@@ -692,7 +692,7 @@ class BaseInput(TensorDataClass):
             ),
             reward=batch[InputColumn.REWARD],
             time_diff=batch[InputColumn.TIME_DIFF],
-            step=batch[InputColumn.STEP],
+            step=batch.get(InputColumn.STEP, None),
             not_terminal=batch[InputColumn.NOT_TERMINAL],
         )
 
@@ -823,10 +823,12 @@ class PolicyNetworkInput(BaseInput):
     @classmethod
     def from_dict(cls, batch):
         base = super().from_dict(batch)
+        # TODO: Implement ExtraData.from_dict
+        extras = batch.get("extras", None)
         return cls(
             action=FeatureData(float_features=batch["action"]),
             next_action=FeatureData(float_features=batch["next_action"]),
-            extras=batch["extras"],
+            extras=extras,
             **base.as_dict_shallow(),
         )
 
