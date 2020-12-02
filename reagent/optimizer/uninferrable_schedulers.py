@@ -24,6 +24,7 @@ class StepLR(LearningRateSchedulerConfig):
     step_size: int
     gamma: float = 0.1
     last_epoch: int = -1
+    verbose: bool = False
 
 
 @dataclass(frozen=True)
@@ -31,12 +32,14 @@ class MultiStepLR(LearningRateSchedulerConfig):
     milestones: List[int]
     gamma: float = 0.1
     last_epoch: int = -1
+    verbose: bool = False
 
 
 @dataclass(frozen=True)
 class ExponentialLR(LearningRateSchedulerConfig):
     gamma: float
     last_epoch: int = -1
+    verbose: bool = False
 
 
 @dataclass(frozen=True)
@@ -44,6 +47,7 @@ class CosineAnnealingLR(LearningRateSchedulerConfig):
     T_max: int
     eta_min: float = 0
     last_epoch: int = -1
+    verbose: bool = False
 
 
 @dataclass(frozen=True)
@@ -60,6 +64,8 @@ class OneCycleLR(LearningRateSchedulerConfig):
     div_factor: float = 25.0
     final_div_factor: float = 10000.0
     last_epoch: int = -1
+    three_phase: bool = False
+    verbose: bool = False
 
 
 @dataclass(frozen=True)
@@ -68,3 +74,4 @@ class CosineAnnealingWarmRestarts(LearningRateSchedulerConfig):
     T_mult: int = 1
     eta_min: float = 0
     last_epoch: int = -1
+    verbose: bool = False
