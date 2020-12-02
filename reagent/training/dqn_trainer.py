@@ -8,7 +8,6 @@ import reagent.types as rlt
 import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.tracker import observable
 from reagent.optimizer import Optimizer__Union, SoftUpdate
 from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBaseLightning
@@ -24,17 +23,6 @@ class BCQConfig:
     drop_threshold: float = 0.1
 
 
-@observable(
-    td_loss=torch.Tensor,
-    reward_loss=torch.Tensor,
-    logged_actions=torch.Tensor,
-    logged_propensities=torch.Tensor,
-    logged_rewards=torch.Tensor,
-    model_propensities=torch.Tensor,
-    model_rewards=torch.Tensor,
-    model_values=torch.Tensor,
-    model_action_idxs=torch.Tensor,
-)
 class DQNTrainer(DQNTrainerBaseLightning):
     @resolve_defaults
     def __init__(
