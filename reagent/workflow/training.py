@@ -140,6 +140,17 @@ def query_and_train(
     resource_options = resource_options or ResourceOptions()
     manager = model.value
 
+    if setup_data is None:
+        data_module = manager.get_data_module(
+            input_table_spec=input_table_spec,
+            reward_options=reward_options,
+            reader_options=reader_options,
+        )
+        if data_module is not None:
+            setup_data = data_module.prepare_data()
+            # Throw away existing normalization data map
+            normalization_data_map = None
+
     if sum([int(setup_data is not None), int(normalization_data_map is not None)]) != 1:
         raise ValueError("setup_data and normalization_data_map are mutually exclusive")
 
