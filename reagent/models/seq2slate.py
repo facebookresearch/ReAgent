@@ -8,6 +8,7 @@ from typing import Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.nn.modules.transformer as transformer
 from reagent import types as rlt
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass
@@ -196,6 +197,31 @@ class DecoderLayer(nn.Module):
         return self.sublayer[2](x, self.feed_forward)
 
 
+class DecoderPyTorch(transformer.TransformerDecoder):
+    """ Transformer-based decoder based on PyTorch official implementation """
+
+    def __init__(self, dim_model, num_heads, dim_feedforward, num_layers):
+        decoder_layer = transformer.TransformerDecoderLayer(
+            d_model=dim_model,
+            nhead=num_heads,
+            dim_feedforward=dim_feedforward,
+            dropout=0,
+        )
+        super(DecoderPyTorch, self).__init__(decoder_layer, num_layers)
+        self.num_heads = num_heads
+
+    def forward(self, tgt, memory, tgt_src_mask, tgt_tgt_mask):
+        tgt = tgt.transpose(0, 1)
+        memory = memory.transpose(0, 1)
+        # Pytorch assumes:
+        # (1) mask is bool
+        # (2) True -> item should be ignored in attention
+        tgt_mask = tgt_tgt_mask[0, :, :] == 0
+        memory_mask = tgt_src_mask[0, :, :] == 0
+        output = super(DecoderPyTorch, self).forward(tgt, memory, tgt_mask, memory_mask)
+        return output.transpose(0, 1)
+
+
 class MultiHeadedAttention(nn.Module):
     def __init__(self, num_heads, dim_model):
         """ Take in model size and number of heads """
@@ -374,8 +400,8 @@ class Seq2SlateTransformerModel(nn.Module):
             # and padding symbol
             self.generator = Generator(dim_model, max_src_seq_len + 2, temperature)
         elif self.output_arch == Seq2SlateOutputArch.AUTOREGRESSIVE:
-            self.decoder = Decoder(
-                DecoderLayer(dim_model, c(attn), c(attn), c(ff)), num_stacked_layers
+            self.decoder = DecoderPyTorch(
+                dim_model, num_heads, dim_feedforward, num_stacked_layers
             )
             self.decoder_logit_proj = nn.Linear(dim_model, max_src_seq_len + 2)
             self.generator = Generator(dim_model, max_src_seq_len + 2, temperature)
