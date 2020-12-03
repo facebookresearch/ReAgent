@@ -48,7 +48,7 @@ for name in get_torch_lr_schedulers():
         torch_lr_scheduler_class = getattr(torch.optim.lr_scheduler, name)
         subclass = type(
             name,
-            # must subclass Optimizer to be added to the Registry
+            # must subclass LearningRateSchedulerConfig to be added to the Registry
             (LearningRateSchedulerConfig,),
             {"__module__": __name__},
         )
@@ -60,7 +60,4 @@ for name in get_torch_lr_schedulers():
 
 @LearningRateSchedulerConfig.fill_union()
 class LearningRateScheduler__Union(TaggedUnion):
-    def make_from_optimizer(
-        self, optimizer: torch.optim.Optimizer
-    ) -> torch.optim.lr_scheduler._LRScheduler:
-        return self.value.make_from_optimizer(optimizer)
+    pass

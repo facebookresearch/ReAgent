@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import unittest
+
+import torch
 from reagent.optimizer.uninferrable_optimizers import Adam
 from reagent.optimizer.uninferrable_schedulers import (
     CosineAnnealingLR,
@@ -11,8 +14,6 @@ from reagent.optimizer.uninferrable_schedulers import (
     StepLR,
 )
 from reagent.optimizer.utils import is_torch_lr_scheduler, is_torch_optimizer
-import torch
-import unittest
 
 
 class TestMakeOptimizer(unittest.TestCase):
