@@ -48,7 +48,7 @@ import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.registry_meta import RegistryMeta
 
-from .scheduler_union import LearningRateScheduler__Union
+from .scheduler import LearningRateSchedulerConfig
 from .utils import is_torch_optimizer
 
 
@@ -70,7 +70,7 @@ class Optimizer:
 @dataclass(frozen=True)
 class OptimizerConfig(metaclass=RegistryMeta):
     # optional config if you want to use (potentially chained) lr scheduler
-    lr_schedulers: List[LearningRateScheduler__Union] = field(default_factory=list)
+    lr_schedulers: List[LearningRateSchedulerConfig] = field(default_factory=list)
 
     def make_optimizer(self, params) -> Optimizer:
         # Assuming the classname is the same as the torch class name
