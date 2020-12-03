@@ -33,7 +33,7 @@ class RegistryMeta(abc.ABCMeta):
                 registry_name = cls.__registry_name__
                 logger.info(f"Using {registry_name} instead of {name}")
                 name = registry_name
-            assert name not in cls.REGISTRY
+            assert name not in cls.REGISTRY, f"{name} in REGISTRY {cls.REGISTRY}"
             cls.REGISTRY[name] = cls
         else:
             logger.info(
