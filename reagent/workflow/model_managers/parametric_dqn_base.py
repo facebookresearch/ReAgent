@@ -18,6 +18,7 @@ from reagent.preprocessing.normalization import (
     get_num_output_features,
 )
 from reagent.preprocessing.types import InputColumn
+from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.types import (
@@ -152,9 +153,7 @@ class ParametricDQNBase(ModelManager):
         assert self.reward_options is not None
         if self._metrics_to_score is None:
             # pyre-fixme[16]: `ParametricDQNBase` has no attribute `_metrics_to_score`.
-            # pyre-fixme[16]: `ParametricDQNBase` has no attribute `_metrics_to_score`.
             self._metrics_to_score = get_metrics_to_score(
-                # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
                 # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
                 self._reward_options.metric_reward_values
             )
@@ -165,8 +164,9 @@ class ParametricDQNBase(ModelManager):
 
     def train(
         self,
-        train_dataset: Dataset,
+        train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
+        data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
     ) -> RLTrainingOutput:

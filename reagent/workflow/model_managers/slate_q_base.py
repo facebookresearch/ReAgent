@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import logging
 from typing import Dict, List, Optional, Tuple
 
@@ -13,8 +12,10 @@ from reagent.models.base import ModelBase
 from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
+from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
+from reagent.workflow.reporters.slate_q_reporter import SlateQReporter
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
@@ -140,10 +141,14 @@ class SlateQBase(ModelManager):
     ) -> Dataset:
         raise NotImplementedError("Write for OSS")
 
+    def get_reporter(self):
+        return SlateQReporter()
+
     def train(
         self,
-        train_dataset: Dataset,
+        train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
+        data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
     ) -> RLTrainingOutput:

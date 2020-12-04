@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+import math
 from typing import Optional
 
 import reagent.types as rlt
 import torch
+import torch.nn.functional as F
 from reagent.core.configuration import resolve_defaults
 from reagent.gym.types import Sampler
 from torch.distributions import Gumbel
 
 
 class FrechetSort(Sampler):
+    EPS = 1e-12
+
     @resolve_defaults
     def __init__(
         self,
@@ -58,37 +62,58 @@ class FrechetSort(Sampler):
         self.gumbel_noise = Gumbel(0, 1.0 / shape)
         self.log_scores = log_scores
 
-    @staticmethod
-    def select_indices(scores: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
-        """Helper for scores[actions] that are also works for batched tensors"""
-        if len(actions.shape) > 1:
-            num_rows = scores.size(0)
-            row_indices = torch.arange(num_rows).unsqueeze(0).T  # pyre-ignore[ 16 ]
-            return scores[row_indices, actions].T
-        else:
-            return scores[actions]
-
     def sample_action(self, scores: torch.Tensor) -> rlt.ActorOutput:
         """Sample a ranking according to Frechet sort. Note that possible_actions_mask
         is ignored as the list of rankings scales exponentially with slate size and
         number of items and it can be difficult to enumerate them."""
         assert scores.dim() == 2, "sample_action only accepts batches"
         log_scores = scores if self.log_scores else torch.log(scores)
-        perturbed = log_scores + self.gumbel_noise.sample((scores.shape[1],))
+        perturbed = log_scores + self.gumbel_noise.sample(scores.shape)
         action = torch.argsort(perturbed.detach(), descending=True)
+        log_prob = self.log_prob(scores, action)
+        # Only truncate the action before returning
         if self.topk is not None:
             action = action[: self.topk]
-        log_prob = self.log_prob(scores, action)
         return rlt.ActorOutput(action, log_prob)
 
     def log_prob(self, scores: torch.Tensor, action) -> torch.Tensor:
         """What is the probability of a given set of scores producing the given
         list of permutations only considering the top `equiv_len` ranks?"""
+        squeeze = False
+        if len(scores.shape) == 1:
+            squeeze = True
+            scores = scores.unsqueeze(0)
+            action = action.unsqueeze(0)
+
+        assert len(action.shape) == len(scores.shape) == 2, "scores should be batch"
+        if action.shape[1] > scores.shape[1]:
+            raise ValueError(
+                f"action cardinality ({action.shape[1]}) is larger than the number of scores ({scores.shape[1]})"
+            )
+        elif action.shape[1] < scores.shape[1]:
+            raise NotImplementedError(
+                f"This semantic is ambiguous. If you have shorter slate, pad it with scores.shape[1] ({scores.shape[1]})"
+            )
+
         log_scores = scores if self.log_scores else torch.log(scores)
-        s = self.select_indices(log_scores, action)
-        n = len(log_scores)
-        p = self.upto if self.upto is not None else n
-        return -sum(
-            torch.log(torch.exp((s[k:] - s[k]) * self.shape).sum(dim=0))
-            for k in range(p)  # pyre-ignore
+        n = log_scores.shape[-1]
+        # Add scores for the padding value
+        log_scores = torch.cat(
+            [
+                log_scores,
+                torch.full(
+                    (log_scores.shape[0], 1), -math.inf, device=log_scores.device
+                ),
+            ],
+            dim=1,
         )
+        s = torch.gather(log_scores, 1, action) * self.shape
+
+        p = self.upto if self.upto is not None else n
+
+        # We should unsqueeze here
+        probs = sum(
+            torch.nan_to_num(F.log_softmax(s[:, i:], dim=1)[:, 0], neginf=0.0)
+            for i in range(p)
+        )
+        return probs

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import inspect
 import logging
 
 import pytorch_lightning as pl
@@ -26,6 +27,18 @@ class ReAgentLightningModule(pl.LightningModule):
         self.register_buffer("_cleanly_stopped", None)
         self._next_stopping_epoch = torch.tensor([-1]).int()
         self._cleanly_stopped = torch.ones(1).bool()
+        self._setup_input_type()
+
+    def _setup_input_type(self):
+        self._training_batch_type = None
+        sig = inspect.signature(self.train_step_gen)
+        assert "training_batch" in sig.parameters
+        param = sig.parameters["training_batch"]
+        annotation = param.annotation
+        if annotation == inspect.Parameter.empty:
+            return
+        if hasattr(annotation, "from_dict"):
+            self._training_batch_type = annotation
 
     def set_reporter(self, reporter):
         if reporter is None:
@@ -80,10 +93,10 @@ class ReAgentLightningModule(pl.LightningModule):
 
     # pyre-fixme[14]: `training_step` overrides method defined in `LightningModule`
     #  inconsistently.
-    # pyre-fixme[14]: `training_step` overrides method defined in `LightningModule`
-    #  inconsistently.
     def training_step(self, batch, batch_idx: int, optimizer_idx: int):
         if self._training_step_generator is None:
+            if self._training_batch_type and isinstance(batch, dict):
+                batch = self._training_batch_type.from_dict(batch)
             self._training_step_generator = self.train_step_gen(batch, batch_idx)
 
         ret = next(self._training_step_generator)

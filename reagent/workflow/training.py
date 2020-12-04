@@ -37,17 +37,31 @@ def identify_and_train_network(
     publisher: Optional[ModelPublisher__Union] = None,
 ) -> RLTrainingOutput:
     if use_gpu is None:
+        # pyre-fixme[35]: Target cannot be annotated.
         use_gpu: bool = torch.cuda.is_available()
 
     manager = model.value
-    normalization_data_map = manager.run_feature_identification(input_table_spec)
+
+    normalization_data_map = None
+    setup_data = None
+
+    data_module = manager.get_data_module(
+        input_table_spec=input_table_spec,
+        reward_options=reward_options,
+        reader_options=reader_options,
+    )
+    if data_module is not None:
+        setup_data = data_module.prepare_data()
+    else:
+        normalization_data_map = manager.run_feature_identification(input_table_spec)
 
     return query_and_train(
         input_table_spec,
         model,
-        normalization_data_map,
         num_epochs,
         use_gpu=use_gpu,
+        setup_data=setup_data,
+        normalization_data_map=normalization_data_map,
         reward_options=reward_options,
         reader_options=reader_options,
         resource_options=resource_options,
@@ -101,9 +115,11 @@ def get_sample_range(
 def query_and_train(
     input_table_spec: TableSpec,
     model: ModelManager__Union,
-    normalization_data_map: Dict[str, NormalizationData],
     num_epochs: int,
     use_gpu: bool,
+    *,
+    setup_data: Optional[Dict[str, bytes]] = None,
+    normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
     reward_options: Optional[RewardOptions] = None,
     reader_options: Optional[ReaderOptions] = None,
     resource_options: Optional[ResourceOptions] = None,
@@ -124,28 +140,46 @@ def query_and_train(
     resource_options = resource_options or ResourceOptions()
     manager = model.value
 
-    calc_cpe_in_training = manager.should_generate_eval_dataset
-    sample_range_output = get_sample_range(input_table_spec, calc_cpe_in_training)
-    train_dataset = manager.query_data(
-        input_table_spec=input_table_spec,
-        sample_range=sample_range_output.train_sample_range,
-        reward_options=reward_options,
-    )
-    eval_dataset = None
-    if calc_cpe_in_training:
-        eval_dataset = manager.query_data(
+    if setup_data is None:
+        data_module = manager.get_data_module(
             input_table_spec=input_table_spec,
-            sample_range=sample_range_output.eval_sample_range,
+            reward_options=reward_options,
+            reader_options=reader_options,
+        )
+        if data_module is not None:
+            setup_data = data_module.prepare_data()
+            # Throw away existing normalization data map
+            normalization_data_map = None
+
+    if sum([int(setup_data is not None), int(normalization_data_map is not None)]) != 1:
+        raise ValueError("setup_data and normalization_data_map are mutually exclusive")
+
+    train_dataset = None
+    eval_dataset = None
+    if normalization_data_map is not None:
+        calc_cpe_in_training = manager.should_generate_eval_dataset
+        sample_range_output = get_sample_range(input_table_spec, calc_cpe_in_training)
+        train_dataset = manager.query_data(
+            input_table_spec=input_table_spec,
+            sample_range=sample_range_output.train_sample_range,
             reward_options=reward_options,
         )
+        eval_dataset = None
+        if calc_cpe_in_training:
+            eval_dataset = manager.query_data(
+                input_table_spec=input_table_spec,
+                sample_range=sample_range_output.eval_sample_range,
+                reward_options=reward_options,
+            )
 
     logger.info("Starting training")
     results = manager.train_workflow(
         train_dataset,
         eval_dataset,
-        normalization_data_map,
-        num_epochs,
-        use_gpu,
+        num_epochs=num_epochs,
+        use_gpu=use_gpu,
+        setup_data=setup_data,
+        normalization_data_map=normalization_data_map,
         named_model_ids=named_model_ids,
         child_workflow_id=child_workflow_id,
         reward_options=reward_options,

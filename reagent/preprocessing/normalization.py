@@ -14,8 +14,6 @@ from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.preprocessing import identify_types
 from reagent.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
 from scipy import stats
-
-# pyre-fixme[21]: Could not find module `scipy.stats.mstats`.
 from scipy.stats.mstats import mquantiles
 
 
@@ -263,6 +261,9 @@ def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
     feature_override = None
     if norm_params["feature_overrides"] is not None:
         feature_override = norm_params["feature_overrides"].get(feature_name, None)
+    feature_override = feature_override or norm_params.get(
+        "default_feature_override", None
+    )
 
     feature_values = np.array(feature_value_list, dtype=np.float32)
     assert not (np.any(np.isinf(feature_values))), "Feature values contain infinity"

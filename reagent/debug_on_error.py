@@ -11,8 +11,8 @@ def start():
             # device, so we call the default hook
             sys.__excepthook__(type, value, tb)
         else:
-            import traceback
             import pdb
+            import traceback
 
             # we are NOT in interactive mode, print the exception...
             traceback.print_exception(type, value, tb)

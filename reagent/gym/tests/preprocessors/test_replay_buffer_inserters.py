@@ -4,11 +4,8 @@
 import logging
 import unittest
 
-# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
-
-# pyre-fixme[21]: Could not find module `numpy.testing`.
 import numpy.testing as npt
 import torch
 from reagent.gym.envs import EnvWrapper
@@ -29,20 +26,16 @@ except ModuleNotFoundError:
 
 
 def _create_replay_buffer_and_insert(env: EnvWrapper):
-    # pyre-fixme[16]: `EnvWrapper` has no attribute `seed`.
     env.seed(1)
     replay_buffer = ReplayBuffer(replay_capacity=6, batch_size=1)
     replay_buffer_inserter = make_replay_buffer_inserter(env)
-    # pyre-fixme[16]: `EnvWrapper` has no attribute `reset`.
     obs = env.reset()
     inserted = []
     terminal = False
     i = 0
     while not terminal and i < 5:
         logger.info(f"Iteration: {i}")
-        # pyre-fixme[16]: `EnvWrapper` has no attribute `action_space`.
         action = env.action_space.sample()
-        # pyre-fixme[16]: `EnvWrapper` has no attribute `step`.
         next_obs, reward, terminal, _ = env.step(action)
         inserted.append(
             {

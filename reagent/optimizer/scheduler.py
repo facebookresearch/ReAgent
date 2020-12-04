@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import inspect
+from typing import Any, Dict
 
 import torch
 from reagent.core.dataclasses import dataclass
@@ -20,9 +21,16 @@ class LearningRateSchedulerConfig(metaclass=RegistryMeta):
         assert is_torch_lr_scheduler(
             torch_lr_scheduler_class
         ), f"{torch_lr_scheduler_class} is not a scheduler."
+
         filtered_args = {
             k: getattr(self, k)
             for k in inspect.signature(torch_lr_scheduler_class).parameters
             if k != "optimizer"
         }
+
+        self.decode_lambdas(filtered_args)
+
         return torch_lr_scheduler_class(optimizer=optimizer, **filtered_args)
+
+    def decode_lambdas(self, args: Dict[str, Any]) -> None:
+        pass

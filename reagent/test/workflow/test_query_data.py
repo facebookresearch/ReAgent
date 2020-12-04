@@ -5,8 +5,6 @@ import logging
 import unittest
 
 import numpy as np
-
-# pyre-fixme[21]: Could not find module `pytest`.
 import pytest
 
 # pyre-fixme[21]: Could not find `pyspark`.

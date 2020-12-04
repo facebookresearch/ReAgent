@@ -214,6 +214,14 @@ class Preprocessor(Module):
         # ONNX doesn't support != yet
         return self.one_tensor - (input == self.zero_tensor).float()
 
+    def _preprocess_CLIP_LOG(
+        self,
+        begin_index: int,
+        input: torch.Tensor,
+        norm_params: List[NormalizationParameters],
+    ) -> torch.Tensor:
+        return input.clip(EPS).log()  # pyre-ignore[16]
+
     def _create_parameters_PROBABILITY(
         self, begin_index: int, norm_params: List[NormalizationParameters]
     ):

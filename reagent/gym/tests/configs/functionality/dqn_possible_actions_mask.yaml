@@ -15,7 +15,6 @@ model:
         maxq_learning: true
         temperature: 1.0
       double_q_learning: true
-      minibatch_size: 512
       minibatches_per_step: 1
       optimizer:
         Adam:
@@ -37,3 +36,4 @@ num_train_episodes: 5
 num_eval_episodes: 3
 passing_score_bar: 200.0
 use_gpu: false
+minibatch_size: 512

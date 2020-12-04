@@ -12,25 +12,57 @@ default values that cannot be inferred:
 Sometimes there are no defaults to infer from, so we got to include those here.
 TODO: remove this file once we can infer everything.
 """
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Callable, Dict, Any
 
 from reagent.core.dataclasses import dataclass
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 
 from .scheduler import LearningRateSchedulerConfig
 
+# Inside FB, we have more sophisticated classes to serialize Callables
+if not IS_FB_ENVIRONMENT:
 
-@dataclass(frozen=True)
-class LambdaLR(LearningRateSchedulerConfig):
-    # lr_lambda is Callable, FBL doesn't support
-    # TODO(T67530507) Add function factory (FBL doesn't allow callables)
-    pass
+    # To allow string-based configuration, we need these Mixins to convert
+    # from strings to Callables
+    class _LRLambdaMixin(object):
+        def decode_lambdas(self, args: Dict[str, Any]) -> None:
+            lr_lambda = args.get("lr_lambda")
+            if type(lr_lambda) is str:
+                args["lr_lambda"] = eval(lr_lambda)  # noqa
 
+    class _ScaleFnLambdaMixin(object):
+        def decode_lambdas(self, args: Dict[str, Any]) -> None:
+            scale_fn = args.get("scale_fn")
+            if type(scale_fn) is str:
+                args["scale_fn"] = eval(scale_fn)  # noqa
 
-@dataclass(frozen=True)
-class MultiplicativeLR(LearningRateSchedulerConfig):
-    # lr_lambda is Callable, FBL doesn't support
-    # TODO(T67530507) Add function factory (FBL doesn't allow callables)
-    pass
+    @dataclass(frozen=True)
+    class LambdaLR(_LRLambdaMixin, LearningRateSchedulerConfig):
+        lr_lambda: Union[str, Callable[[int], float], List[Callable[[int], float]]]
+        last_epoch: int = -1
+        verbose: bool = False
+
+    @dataclass(frozen=True)
+    class MultiplicativeLR(_LRLambdaMixin, LearningRateSchedulerConfig):
+        lr_lambda: Union[str, Callable[[int], float], List[Callable[[int], float]]]
+        last_epoch: int = -1
+        verbose: bool = False
+
+    @dataclass(frozen=True)
+    class CyclicLR(_ScaleFnLambdaMixin, LearningRateSchedulerConfig):
+        base_lr: Union[float, List[float]]
+        max_lr: Union[float, List[float]]
+        step_size_up: int = 2000
+        step_size_down: Optional[int] = None
+        mode: str = "triangular"
+        gamma: float = 1.0
+        scale_fn: Optional[Union[str, Callable[[int], float]]] = None
+        scale_mode: str = "cycle"
+        cycle_momentum: bool = True
+        base_momentum: float = 0.8
+        max_momentum: float = 0.9
+        last_epoch: int = -1
+        verbose: bool = False
 
 
 @dataclass(frozen=True)
@@ -38,6 +70,7 @@ class StepLR(LearningRateSchedulerConfig):
     step_size: int
     gamma: float = 0.1
     last_epoch: int = -1
+    verbose: bool = False
 
 
 @dataclass(frozen=True)
@@ -45,12 +78,14 @@ class MultiStepLR(LearningRateSchedulerConfig):
     milestones: List[int]
     gamma: float = 0.1
     last_epoch: int = -1
+    verbose: bool = False
 
 
 @dataclass(frozen=True)
 class ExponentialLR(LearningRateSchedulerConfig):
     gamma: float
     last_epoch: int = -1
+    verbose: bool = False
 
 
 @dataclass(frozen=True)
@@ -58,25 +93,7 @@ class CosineAnnealingLR(LearningRateSchedulerConfig):
     T_max: int
     eta_min: float = 0
     last_epoch: int = -1
-
-
-@dataclass(frozen=True)
-class CyclicLR(LearningRateSchedulerConfig):
-    # scale_fn is Callable, which FBL doesn't support.
-    # TODO(T67530507) Add function factory (FBL doesn't allow callables)
-    pass
-    # base_lr: Union[float, List[float]]
-    # max_lr: Union[float, List[float]]
-    # step_size_up: int = 2000
-    # step_size_down: Optional[int] = None
-    # mode: str = "triangular"
-    # gamma: float = 1.0
-    # scale_fn: Optional[Callable[[int], float]] = None
-    # scale_mode: str = "cycle"
-    # cycle_momentum: bool = True
-    # base_momentum: float = 0.8
-    # max_momentum: float = 0.9
-    # last_epoch: int = -1
+    verbose: bool = False
 
 
 @dataclass(frozen=True)
@@ -93,6 +110,8 @@ class OneCycleLR(LearningRateSchedulerConfig):
     div_factor: float = 25.0
     final_div_factor: float = 10000.0
     last_epoch: int = -1
+    three_phase: bool = False
+    verbose: bool = False
 
 
 @dataclass(frozen=True)
@@ -101,3 +120,4 @@ class CosineAnnealingWarmRestarts(LearningRateSchedulerConfig):
     T_mult: int = 1
     eta_min: float = 0
     last_epoch: int = -1
+    verbose: bool = False

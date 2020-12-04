@@ -23,6 +23,10 @@ class ParametricDQNReporter(ReporterBase):
                     ("td_loss", agg.MeanAggregator("td_loss")),
                     ("reward_loss", agg.MeanAggregator("reward_loss")),
                     ("recent_rewards", agg.RecentValuesAggregator("logged_rewards")),
+                    (
+                        "model_values_on_logged_actions",
+                        agg.MeanAggregator("model_values_on_logged_actions"),
+                    ),
                 ],
                 [
                     (

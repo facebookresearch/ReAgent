@@ -7,6 +7,7 @@ import numpy as np
 import torch
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.policies.policy import Policy
+from reagent.gym.policies.random_policies import make_random_policy_for_env
 from reagent.gym.types import PostEpisode, PostStep, Trajectory, Transition
 
 
@@ -43,13 +44,16 @@ class Agent:
     def create_for_env(
         cls,
         env: EnvWrapper,
-        policy: Policy,
+        policy: Optional[Policy],
         *,
         device: Union[str, torch.device] = "cpu",
         obs_preprocessor=None,
         action_extractor=None,
         **kwargs,
     ):
+        """
+        If `policy` is not given, we will try to create a random policy
+        """
         if isinstance(device, str):
             device = torch.device(device)
 
@@ -58,6 +62,9 @@ class Agent:
 
         if action_extractor is None:
             action_extractor = env.get_action_extractor()
+
+        if policy is None:
+            policy = make_random_policy_for_env(env)
 
         return cls(
             policy,

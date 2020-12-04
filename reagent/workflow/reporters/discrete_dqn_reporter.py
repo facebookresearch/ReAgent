@@ -8,14 +8,17 @@ from typing import List, Optional
 import torch
 from reagent.core import aggregators as agg
 from reagent.core.observers import IntervalAggregatingObserver, ValueListObserver
-from reagent.workflow.reporters.reporter_base import ReporterBase
+from reagent.workflow.reporters.reporter_base import (
+    ReporterBase,
+    FlexibleDataPointsPerEpochMixin,
+)
 from reagent.workflow.training_reports import DQNTrainingReport
 
 
 logger = logging.getLogger(__name__)
 
 
-class DiscreteDQNReporter(ReporterBase):
+class DiscreteDQNReporter(FlexibleDataPointsPerEpochMixin, ReporterBase):
     def __init__(
         self,
         actions: List[str],

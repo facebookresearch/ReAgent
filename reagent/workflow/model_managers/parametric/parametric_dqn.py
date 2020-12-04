@@ -23,7 +23,6 @@ class ParametricDQN(ParametricDQNBase):
     )
     net_builder: ParametricDQNNetBuilder__Union = field(
         # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
-        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         default_factory=lambda: ParametricDQNNetBuilder__Union(
             FullyConnected=FullyConnected()
         )
@@ -33,9 +32,10 @@ class ParametricDQN(ParametricDQNBase):
         super().__post_init_post_parse__()
         self.rl_parameters = self.trainer_param.rl
 
+    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
+    #  inconsistently.
     def build_trainer(self) -> ParametricDQNTrainer:
         net_builder = self.net_builder.value
-        # pyre-fixme[16]: `ParametricDQN` has no attribute `_q_network`.
         # pyre-fixme[16]: `ParametricDQN` has no attribute `_q_network`.
         self._q_network = net_builder.build_q_network(
             self.state_normalization_data, self.action_normalization_data
@@ -48,18 +48,11 @@ class ParametricDQN(ParametricDQNBase):
             output_dim=reward_output_dim,
         )
 
-        if self.use_gpu:
-            self._q_network = self._q_network.cuda()
-            reward_network = reward_network.cuda()
-
         q_network_target = self._q_network.get_target_network()
         return ParametricDQNTrainer(
             q_network=self._q_network,
             q_network_target=q_network_target,
             reward_network=reward_network,
-            use_gpu=self.use_gpu,
-            # pyre-fixme[16]: `ParametricDQNTrainerParameters` has no attribute
-            #  `asdict`.
             # pyre-fixme[16]: `ParametricDQNTrainerParameters` has no attribute
             #  `asdict`.
             **self.trainer_param.asdict(),

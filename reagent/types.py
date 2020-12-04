@@ -324,6 +324,21 @@ class FeatureData(TensorDataClass):
         tiled_feat = feat.repeat_interleave(repeats=num_tiles, dim=0)
         return FeatureData(float_features=tiled_feat)
 
+    def concat_user_doc(self):
+        assert not self.has_float_features_only, "only works when DocList present"
+        assert self.float_features.dim() == 2  # batch_size x state_dim
+        batch_size, state_dim = self.float_features.shape
+        # batch_size x num_docs x candidate_dim
+        assert self.candidate_docs.float_features.dim() == 3
+        assert len(self.candidate_docs.float_features) == batch_size
+        _, num_docs, candidate_dim = self.candidate_docs.float_features.shape
+        state_tiled = (
+            torch.repeat_interleave(self.float_features, num_docs, dim=0)
+            .reshape(batch_size, num_docs, state_dim)
+            .float()
+        )
+        return torch.cat((state_tiled, self.candidate_docs.float_features), dim=2)
+
 
 def _embed_states(x: FeatureData) -> FeatureData:
     """
@@ -626,8 +641,8 @@ class BaseInput(TensorDataClass):
             "not_terminal": self.not_terminal,
         }
 
-    @classmethod
-    def from_dict(cls, batch):
+    @staticmethod
+    def from_dict(batch):
         id_list_features = batch.get(InputColumn.STATE_ID_LIST_FEATURES, None) or {}
         id_score_list_features = (
             batch.get(InputColumn.STATE_ID_SCORE_LIST_FEATURES, None) or {}
@@ -677,7 +692,7 @@ class BaseInput(TensorDataClass):
             ),
             reward=batch[InputColumn.REWARD],
             time_diff=batch[InputColumn.TIME_DIFF],
-            step=batch[InputColumn.STEP],
+            step=batch.get(InputColumn.STEP, None),
             not_terminal=batch[InputColumn.NOT_TERMINAL],
         )
 
@@ -808,10 +823,12 @@ class PolicyNetworkInput(BaseInput):
     @classmethod
     def from_dict(cls, batch):
         base = super().from_dict(batch)
+        # TODO: Implement ExtraData.from_dict
+        extras = batch.get("extras", None)
         return cls(
             action=FeatureData(float_features=batch["action"]),
             next_action=FeatureData(float_features=batch["next_action"]),
-            extras=batch["extras"],
+            extras=extras,
             **base.as_dict_shallow(),
         )
 

@@ -8,14 +8,8 @@ from typing import Optional
 import numpy as np
 import torch
 from reagent.ope.estimators.types import PredictResults, Trainer, TrainingData
-
-# pyre-fixme[21]: Could not find module `sklearn.linear_model`.
 from sklearn.linear_model import Lasso, LogisticRegression, SGDClassifier
-
-# pyre-fixme[21]: Could not find module `sklearn.metrics`.
 from sklearn.metrics import accuracy_score, mean_squared_error
-
-# pyre-fixme[21]: Could not find module `sklearn.tree`.
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from torch import Tensor
 
@@ -48,12 +42,10 @@ class LinearTrainer(Trainer):
 
     def _score(self, y_true: np.ndarray, y_pred: np.ndarray, weight=None) -> float:
         if self._is_classifier:
-            # pyre-fixme[16]: Module `sklearn` has no attribute `metrics`.
             return accuracy_score(y_true, y_pred, sample_weight=weight)
         else:
             return 1.0 / math.pow(
                 2,
-                # pyre-fixme[16]: Module `sklearn` has no attribute `metrics`.
                 mean_squared_error(y_true, y_pred, sample_weight=weight),
             )
 
@@ -80,7 +72,6 @@ class LassoTrainer(LinearTrainer):
                 data.validation_x, data.validation_y, data.validation_weight
             )
             for alpha in np.logspace(-4, 2, num=7, base=10):
-                # pyre-fixme[16]: Module `sklearn` has no attribute `linear_model`.
                 model = Lasso(
                     alpha=alpha,
                     fit_intercept=False,
@@ -116,7 +107,6 @@ class DecisionTreeTrainer(LinearTrainer):
                 data.validation_x, data.validation_y, data.validation_weight
             )
             if self._model is None:
-                # pyre-fixme[16]: Module `sklearn` has no attribute `tree`.
                 self._model = DecisionTreeRegressor(
                     criterion="mse",
                     splitter="random",
@@ -129,7 +119,6 @@ class DecisionTreeTrainer(LinearTrainer):
                 best_score = self._score(sy, y_pred, weight=ssw)
                 logging.info(f"  max_depth: None, score: {best_score}")
             for depth in range(3, 21, 3):
-                # pyre-fixme[16]: Module `sklearn` has no attribute `tree`.
                 model = DecisionTreeRegressor(
                     criterion="mse",
                     splitter="random",
@@ -167,7 +156,6 @@ class DecisionTreeClassifierTrainer(LinearTrainer):
                 data.validation_x, data.validation_y, data.validation_weight
             )
             for depth in range(3, 21, 3):
-                # pyre-fixme[16]: Module `sklearn` has no attribute `tree`.
                 model = DecisionTreeClassifier(
                     criterion="entropy",
                     splitter="random",
@@ -204,7 +192,6 @@ class LogisticRegressionTrainer(LinearTrainer):
                 data.validation_x, data.validation_y, data.validation_weight
             )
             for c in np.logspace(-5, 4, num=10, base=10):
-                # pyre-fixme[16]: Module `sklearn` has no attribute `linear_model`.
                 model = LogisticRegression(
                     C=c,
                     fit_intercept=False,
@@ -243,7 +230,6 @@ class SGDClassifierTrainer(LinearTrainer):
                 data.validation_x, data.validation_y, data.validation_weight
             )
             for alpha in np.logspace(-8, -1, num=8, base=10):
-                # pyre-fixme[16]: Module `sklearn` has no attribute `linear_model`.
                 model = SGDClassifier(
                     loss=self._loss,
                     alpha=alpha,

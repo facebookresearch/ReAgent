@@ -29,14 +29,12 @@ def run_episode(
     Can also specify the mdp_id and gamma of episode.
     """
     trajectory = Trajectory()
-    # pyre-fixme[16]: `EnvWrapper` has no attribute `reset`.
     obs = env.reset()
     possible_actions_mask = env.possible_actions_mask
     terminal = False
     num_steps = 0
     while not terminal:
         action, log_prob = agent.act(obs, possible_actions_mask)
-        # pyre-fixme[16]: `EnvWrapper` has no attribute `step`.
         next_obs, reward, terminal, _ = env.step(action)
         next_possible_actions_mask = env.possible_actions_mask
         if max_steps is not None and num_steps >= max_steps:

@@ -7,7 +7,6 @@ import inspect
 import logging
 from typing import Dict, Optional
 
-# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 import reagent.types as rlt
@@ -33,7 +32,6 @@ REPLAY_BUFFER_MAKER_MAP = {}
 def make_trainer_preprocessor(
     trainer: Trainer,
     device: torch.device,
-    # pyre-fixme[11]: Annotation `Env` is not defined as a type.
     env: gym.Env,
     maker_map: Dict,
 ):
@@ -113,6 +111,7 @@ class DiscreteDqnInputMaker:
         try:
             return cls(
                 num_actions=action_space.n,
+                # pyre-fixme[16]: `Env` has no attribute `trainer_preprocessor`.
                 trainer_preprocessor=env.trainer_preprocessor,
             )
         except AttributeError:
@@ -425,8 +424,9 @@ REPLAY_BUFFER_MAKER_MAP = {
 
 
 class PolicyGradientInputMaker:
-    def __init__(self, num_actions: Optional[int] = None):
+    def __init__(self, num_actions: Optional[int] = None, recsim_obs: bool = False):
         self.num_actions = num_actions
+        self.recsim_obs = recsim_obs
 
     @classmethod
     def create_for_env(cls, env: gym.Env):
@@ -435,8 +435,32 @@ class PolicyGradientInputMaker:
             return cls(action_space.n)
         elif isinstance(action_space, gym.spaces.Box):
             return cls()
+        elif isinstance(action_space, gym.spaces.MultiDiscrete):
+            return cls(recsim_obs=True)
         else:
             raise NotImplementedError()
+
+    def _get_recsim_state(self, observation):
+        def _stack(slates):
+            obs = rlt.FeatureData(
+                float_features=torch.from_numpy(
+                    np.stack(np.array([slate["user"] for slate in slates]))
+                ),
+                candidate_docs=rlt.DocList(
+                    float_features=torch.from_numpy(
+                        np.stack(np.array([slate["doc"] for slate in slates]))
+                    )
+                ),
+            )
+            return obs
+
+        def _stack_slate(slate):
+            return {
+                "user": slate["user"],
+                "doc": np.stack(np.array(list(slate["doc"].values()))),
+            }
+
+        return _stack([_stack_slate(slate) for slate in observation])
 
     def __call__(self, trajectory: Trajectory):
         action = torch.from_numpy(np.stack(trajectory.action).squeeze())
@@ -444,10 +468,15 @@ class PolicyGradientInputMaker:
             action = F.one_hot(action, self.num_actions).float()
             assert len(action.shape) == 2, f"{action.shape}"
             # one hot makes shape (batch_size, num_actions)
-        return rlt.PolicyGradientInput(
-            state=rlt.FeatureData(
+        state = (
+            self._get_recsim_state(trajectory.observation)
+            if self.recsim_obs
+            else rlt.FeatureData(
                 torch.from_numpy(np.stack(trajectory.observation)).float()
-            ),
+            )
+        )
+        return rlt.PolicyGradientInput(
+            state=state,
             action=action,
             reward=torch.tensor(trajectory.reward),
             log_prob=torch.tensor(trajectory.log_prob),

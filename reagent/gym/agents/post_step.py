@@ -5,7 +5,6 @@
 import logging
 from typing import Union
 
-# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import torch
 from reagent.gym.preprocessors import (
@@ -22,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 def add_replay_buffer_post_step(
     replay_buffer: ReplayBuffer,
-    # pyre-fixme[11]: Annotation `Env` is not defined as a type.
     env: gym.Env,
     replay_buffer_inserter=None,
 ):

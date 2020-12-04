@@ -3,7 +3,6 @@
 
 from typing import List, Optional
 
-# pyre-fixme[21]: Could not find module `gym`.
 import gym
 import numpy as np
 import reagent.types as rlt
@@ -14,7 +13,6 @@ from reagent.gym.policies.scorers.discrete_scorer import apply_possible_actions_
 from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 
 
-# pyre-fixme[11]: Annotation `Env` is not defined as a type.
 def make_random_policy_for_env(env: gym.Env):
     if isinstance(env.action_space, gym.spaces.Discrete):
         # discrete action space
@@ -47,6 +45,7 @@ class DiscreteRandomPolicy(Policy):
         self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
     ) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
+        # pyre-fixme[35]: Target cannot be annotated.
         obs: torch.Tensor = obs.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
         assert obs.shape[0] == 1, f"obs has shape {obs.shape} (0th dim != 1)"
@@ -84,6 +83,7 @@ class MultiDiscreteRandomPolicy(Policy):
     def act(
         self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
     ) -> rlt.ActorOutput:
+        # pyre-fixme[35]: Target cannot be annotated.
         obs: torch.Tensor = obs.float_features
         batch_size, _ = obs.shape
 
@@ -132,6 +132,7 @@ class ContinuousRandomPolicy(Policy):
         self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
     ) -> rlt.ActorOutput:
         """ Act randomly regardless of the observation. """
+        # pyre-fixme[35]: Target cannot be annotated.
         obs: torch.Tensor = obs.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
         batch_size = obs.size(0)
