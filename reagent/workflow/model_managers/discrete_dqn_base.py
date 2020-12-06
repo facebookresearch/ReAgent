@@ -168,6 +168,8 @@ class DiscreteDQNBase(ModelManager):
         batch_preprocessor = self.build_batch_preprocessor()
         reporter = self.get_reporter()
         # pyre-fixme[16]: `RLTrainer` has no attribute `add_observer`.
+        # czxttkl
+        logger.warning(f"hahahahaha {type(self.trainer)} {dir(self.trainer)}")
         self.trainer.add_observer(reporter)
 
         train_eval_lightning(

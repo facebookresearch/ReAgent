@@ -20,14 +20,12 @@ class TestSeq2SlateSimulation(unittest.TestCase):
     def test_seq2slate_transformer_simulation_simple_tsp(self):
         """
         Solve Traveling Salesman Problem. Data comes from one set of nodes (cities).
-
-        Finish in 5 epochs
         """
         device = torch.device("cpu")
         batch_size = 4096
-        epochs = 500
+        epochs = 1
         num_batches = 1
-        expect_reward_threshold = 1.05
+        expect_reward_threshold = 1.02
         hidden_size = 32
         num_candidates = 6
         diverse_input = False
@@ -52,19 +50,16 @@ class TestSeq2SlateSimulation(unittest.TestCase):
     def test_seq2slate_transformer_simulation_hard_tsp(self):
         """
         Solve Traveling Salesman Problem. Data comes from multiple sets of cities.
-
-        4 cities
-        batch size=4096, lr=0.001, num batches=300
         """
         device = torch.device("cuda")
         batch_size = 4096
-        epochs = 50000
-        num_batches = 300
-        expect_reward_threshold = 1.04
+        epochs = 8
+        num_batches = 50
+        expect_reward_threshold = 1.02
         hidden_size = 128
-        num_candidates = 4
+        num_candidates = 6
         diverse_input = True
-        learning_rate = 0.00005
+        learning_rate = 0.001
         learning_method = SIMULATION
         run_seq2slate_tsp(
             MODEL_TRANSFORMER,

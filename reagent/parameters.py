@@ -152,6 +152,7 @@ class TransformerParameters(BaseDataClass):
     dim_model: int
     dim_feedforward: int
     num_stacked_layers: int
+    state_embed_dim: Optional[int] = None
 
 
 @dataclass(frozen=True)
