@@ -221,13 +221,13 @@ class DQNTrainerBaseLightning(RLTrainerMixin, ReAgentLightningModule):
         # pyre-fixme[16]: `DQNTrainerBase` has no attribute `q_network_cpe_optimizer`.
         self.q_network_cpe_optimizer = optimizer
         num_output_nodes = len(self.metrics_to_score) * self.num_actions
-        # pyre-fixme[16]: `DQNTrainerBase` has no attribute `reward_idx_offsets`.
-        self.reward_idx_offsets = torch.arange(
+        reward_idx_offsets = torch.arange(
             0,
             num_output_nodes,
             self.num_actions,
             dtype=torch.long,
         )
+        self.register_buffer("reward_idx_offsets", reward_idx_offsets)
 
         # pyre-fixme[16]: `DQNTrainerBase` has no attribute `evaluator`.
         self.evaluator = Evaluator(
