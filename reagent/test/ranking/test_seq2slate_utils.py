@@ -53,6 +53,7 @@ def create_trainer(seq2slate_net, learning_method, batch_size, learning_rate, de
             learning_method=LearningMethod.SIMULATION,
             simulation=SimulationParameters(
                 reward_name_weight={"tour_length": 1.0},
+                reward_name_power={"tour_length": 1.0},
                 reward_name_path={"tour_length": temp_reward_model_path},
             ),
         )
