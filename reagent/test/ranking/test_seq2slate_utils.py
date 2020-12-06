@@ -1,4 +1,5 @@
 import logging
+import math
 import tempfile
 from itertools import permutations
 
@@ -38,12 +39,15 @@ def create_trainer(seq2slate_net, learning_method, batch_size, learning_rate, de
             on_policy=True, learning_method=LearningMethod.REINFORCEMENT_LEARNING
         )
         trainer_cls = Seq2SlateTrainer
+        policy_gradient_interval = 1
     elif learning_method == OFF_POLICY:
         seq2slate_params = Seq2SlateParameters(
             on_policy=False,
             learning_method=LearningMethod.REINFORCEMENT_LEARNING,
         )
         trainer_cls = Seq2SlateTrainer
+        # off policy needs more batches for gradient to stabilize
+        policy_gradient_interval = 20
     elif learning_method == SIMULATION:
         temp_reward_model_path = tempfile.mkstemp(suffix=".pt")[1]
         reward_model = torch.jit.script(TSPRewardModel())
@@ -58,6 +62,7 @@ def create_trainer(seq2slate_net, learning_method, batch_size, learning_rate, de
             ),
         )
         trainer_cls = Seq2SlateSimulationTrainer
+        policy_gradient_interval = 1
 
     param_dict = {
         "seq2slate_net": seq2slate_net,
@@ -65,7 +70,8 @@ def create_trainer(seq2slate_net, learning_method, batch_size, learning_rate, de
         "parameters": seq2slate_params,
         "policy_optimizer": Optimizer__Union.default(lr=learning_rate),
         "use_gpu": use_gpu,
-        "print_interval": 100,
+        "print_interval": 1,
+        "policy_gradient_interval": policy_gradient_interval,
     }
     return trainer_cls(**param_dict)
 
@@ -91,6 +97,7 @@ def create_seq2slate_net(
             max_tgt_seq_len=candidate_num,
             output_arch=output_arch,
             temperature=temperature,
+            state_embed_dim=1,
         ).to(device)
     else:
         raise NotImplementedError(f"unknown model type {model_str}")
@@ -110,17 +117,12 @@ def post_preprocess_batch(
             action=model_action,
             logged_propensities=model_propensity,
             # negate because we want to minimize
-            # scale reward helps converge faster
-            slate_reward=-(reward ** 2),
+            slate_reward=-reward,
         )
         logger.info(f"Epoch {epoch} mean on_policy reward: {torch.mean(reward)}")
         logger.info(
             f"Epoch {epoch} mean model_propensity: {torch.mean(model_propensity)}"
         )
-    elif learning_method == OFF_POLICY:
-        # scaling reward helps converge faster
-        if epoch == 0:
-            batch.slate_reward = -(batch.slate_reward ** 2)
     return batch
 
 
@@ -167,7 +169,7 @@ def create_batch(
     if learning_method == OFF_POLICY:
         # using data from a uniform sampling policy
         action = torch.stack([torch.randperm(candidate_num) for _ in range(batch_size)])
-        propensity = torch.full((batch_size, 1), 1.0 / 720)
+        propensity = torch.full((batch_size, 1), 1.0 / math.factorial(candidate_num))
         ranked_cities = gather(candidates, action)
         reward = compute_reward(ranked_cities)
         batch_dict["action"] = action
@@ -308,13 +310,15 @@ def run_seq2slate_tsp(
         seq2slate_net, learning_method, batch_size, learning_rate, device
     )
 
-    for e in range(epochs):
-        # training
-        for batch in train_batches:
-            batch = post_preprocess_batch(
-                learning_method, seq2slate_net, candidate_num, batch, device, e
-            )
-            trainer.train(rlt.PreprocessedTrainingBatch(training_input=batch))
+    for e in range(epochs + 1):
+        # Only evaluate in the first epoch
+        if e > 0:
+            # training
+            for batch in train_batches:
+                batch = post_preprocess_batch(
+                    learning_method, seq2slate_net, candidate_num, batch, device, e
+                )
+                trainer.train(rlt.PreprocessedTrainingBatch(training_input=batch))
 
         # evaluation
         best_test_reward = torch.full((batch_size,), 1e9).to(device)
@@ -330,6 +334,8 @@ def run_seq2slate_tsp(
             f"Test mean reward: {torch.mean(best_test_reward)}, "
             f"best possible reward {best_test_possible_reward}"
         )
+        if torch.any(torch.isnan(model_propensities)):
+            raise Exception("Model propensities contain NaNs")
         if (
             torch.mean(best_test_reward)
             < best_test_possible_reward * expect_reward_threshold
