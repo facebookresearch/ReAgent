@@ -137,12 +137,13 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             net_with_gradient.named_parameters(), net_after_gradient.named_parameters()
         ):
             assert n_c == n
-            assert torch.allclose(
-                w_c - policy_gradient_interval * learning_rate * w_c.grad,
-                w,
-                rtol=1e-4,
-                atol=2e-6,
-            )
+            if w_c.grad is not None:
+                assert torch.allclose(
+                    w_c - policy_gradient_interval * learning_rate * w_c.grad,
+                    w,
+                    rtol=1e-4,
+                    atol=2e-6,
+                )
 
     def test_ips_clamp(self):
         importance_sampling = torch.tensor([0.5, 0.3, 3.0, 10.0, 40.0])
