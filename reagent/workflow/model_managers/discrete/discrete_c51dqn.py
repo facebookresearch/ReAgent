@@ -8,7 +8,6 @@ from reagent.net_builder.categorical_dqn.categorical import Categorical
 from reagent.net_builder.unions import CategoricalDQNNetBuilder__Union
 from reagent.parameters import param_hash
 from reagent.training import C51Trainer, C51TrainerParameters
-from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
 
 
@@ -44,6 +43,8 @@ class DiscreteC51DQN(DiscreteDQNBase):
             self.trainer_param.minibatch_size % 8 == 0
         ), "The minibatch size must be divisible by 8 for performance reasons."
 
+    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
+    #  inconsistently.
     def build_trainer(self) -> C51Trainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
@@ -60,9 +61,6 @@ class DiscreteC51DQN(DiscreteDQNBase):
             qmax=self.trainer_param.qmax,
         )
 
-        if self.use_gpu:
-            q_network = q_network.cuda()
-
         q_network_target = q_network.get_target_network()
 
         # pyre-fixme[16]: `DiscreteC51DQN` has no attribute `_q_network`.
@@ -72,10 +70,6 @@ class DiscreteC51DQN(DiscreteDQNBase):
         return C51Trainer(
             q_network=q_network,
             q_network_target=q_network_target,
-            metrics_to_score=self.metrics_to_score,
-            loss_reporter=NoOpLossReporter(),
-            use_gpu=self.use_gpu,
-            evaluation=self.eval_parameters,
             # pyre-fixme[16]: `C51TrainerParameters` has no attribute `asdict`.
             # pyre-fixme[16]: `C51TrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),

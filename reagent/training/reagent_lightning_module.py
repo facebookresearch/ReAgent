@@ -108,7 +108,11 @@ class ReAgentLightningModule(pl.LightningModule):
                 except StopIteration:
                     self._verified_steps = True
                 if not self._verified_steps:
-                    raise RuntimeError("training_step_gen() yields too many times")
+                    raise RuntimeError(
+                        "training_step_gen() yields too many times."
+                        "The number of yields should match the number of optimizers,"
+                        f" in this case {self._num_optimizing_steps}"
+                    )
             self._training_step_generator = None
             SummaryWriterContext.increase_global_step()
 
