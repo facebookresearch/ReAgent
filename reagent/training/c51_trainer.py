@@ -8,9 +8,10 @@ import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
 from reagent.core.tracker import observable
-from reagent.optimizer.union import Optimizer__Union
-from reagent.parameters import EvaluationParameters, RLParameters
-from reagent.training.rl_trainer_pytorch import RLTrainer
+from reagent.optimizer import Optimizer__Union, SoftUpdate
+from reagent.parameters import RLParameters
+from reagent.training.reagent_lightning_module import ReAgentLightningModule
+from reagent.training.rl_trainer_pytorch import RLTrainerMixin, RLTrainer
 
 
 @observable(
@@ -21,7 +22,7 @@ from reagent.training.rl_trainer_pytorch import RLTrainer
     model_values=torch.Tensor,
     model_action_idxs=torch.Tensor,
 )
-class C51Trainer(RLTrainer):
+class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
     """
     Implementation of 51 Categorical DQN (C51)
 
@@ -33,9 +34,6 @@ class C51Trainer(RLTrainer):
         self,
         q_network,
         q_network_target,
-        metrics_to_score=None,
-        loss_reporter=None,
-        use_gpu: bool = False,
         actions: List[str] = field(default_factory=list),  # noqa: B008
         rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
         double_q_learning: bool = True,
@@ -47,52 +45,65 @@ class C51Trainer(RLTrainer):
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
-        evaluation: EvaluationParameters = field(  # noqa: B008
-            default_factory=EvaluationParameters
-        ),
     ) -> None:
-        RLTrainer.__init__(
-            self,
-            rl,
-            use_gpu=use_gpu,
-            metrics_to_score=metrics_to_score,
-            actions=actions,
-            loss_reporter=loss_reporter,
-        )
-
+        """
+        Args:
+            q_network: states, action -> q-value
+            q_network_target: model that provides targets
+            actions(optional): list of agent's actions
+            rl (optional): an instance of the RLParameter class, which
+                defines relevant hyperparameters
+            double_q_learning (optional): whether or not double Q learning, enabled by default,
+            minibatch_size (optional): the size of the minibatch
+            minibatches_per_step (optional): the number of minibatch updates
+                per training step
+            num_atoms (optional): number of "canonical returns"in the discretized value distributions
+            qmin (optional): minimum q-value
+            qmax (optional): maximum q-value
+            optimizer (optional): the optimizer class and
+                optimizer hyperparameters for the q network(s) optimizer
+        """
+        super().__init__()
         self.double_q_learning = double_q_learning
         self.minibatch_size = minibatch_size
         self.minibatches_per_step = minibatches_per_step
         self._actions = actions
         self.q_network = q_network
         self.q_network_target = q_network_target
-        self.q_network_optimizer = optimizer.make_optimizer(q_network.parameters())
+        self.q_network_optimizer = optimizer
         self.qmin = qmin
         self.qmax = qmax
         self.num_atoms = num_atoms
+        self.rl_parameters = rl
         self.support = torch.linspace(
             self.qmin, self.qmax, self.num_atoms, device=self.device
         )
         self.scale_support = (self.qmax - self.qmin) / (self.num_atoms - 1.0)
 
         self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
-        if rl.reward_boost is not None:
+        if self.rl_parameters.reward_boost is not None:
             # pyre-fixme[16]: Optional type has no attribute `keys`.
-            for k in rl.reward_boost.keys():
+            for k in self.rl_parameters.reward_boost.keys():
                 i = self._actions.index(k)
                 # pyre-fixme[16]: Optional type has no attribute `__getitem__`.
-                self.reward_boosts[0, i] = rl.reward_boost[k]
+                self.reward_boosts[0, i] = self.rl_parameters.reward_boost[k]
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
-    @torch.no_grad()
-    def train(self, training_batch: rlt.DiscreteDqnInput) -> None:
+    def configure_optimizers(self):
+        optimizers = [
+            self.q_network_optimizer.make_optimizer(self.q_network.parameters())
+        ]
+        # soft-update
+        target_params = list(self.q_network_target.parameters())
+        source_params = list(self.q_network.parameters())
+        optimizers.append(SoftUpdate(target_params, source_params, tau=self.tau))
+        return optimizers
+
+    def train_step_gen(self, training_batch: rlt.DiscreteDqnInput, batch_idx: int):
         rewards = self.boost_rewards(training_batch.reward, training_batch.action)
         discount_tensor = torch.full_like(rewards, self.gamma)
         possible_next_actions_mask = training_batch.possible_next_actions_mask.float()
         possible_actions_mask = training_batch.possible_actions_mask.float()
 
-        self.minibatch += 1
         not_terminal = training_batch.not_terminal.float()
 
         if self.use_seq_num_diff_as_time_diff:
@@ -152,50 +163,33 @@ class C51Trainer(RLTrainer):
         # pyre-fixme[16]: `Tensor` has no attribute `scatter_add_`.
         m.scatter_add_(dim=1, index=lo, src=next_dist * (up.float() - b))
         m.scatter_add_(dim=1, index=up, src=next_dist * (b - lo.float()))
+        log_dist = self.q_network.log_dist(training_batch.state)
 
-        with torch.enable_grad():
-            log_dist = self.q_network.log_dist(training_batch.state)
-
-            # for reporting only
-            all_q_values = (log_dist.exp() * self.support).sum(2).detach()
-
-            log_dist = (log_dist * training_batch.action.unsqueeze(-1)).sum(1)
-
-            loss = -(m * log_dist).sum(1).mean()
-            loss.backward()
-            self._maybe_run_optimizer(
-                self.q_network_optimizer, self.minibatches_per_step
-            )
-
-        # Use the soft update rule to update target network
-        self._maybe_soft_update(
-            self.q_network, self.q_network_target, self.tau, self.minibatches_per_step
-        )
-
+        # for reporting only
+        all_q_values = (log_dist.exp() * self.support).sum(2).detach()
         model_action_idxs = self.argmax_with_mask(
             all_q_values,
             possible_actions_mask if self.maxq_learning else training_batch.action,
         )
 
-        # pyre-fixme[16]: `C51Trainer` has no attribute `notify_observers`.
-        self.notify_observers(
-            td_loss=loss,
-            logged_actions=torch.argmax(training_batch.action, dim=1, keepdim=True),
-            logged_propensities=training_batch.extras.action_probability,
-            logged_rewards=rewards,
-            model_values=all_q_values,
-            model_action_idxs=model_action_idxs,
-        )
+        log_dist = (log_dist * training_batch.action.unsqueeze(-1)).sum(1)
 
-        self.loss_reporter.report(
-            td_loss=loss,
-            # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
-            logged_actions=training_batch.action.argmax(dim=1, keepdim=True),
-            logged_propensities=training_batch.extras.action_probability,
-            logged_rewards=rewards,
-            model_values=all_q_values,
-            model_action_idxs=model_action_idxs,
-        )
+        loss = -(m * log_dist).sum(1).mean()
+
+        if batch_idx % self.trainer.log_every_n_steps == 0:
+            self.reporter.log(
+                td_loss=loss,
+                logged_actions=torch.argmax(training_batch.action, dim=1, keepdim=True),
+                logged_propensities=training_batch.extras.action_probability,
+                logged_rewards=rewards,
+                model_values=all_q_values,
+                model_action_idxs=model_action_idxs,
+            )
+            self.log("td_loss", loss, prog_bar=True)
+
+        yield loss
+        result = self.soft_update_result()
+        yield result
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
@@ -212,8 +206,7 @@ class C51Trainer(RLTrainer):
     def argmax_with_mask(self, q_values, possible_actions_mask):
         # Set q-values of impossible actions to a very large negative number.
         q_values = q_values.reshape(possible_actions_mask.shape)
-        q_values = q_values + self.ACTION_NOT_POSSIBLE_VAL * (1 - possible_actions_mask)
+        q_values = q_values + RLTrainer.ACTION_NOT_POSSIBLE_VAL * (
+            1 - possible_actions_mask
+        )
         return q_values.argmax(1)
-
-    def warm_start_components(self):
-        return ["q_network", "q_network_target", "q_network_optimizer"]

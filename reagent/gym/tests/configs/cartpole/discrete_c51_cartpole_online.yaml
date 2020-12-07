@@ -13,7 +13,6 @@ model:
         maxq_learning: true
         temperature: 1.0
       double_q_learning: true
-      minibatch_size: 512
       minibatches_per_step: 1
       num_atoms: 21
       qmin: 0
@@ -39,3 +38,4 @@ num_train_episodes: 40
 num_eval_episodes: 20
 passing_score_bar: 100.0
 use_gpu: false
+minibatch_size: 512
