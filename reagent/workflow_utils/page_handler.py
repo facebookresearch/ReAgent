@@ -2,18 +2,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
 import logging
-import time
 from collections import OrderedDict
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import numpy as np
 import torch
 from reagent.core.tracker import observable
-from reagent.evaluation.cpe import CpeDetails
-from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.tensorboardX import SummaryWriterContext
-from reagent.training.sac_trainer import SACTrainer
-from reagent.training.td3_trainer import TD3Trainer
 from reagent.types import MemoryNetworkInput, PreprocessedTrainingBatch
 
 
@@ -77,54 +72,6 @@ class TrainingPageHandler(PageHandler):
         self.notify_observers(epoch_end=self.epoch)
         self.trainer_or_evaluator.loss_reporter.flush()
         self.epoch += 1
-
-
-# TODO: remove.
-# Use new DataLoaderWrapper & EpochIterator (see OSS train_and_evaluate_generic)
-class EvaluationPageHandler(PageHandler):
-    def __init__(self, trainer, evaluator, reporter):
-        self.trainer = trainer
-        self.evaluator = evaluator
-        self.evaluation_data: Optional[EvaluationDataPage] = None
-        self.reporter = reporter
-        self.results: List[CpeDetails] = []
-
-    def handle(self, tdp: PreprocessedTrainingBatch) -> None:
-        if not self.trainer.calc_cpe_in_training:
-            return
-        # TODO: Perhaps we can make an RLTrainer param to check if continuous?
-        if isinstance(self.trainer, (SACTrainer, TD3Trainer)):
-            # TODO: Implement CPE for continuous algos
-            edp = None
-        else:
-            edp = EvaluationDataPage.create_from_training_batch(tdp, self.trainer)
-        if self.evaluation_data is None:
-            self.evaluation_data = edp
-        else:
-            # pyre-fixme[16]: `Optional` has no attribute `append`.
-            self.evaluation_data = self.evaluation_data.append(edp)
-
-    def finish(self) -> None:
-        if self.evaluation_data is None:
-            return
-        # Making sure the data is sorted for CPE
-        # pyre-fixme[16]: `Optional` has no attribute `sort`.
-        self.evaluation_data = self.evaluation_data.sort()
-        # pyre-fixme[16]: `Optional` has no attribute `compute_values`.
-        self.evaluation_data = self.evaluation_data.compute_values(self.trainer.gamma)
-        # pyre-fixme[16]: `Optional` has no attribute `validate`.
-        self.evaluation_data.validate()
-        start_time = time.time()
-        evaluation_details = self.evaluator.evaluate_post_training(self.evaluation_data)
-        self.reporter.report(evaluation_details)
-        self.results.append(evaluation_details)
-        logger.info("CPE evaluation took {} seconds.".format(time.time() - start_time))
-        self.evaluation_data = None
-
-    def get_last_cpe_results(self):
-        if len(self.results) == 0:
-            return CpeDetails()
-        return self.results[-1]
 
 
 class WorldModelTrainingPageHandler(PageHandler):
