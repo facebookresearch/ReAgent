@@ -15,6 +15,7 @@ from reagent.model_utils.seq2slate_utils import (
     DECODER_START_SYMBOL,
     PADDING_SYMBOL,
     Seq2SlateMode,
+    EPSILON,
     Seq2SlateOutputArch,
     attention,
     clones,
@@ -636,7 +637,7 @@ class Seq2SlateTransformerModel(nn.Module):
         # if mode == PER_SEQ_LOG_PROB_MODE: batch_size, 1
         # if mode == PER_SYMBOL_LOG_PROB_DIST_MODE: batch_size, tgt_seq_len, candidate_size
         if mode == Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE:
-            per_symbol_log_probs = torch.log(decoder_probs)
+            per_symbol_log_probs = torch.log(torch.clamp(decoder_probs, min=EPSILON))
             return per_symbol_log_probs
 
         per_seq_log_probs = torch.log(

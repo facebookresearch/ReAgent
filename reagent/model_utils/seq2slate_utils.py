@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 PADDING_SYMBOL = 0
 DECODER_START_SYMBOL = 1
-EPSILON = 1e-45
+EPSILON = torch.finfo(torch.float32).tiny
 
 
 class Seq2SlateMode(Enum):
@@ -149,11 +149,11 @@ def per_symbol_to_per_seq_probs(per_symbol_probs, tgt_out_idx):
     # per_symbol_probs shape: batch_size, seq_len, candidate_size
     # tgt_out_idx shape: batch_size, seq_len
     # output shape: batch_size, 1
-    return (
+    return torch.clamp(
         torch.prod(
             torch.gather(per_symbol_probs, 2, tgt_out_idx.unsqueeze(2)).squeeze(2),
             dim=1,
             keepdim=True,
-        )
-        + EPSILON  # prevent zero probabilities, which causes torch.log return -inf
+        ),
+        min=EPSILON,  # prevent zero probabilities, which cause torch.log return -inf
     )
