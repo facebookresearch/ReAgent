@@ -268,15 +268,14 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
 
     def test_seq2slate_transformer_on_policy_simple_tsp(self):
         """
-        Solve Traveling Salesman Problem. Data comes from one set of nodes (cities).
-
-        Finish in 5 epochs
+        Solve Traveling Salesman Problem. Cities comes from a fixed set of nodes (cities).
+        Easily hit reward threshold after one batch training
         """
         device = torch.device("cpu")
         batch_size = 4096
-        epochs = 500
+        epochs = 1
         num_batches = 1
-        expect_reward_threshold = 1.05
+        expect_reward_threshold = 1.02
         hidden_size = 32
         num_candidates = 6
         diverse_input = False
@@ -300,22 +299,17 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_seq2slate_transformer_on_policy_hard_tsp(self):
         """
-        Solve Traveling Salesman Problem. Data comes from multiple sets of cities.
-
-        4 cities
-        with reward scaled:
-        batch size 4096, lr=0.00005, finish in 8 epochs
-        batch size 4096, lr=0.0001, finish in 6 epochs
+        Solve Traveling Salesman Problem. Data comes from different sets of cities.
         """
         device = torch.device("cuda")
         batch_size = 4096
-        epochs = 50000
-        num_batches = 300
-        expect_reward_threshold = 1.04
+        epochs = 8
+        num_batches = 50
+        expect_reward_threshold = 1.02
         hidden_size = 128
-        num_candidates = 4
+        num_candidates = 6
         diverse_input = True
-        learning_rate = 0.0001
+        learning_rate = 0.001
         learning_method = ON_POLICY
         run_seq2slate_tsp(
             MODEL_TRANSFORMER,
