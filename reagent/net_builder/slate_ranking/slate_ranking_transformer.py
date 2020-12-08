@@ -35,4 +35,5 @@ class SlateRankingTransformer(SlateRankingNetBuilder):
             max_tgt_seq_len=slate_size,
             output_arch=self.output_arch,
             temperature=self.temperature,
+            state_embed_dim=self.transformer.state_embed_dim,
         )

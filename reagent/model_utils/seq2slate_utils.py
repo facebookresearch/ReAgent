@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import copy
+import logging
 import math
 from enum import Enum
 
@@ -8,9 +9,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+logger = logging.getLogger(__name__)
 
 PADDING_SYMBOL = 0
 DECODER_START_SYMBOL = 1
+EPSILON = 1e-45
 
 
 class Seq2SlateMode(Enum):
@@ -33,6 +36,33 @@ class Seq2SlateOutputArch(Enum):
     FRECHET_SORT = "frechet_sort"
 
 
+def print_model_info(seq2slate):
+    def _num_of_params(model):
+        return len(torch.cat([p.flatten() for p in model.parameters()]))
+
+    logger.info(f"Num of total params: {_num_of_params(seq2slate)}")
+    logger.info(f"Num of Encoder params: {_num_of_params(seq2slate.encoder)}")
+    logger.info(
+        f"Num of Candidate Embedder params: {_num_of_params(seq2slate.candidate_embedder)}"
+    )
+    logger.info(
+        f"Num of State Embedder params: {_num_of_params(seq2slate.state_embedder)}"
+    )
+    if seq2slate.output_arch == Seq2SlateOutputArch.FRECHET_SORT:
+        logger.info(
+            f"Num of Encoder_Scorer params: {_num_of_params(seq2slate.encoder_scorer)}"
+        )
+    elif seq2slate.output_arch == Seq2SlateOutputArch.AUTOREGRESSIVE:
+        logger.info(
+            f"Num of Positional Encoding params: {_num_of_params(seq2slate.positional_encoding_decoder)}"
+        )
+        logger.info(f"Num of Decoder params: {_num_of_params(seq2slate.decoder)}")
+    elif seq2slate.output_arch == Seq2SlateOutputArch.ENCODER_SCORE:
+        logger.info(
+            f"Num of Encoder_Scorer params: {_num_of_params(seq2slate.encoder_scorer)}"
+        )
+
+
 def mask_logits_by_idx(logits, tgt_in_idx):
     # logits shape: batch_size, seq_len, candidate_size
     # tgt_in_idx shape: batch_size, seq_len
@@ -53,6 +83,8 @@ def subsequent_mask(size, device):
     """
     Mask out subsequent positions. Mainly used in the decoding process,
     in which an item should not attend subsequent items.
+
+    mask_ijk = 0 if the item should be ignored; 1 if the item should be paid attention
     """
     attn_shape = (1, size, size)
     subsequent_mask = (
@@ -117,8 +149,11 @@ def per_symbol_to_per_seq_probs(per_symbol_probs, tgt_out_idx):
     # per_symbol_probs shape: batch_size, seq_len, candidate_size
     # tgt_out_idx shape: batch_size, seq_len
     # output shape: batch_size, 1
-    return torch.prod(
-        torch.gather(per_symbol_probs, 2, tgt_out_idx.unsqueeze(-1)).squeeze(2),
-        dim=1,
-        keepdim=True,
+    return (
+        torch.prod(
+            torch.gather(per_symbol_probs, 2, tgt_out_idx.unsqueeze(2)).squeeze(2),
+            dim=1,
+            keepdim=True,
+        )
+        + EPSILON  # prevent zero probabilities, which causes torch.log return -inf
     )
