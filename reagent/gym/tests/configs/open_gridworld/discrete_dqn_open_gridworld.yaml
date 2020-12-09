@@ -18,7 +18,6 @@ model:
         target_update_rate: 0.1
         maxq_learning: true
         temperature: 0.01
-        softmax_policy: true
         q_network_loss: mse
       double_q_learning: true
       minibatches_per_step: 1
