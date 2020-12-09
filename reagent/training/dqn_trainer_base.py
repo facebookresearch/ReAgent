@@ -325,12 +325,12 @@ class DQNTrainerBaseLightning(RLTrainerMixin, ReAgentLightningModule):
 
         yield metric_q_value_loss
 
-    def validation_step(self, batch, batch_idx):
+    def test_step(self, batch, batch_idx):
         return batch
 
-    def gather_eval_data(self, validation_step_outputs):
+    def gather_eval_data(self, test_step_outputs):
         eval_data = None
-        for batch in validation_step_outputs:
+        for batch in test_step_outputs:
             edp = EvaluationDataPage.create_from_training_batch(batch, self)
             if eval_data is None:
                 eval_data = edp
@@ -342,8 +342,8 @@ class DQNTrainerBaseLightning(RLTrainerMixin, ReAgentLightningModule):
             eval_data.validate()
         return eval_data
 
-    def validation_epoch_end(self, validation_step_outputs):
-        eval_data = self.gather_eval_data(validation_step_outputs)
+    def test_epoch_end(self, test_step_outputs):
+        eval_data = self.gather_eval_data(test_step_outputs)
         if eval_data.mdp_id is not None:
             cpe_details = self.evaluator.evaluate_post_training(eval_data)
             self.reporter.log(cpe_details=cpe_details)

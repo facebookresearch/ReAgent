@@ -77,11 +77,16 @@ class ObservableMixin:
 
             # TODO: Create a generic framework for type conversion
             if self._observable_value_types[key] == torch.Tensor:
-                if not isinstance(value, torch.Tensor):
-                    value = torch.tensor(value)
-                if len(value.shape) == 0:
-                    value = value.reshape(1)
-                value = value.detach()
+                try:
+                    if not isinstance(value, torch.Tensor):
+                        value = torch.tensor(value)
+                    if len(value.shape) == 0:
+                        value = value.reshape(1)
+                    value = value.detach()
+                except Exception:
+                    # Be lenient about conversion since ReporterBase
+                    # has inaccurate type
+                    pass
 
             for observer in self._observers[key]:
                 observer.update(key, value)

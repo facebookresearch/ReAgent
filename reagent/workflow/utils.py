@@ -215,5 +215,5 @@ def train_eval_lightning(
         callbacks=[StoppingEpochCallback(num_epochs)],
     )
     trainer.fit(trainer_module, datamodule=datamodule)
-    # TODO: evaluate
+    trainer.test()
     return trainer

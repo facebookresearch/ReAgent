@@ -24,7 +24,7 @@ class RLParameters(BaseDataClass):
     maxq_learning: bool = True
     reward_boost: Optional[Dict[str, float]] = None
     temperature: float = 0.01
-    softmax_policy: bool = True
+    softmax_policy: bool = False
     use_seq_num_diff_as_time_diff: bool = False
     q_network_loss: str = "mse"
     set_missing_value_to_zero: bool = False
