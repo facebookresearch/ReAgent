@@ -20,6 +20,7 @@ from reagent.preprocessing.batch_preprocessor import (
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.preprocessing.types import InputColumn
 from reagent.workflow.data import ReAgentDataModule
+from reagent.workflow.data.manual_data_module import ManualDataModule
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
@@ -87,7 +88,7 @@ class DiscreteDQNBase(ModelManager):
 
     @property
     def should_generate_eval_dataset(self) -> bool:
-        return self.eval_parameters.calc_cpe_in_training
+        raise RuntimeError
 
     @property
     def required_normalization_keys(self) -> List[str]:
@@ -96,21 +97,7 @@ class DiscreteDQNBase(ModelManager):
     def run_feature_identification(
         self, input_table_spec: TableSpec
     ) -> Dict[str, NormalizationData]:
-        preprocessing_options = self.preprocessing_options or PreprocessingOptions()
-        logger.info("Overriding whitelist_features")
-        state_features = [
-            ffi.feature_id for ffi in self.state_feature_config.float_feature_infos
-        ]
-        preprocessing_options = preprocessing_options._replace(
-            whitelist_features=state_features
-        )
-        return {
-            NormalizationKey.STATE: NormalizationData(
-                dense_normalization_parameters=identify_normalization_parameters(
-                    input_table_spec, InputColumn.STATE_FEATURES, preprocessing_options
-                )
-            )
-        }
+        raise RuntimeError
 
     def query_data(
         self,
@@ -118,30 +105,29 @@ class DiscreteDQNBase(ModelManager):
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
     ) -> Dataset:
-        return query_data(
-            input_table_spec=input_table_spec,
-            discrete_action=True,
-            actions=self.action_names,
-            include_possible_actions=True,
-            sample_range=sample_range,
-            custom_reward_expression=reward_options.custom_reward_expression,
-            multi_steps=self.multi_steps,
-            gamma=self.rl_parameters.gamma,
-        )
+        raise RuntimeError
 
     @property
     def multi_steps(self) -> Optional[int]:
         return self.rl_parameters.multi_steps
 
     def build_batch_preprocessor(self) -> BatchPreprocessor:
-        state_preprocessor = Preprocessor(
-            self.state_normalization_data.dense_normalization_parameters,
-            use_gpu=self.use_gpu,
-        )
-        return DiscreteDqnBatchPreprocessor(
-            num_actions=len(self.action_names),
-            state_preprocessor=state_preprocessor,
-            use_gpu=self.use_gpu,
+        raise RuntimeError
+
+    def get_data_module(
+        self,
+        *,
+        input_table_spec: Optional[TableSpec] = None,
+        reward_options: Optional[RewardOptions] = None,
+        reader_options: Optional[ReaderOptions] = None,
+        setup_data: Optional[Dict[str, bytes]] = None,
+    ) -> Optional[ReAgentDataModule]:
+        return DiscreteDqnDataModule(
+            input_table_spec=input_table_spec,
+            reward_options=reward_options,
+            setup_data=setup_data,
+            reader_options=reader_options,
+            model_manager=self,
         )
 
     def get_reporter(self):
@@ -165,19 +151,18 @@ class DiscreteDQNBase(ModelManager):
         The field that should not be filled are:
         - output_path
         """
-        batch_preprocessor = self.build_batch_preprocessor()
         reporter = self.get_reporter()
         # pyre-fixme[16]: `RLTrainer` has no attribute `set_reporter`.
         self.trainer.set_reporter(reporter)
+        assert data_module
 
         train_eval_lightning(
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
             trainer_module=self.trainer,
-            data_module=None,
+            data_module=data_module,
             num_epochs=num_epochs,
             use_gpu=self.use_gpu,
-            batch_preprocessor=batch_preprocessor,
             reader_options=self.reader_options,
             checkpoint_path=self._lightning_checkpoint_path,
         )
@@ -186,3 +171,63 @@ class DiscreteDQNBase(ModelManager):
             reporter.generate_training_report()
         )
         return RLTrainingOutput(training_report=training_report)
+
+
+class DiscreteDqnDataModule(ManualDataModule):
+    @property
+    def should_generate_eval_dataset(self) -> bool:
+        return self.model_manager.eval_parameters.calc_cpe_in_training
+
+    @property
+    def required_normalization_keys(self) -> List[str]:
+        return [NormalizationKey.STATE]
+
+    def run_feature_identification(
+        self, input_table_spec: TableSpec
+    ) -> Dict[str, NormalizationData]:
+        preprocessing_options = (
+            self.model_manager.preprocessing_options or PreprocessingOptions()
+        )
+        logger.info("Overriding whitelist_features")
+        state_features = [
+            ffi.feature_id
+            for ffi in self.model_manager.state_feature_config.float_feature_infos
+        ]
+        preprocessing_options = preprocessing_options._replace(
+            whitelist_features=state_features
+        )
+        return {
+            NormalizationKey.STATE: NormalizationData(
+                dense_normalization_parameters=identify_normalization_parameters(
+                    input_table_spec, InputColumn.STATE_FEATURES, preprocessing_options
+                )
+            )
+        }
+
+    def query_data(
+        self,
+        input_table_spec: TableSpec,
+        sample_range: Optional[Tuple[float, float]],
+        reward_options: RewardOptions,
+    ) -> Dataset:
+        return query_data(
+            input_table_spec=input_table_spec,
+            discrete_action=True,
+            actions=self.model_manager.action_names,
+            include_possible_actions=True,
+            sample_range=sample_range,
+            custom_reward_expression=reward_options.custom_reward_expression,
+            multi_steps=self.model_manager.multi_steps,
+            gamma=self.model_manager.rl_parameters.gamma,
+        )
+
+    def build_batch_preprocessor(self) -> BatchPreprocessor:
+        state_preprocessor = Preprocessor(
+            self.state_normalization_data.dense_normalization_parameters,
+            use_gpu=self.model_manager.use_gpu,
+        )
+        return DiscreteDqnBatchPreprocessor(
+            num_actions=len(self.model_manager.action_names),
+            state_preprocessor=state_preprocessor,
+            use_gpu=self.model_manager.use_gpu,
+        )

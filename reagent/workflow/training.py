@@ -40,6 +40,9 @@ def identify_and_train_network(
         # pyre-fixme[35]: Target cannot be annotated.
         use_gpu: bool = torch.cuda.is_available()
 
+    reward_options = reward_options or RewardOptions()
+    reader_options = reader_options or ReaderOptions()
+
     manager = model.value
 
     normalization_data_map = None
