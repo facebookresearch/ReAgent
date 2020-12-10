@@ -47,6 +47,8 @@ class DiscreteQRDQN(DiscreteDQNBase):
             self.trainer_param.minibatch_size % 8 == 0
         ), "The minibatch size must be divisible by 8 for performance reasons."
 
+    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
+    #  inconsistently.
     def build_trainer(self) -> QRDQNTrainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
