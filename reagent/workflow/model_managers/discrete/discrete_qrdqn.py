@@ -4,7 +4,6 @@ import logging
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.gym.policies.policy import Policy
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.quantile_dqn.dueling_quantile import DuelingQuantile
 from reagent.net_builder.unions import (
@@ -13,7 +12,6 @@ from reagent.net_builder.unions import (
 )
 from reagent.parameters import param_hash
 from reagent.training import QRDQNTrainer, QRDQNTrainerParameters
-from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
 
 
@@ -55,12 +53,8 @@ class DiscreteQRDQN(DiscreteDQNBase):
             self.state_normalization_data,
             len(self.action_names),
             # pyre-fixme[16]: `QRDQNTrainerParameters` has no attribute `num_atoms`.
-            # pyre-fixme[16]: `QRDQNTrainerParameters` has no attribute `num_atoms`.
             num_atoms=self.trainer_param.num_atoms,
         )
-
-        if self.use_gpu:
-            q_network = q_network.cuda()
 
         q_network_target = q_network.get_target_network()
 
@@ -68,7 +62,6 @@ class DiscreteQRDQN(DiscreteDQNBase):
         if self.eval_parameters.calc_cpe_in_training:
             # Metrics + reward
             num_output_nodes = (len(self.metrics_to_score) + 1) * len(
-                # pyre-fixme[16]: `QRDQNTrainerParameters` has no attribute `actions`.
                 # pyre-fixme[16]: `QRDQNTrainerParameters` has no attribute `actions`.
                 self.trainer_param.actions
             )
@@ -85,10 +78,6 @@ class DiscreteQRDQN(DiscreteDQNBase):
                 num_output_nodes,
             )
 
-            if self.use_gpu:
-                reward_network.cuda()
-                q_network_cpe.cuda()
-
             q_network_cpe_target = q_network_cpe.get_target_network()
 
         # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `_q_network`.
@@ -100,10 +89,7 @@ class DiscreteQRDQN(DiscreteDQNBase):
             q_network_cpe=q_network_cpe,
             q_network_cpe_target=q_network_cpe_target,
             metrics_to_score=self.metrics_to_score,
-            loss_reporter=NoOpLossReporter(),
-            use_gpu=self.use_gpu,
             evaluation=self.eval_parameters,
-            # pyre-fixme[16]: `QRDQNTrainerParameters` has no attribute `asdict`.
             # pyre-fixme[16]: `QRDQNTrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),
         )
