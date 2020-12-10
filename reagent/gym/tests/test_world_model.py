@@ -350,10 +350,12 @@ def train_mdnrnn_and_train_on_embedded_env(
         env,
     )
     num_batch_per_epoch = embed_rb.size // batch_size
+    # FIXME: This has to be wrapped in dataloader
     for epoch in range(num_agent_train_epochs):
         for _ in tqdm(range(num_batch_per_epoch), desc=f"epoch {epoch}"):
             batch = embed_rb.sample_transition_batch(batch_size=batch_size)
             preprocessed_batch = agent_trainer_preprocessor(batch)
+            # FIXME: This should be fitted with Lightning's trainer
             agent_trainer.train(preprocessed_batch)
 
     # evaluate model
@@ -397,6 +399,7 @@ class TestWorldModel(HorizonTestBase):
         TestWorldModel.verify_result(feature_sensitivity, ["state3"])
         logger.info("MDNRNN feature test passes!")
 
+    @unittest.skip("This test has to be migrated to Lightning")
     def test_world_model(self):
         """ Train DQN on POMDP given features from world model. """
         config_path = "configs/world_model/discrete_dqn_string.yaml"
