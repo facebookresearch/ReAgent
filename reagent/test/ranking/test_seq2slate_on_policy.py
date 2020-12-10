@@ -21,6 +21,7 @@ from reagent.model_utils.seq2slate_utils import (
     per_symbol_to_per_seq_log_probs,
     per_symbol_to_per_seq_probs,
     subsequent_mask,
+    pytorch_decoder_mask,
 )
 from reagent.test.ranking.test_seq2slate_utils import (
     MODEL_TRANSFORMER,
@@ -47,6 +48,48 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
+
+    def test_pytorch_decoder_mask(self):
+        batch_size = 3
+        src_seq_len = 4
+        num_heads = 2
+
+        memory = torch.randn(batch_size, src_seq_len, num_heads)
+        tgt_in_idx = torch.tensor([[1, 2, 3], [1, 4, 2], [1, 5, 4]]).long()
+        tgt_tgt_mask, tgt_src_mask = pytorch_decoder_mask(memory, tgt_in_idx, num_heads)
+
+        expected_tgt_tgt_mask = (
+            torch.tensor(
+                [
+                    [False, True, True],
+                    [False, False, True],
+                    [False, False, False],
+                ],
+            )
+            .unsqueeze(0)
+            .repeat(batch_size * num_heads, 1, 1)
+        )
+        expected_tgt_src_mask = torch.tensor(
+            [
+                [
+                    [False, False, False, False],
+                    [True, False, False, False],
+                    [True, True, False, False],
+                ],
+                [
+                    [False, False, False, False],
+                    [False, False, True, False],
+                    [True, False, True, False],
+                ],
+                [
+                    [False, False, False, False],
+                    [False, False, False, True],
+                    [False, False, True, True],
+                ],
+            ]
+        ).repeat_interleave(num_heads, dim=0)
+        assert torch.all(tgt_tgt_mask == expected_tgt_tgt_mask)
+        assert torch.all(tgt_src_mask == expected_tgt_src_mask)
 
     def test_per_symbol_to_per_seq_log_probs(self):
         """
