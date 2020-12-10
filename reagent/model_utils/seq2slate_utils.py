@@ -157,3 +157,35 @@ def per_symbol_to_per_seq_probs(per_symbol_probs, tgt_out_idx):
         ),
         min=EPSILON,  # prevent zero probabilities, which cause torch.log return -inf
     )
+
+
+def pytorch_decoder_mask(memory, tgt_in_idx, num_heads):
+    """
+    Compute the masks used in the PyTorch Transformer-based decoder for
+    self-attention and attention over encoder outputs
+
+    Input:
+        memory shape: batch_size, src_seq_len, dim_model
+        tgt_in_idx (+2 offseted) shape: batch_size, tgt_seq_len
+
+    Return:
+        tgt_tgt_mask shape: batch_size * num_heads, tgt_seq_len, tgt_seq_len
+        tgt_src_mask shape: batch_size * num_heads, tgt_seq_len, src_seq_len
+    """
+    batch_size, src_seq_len, _ = memory.shape
+    tgt_seq_len = tgt_in_idx.shape[1]
+    device = memory.device
+    mask_indices = torch.tril(
+        tgt_in_idx.repeat(1, tgt_seq_len).reshape(batch_size, tgt_seq_len, tgt_seq_len),
+        diagonal=0,
+    ).to(device)
+    tgt_src_mask_augmented = (
+        torch.zeros(batch_size, tgt_seq_len, src_seq_len + 2, device=device)
+        .bool()
+        .scatter(2, mask_indices, True)
+    )
+    tgt_src_mask = tgt_src_mask_augmented[:, :, 2:].repeat_interleave(num_heads, dim=0)
+    tgt_tgt_mask = (subsequent_mask(tgt_seq_len, device) == 0).repeat(
+        batch_size * num_heads, 1, 1
+    )
+    return tgt_tgt_mask, tgt_src_mask

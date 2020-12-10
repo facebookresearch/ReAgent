@@ -18,10 +18,10 @@ from reagent.model_utils.seq2slate_utils import (
     EPSILON,
     Seq2SlateOutputArch,
     attention,
+    pytorch_decoder_mask,
     clones,
     mask_logits_by_idx,
     per_symbol_to_per_seq_probs,
-    subsequent_mask,
     print_model_info,
 )
 from reagent.models.base import ModelBase
@@ -569,7 +569,9 @@ class Seq2SlateTransformerModel(nn.Module):
         assert greedy is not None
         for l in range(tgt_seq_len):
             tgt_in_seq = gather(candidate_features, tgt_in_idx)
-            tgt_tgt_mask, tgt_src_mask = self.decoder_mask(memory, tgt_in_idx)
+            tgt_tgt_mask, tgt_src_mask = pytorch_decoder_mask(
+                memory, tgt_in_idx, self.num_heads
+            )
             # shape batch_size, l + 1, candidate_size
             probs = self.decode(
                 memory=memory,
@@ -622,8 +624,9 @@ class Seq2SlateTransformerModel(nn.Module):
 
         # tgt_tgt_mask shape: batch_size * num_heads, tgt_seq_len, tgt_seq_len
         # tgt_src_mask shape: batch_size * num_heads, tgt_seq_len, src_seq_len
-        tgt_tgt_mask, tgt_src_mask = self.decoder_mask(encoder_output, tgt_in_idx)
-
+        tgt_tgt_mask, tgt_src_mask = pytorch_decoder_mask(
+            encoder_output, tgt_in_idx, self.num_heads
+        )
         # decoder_probs shape: batch_size, tgt_seq_len, candidate_size
         decoder_probs = self.decode(
             memory=encoder_output,
@@ -723,32 +726,6 @@ class Seq2SlateTransformerModel(nn.Module):
             probs = self.decoder(tgt_embed, memory, tgt_src_mask, tgt_tgt_mask)
 
         return probs
-
-    def decoder_mask(self, memory, tgt_in_idx):
-        """
-        Compute the masks used in the decoder for
-        self-attention and attention over encoder outputs
-        """
-        batch_size, src_seq_len, _ = memory.shape
-        tgt_seq_len = tgt_in_idx.shape[1]
-        device = memory.device
-        tgt_src_mask = torch.zeros(
-            batch_size, tgt_seq_len, src_seq_len, device=device, dtype=torch.bool
-        )
-        # Mask out decoded items
-        # The first element of tgt_in_idx is the placeholder symbol for decoder-start
-        # so we should skip
-        for i in range(tgt_seq_len):
-            tgt_src_mask[
-                torch.arange(batch_size, device=device).repeat_interleave(i),
-                i,
-                (tgt_in_idx[:, 1 : i + 1] - 2).flatten(),
-            ] = True
-        tgt_src_mask = tgt_src_mask.repeat_interleave(self.num_heads, dim=0)
-        tgt_tgt_mask = (subsequent_mask(tgt_seq_len, device) == 0).repeat(
-            batch_size * self.num_heads, 1, 1
-        )
-        return tgt_tgt_mask, tgt_src_mask
 
 
 @dataclass
