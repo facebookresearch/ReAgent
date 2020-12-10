@@ -145,6 +145,8 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
         IMPORTANT: the input action here is assumed to match the
         range of the output of the actor.
         """
+        if isinstance(training_batch, dict):
+            training_batch = rlt.PolicyNetworkInput.from_dict(training_batch)
 
         assert isinstance(training_batch, rlt.PolicyNetworkInput)
 

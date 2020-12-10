@@ -170,7 +170,7 @@ commands:
       - run:
           no_output_timeout: 30m
           command: |
-            tox -vv -e << parameters.tox_env >>
+            tox -e << parameters.tox_env >>
             bash <(curl -s https://codecov.io/bash)
       - run: python setup.py bdist_wheel
       - store_artifacts:

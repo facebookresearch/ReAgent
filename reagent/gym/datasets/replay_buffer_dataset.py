@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Optional
+from typing import Optional, Union
 
 import torch
 from reagent.gym.agents.agent import Agent
@@ -52,8 +52,13 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
         max_steps: Optional[int] = None,
         trainer_preprocessor=None,
         replay_buffer_inserter=None,
+        device: Optional[Union[str, torch.device]] = None,
     ):
-        device = torch.device("cpu")
+        if device is None:
+            device = torch.device("cpu")
+        elif isinstance(device, str):
+            device = torch.device(device)
+
         if trainer_preprocessor is None:
             trainer_preprocessor = make_replay_buffer_trainer_preprocessor(
                 trainer, device, env
