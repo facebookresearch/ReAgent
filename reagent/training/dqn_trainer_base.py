@@ -18,52 +18,10 @@ from reagent.training.rl_trainer_pytorch import RLTrainerMixin
 logger = logging.getLogger(__name__)
 
 
-class DQNTrainerBaseLightning(RLTrainerMixin, ReAgentLightningModule):
+class DQNTrainerMixin:
     # Q-value for action that is not possible. Guaranteed to be worse than any
     # legitimate action
     ACTION_NOT_POSSIBLE_VAL = -1e9
-
-    def __init__(
-        self,
-        rl_parameters: RLParameters,
-        metrics_to_score=None,
-        actions: Optional[List[str]] = None,
-        evaluation_parameters: Optional[EvaluationParameters] = None,
-    ):
-        super().__init__()
-        self.rl_parameters = rl_parameters
-        self.rl_temperature = float(rl_parameters.temperature)
-        self.maxq_learning = rl_parameters.maxq_learning
-        self.use_seq_num_diff_as_time_diff = rl_parameters.use_seq_num_diff_as_time_diff
-        self.time_diff_unit_length = rl_parameters.time_diff_unit_length
-        self.tensorboard_logging_freq = rl_parameters.tensorboard_logging_freq
-        self.multi_steps = rl_parameters.multi_steps
-        self.calc_cpe_in_training = (
-            evaluation_parameters and evaluation_parameters.calc_cpe_in_training
-        )
-        self._actions = actions
-
-        if rl_parameters.q_network_loss == "mse":
-            self.q_network_loss = F.mse_loss
-        elif rl_parameters.q_network_loss == "huber":
-            self.q_network_loss = F.smooth_l1_loss
-        else:
-            raise Exception(
-                "Q-Network loss type {} not valid loss.".format(
-                    rl_parameters.q_network_loss
-                )
-            )
-
-        if metrics_to_score:
-            self.metrics_to_score = metrics_to_score + ["reward"]
-        else:
-            self.metrics_to_score = ["reward"]
-
-    @property
-    def num_actions(self) -> int:
-        assert self._actions is not None, "Not a discrete action DQN"
-        # pyre-fixme[6]: Expected `Sized` for 1st param but got `Optional[List[str]]`.
-        return len(self._actions)
 
     def get_max_q_values(self, q_values, possible_actions_mask):
         return self.get_max_q_values_with_target(
@@ -113,6 +71,46 @@ class DQNTrainerBaseLightning(RLTrainerMixin, ReAgentLightningModule):
             max_q_values_target = max_q_values
 
         return max_q_values_target, max_indicies
+
+
+class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModule):
+    def __init__(
+        self,
+        rl_parameters: RLParameters,
+        metrics_to_score=None,
+        actions: Optional[List[str]] = None,
+        evaluation_parameters: Optional[EvaluationParameters] = None,
+    ):
+        super().__init__()
+        self.rl_parameters = rl_parameters
+        self.time_diff_unit_length = rl_parameters.time_diff_unit_length
+        self.tensorboard_logging_freq = rl_parameters.tensorboard_logging_freq
+        self.calc_cpe_in_training = (
+            evaluation_parameters and evaluation_parameters.calc_cpe_in_training
+        )
+        self._actions = actions
+
+        if rl_parameters.q_network_loss == "mse":
+            self.q_network_loss = F.mse_loss
+        elif rl_parameters.q_network_loss == "huber":
+            self.q_network_loss = F.smooth_l1_loss
+        else:
+            raise Exception(
+                "Q-Network loss type {} not valid loss.".format(
+                    rl_parameters.q_network_loss
+                )
+            )
+
+        if metrics_to_score:
+            self.metrics_to_score = metrics_to_score + ["reward"]
+        else:
+            self.metrics_to_score = ["reward"]
+
+    @property
+    def num_actions(self) -> int:
+        assert self._actions is not None, "Not a discrete action DQN"
+        # pyre-fixme[6]: Expected `Sized` for 1st param but got `Optional[List[str]]`.
+        return len(self._actions)
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.

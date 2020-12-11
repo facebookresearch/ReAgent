@@ -16,22 +16,24 @@ from reagent.training.trainer import Trainer
 logger = logging.getLogger(__name__)
 
 
+# pyre-fixme[13]: Attribute `rl_parameters` is never initialized.
 class RLTrainerMixin:
     # todo potential inconsistencies
     _use_seq_num_diff_as_time_diff = None
     _maxq_learning = None
     _multi_steps = None
+    rl_parameters: RLParameters
 
     @property
-    def gamma(self):
+    def gamma(self) -> float:
         return self.rl_parameters.gamma
 
     @property
-    def tau(self):
+    def tau(self) -> float:
         return self.rl_parameters.target_update_rate
 
     @property
-    def multi_steps(self):
+    def multi_steps(self) -> Optional[int]:
         return (
             self.rl_parameters.multi_steps
             if self._multi_steps is None
@@ -43,7 +45,7 @@ class RLTrainerMixin:
         self._multi_steps = multi_steps
 
     @property
-    def maxq_learning(self):
+    def maxq_learning(self) -> bool:
         return (
             self.rl_parameters.maxq_learning
             if self._maxq_learning is None
@@ -55,7 +57,7 @@ class RLTrainerMixin:
         self._maxq_learning = maxq_learning
 
     @property
-    def use_seq_num_diff_as_time_diff(self):
+    def use_seq_num_diff_as_time_diff(self) -> bool:
         return (
             self.rl_parameters.use_seq_num_diff_as_time_diff
             if self._use_seq_num_diff_as_time_diff is None
@@ -65,6 +67,10 @@ class RLTrainerMixin:
     @use_seq_num_diff_as_time_diff.setter
     def use_seq_num_diff_as_time_diff(self, use_seq_num_diff_as_time_diff):
         self._use_seq_num_diff_as_time_diff = use_seq_num_diff_as_time_diff
+
+    @property
+    def rl_temperature(self) -> float:
+        return self.rl_parameters.temperature
 
 
 class RLTrainer(RLTrainerMixin, Trainer):
@@ -88,13 +94,8 @@ class RLTrainer(RLTrainerMixin, Trainer):
         self.minibatch_size: Optional[int] = None
         self.minibatches_per_step: Optional[int] = None
         self.rl_parameters = rl_parameters
-        # TODO: Move these attributes to RLTrainerMixin?
-        self.rl_temperature = float(rl_parameters.temperature)
-        self.maxq_learning = rl_parameters.maxq_learning
-        self.use_seq_num_diff_as_time_diff = rl_parameters.use_seq_num_diff_as_time_diff
         self.time_diff_unit_length = rl_parameters.time_diff_unit_length
         self.tensorboard_logging_freq = rl_parameters.tensorboard_logging_freq
-        self.multi_steps = rl_parameters.multi_steps
         self.calc_cpe_in_training = (
             evaluation_parameters and evaluation_parameters.calc_cpe_in_training
         )
