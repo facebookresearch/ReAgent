@@ -85,11 +85,9 @@ class DQNTrainer(DQNTrainerBaseLightning):
             reward_network, q_network_cpe, q_network_cpe_target, optimizer=optimizer
         )
 
-        self.reward_boosts = torch.nn.Parameter(
-            # pyre-fixme[6]: Expected `Sized` for 1st param but got `Optional[List[str]]`.
-            torch.zeros([1, len(self._actions)]),
-            requires_grad=False,
-        )
+        self.register_buffer("reward_boosts", None)
+        # pyre-fixme[6]: Expected `Sized` for 1st param but got `Optional[List[str]]`.
+        self.reward_boosts = torch.zeros([1, len(self._actions)])
         if rl.reward_boost is not None:
             # pyre-fixme[16]: `Optional` has no attribute `keys`.
             for k in rl.reward_boost.keys():
