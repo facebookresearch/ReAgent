@@ -8,7 +8,9 @@ from reagent.core.dataclasses import dataclass, field
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
-from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
+from reagent.gym.policies.samplers.discrete_sampler import (
+    GreedyActionSampler,
+)
 from reagent.gym.policies.scorers.discrete_scorer import discrete_dqn_scorer
 from reagent.models.base import ModelBase
 from reagent.models.model_feature_config_provider import RawModelFeatureConfigProvider
@@ -65,7 +67,7 @@ class DiscreteDQNBase(ModelManager):
                 self.build_serving_module(), rl_parameters=self.rl_parameters
             )
         else:
-            sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
+            sampler = GreedyActionSampler()
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
             scorer = discrete_dqn_scorer(self.trainer.q_network)
             return Policy(scorer=scorer, sampler=sampler)

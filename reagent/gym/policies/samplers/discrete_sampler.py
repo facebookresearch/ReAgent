@@ -76,7 +76,9 @@ class GreedyActionSampler(Sampler):
         raw_action = self._get_greedy_indices(scores)
         action = F.one_hot(raw_action, num_actions)
         assert action.shape == (batch_size, num_actions)
-        return rlt.ActorOutput(action=action, log_prob=torch.ones_like(raw_action))
+        return rlt.ActorOutput(
+            action=action, log_prob=torch.ones_like(raw_action, dtype=torch.float)
+        )
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
