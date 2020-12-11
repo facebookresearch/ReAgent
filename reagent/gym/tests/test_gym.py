@@ -281,7 +281,7 @@ def run_test(
 
     # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
     if isinstance(trainer, pl.LightningModule):
-        agent = Agent.create_for_env(env, policy=training_policy)
+        agent = Agent.create_for_env(env, policy=training_policy, device=device)
         # TODO: Simplify this setup by creating LightningDataModule
         dataset = ReplayBufferDataset.create_for_trainer(
             trainer,
@@ -292,6 +292,7 @@ def run_test(
             training_frequency=train_every_ts,
             num_episodes=num_train_episodes,
             max_steps=200,
+            device=device,
         )
         data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
         # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.

@@ -8,7 +8,6 @@ import reagent.types as rlt
 import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
-from reagent.core.tracker import observable
 from reagent.optimizer import SoftUpdate
 from reagent.optimizer.union import Optimizer__Union
 from reagent.parameters import EvaluationParameters, RLParameters
@@ -67,16 +66,17 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
         self.q_network_optimizer = optimizer
 
         self.num_atoms = num_atoms
+        self.register_buffer("quantiles", None)
         self.quantiles = (
-            (0.5 + torch.arange(self.num_atoms, device=self.device).float())
-            / float(self.num_atoms)
+            (0.5 + torch.arange(self.num_atoms).float()) / float(self.num_atoms)
         ).view(1, -1)
 
         self._initialize_cpe(
             reward_network, q_network_cpe, q_network_cpe_target, optimizer=cpe_optimizer
         )
 
-        self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
+        self.register_buffer("reward_boosts", None)
+        self.reward_boosts = torch.zeros([1, len(self._actions)])
         if rl.reward_boost is not None:
             # pyre-fixme[16]: Optional type has no attribute `keys`.
             for k in rl.reward_boost.keys():
