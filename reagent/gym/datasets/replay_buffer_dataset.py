@@ -52,8 +52,9 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
         max_steps: Optional[int] = None,
         trainer_preprocessor=None,
         replay_buffer_inserter=None,
+        device=None,
     ):
-        device = torch.device("cpu")
+        device = device or torch.device("cpu")
         if trainer_preprocessor is None:
             trainer_preprocessor = make_replay_buffer_trainer_preprocessor(
                 trainer, device, env

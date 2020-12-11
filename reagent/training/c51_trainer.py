@@ -7,21 +7,12 @@ import reagent.types as rlt
 import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
-from reagent.core.tracker import observable
 from reagent.optimizer import Optimizer__Union, SoftUpdate
 from reagent.parameters import RLParameters
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.rl_trainer_pytorch import RLTrainerMixin, RLTrainer
 
 
-@observable(
-    td_loss=torch.Tensor,
-    logged_actions=torch.Tensor,
-    logged_propensities=torch.Tensor,
-    logged_rewards=torch.Tensor,
-    model_values=torch.Tensor,
-    model_action_idxs=torch.Tensor,
-)
 class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
     """
     Implementation of 51 Categorical DQN (C51)
@@ -75,12 +66,12 @@ class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
         self.qmax = qmax
         self.num_atoms = num_atoms
         self.rl_parameters = rl
-        self.support = torch.linspace(
-            self.qmin, self.qmax, self.num_atoms, device=self.device
-        )
+        self.register_buffer("support", None)
+        self.support = torch.linspace(self.qmin, self.qmax, self.num_atoms)
         self.scale_support = (self.qmax - self.qmin) / (self.num_atoms - 1.0)
 
-        self.reward_boosts = torch.zeros([1, len(self._actions)], device=self.device)
+        self.register_buffer("reward_boosts", None)
+        self.reward_boosts = torch.zeros([1, len(self._actions)])
         if self.rl_parameters.reward_boost is not None:
             # pyre-fixme[16]: Optional type has no attribute `keys`.
             for k in self.rl_parameters.reward_boost.keys():
