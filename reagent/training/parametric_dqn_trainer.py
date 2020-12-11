@@ -11,12 +11,14 @@ import torch.nn.functional as F
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
 from reagent.optimizer import Optimizer__Union, SoftUpdate
-from reagent.training.dqn_trainer_base import DQNTrainerBaseLightning
+from reagent.training.dqn_trainer_base import DQNTrainerMixin
+from reagent.training.reagent_lightning_module import ReAgentLightningModule
+from reagent.training.rl_trainer_pytorch import RLTrainerMixin
 
 logger = logging.getLogger(__name__)
 
 
-class ParametricDQNTrainer(DQNTrainerBaseLightning):
+class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModule):
     @resolve_defaults
     def __init__(
         self,
@@ -32,7 +34,8 @@ class ParametricDQNTrainer(DQNTrainerBaseLightning):
             default_factory=Optimizer__Union.default
         ),
     ) -> None:
-        super().__init__(rl)
+        super().__init__()
+        self.rl_parameters = rl
 
         self.double_q_learning = double_q_learning
         self.minibatch_size = minibatch_size
@@ -42,6 +45,15 @@ class ParametricDQNTrainer(DQNTrainerBaseLightning):
         self.q_network_target = q_network_target
         self.reward_network = reward_network
         self.optimizer = optimizer
+
+        if rl.q_network_loss == "mse":
+            self.q_network_loss = F.mse_loss
+        elif rl.q_network_loss == "huber":
+            self.q_network_loss = F.smooth_l1_loss
+        else:
+            raise Exception(
+                "Q-Network loss type {} not valid loss.".format(rl.q_network_loss)
+            )
 
     def configure_optimizers(self):
         optimizers = []
