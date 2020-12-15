@@ -159,36 +159,35 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
         # Q(s, a) & r + discount * V'(next_s)
         #
 
-        with torch.no_grad():
-            if self.value_network is not None:
-                next_state_value = self.value_network_target(
-                    training_batch.next_state.float_features
-                )
-            else:
-                next_state_actor_output = self.actor_network(training_batch.next_state)
-                next_state_actor_action = (
-                    training_batch.next_state,
-                    rlt.FeatureData(next_state_actor_output.action),
-                )
-                next_state_value = self.q1_network_target(*next_state_actor_action)
+        if self.value_network is not None:
+            next_state_value = self.value_network_target(
+                training_batch.next_state.float_features
+            )
+        else:
+            next_state_actor_output = self.actor_network(training_batch.next_state)
+            next_state_actor_action = (
+                training_batch.next_state,
+                rlt.FeatureData(next_state_actor_output.action),
+            )
+            next_state_value = self.q1_network_target(*next_state_actor_action)
 
-                if self.q2_network is not None:
-                    target_q2_value = self.q2_network_target(*next_state_actor_action)
-                    next_state_value = torch.min(next_state_value, target_q2_value)
+            if self.q2_network is not None:
+                target_q2_value = self.q2_network_target(*next_state_actor_action)
+                next_state_value = torch.min(next_state_value, target_q2_value)
 
-                log_prob_a = self.actor_network.get_log_prob(
-                    training_batch.next_state, next_state_actor_output.action
-                )
-                log_prob_a = log_prob_a.clamp(-20.0, 20.0)
-                next_state_value -= self.entropy_temperature * log_prob_a
+            log_prob_a = self.actor_network.get_log_prob(
+                training_batch.next_state, next_state_actor_output.action
+            )
+            log_prob_a = log_prob_a.clamp(-20.0, 20.0)
+            next_state_value -= self.entropy_temperature * log_prob_a
 
-            if self.gamma > 0.0:
-                target_q_value = (
-                    reward + discount * next_state_value * not_done_mask.float()
-                )
-            else:
-                # This is useful in debugging instability issues
-                target_q_value = reward
+        if self.gamma > 0.0:
+            target_q_value = (
+                reward + discount * next_state_value * not_done_mask.float()
+            )
+        else:
+            # This is useful in debugging instability issues
+            target_q_value = reward
 
         q1_value = self.q1_network(state, action)
         q1_loss = F.mse_loss(q1_value, target_q_value)
@@ -264,12 +263,9 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
                 log_prob_a = torch.zeros_like(min_q_actor_value)
                 target_value = min_q_actor_value
             else:
-                with torch.no_grad():
-                    log_prob_a = actor_output.log_prob
-                    log_prob_a = log_prob_a.clamp(-20.0, 20.0)
-                    target_value = (
-                        min_q_actor_value - self.entropy_temperature * log_prob_a
-                    )
+                log_prob_a = actor_output.log_prob
+                log_prob_a = log_prob_a.clamp(-20.0, 20.0)
+                target_value = min_q_actor_value - self.entropy_temperature * log_prob_a
 
             value_loss = F.mse_loss(state_value, target_value.detach())
             yield value_loss

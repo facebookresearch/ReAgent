@@ -137,7 +137,8 @@ class TestGym(HorizonTestBase):
         )
 
     def test_toyvm(self):
-        env = ToyVM(slate_size=5, initial_seed=42)
+        pl.seed_everything(SEED)
+        env = ToyVM(slate_size=5, initial_seed=SEED)
         from reagent.models import MLPScorer
 
         slate_scorer = MLPScorer(
@@ -146,7 +147,6 @@ class TestGym(HorizonTestBase):
 
         from reagent.samplers import FrechetSort
 
-        torch.manual_seed(42)
         policy = Policy(slate_scorer, FrechetSort(log_scores=True, topk=5, equiv_len=5))
         from reagent.optimizer.union import classes
         from reagent.training.reinforce import Reinforce, ReinforceParams
@@ -248,6 +248,9 @@ def run_test(
     minibatch_size: Optional[int] = None,
 ):
     env = env.value
+    pl.seed_everything(SEED)
+    env.seed(SEED)
+    env.action_space.seed(SEED)
 
     normalization = build_normalizer(env)
     logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
@@ -310,9 +313,6 @@ def run_test(
             device=device,
         )
 
-        env.seed(SEED)
-        env.action_space.seed(SEED)
-
         train_rewards = train_policy(
             env,
             training_policy,
@@ -346,16 +346,14 @@ def run_test_episode_buffer(
     num_eval_episodes: int,
     use_gpu: bool = False,
 ):
-    training_policy = policy
-
-    post_episode_callback = train_post_episode(env, trainer, use_gpu)
-
+    pl.seed_everything(SEED)
     env.seed(SEED)
     env.action_space.seed(SEED)
 
+    post_episode_callback = train_post_episode(env, trainer, use_gpu)
     train_rewards = train_policy(
         env,
-        training_policy,
+        policy,
         num_train_episodes,
         post_step=None,
         post_episode=post_episode_callback,
