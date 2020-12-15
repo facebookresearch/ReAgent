@@ -248,6 +248,7 @@ def run_test(
     minibatch_size: Optional[int] = None,
 ):
     env = env.value
+    # pyre-fixme[16]: Module `pl` has no attribute `seed_everything`.
     pl.seed_everything(SEED)
     env.seed(SEED)
     env.action_space.seed(SEED)
@@ -346,6 +347,7 @@ def run_test_episode_buffer(
     num_eval_episodes: int,
     use_gpu: bool = False,
 ):
+    # pyre-fixme[16]: Module `pl` has no attribute `seed_everything`.
     pl.seed_everything(SEED)
     env.seed(SEED)
     env.action_space.seed(SEED)
