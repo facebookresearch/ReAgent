@@ -178,7 +178,11 @@ class GaussianFullyConnectedActor(ModelBase):
         return loc, scale_log
 
     def _squash_raw_action(self, raw_action: torch.Tensor) -> torch.Tensor:
-        squashed_action = torch.tanh(raw_action)
+        # NOTE: without clamping to (-(1-eps), 1-eps), torch.tanh would output
+        # 1, and torch.atanh would map it to +inf, causing log_prob to be -inf.
+        squashed_action = torch.clamp(
+            torch.tanh(raw_action), -1.0 + self.eps, 1.0 - self.eps
+        )
         if self.use_l2_normalization:
             l2_norm = (squashed_action ** 2).sum(dim=1, keepdim=True).sqrt()
             squashed_action = squashed_action / l2_norm
@@ -202,9 +206,6 @@ class GaussianFullyConnectedActor(ModelBase):
             squashed_mean=squashed_loc,
         )
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
-    @torch.no_grad()
     def get_log_prob(self, state: rlt.FeatureData, squashed_action: torch.Tensor):
         """
         Action is expected to be squashed with tanh
