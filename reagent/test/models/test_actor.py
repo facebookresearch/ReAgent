@@ -122,7 +122,7 @@ class TestGaussianFullyConnectedActor(unittest.TestCase):
         self.assertEqual((1, state_dim), input.float_features.shape)
         action = model(input)
         squashed_action = action.action.detach()
-        action_log_prob = model.get_log_prob(input, squashed_action)
+        action_log_prob = model.get_log_prob(input, squashed_action).detach()
         npt.assert_allclose(action.log_prob.detach(), action_log_prob, rtol=1e-4)
 
 
