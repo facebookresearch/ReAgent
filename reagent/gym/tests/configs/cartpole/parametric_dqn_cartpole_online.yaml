@@ -13,7 +13,7 @@ model:
       minibatches_per_step: 1
       optimizer:
         AdamW:
-          lr: 0.001
+          lr: 0.003
           amsgrad: true
     net_builder:
       FullyConnected:
