@@ -54,7 +54,7 @@ commands:
       - run:
           name: Clone submodules
           command: |
-            git submodule update --force --recursive --init --remote
+            git submodule update --force --recursive --init
       - run:
           name: Build RASP
           command: |
