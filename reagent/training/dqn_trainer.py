@@ -197,7 +197,7 @@ class DQNTrainer(DQNTrainerBaseLightning):
         # pyre-fixme[16]: `DQNTrainer` has no attribute `all_action_scores`.
         self.all_action_scores = all_q_values.detach()
         q_values = torch.sum(all_q_values * training_batch.action, 1, keepdim=True)
-        loss = self.q_network_loss(q_values, target_q_values)
+        loss = self.q_network_loss(q_values, target_q_values.detach())
 
         # pyre-fixme[16]: `DQNTrainer` has no attribute `loss`.
         self.loss = loss.detach()

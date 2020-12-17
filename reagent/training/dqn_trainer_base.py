@@ -59,16 +59,19 @@ class DQNTrainerMixin:
         inverse_pna = 1 - possible_actions_mask
         impossible_action_penalty = self.ACTION_NOT_POSSIBLE_VAL * inverse_pna
         q_values = q_values + impossible_action_penalty
+        q_values_target = q_values_target + impossible_action_penalty
 
-        max_q_values, max_indicies = torch.max(q_values, dim=1, keepdim=True)
         if self.double_q_learning:
             # Use indices of the max q_values from the online network to select q-values
             # from the target network. This prevents overestimation of q-values.
             # The torch.gather function selects the entry from each row that corresponds
             # to the max_index in that row.
+            max_q_values, max_indicies = torch.max(q_values, dim=1, keepdim=True)
             max_q_values_target = torch.gather(q_values_target, 1, max_indicies)
         else:
-            max_q_values_target = max_q_values
+            max_q_values_target, max_indicies = torch.max(
+                q_values_target, dim=1, keepdim=True
+            )
 
         return max_q_values_target, max_indicies
 
