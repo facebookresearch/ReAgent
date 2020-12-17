@@ -94,51 +94,52 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         ).view(batch_size, slate_size)
 
     def train_step_gen(self, training_batch: rlt.SlateQInput, batch_idx: int):
-        assert isinstance(
-            training_batch, rlt.SlateQInput
-        ), f"learning input is a {type(training_batch)}"
+        with torch.no_grad():
+            assert isinstance(
+                training_batch, rlt.SlateQInput
+            ), f"learning input is a {type(training_batch)}"
 
-        reward = training_batch.reward
-        reward_mask = training_batch.reward_mask
+            reward = training_batch.reward
+            reward_mask = training_batch.reward_mask
 
-        discount_tensor = torch.full_like(reward, self.gamma)
+            discount_tensor = torch.full_like(reward, self.gamma)
 
-        if self.rl_parameters.maxq_learning:
-            raise NotImplementedError("Q-Learning for SlateQ is not implemented")
-        else:
-            # SARSA (Use the target network)
-            terminal_mask = (
-                training_batch.not_terminal.to(torch.bool) == False
-            ).squeeze(1)
-            next_action_docs = self._action_docs(
-                training_batch.next_state,
-                training_batch.next_action,
-                terminal_mask=terminal_mask,
-            )
-            value = next_action_docs.value
-            if self.single_selection:
-                value = F.softmax(value, dim=1)
-            next_q_values = torch.sum(
-                self._get_unmasked_q_values(
-                    self.q_network_target,
+            if self.rl_parameters.maxq_learning:
+                raise NotImplementedError("Q-Learning for SlateQ is not implemented")
+            else:
+                # SARSA (Use the target network)
+                terminal_mask = (
+                    training_batch.not_terminal.to(torch.bool) == False
+                ).squeeze(1)
+                next_action_docs = self._action_docs(
                     training_batch.next_state,
-                    next_action_docs,
+                    training_batch.next_action,
+                    terminal_mask=terminal_mask,
                 )
-                * value,
-                dim=1,
-                keepdim=True,
-            )
+                value = next_action_docs.value
+                if self.single_selection:
+                    value = F.softmax(value, dim=1)
+                next_q_values = torch.sum(
+                    self._get_unmasked_q_values(
+                        self.q_network_target,
+                        training_batch.next_state,
+                        next_action_docs,
+                    )
+                    * value,
+                    dim=1,
+                    keepdim=True,
+                )
 
-        # If not single selection, divide max-Q by N
-        if not self.single_selection:
-            _batch_size, slate_size = reward.shape
-            next_q_values = next_q_values / slate_size
+            # If not single selection, divide max-Q by N
+            if not self.single_selection:
+                _batch_size, slate_size = reward.shape
+                next_q_values = next_q_values / slate_size
 
-        filtered_max_q_vals = next_q_values * training_batch.not_terminal.float()
-        target_q_values = reward + (discount_tensor * filtered_max_q_vals)
-        # Don't mask if not single selection
-        if self.single_selection:
-            target_q_values = target_q_values[reward_mask]
+            filtered_max_q_vals = next_q_values * training_batch.not_terminal.float()
+            target_q_values = reward + (discount_tensor * filtered_max_q_vals)
+            # Don't mask if not single selection
+            if self.single_selection:
+                target_q_values = target_q_values[reward_mask]
 
         # Get Q-value of action taken
         action_docs = self._action_docs(training_batch.state, training_batch.action)
@@ -150,17 +151,18 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
 
         all_action_scores = q_values.detach()
 
-        value_loss = F.mse_loss(q_values, target_q_values)
+        value_loss = F.mse_loss(q_values, target_q_values.detach())
         yield value_loss
 
-        if not self.single_selection:
-            all_action_scores = all_action_scores.sum(dim=1, keepdim=True)
+        with torch.no_grad():
+            if not self.single_selection:
+                all_action_scores = all_action_scores.sum(dim=1, keepdim=True)
 
-        # Logging at the end to schedule all the cuda operations first
-        self.reporter.log(
-            td_loss=value_loss,
-            model_values_on_logged_actions=all_action_scores,
-        )
+            # Logging at the end to schedule all the cuda operations first
+            self.reporter.log(
+                td_loss=value_loss,
+                model_values_on_logged_actions=all_action_scores,
+            )
 
         # Use the soft update rule to update the target networks
         result = self.soft_update_result()

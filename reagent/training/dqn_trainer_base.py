@@ -182,20 +182,21 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
     ):
         if not self.calc_cpe_in_training:
             return
-        if training_batch.extras.metrics is None:
-            metrics_reward_concat_real_vals = training_batch.reward
-        else:
-            metrics_reward_concat_real_vals = torch.cat(
-                (training_batch.reward, training_batch.extras.metrics), dim=1
-            )
+        with torch.no_grad():
+            if training_batch.extras.metrics is None:
+                metrics_reward_concat_real_vals = training_batch.reward
+            else:
+                metrics_reward_concat_real_vals = torch.cat(
+                    (training_batch.reward, training_batch.extras.metrics), dim=1
+                )
 
-        model_propensities_next_states = masked_softmax(
-            all_next_action_scores,
-            training_batch.possible_next_actions_mask
-            if self.maxq_learning
-            else training_batch.next_action,
-            self.rl_temperature,
-        )
+            model_propensities_next_states = masked_softmax(
+                all_next_action_scores,
+                training_batch.possible_next_actions_mask
+                if self.maxq_learning
+                else training_batch.next_action,
+                self.rl_temperature,
+            )
 
         ######### Train separate reward network for CPE evaluation #############
         reward_estimates = self.reward_network(states)
@@ -203,7 +204,8 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
             1, self.reward_idx_offsets + logged_action_idxs
         )
         reward_loss = F.mse_loss(
-            reward_estimates_for_logged_actions, metrics_reward_concat_real_vals
+            reward_estimates_for_logged_actions,
+            metrics_reward_concat_real_vals.detach(),
         )
         yield reward_loss
 
@@ -211,49 +213,51 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         metric_q_values = self.q_network_cpe(states).gather(
             1, self.reward_idx_offsets + logged_action_idxs
         )
-        all_metrics_target_q_values = torch.chunk(
-            self.q_network_cpe_target(next_states).detach(),
-            len(self.metrics_to_score),
-            dim=1,
-        )
-        target_metric_q_values = []
-        for i, per_metric_target_q_values in enumerate(all_metrics_target_q_values):
-            per_metric_next_q_values = torch.sum(
-                per_metric_target_q_values * model_propensities_next_states,
-                1,
-                keepdim=True,
+        with torch.no_grad():
+            all_metrics_target_q_values = torch.chunk(
+                self.q_network_cpe_target(next_states).detach(),
+                len(self.metrics_to_score),
+                dim=1,
             )
-            per_metric_next_q_values = per_metric_next_q_values * not_done_mask
-            per_metric_target_q_values = metrics_reward_concat_real_vals[
-                :, i : i + 1
-            ] + (discount_tensor * per_metric_next_q_values)
-            target_metric_q_values.append(per_metric_target_q_values)
+            target_metric_q_values = []
+            for i, per_metric_target_q_values in enumerate(all_metrics_target_q_values):
+                per_metric_next_q_values = torch.sum(
+                    per_metric_target_q_values * model_propensities_next_states,
+                    1,
+                    keepdim=True,
+                )
+                per_metric_next_q_values = per_metric_next_q_values * not_done_mask
+                per_metric_target_q_values = metrics_reward_concat_real_vals[
+                    :, i : i + 1
+                ] + (discount_tensor * per_metric_next_q_values)
+                target_metric_q_values.append(per_metric_target_q_values)
 
-        target_metric_q_values = torch.cat(target_metric_q_values, dim=1)
+            target_metric_q_values = torch.cat(target_metric_q_values, dim=1)
         metric_q_value_loss = self.q_network_loss(
-            metric_q_values, target_metric_q_values
+            metric_q_values, target_metric_q_values.detach()
         )
 
-        model_propensities = masked_softmax(
-            all_action_scores,
-            training_batch.possible_actions_mask
-            if self.maxq_learning
-            else training_batch.action,
-            self.rl_temperature,
-        )
-        model_rewards = reward_estimates[
-            :,
-            torch.arange(
-                self.reward_idx_offsets[0],
-                self.reward_idx_offsets[0] + self.num_actions,
-            ),
-        ]
+        with torch.no_grad():
+            model_propensities = masked_softmax(
+                all_action_scores,
+                training_batch.possible_actions_mask
+                if self.maxq_learning
+                else training_batch.action,
+                self.rl_temperature,
+            )
+            model_rewards = reward_estimates[
+                :,
+                torch.arange(
+                    self.reward_idx_offsets[0],
+                    self.reward_idx_offsets[0] + self.num_actions,
+                ),
+            ]
 
-        self.reporter.log(
-            reward_loss=reward_loss,
-            model_propensities=model_propensities,
-            model_rewards=model_rewards,
-        )
+            self.reporter.log(
+                reward_loss=reward_loss,
+                model_propensities=model_propensities,
+                model_rewards=model_rewards,
+            )
 
         yield metric_q_value_loss
 

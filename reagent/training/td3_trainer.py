@@ -142,7 +142,7 @@ class TD3Trainer(RLTrainerMixin, ReAgentLightningModule):
 
         # Optimize Q1 and Q2
         q1_value = self.q1_network(state, action)
-        q1_loss = F.mse_loss(q1_value, target_q_value)
+        q1_loss = F.mse_loss(q1_value, target_q_value.detach())
         if batch_idx % self.trainer.log_every_n_steps == 0:
             self.reporter.log(
                 q1_loss=q1_loss,
@@ -155,7 +155,7 @@ class TD3Trainer(RLTrainerMixin, ReAgentLightningModule):
 
         if self.q2_network:
             q2_value = self.q2_network(state, action)
-            q2_loss = F.mse_loss(q2_value, target_q_value)
+            q2_loss = F.mse_loss(q2_value, target_q_value.detach())
             if batch_idx % self.trainer.log_every_n_steps == 0:
                 self.reporter.log(
                     q2_loss=q2_loss,
@@ -168,11 +168,12 @@ class TD3Trainer(RLTrainerMixin, ReAgentLightningModule):
             actor_action = self.actor_network(state).action
             actor_q1_value = self.q1_network(state, rlt.FeatureData(actor_action))
             actor_loss = -(actor_q1_value.mean())
-            if batch_idx % self.trainer.log_every_n_steps == 0:
-                self.reporter.log(
-                    actor_loss=actor_loss,
-                    actor_q1_value=actor_q1_value,
-                )
+            with torch.no_grad():
+                if batch_idx % self.trainer.log_every_n_steps == 0:
+                    self.reporter.log(
+                        actor_loss=actor_loss,
+                        actor_q1_value=actor_q1_value,
+                    )
             yield actor_loss
 
             # Use the soft update rule to update the target networks

@@ -75,14 +75,15 @@ class RewardNetTrainer(Trainer):
         self.reward_ignore_threshold = reward_ignore_threshold
 
     def train(self, training_batch: rlt.PreprocessedTrainingBatch):
-        training_input = training_batch.training_input
-        if isinstance(training_input, rlt.PreprocessedRankingInput):
-            target_reward = training_input.slate_reward
-        else:
-            target_reward = training_input.reward
+        with torch.no_grad():
+            training_input = training_batch.training_input
+            if isinstance(training_input, rlt.PreprocessedRankingInput):
+                target_reward = training_input.slate_reward
+            else:
+                target_reward = training_input.reward
 
         predicted_reward = self.reward_net(training_input).predicted_reward
-        loss = self.loss_fn(predicted_reward, target_reward)
+        loss = self.loss_fn(predicted_reward, target_reward.detach())
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
