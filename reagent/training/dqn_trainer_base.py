@@ -271,7 +271,7 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
                 eval_data = edp
             else:
                 eval_data = eval_data.append(edp)
-        if eval_data.mdp_id is not None:
+        if eval_data and eval_data.mdp_id is not None:
             eval_data = eval_data.sort()
             eval_data = eval_data.compute_values(self.gamma)
             eval_data.validate()
@@ -279,6 +279,6 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
 
     def test_epoch_end(self, test_step_outputs):
         eval_data = self.gather_eval_data(test_step_outputs)
-        if eval_data.mdp_id is not None:
+        if eval_data and eval_data.mdp_id is not None:
             cpe_details = self.evaluator.evaluate_post_training(eval_data)
             self.reporter.log(cpe_details=cpe_details)
