@@ -5,6 +5,7 @@ import logging
 import unittest
 
 import numpy as np
+import pvc
 import pytest
 from reagent.preprocessing.identify_types import CONTINUOUS
 
@@ -48,7 +49,7 @@ class TestPreprocessing(ReagentSQLTestBase):
         num_samples = NUM_ROWS // 2
         preprocessing_options = PreprocessingOptions(num_samples=num_samples)
 
-        table_spec = TableSpec(table_name=TABLE_NAME)
+        table_spec = TableSpec(dataset=pvc.HiveDataset(table=TABLE_NAME))
 
         normalization_params = identify_normalization_parameters(
             table_spec, COL_NAME, preprocessing_options, seed=self.test_class_seed
