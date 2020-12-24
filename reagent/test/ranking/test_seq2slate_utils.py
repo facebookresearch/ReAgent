@@ -32,22 +32,26 @@ class TSPRewardModel(nn.Module):
         return -reward
 
 
-def create_trainer(seq2slate_net, learning_method, batch_size, learning_rate, device):
+def create_trainer(
+    seq2slate_net,
+    learning_method,
+    batch_size,
+    learning_rate,
+    policy_gradient_interval,
+    device,
+):
     use_gpu = False if device == torch.device("cpu") else True
     if learning_method == ON_POLICY:
         seq2slate_params = Seq2SlateParameters(
             on_policy=True, learning_method=LearningMethod.REINFORCEMENT_LEARNING
         )
         trainer_cls = Seq2SlateTrainer
-        policy_gradient_interval = 1
     elif learning_method == OFF_POLICY:
         seq2slate_params = Seq2SlateParameters(
             on_policy=False,
             learning_method=LearningMethod.REINFORCEMENT_LEARNING,
         )
         trainer_cls = Seq2SlateTrainer
-        # off policy needs more batches for gradient to stabilize
-        policy_gradient_interval = 20
     elif learning_method == SIMULATION:
         temp_reward_model_path = tempfile.mkstemp(suffix=".pt")[1]
         reward_model = torch.jit.script(TSPRewardModel())
@@ -62,7 +66,6 @@ def create_trainer(seq2slate_net, learning_method, batch_size, learning_rate, de
             ),
         )
         trainer_cls = Seq2SlateSimulationTrainer
-        policy_gradient_interval = 1
 
     param_dict = {
         "seq2slate_net": seq2slate_net,
@@ -280,6 +283,7 @@ def run_seq2slate_tsp(
     learning_rate,
     expect_reward_threshold,
     learning_method,
+    policy_gradient_interval,
     device,
 ):
     candidate_dim = 2
@@ -307,7 +311,12 @@ def run_seq2slate_tsp(
     )
 
     trainer = create_trainer(
-        seq2slate_net, learning_method, batch_size, learning_rate, device
+        seq2slate_net,
+        learning_method,
+        batch_size,
+        learning_rate,
+        policy_gradient_interval,
+        device,
     )
 
     for e in range(epochs + 1):

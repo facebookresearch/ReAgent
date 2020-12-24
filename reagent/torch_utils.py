@@ -73,7 +73,7 @@ def masked_softmax(x, mask, temperature):
 
 def gather(data, index_2d):
     """
-    Gather data alongs the second dim. Assume data's shape as (batch_size, dim1, dim2, ...),
+    Gather data alongs the second dim. Assume data is 3d with shape (batch_size, dim1, dim2),
     and index_2d's shape is (batch_size, dim1).
     output[i][j] = data[i][index_2d[i][j]]
 
@@ -81,15 +81,13 @@ def gather(data, index_2d):
      is mandated by torch.gather.
     """
     batch_size = data.shape[0]
-    data_shape = data.shape[2:]
+    data_dim = data.shape[2]
     index_len = index_2d.shape[1]
     device = data.device
     res = data[
-        torch.arange(batch_size, device=device).repeat_interleave(
-            torch.tensor(index_len, device=device)
-        ),
+        torch.arange(batch_size, device=device).repeat_interleave(index_len),
         index_2d.flatten(),
-    ].view(batch_size, index_len, *data_shape)
+    ].view(batch_size, index_len, data_dim)
     return res
 
 

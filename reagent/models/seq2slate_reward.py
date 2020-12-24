@@ -233,12 +233,8 @@ class Seq2SlateTransformerRewardNet(Seq2SlateRewardNetBase):
         self.decoder = Decoder(
             DecoderLayer(dim_model, c(attn), c(attn), c(ff)), num_stacked_layers
         )
-        self.positional_encoding_encoder = PositionalEncoding(
-            dim_model, max_len=max_src_seq_len
-        )
-        self.positional_encoding_decoder = PositionalEncoding(
-            dim_model, max_len=max_tgt_seq_len + 1
-        )
+        self.positional_encoding_encoder = PositionalEncoding(dim_model)
+        self.positional_encoding_decoder = PositionalEncoding(dim_model)
         self.proj = nn.Linear(dim_model, 1)
         self.decoder_start_vec = nn.Parameter(
             torch.zeros(candidate_dim), requires_grad=True
