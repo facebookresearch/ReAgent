@@ -396,7 +396,7 @@ class ServingFeatureData(NamedTuple):
 class PreprocessedRankingInput(TensorDataClass):
     state: FeatureData
     src_seq: FeatureData
-    src_src_mask: torch.Tensor
+    src_src_mask: Optional[torch.Tensor] = None
     tgt_in_seq: Optional[FeatureData] = None
     tgt_out_seq: Optional[FeatureData] = None
     tgt_tgt_mask: Optional[torch.Tensor] = None
@@ -536,7 +536,7 @@ class PreprocessedRankingInput(TensorDataClass):
         cls,
         state: torch.Tensor,
         src_seq: torch.Tensor,
-        src_src_mask: torch.Tensor,
+        src_src_mask: Optional[torch.Tensor] = None,
         tgt_in_seq: Optional[torch.Tensor] = None,
         tgt_out_seq: Optional[torch.Tensor] = None,
         tgt_tgt_mask: Optional[torch.Tensor] = None,
@@ -554,7 +554,7 @@ class PreprocessedRankingInput(TensorDataClass):
     ):
         assert isinstance(state, torch.Tensor)
         assert isinstance(src_seq, torch.Tensor)
-        assert isinstance(src_src_mask, torch.Tensor)
+        assert src_src_mask is None or isinstance(src_src_mask, torch.Tensor)
         assert tgt_in_seq is None or isinstance(tgt_in_seq, torch.Tensor)
         assert tgt_out_seq is None or isinstance(tgt_out_seq, torch.Tensor)
         assert tgt_tgt_mask is None or isinstance(tgt_tgt_mask, torch.Tensor)

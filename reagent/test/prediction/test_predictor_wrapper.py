@@ -250,7 +250,7 @@ class TestPredictorWrapper(unittest.TestCase):
         expected_output = seq2slate(
             ranking_input,
             mode=Seq2SlateMode.RANK_MODE,
-            tgt_seq_len=seq2slate.max_tgt_seq_len,
+            tgt_seq_len=seq2slate.max_src_seq_len,
             greedy=True,
         )
         ranked_per_seq_probs, ranked_tgt_out_idx = (

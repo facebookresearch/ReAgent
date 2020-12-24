@@ -317,13 +317,14 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
         device = torch.device("cpu")
         batch_size = 4096
         epochs = 1
-        num_batches = 1
+        num_batches = 50
         expect_reward_threshold = 1.02
         hidden_size = 32
         num_candidates = 6
         diverse_input = False
         learning_rate = 0.001
         learning_method = ON_POLICY
+        policy_gradient_interval = 1
         run_seq2slate_tsp(
             MODEL_TRANSFORMER,
             batch_size,
@@ -335,6 +336,7 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
             learning_rate,
             expect_reward_threshold,
             learning_method,
+            policy_gradient_interval,
             device,
         )
 
@@ -346,14 +348,15 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
         """
         device = torch.device("cuda")
         batch_size = 4096
-        epochs = 8
-        num_batches = 50
-        expect_reward_threshold = 1.02
-        hidden_size = 128
+        epochs = 3
+        num_batches = 300
+        expect_reward_threshold = 1.03
+        hidden_size = 32
         num_candidates = 6
         diverse_input = True
         learning_rate = 0.001
         learning_method = ON_POLICY
+        policy_gradient_interval = 1
         run_seq2slate_tsp(
             MODEL_TRANSFORMER,
             batch_size,
@@ -365,5 +368,6 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
             learning_rate,
             expect_reward_threshold,
             learning_method,
+            policy_gradient_interval,
             device,
         )

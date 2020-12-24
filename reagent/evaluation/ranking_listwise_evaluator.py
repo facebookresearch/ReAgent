@@ -89,7 +89,9 @@ class RankingListwiseEvaluator:
             return
 
         # shape: batch_size, tgt_seq_len
-        ranking_output = self.seq2slate_net(eval_input, mode=Seq2SlateMode.RANK_MODE)
+        ranking_output = self.seq2slate_net(
+            eval_input, mode=Seq2SlateMode.RANK_MODE, greedy=True
+        )
         # pyre-fixme[16]: `int` has no attribute `cpu`.
         ranked_idx = (ranking_output.ranked_tgt_out_idx - 2).cpu().numpy()
         # pyre-fixme[58]: `-` is not supported for operand types

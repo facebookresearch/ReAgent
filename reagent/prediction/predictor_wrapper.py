@@ -453,35 +453,34 @@ class Seq2SlateWithPreprocessor(ModelBase):
         # state_value.shape == state_presence.shape == batch_size x state_feat_num
         # candidate_value.shape == candidate_presence.shape ==
         # batch_size x max_src_seq_len x candidate_feat_num
-        batch_size = state_with_presence[0].shape[0]
+        batch_size, max_src_seq_len, candidate_feat_num = candidate_with_presence[
+            0
+        ].shape
 
         preprocessed_state = self.state_preprocessor(
             state_with_presence[0], state_with_presence[1]
         )
         preprocessed_candidates = self.candidate_preprocessor(
             candidate_with_presence[0].view(
-                batch_size * self.model.max_src_seq_len,
-                len(self.candidate_preprocessor.sorted_features),
+                batch_size * max_src_seq_len,
+                candidate_feat_num,
             ),
             candidate_with_presence[1].view(
-                batch_size * self.model.max_src_seq_len,
-                len(self.candidate_preprocessor.sorted_features),
+                batch_size * max_src_seq_len,
+                candidate_feat_num,
             ),
-        ).view(batch_size, self.model.max_src_seq_len, -1)
+        ).view(batch_size, max_src_seq_len, -1)
 
-        # TODO: consider different numbers of candidates in the same batch_
-        src_src_mask = torch.ones(
-            batch_size, self.model.max_src_seq_len, self.model.max_src_seq_len
-        )
         ranking_input = rlt.PreprocessedRankingInput.from_tensors(
             state=preprocessed_state,
             src_seq=preprocessed_candidates,
-            src_src_mask=src_src_mask,
         )
         ranking_output = self.model(
             ranking_input,
             mode=Seq2SlateMode.RANK_MODE,
-            tgt_seq_len=self.model.max_tgt_seq_len,
+            # During serving, we rank all items, even though
+            # max_tgt_seq_len is possibly smaller than max_src_seq_len during training
+            tgt_seq_len=max_src_seq_len,
             greedy=self.greedy,
         )
         return (
