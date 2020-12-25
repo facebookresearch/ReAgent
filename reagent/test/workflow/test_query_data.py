@@ -5,7 +5,6 @@ import logging
 import unittest
 
 import numpy as np
-import pvc
 import pytest
 
 # pyre-fixme[21]: Could not find `pyspark`.
@@ -50,7 +49,7 @@ class TestQueryData(ReagentSQLTestBase):
     def _discrete_read_data(
         self, custom_reward_expression=None, gamma=None, multi_steps=None
     ):
-        ts = TableSpec(dataset=pvc.HiveDataset(table=self.table_name))
+        ts = TableSpec(table_name=self.table_name)
         dataset: Dataset = query_data(
             input_table_spec=ts,
             discrete_action=True,
