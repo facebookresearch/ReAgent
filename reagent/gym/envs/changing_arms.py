@@ -11,9 +11,9 @@ This way, the next state depend on (only) the previous state and action;
 hence this a MDP.
 
 The reward for picking an action is the change in mu corresponding to that arm.
-With following set-up, optimal policy can accumulate a reward of 500 per run.
-Note that if the policy picks an illegal action at any time, its reward is upper
-bounded by -500.
+With following set-up (where ARM_INIT_VALUE = 100 and NUM_ARMS = 5), the
+optimal policy can accumulate a reward of 500 per run.
+Note that if the policy picks an illegal action at any time, the game ends.
 """
 import random
 
@@ -27,7 +27,6 @@ from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.test.base.utils import only_continuous_normalizer
 
 
-MAX_STEPS = 100
 ABS_LOW = -1000.0
 ABS_HIGH = 1000.0
 
@@ -35,33 +34,39 @@ MU_LOW = 0.0
 MU_HIGH = 1000.0
 
 
-def get_initial_mus():
-    return torch.tensor([100.0] * 5)
-
-
-def get_mu_changes():
-    return torch.tensor([-10.0] * 5)
-
-
-def get_legal_indices_mask():
-    LEGAL_PROBS = torch.tensor([0.95, 1.0, 0.95, 0.8, 0.8])
-    return torch.bernoulli(LEGAL_PROBS)
-
-
 # illegal move causes game to end with a big BOOM!!!
 INVALID_MOVE_PENALTY = -1000.0
-IDLE_PENALTY = -25.0
+IDLE_PENALTY = -500.0
 
 NUM_ARMS = 5
+# keep these constant for now
+ARM_INIT_VALUE = 100.0
+ARM_MU_DECREASE = 10.0
+MAX_STEPS = 49
+
 
 # in the real world, IDs are not indices into embedding table
 # thus, we offset vals to test hashing mechanism
 ID_LIST_OFFSET = 1000000
 ID_SCORE_LIST_OFFSET = 1500000
 
+ID_LIST_FEATURE_ID = 100
+ID_SCORE_LIST_FEATURE_ID = 1000
 
-def clamp(x, lo, hi):
-    return max(min(x, hi), lo)
+
+def get_initial_mus(num_arms):
+    return torch.tensor([ARM_INIT_VALUE] * num_arms)
+
+
+def get_mu_changes(num_arms):
+    return torch.tensor([-ARM_MU_DECREASE] * num_arms)
+
+
+def get_legal_indices_mask(num_arms):
+    # FIXME: hardcoded for now
+    assert num_arms == 5, f"unsupported num_arms = {num_arms}, should be 5"
+    LEGAL_PROBS = torch.tensor([0.95, 1.0, 0.95, 0.8, 0.8])
+    return torch.bernoulli(LEGAL_PROBS).to(torch.uint8)
 
 
 @dataclass
@@ -105,10 +110,13 @@ class ChangingArms(EnvWrapper):
                 torch.ones_like(dense_val, dtype=torch.uint8),
             ),
             id_list_features={
-                100: (torch.tensor([0], dtype=torch.long), id_list_val + ID_LIST_OFFSET)
+                ID_LIST_FEATURE_ID: (
+                    torch.tensor([0], dtype=torch.long),
+                    id_list_val + ID_LIST_OFFSET,
+                )
             },
             id_score_list_features={
-                1000: (
+                ID_SCORE_LIST_FEATURE_ID: (
                     torch.tensor([0], dtype=torch.long),
                     torch.arange(self.num_arms, dtype=torch.long)
                     + ID_SCORE_LIST_OFFSET,
@@ -122,9 +130,9 @@ class ChangingArms(EnvWrapper):
         dense_val, id_list_val, id_score_list_val = self._split_state(elem.numpy())
         return (
             {i: s.item() for i, s in enumerate(dense_val.view(-1))},
-            {100: (id_list_val + ID_LIST_OFFSET).tolist()},
+            {ID_LIST_FEATURE_ID: (id_list_val + ID_LIST_OFFSET).tolist()},
             {
-                1000: {
+                ID_SCORE_LIST_FEATURE_ID: {
                     i + ID_SCORE_LIST_OFFSET: s.item()
                     for i, s in enumerate(id_score_list_val)
                 }
@@ -213,7 +221,10 @@ class ChangingArmsEnv(gym.Env):
 
         # update states for only the action selected
         prev = self.mus[action].item()
-        self.mus[action] = clamp(prev + self.mu_changes[action], MU_LOW, MU_HIGH)
+        self.mus[action] = prev + self.mu_changes[action]
+        if self.mus[action] <= MU_LOW:
+            self.legal_indices_mask[action] = 0
+
         reward = prev - self.mus[action].item()
         return self.state, reward, reached_max_steps, None
 
@@ -224,7 +235,9 @@ class ChangingArmsEnv(gym.Env):
     def reset(self):
         # initialize the distributions
         self.num_steps = 0
-        self.mus = get_initial_mus()
+        self.mus = get_initial_mus(self.num_arms)
+        # these are turned off when an arm has been "exhausted"
+        self.legal_indices_mask = torch.tensor([1] * self.num_arms).to(torch.uint8)
         return self.state
 
     @property
@@ -235,8 +248,10 @@ class ChangingArmsEnv(gym.Env):
         - legal_indices mask
         - randomly-generated mu changes
         """
-        self.mu_changes = get_mu_changes()
-        legal_indices_mask = get_legal_indices_mask()
+        self.mu_changes = get_mu_changes(self.num_arms)
+        legal_indices_mask = (
+            get_legal_indices_mask(self.num_arms) & self.legal_indices_mask
+        )
         self.legal_indices = legal_indices_mask.nonzero(as_tuple=True)[0]
         result = torch.stack([self.mus, legal_indices_mask, self.mu_changes])
         return result.numpy()

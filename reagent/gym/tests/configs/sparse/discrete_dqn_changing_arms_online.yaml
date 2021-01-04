@@ -20,16 +20,16 @@ model:
       minibatches_per_step: 1
       optimizer:
         AdamW:
-          lr: 0.01
+          lr: 0.001
     net_builder:
       FullyConnectedWithEmbedding:
         sizes:
-        - 64
-        - 64
+        - 256
+        - 128
         activations:
         - leaky_relu
         - leaky_relu
-        embedding_dim: 32
+        embedding_dim: 128
     eval_parameters:
       calc_cpe_in_training: false
     state_feature_config_provider:
@@ -71,9 +71,9 @@ model:
               - 1500004
 replay_memory_size: 100000
 train_every_ts: 1
-train_after_ts: 20000
-num_train_episodes: 10
+train_after_ts: 30000
+num_train_episodes: 30
 num_eval_episodes: 10
-passing_score_bar: 200
+passing_score_bar: 499
 use_gpu: false
 minibatch_size: 256
