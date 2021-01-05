@@ -60,7 +60,6 @@ class PageHandler:
 
 
 # TODO: remove.
-# Use new DataLoaderWrapper & EpochIterator (see OSS train_and_evaluate_generic)
 @observable(epoch_end=int)
 class TrainingPageHandler(PageHandler):
     def handle(self, tdp: PreprocessedTrainingBatch) -> None:
@@ -170,7 +169,6 @@ class RewardNetTrainingPageHandler(PageHandler):
 
 
 # TODO: remove.
-# Use new DataLoaderWrapper & EpochIterator (see OSS train_and_evaluate_generic)
 def get_actual_minibatch_size(batch, minibatch_size_preset):
     try:
         return batch.batch_size()
@@ -185,7 +183,6 @@ def get_actual_minibatch_size(batch, minibatch_size_preset):
 
 
 # TODO: remove.
-# Use new DataLoaderWrapper & EpochIterator (see OSS train_and_evaluate_generic)
 def feed_pages(
     data_loader,
     dataset_num_rows,
