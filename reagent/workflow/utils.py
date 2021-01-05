@@ -65,7 +65,6 @@ def get_petastorm_dataloader(
     )
 
 
-
 # TODO: Move this to appropriate location
 class PetastormLightningDataModule(pl.LightningDataModule):
     def __init__(self, train_dataset, eval_dataset, batch_preprocessor, reader_options):
