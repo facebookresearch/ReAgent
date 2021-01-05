@@ -15,7 +15,7 @@ model:
         gamma: 1.0
         target_update_rate: 0.1
         maxq_learning: true
-        temperature: 10.0
+        temperature: 1.0
       double_q_learning: true
       minibatches_per_step: 1
       optimizer:
@@ -71,8 +71,8 @@ model:
               - 1500004
 replay_memory_size: 100000
 train_every_ts: 1
-train_after_ts: 20000
-num_train_episodes: 10
+train_after_ts: 10000
+num_train_episodes: 30
 num_eval_episodes: 10
 passing_score_bar: 200
 use_gpu: false
