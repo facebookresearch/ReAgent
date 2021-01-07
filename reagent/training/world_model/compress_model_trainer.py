@@ -6,6 +6,7 @@ import logging
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
+from reagent.core.tracker import observable
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.models.seq2reward_model import Seq2RewardNetwork
 from reagent.parameters import Seq2RewardTrainerParameters
@@ -19,6 +20,7 @@ from reagent.training.world_model.seq2reward_trainer import get_Q
 logger = logging.getLogger(__name__)
 
 
+@observable(mse_loss=torch.Tensor, accuracy=torch.Tensor)
 class CompressModelTrainer(Trainer):
     """ Trainer for fitting Seq2Reward planning outcomes to a neural network-based policy """
 
@@ -56,6 +58,9 @@ class CompressModelTrainer(Trainer):
         logger.info(
             f"Seq2Reward Compress trainer MSE/Accuracy: {detached_loss}, {accuracy}"
         )
+        # pyre-fixme[16]: `CompressModelTrainer` has no attribute
+        #  `notify_observers`.
+        self.notify_observers(mse_loss=detached_loss, accuracy=accuracy)
         return detached_loss, accuracy
 
     def get_loss(self, training_batch: rlt.MemoryNetworkInput):

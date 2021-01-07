@@ -4,12 +4,15 @@ import logging
 
 import reagent.types as rlt
 import torch
+from reagent.core.tracker import observable
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer, get_Q
-
 
 logger = logging.getLogger(__name__)
 
 
+@observable(
+    mse_loss=torch.Tensor, q_values=torch.Tensor, action_distribution=torch.Tensor
+)
 class Seq2RewardEvaluator:
     def __init__(self, trainer: Seq2RewardTrainer) -> None:
         self.trainer = trainer
@@ -38,6 +41,13 @@ class Seq2RewardEvaluator:
         action_distribution = (
             action_distribution.float() / torch.sum(action_distribution)
         ).tolist()
+        # pyre-fixme[16]: `Seq2RewardEvaluator` has no attribute
+        #  `notify_observers`.
+        self.notify_observers(
+            mse_loss=loss,
+            q_values=[q_values],
+            action_distribution=[action_distribution],
+        )
 
         self.reward_net.train(reward_net_prev_mode)
         return (detached_loss, q_values, action_distribution)
