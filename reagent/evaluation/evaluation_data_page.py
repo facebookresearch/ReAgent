@@ -51,7 +51,7 @@ class EvaluationDataPage(NamedTuple):
     @classmethod
     def create_from_training_batch(
         cls,
-        tdb: rlt.PreprocessedTrainingBatch,
+        tdb: rlt.PreprocessedRankingInput,
         trainer: Trainer,
         reward_network: Optional[nn.Module] = None,
     ):
@@ -84,9 +84,7 @@ class EvaluationDataPage(NamedTuple):
                 metrics=tdb.extras.metrics,
             )
         else:
-            raise NotImplementedError(
-                f"training_input type: {type(tdb.training_input)}"
-            )
+            raise NotImplementedError(f"training_input type: {type(tdb)}")
 
     @classmethod
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because

@@ -393,6 +393,19 @@ class ServingFeatureData(NamedTuple):
 
 
 @dataclass
+class ExtraData(TensorDataClass):
+    mdp_id: Optional[torch.Tensor] = None
+    sequence_number: Optional[torch.Tensor] = None
+    action_probability: Optional[torch.Tensor] = None
+    max_num_actions: Optional[int] = None
+    metrics: Optional[torch.Tensor] = None
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(**{f.name: d.get(f.name, None) for f in dataclasses.fields(cls)})
+
+
+@dataclass
 class PreprocessedRankingInput(TensorDataClass):
     state: FeatureData
     src_seq: FeatureData
@@ -413,6 +426,7 @@ class PreprocessedRankingInput(TensorDataClass):
     optim_tgt_out_idx: Optional[torch.Tensor] = None
     optim_tgt_in_seq: Optional[FeatureData] = None
     optim_tgt_out_seq: Optional[FeatureData] = None
+    extras: Optional[ExtraData] = field(default_factory=ExtraData)
 
     def batch_size(self) -> int:
         return self.state.float_features.size()[0]
@@ -428,6 +442,7 @@ class PreprocessedRankingInput(TensorDataClass):
         logged_propensities: Optional[torch.Tensor] = None,
         slate_reward: Optional[torch.Tensor] = None,
         position_reward: Optional[torch.Tensor] = None,
+        extras: Optional[ExtraData] = None,
     ):
         """
         Build derived fields (indices & masks) from raw input
@@ -529,6 +544,7 @@ class PreprocessedRankingInput(TensorDataClass):
             optim_tgt_out_idx=optim_tgt_out_idx,
             optim_tgt_in_seq=optim_tgt_in_seq,
             optim_tgt_out_seq=optim_tgt_out_seq,
+            extras=extras,
         )
 
     @classmethod
@@ -550,6 +566,7 @@ class PreprocessedRankingInput(TensorDataClass):
         optim_tgt_out_idx: Optional[torch.Tensor] = None,
         optim_tgt_in_seq: Optional[torch.Tensor] = None,
         optim_tgt_out_seq: Optional[torch.Tensor] = None,
+        extras: Optional[ExtraData] = None,
         **kwargs,
     ):
         assert isinstance(state, torch.Tensor)
@@ -568,6 +585,7 @@ class PreprocessedRankingInput(TensorDataClass):
         assert optim_tgt_out_idx is None or isinstance(optim_tgt_out_idx, torch.Tensor)
         assert optim_tgt_in_seq is None or isinstance(optim_tgt_in_seq, torch.Tensor)
         assert optim_tgt_out_seq is None or isinstance(optim_tgt_out_seq, torch.Tensor)
+        assert extras is None or isinstance(extras, ExtraData)
 
         return cls(
             state=FeatureData(float_features=state),
@@ -594,6 +612,7 @@ class PreprocessedRankingInput(TensorDataClass):
             optim_tgt_out_seq=FeatureData(float_features=optim_tgt_out_seq)
             if optim_tgt_out_seq is not None
             else None,
+            extras=extras if extras is not None else None,
         )
 
     def __post_init__(self):
@@ -695,19 +714,6 @@ class BaseInput(TensorDataClass):
             step=batch.get(InputColumn.STEP, None),
             not_terminal=batch[InputColumn.NOT_TERMINAL],
         )
-
-
-@dataclass
-class ExtraData(TensorDataClass):
-    mdp_id: Optional[torch.Tensor] = None
-    sequence_number: Optional[torch.Tensor] = None
-    action_probability: Optional[torch.Tensor] = None
-    max_num_actions: Optional[int] = None
-    metrics: Optional[torch.Tensor] = None
-
-    @classmethod
-    def from_dict(cls, d):
-        return cls(**{f.name: d.get(f.name, None) for f in dataclasses.fields(cls)})
 
 
 @dataclass

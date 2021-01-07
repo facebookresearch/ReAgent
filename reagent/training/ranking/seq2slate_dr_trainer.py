@@ -54,24 +54,22 @@ class Seq2SlateDifferentiableRewardTrainer(Trainer):
         components = ["seq2slate_net"]
         return components
 
-    def train(self, training_batch: rlt.PreprocessedTrainingBatch):
-        assert type(training_batch) is rlt.PreprocessedTrainingBatch
-        training_input = training_batch.training_input
-        assert isinstance(training_input, rlt.PreprocessedRankingInput)
+    def train(self, training_batch: rlt.PreprocessedRankingInput):
+        assert type(training_batch) is rlt.PreprocessedRankingInput
 
         per_symbol_log_probs = self.seq2slate_net(
-            training_input, mode=Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE
+            training_batch, mode=Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE
         ).log_probs
         per_seq_log_probs = per_symbol_to_per_seq_log_probs(
-            per_symbol_log_probs, training_input.tgt_out_idx
+            per_symbol_log_probs, training_batch.tgt_out_idx
         )
         assert per_symbol_log_probs.requires_grad and per_seq_log_probs.requires_grad
         # pyre-fixme[16]: `Optional` has no attribute `shape`.
-        assert per_seq_log_probs.shape == training_input.tgt_out_probs.shape
+        assert per_seq_log_probs.shape == training_batch.tgt_out_probs.shape
 
         if not self.parameters.on_policy:
             importance_sampling = (
-                torch.exp(per_seq_log_probs) / training_input.tgt_out_probs
+                torch.exp(per_seq_log_probs) / training_batch.tgt_out_probs
             )
             importance_sampling = ips_clamp(
                 importance_sampling, self.parameters.ips_clamp
@@ -84,14 +82,14 @@ class Seq2SlateDifferentiableRewardTrainer(Trainer):
 
         # pyre-fixme[6]: Expected `Tensor` for 1st param but got
         #  `Optional[torch.Tensor]`.
-        labels = self._transform_label(training_input.tgt_out_idx)
+        labels = self._transform_label(training_batch.tgt_out_idx)
         assert not labels.requires_grad
 
-        batch_size, max_tgt_seq_len = training_input.tgt_out_idx.shape
+        batch_size, max_tgt_seq_len = training_batch.tgt_out_idx.shape
         # batch_loss shape: batch_size x max_tgt_seq_len
         batch_loss = (
             torch.sum(self.kl_div_loss(per_symbol_log_probs, labels), dim=2)
-            * training_input.position_reward
+            * training_batch.position_reward
         )
         # weighted_batch_loss shape: batch_size, 1
         weighted_batch_loss = torch.sum(

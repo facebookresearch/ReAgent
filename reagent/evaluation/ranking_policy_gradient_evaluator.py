@@ -12,7 +12,7 @@ from reagent.core.tracker import observable
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
-from reagent.types import PreprocessedTrainingBatch
+from reagent.types import PreprocessedRankingInput
 
 
 logger = logging.getLogger(__name__)
@@ -47,15 +47,13 @@ class RankingPolicyGradientEvaluator:
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
     @torch.no_grad()
-    def evaluate(self, eval_tdp: PreprocessedTrainingBatch) -> None:
+    def evaluate(self, eval_tdp: PreprocessedRankingInput) -> None:
         seq2slate_net = self.trainer.seq2slate_net
         seq2slate_net_prev_mode = seq2slate_net.training
         seq2slate_net.eval()
 
         logged_slate_rank_prob = torch.exp(
-            seq2slate_net(
-                eval_tdp.training_input, mode=Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
-            )
+            seq2slate_net(eval_tdp, mode=Seq2SlateMode.PER_SEQ_LOG_PROB_MODE)
             .log_probs.detach()
             .flatten()
             .cpu()
@@ -70,25 +68,23 @@ class RankingPolicyGradientEvaluator:
             baseline_net.eval()
             # pyre-fixme[29]: `Optional[reagent.models.seq2slate.BaselineNet]` is
             #  not a function.
-            b = baseline_net(eval_tdp.training_input).detach()
-            eval_baseline_loss = (
-                F.mse_loss(b, eval_tdp.training_input.slate_reward).cpu().reshape(1)
-            )
+            b = baseline_net(eval_tdp).detach()
+            eval_baseline_loss = F.mse_loss(b, eval_tdp.slate_reward).cpu().reshape(1)
             # pyre-fixme[16]: `Optional` has no attribute `train`.
             baseline_net.train(baseline_net_prev_mode)
         else:
-            b = torch.zeros_like(eval_tdp.training_input.slate_reward)
+            b = torch.zeros_like(eval_tdp.slate_reward)
 
         eval_advantage = (
             # pyre-fixme[58]: `-` is not supported for operand types
             #  `Optional[torch.Tensor]` and `Any`.
-            (eval_tdp.training_input.slate_reward - b)
+            (eval_tdp.slate_reward - b)
             .flatten()
             .cpu()
         )
 
         ranked_slate_output = seq2slate_net(
-            eval_tdp.training_input, Seq2SlateMode.RANK_MODE, greedy=True
+            eval_tdp, Seq2SlateMode.RANK_MODE, greedy=True
         )
         ranked_slate_rank_prob = ranked_slate_output.ranked_per_seq_probs.cpu()
 
@@ -100,7 +96,7 @@ class RankingPolicyGradientEvaluator:
         edp_g = EvaluationDataPage.create_from_tensors_seq2slate(
             seq2slate_net,
             self.reward_network,
-            eval_tdp.training_input,
+            eval_tdp,
             eval_greedy=True,
         )
         if self.eval_data_pages_g is None:
@@ -112,7 +108,7 @@ class RankingPolicyGradientEvaluator:
         edp_ng = EvaluationDataPage.create_from_tensors_seq2slate(
             seq2slate_net,
             self.reward_network,
-            eval_tdp.training_input,
+            eval_tdp,
             eval_greedy=False,
         )
         if self.eval_data_pages_ng is None:

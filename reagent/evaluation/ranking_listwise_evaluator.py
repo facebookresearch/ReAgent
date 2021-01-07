@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from reagent.core.tracker import observable
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode
-from reagent.types import PreprocessedTrainingBatch
+from reagent.types import PreprocessedRankingInput
 from sklearn.metrics import (
     average_precision_score,
     dcg_score,
@@ -59,25 +59,24 @@ class RankingListwiseEvaluator:
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
     @torch.no_grad()
-    def evaluate(self, eval_tdp: PreprocessedTrainingBatch) -> None:
+    def evaluate(self, eval_tdp: PreprocessedRankingInput) -> None:
         seq2slate_net_prev_mode = self.seq2slate_net.training
         self.seq2slate_net.eval()
 
-        eval_input = eval_tdp.training_input
         # pyre-fixme[16]: `Optional` has no attribute `shape`.
-        batch_size = eval_input.position_reward.shape[0]
+        batch_size = eval_tdp.position_reward.shape[0]
 
         # shape: batch_size, tgt_seq_len
         encoder_scores = self.seq2slate_net(
-            eval_input, mode=Seq2SlateMode.ENCODER_SCORE_MODE
+            eval_tdp, mode=Seq2SlateMode.ENCODER_SCORE_MODE
         ).encoder_scores
         assert (
             encoder_scores.shape[1]
-            == eval_input.position_reward.shape[1]
+            == eval_tdp.position_reward.shape[1]
             == self.slate_size
         )
         ce_loss = self.kl_loss(
-            self.log_softmax(encoder_scores), eval_input.position_reward
+            self.log_softmax(encoder_scores), eval_tdp.position_reward
         ).item()
 
         self.seq2slate_net.train(seq2slate_net_prev_mode)
@@ -90,13 +89,13 @@ class RankingListwiseEvaluator:
 
         # shape: batch_size, tgt_seq_len
         ranking_output = self.seq2slate_net(
-            eval_input, mode=Seq2SlateMode.RANK_MODE, greedy=True
+            eval_tdp, mode=Seq2SlateMode.RANK_MODE, greedy=True
         )
         # pyre-fixme[16]: `int` has no attribute `cpu`.
         ranked_idx = (ranking_output.ranked_tgt_out_idx - 2).cpu().numpy()
         # pyre-fixme[58]: `-` is not supported for operand types
         #  `Optional[torch.Tensor]` and `int`.
-        logged_idx = (eval_input.tgt_out_idx - 2).cpu().numpy()
+        logged_idx = (eval_tdp.tgt_out_idx - 2).cpu().numpy()
         score_bar = np.arange(self.slate_size, 0, -1)
 
         batch_dcg = []
@@ -110,15 +109,15 @@ class RankingListwiseEvaluator:
         for i in range(batch_size):
             # no positive label in the slate or slate labels are all positive
             # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
-            if (not torch.any(eval_input.position_reward[i].bool())) or (
-                torch.all(eval_input.position_reward[i].bool())
+            if (not torch.any(eval_tdp.position_reward[i].bool())) or (
+                torch.all(eval_tdp.position_reward[i].bool())
             ):
                 continue
 
             ranked_scores = np.zeros(self.slate_size)
             ranked_scores[ranked_idx[i]] = score_bar
             truth_scores = np.zeros(self.slate_size)
-            truth_scores[logged_idx[i]] = eval_input.position_reward[i].cpu().numpy()
+            truth_scores[logged_idx[i]] = eval_tdp.position_reward[i].cpu().numpy()
             base_scores = np.zeros(self.slate_size)
             base_scores[logged_idx[i]] = score_bar
             # average_precision_score accepts 1D arrays

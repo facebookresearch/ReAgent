@@ -106,7 +106,7 @@ ContinuousScorer = Callable[[Any], Any]
 Scorer = Union[DiscreteScorer, ContinuousScorer]
 
 # Transform ReplayBuffer's transition batch to trainer.train
-TrainerPreprocessor = Callable[[Any], rlt.PreprocessedTrainingBatch]
+TrainerPreprocessor = Callable[[Any], Any]
 
 
 """ Called after env.step(action)
