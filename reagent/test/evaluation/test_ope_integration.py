@@ -247,16 +247,14 @@ class TestOPEModuleAlgs(unittest.TestCase):
             tgt_out_idx.flatten() - 2,
         ].reshape(batch_size, tgt_seq_len, candidate_dim)
 
-        ptb = rlt.PreprocessedTrainingBatch(
-            training_input=rlt.PreprocessedRankingInput(
-                state=rlt.FeatureData(float_features=torch.eye(state_dim)),
-                src_seq=rlt.FeatureData(float_features=src_seq),
-                tgt_out_seq=rlt.FeatureData(float_features=tgt_out_seq),
-                src_src_mask=torch.ones(batch_size, src_seq_len, src_seq_len),
-                tgt_out_idx=tgt_out_idx,
-                tgt_out_probs=torch.tensor([0.2, 0.5, 0.4]),
-                slate_reward=torch.tensor([4.0, 5.0, 7.0]),
-            ),
+        ptb = rlt.PreprocessedRankingInput(
+            state=rlt.FeatureData(float_features=torch.eye(state_dim)),
+            src_seq=rlt.FeatureData(float_features=src_seq),
+            tgt_out_seq=rlt.FeatureData(float_features=tgt_out_seq),
+            src_src_mask=torch.ones(batch_size, src_seq_len, src_seq_len),
+            tgt_out_idx=tgt_out_idx,
+            tgt_out_probs=torch.tensor([0.2, 0.5, 0.4]),
+            slate_reward=torch.tensor([4.0, 5.0, 7.0]),
             extras=rlt.ExtraData(
                 sequence_number=torch.tensor([0, 0, 0]),
                 mdp_id=np.array(["0", "1", "2"]),
@@ -264,7 +262,7 @@ class TestOPEModuleAlgs(unittest.TestCase):
         )
 
         edp = EvaluationDataPage.create_from_tensors_seq2slate(
-            seq2slate_net, reward_net, ptb.training_input, eval_greedy=True
+            seq2slate_net, reward_net, ptb, eval_greedy=True
         )
         logger.info("---------- Start evaluating eval_greedy=True -----------------")
         doubly_robust_estimator = OPEstimatorAdapter(DoublyRobustEstimator())
@@ -313,7 +311,7 @@ class TestOPEModuleAlgs(unittest.TestCase):
 
         logger.info("---------- Start evaluating eval_greedy=False -----------------")
         edp = EvaluationDataPage.create_from_tensors_seq2slate(
-            seq2slate_net, reward_net, ptb.training_input, eval_greedy=False
+            seq2slate_net, reward_net, ptb, eval_greedy=False
         )
         doubly_robust_estimator = OPEstimatorAdapter(DoublyRobustEstimator())
         dm_estimator = OPEstimatorAdapter(DMEstimator())

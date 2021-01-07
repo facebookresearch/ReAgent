@@ -52,19 +52,17 @@ class Seq2SlatePairwiseAttnTrainer(Trainer):
         components = ["seq2slate_net"]
         return components
 
-    def train(self, training_batch: rlt.PreprocessedTrainingBatch):
-        assert type(training_batch) is rlt.PreprocessedTrainingBatch
-        training_input = training_batch.training_input
-        assert isinstance(training_input, rlt.PreprocessedRankingInput)
+    def train(self, training_batch: rlt.PreprocessedRankingInput):
+        assert type(training_batch) is rlt.PreprocessedRankingInput
 
         # shape: batch_size, tgt_seq_len
         encoder_scores = self.seq2slate_net(
-            training_input, mode=Seq2SlateMode.ENCODER_SCORE_MODE
+            training_batch, mode=Seq2SlateMode.ENCODER_SCORE_MODE
         ).encoder_scores
         assert encoder_scores.requires_grad
 
         loss = self.kl_loss(
-            self.log_softmax(encoder_scores), training_input.position_reward
+            self.log_softmax(encoder_scores), training_batch.position_reward
         )
         self.optimizer.zero_grad()
         loss.backward()

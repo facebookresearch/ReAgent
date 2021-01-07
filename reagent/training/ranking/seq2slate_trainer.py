@@ -87,23 +87,21 @@ class Seq2SlateTrainer(Trainer):
         clamped_impt_smpl = ips_clamp(impt_smpl, self.parameters.ips_clamp)
         return impt_smpl, clamped_impt_smpl
 
-    def train(self, training_batch: rlt.PreprocessedTrainingBatch):
-        assert type(training_batch) is rlt.PreprocessedTrainingBatch
-        training_input = training_batch.training_input
-        assert isinstance(training_input, rlt.PreprocessedRankingInput)
+    def train(self, training_batch: rlt.PreprocessedRankingInput):
+        assert type(training_batch) is rlt.PreprocessedRankingInput
         self.minibatch += 1
 
-        batch_size = training_input.state.float_features.shape[0]
+        batch_size = training_batch.state.float_features.shape[0]
         device = torch.device("cuda") if self.use_gpu else torch.device("cpu")
 
-        reward = training_input.slate_reward
-        batch_size = training_input.state.float_features.shape[0]
+        reward = training_batch.slate_reward
+        batch_size = training_batch.state.float_features.shape[0]
         assert reward is not None
 
         if self.baseline_net:
             # Train baseline
             # pyre-fixme[29]: `Optional[BaselineNet]` is not a function.
-            b = self.baseline_net(training_input)
+            b = self.baseline_net(training_batch)
             baseline_loss = 1.0 / batch_size * torch.sum((b - reward) ** 2)
             self.baseline_opt.zero_grad()
             baseline_loss.backward()
@@ -116,7 +114,7 @@ class Seq2SlateTrainer(Trainer):
         # log probs of tgt seqs
         model_propensities = torch.exp(
             self.seq2slate_net(
-                training_input, mode=Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
+                training_batch, mode=Seq2SlateMode.PER_SEQ_LOG_PROB_MODE
             ).log_probs
         )
         b = b.detach()
@@ -125,7 +123,7 @@ class Seq2SlateTrainer(Trainer):
         ), f"{b.shape} {reward.shape} {model_propensities.shape}"
 
         impt_smpl, clamped_impt_smpl = self._compute_impt_smpl(
-            model_propensities, training_input.tgt_out_probs
+            model_propensities, training_batch.tgt_out_probs
         )
         assert (
             impt_smpl.shape == clamped_impt_smpl.shape == reward.shape
@@ -134,7 +132,7 @@ class Seq2SlateTrainer(Trainer):
         assert (
             not reward.requires_grad
             # pyre-fixme[16]: `Optional` has no attribute `requires_grad`.
-            and not training_input.tgt_out_probs.requires_grad
+            and not training_batch.tgt_out_probs.requires_grad
             and impt_smpl.requires_grad
             and clamped_impt_smpl.requires_grad
             and not b.requires_grad

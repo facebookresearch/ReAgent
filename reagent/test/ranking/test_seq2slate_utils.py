@@ -327,7 +327,7 @@ def run_seq2slate_tsp(
                 batch = post_preprocess_batch(
                     learning_method, seq2slate_net, candidate_num, batch, device, e
                 )
-                trainer.train(rlt.PreprocessedTrainingBatch(training_input=batch))
+                trainer.train(batch)
 
         # evaluation
         best_test_reward = torch.full((batch_size,), 1e9).to(device)

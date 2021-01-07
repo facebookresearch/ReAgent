@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from reagent import types as rlt
 from reagent.training.reward_network_trainer import RewardNetTrainer
-from reagent.types import PreprocessedTrainingBatch
+from reagent.types import PreprocessedRankingInput
 
 
 logger = logging.getLogger(__name__)
@@ -27,18 +27,18 @@ class RewardNetEvaluator:
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
     @torch.no_grad()
-    def evaluate(self, eval_tdp: PreprocessedTrainingBatch):
+    def evaluate(self, eval_tdp: PreprocessedRankingInput):
         reward_net = self.trainer.reward_net
         reward_net_prev_mode = reward_net.training
         reward_net.eval()
 
-        if isinstance(eval_tdp.training_input, rlt.PreprocessedRankingInput):
-            reward = eval_tdp.training_input.slate_reward
+        if isinstance(eval_tdp, rlt.PreprocessedRankingInput):
+            reward = eval_tdp.slate_reward
         else:
-            reward = eval_tdp.training_input.reward
+            reward = eval_tdp.reward
         assert reward is not None
 
-        pred_reward = reward_net(eval_tdp.training_input).predicted_reward
+        pred_reward = reward_net(eval_tdp).predicted_reward
         loss = self.trainer.loss_fn(pred_reward, reward)
         self.loss.append(loss.flatten().detach().cpu())
         self.rewards.append(reward.flatten().detach().cpu())

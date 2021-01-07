@@ -52,21 +52,19 @@ class Seq2SlateTeacherForcingTrainer(Trainer):
         components = ["seq2slate_net"]
         return components
 
-    def train(self, training_batch: rlt.PreprocessedTrainingBatch):
-        assert type(training_batch) is rlt.PreprocessedTrainingBatch
-        training_input = training_batch.training_input
-        assert isinstance(training_input, rlt.PreprocessedRankingInput)
+    def train(self, training_batch: rlt.PreprocessedRankingInput):
+        assert type(training_batch) is rlt.PreprocessedRankingInput
         self.minibatch += 1
 
         log_probs = self.seq2slate_net(
-            training_input, mode=Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE
+            training_batch, mode=Seq2SlateMode.PER_SYMBOL_LOG_PROB_DIST_MODE
         ).log_probs
         assert log_probs.requires_grad
 
-        assert training_input.optim_tgt_out_idx is not None
+        assert training_batch.optim_tgt_out_idx is not None
         # pyre-fixme[6]: Expected `Tensor` for 1st param but got
         #  `Optional[torch.Tensor]`.
-        labels = self._transform_label(training_input.optim_tgt_out_idx)
+        labels = self._transform_label(training_batch.optim_tgt_out_idx)
         assert not labels.requires_grad
         loss = self.kl_div_loss(log_probs, labels)
 

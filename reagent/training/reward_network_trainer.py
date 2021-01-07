@@ -74,14 +74,13 @@ class RewardNetTrainer(Trainer):
         self.loss_fn = _get_loss_function(loss_type, reward_ignore_threshold)
         self.reward_ignore_threshold = reward_ignore_threshold
 
-    def train(self, training_batch: rlt.PreprocessedTrainingBatch):
-        training_input = training_batch.training_input
-        if isinstance(training_input, rlt.PreprocessedRankingInput):
-            target_reward = training_input.slate_reward
+    def train(self, training_batch: rlt.PreprocessedRankingInput):
+        if isinstance(training_batch, rlt.PreprocessedRankingInput):
+            target_reward = training_batch.slate_reward
         else:
-            target_reward = training_input.reward
+            target_reward = training_batch.reward
 
-        predicted_reward = self.reward_net(training_input).predicted_reward
+        predicted_reward = self.reward_net(training_batch).predicted_reward
         loss = self.loss_fn(predicted_reward, target_reward)
         self.opt.zero_grad()
         loss.backward()
