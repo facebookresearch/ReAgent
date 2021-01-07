@@ -214,7 +214,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             device,
         )
         for _ in range(policy_gradient_interval):
-            trainer.train(rlt.PreprocessedTrainingBatch(training_input=batch))
+            trainer.train(batch)
 
         # manual compute gradient
         torch.manual_seed(rank_seed)
@@ -300,7 +300,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
         )
 
         for _ in range(policy_gradient_interval):
-            trainer.train(rlt.PreprocessedTrainingBatch(training_input=batch))
+            trainer.train(batch)
 
         # manual compute gradient
         ranked_per_seq_log_probs = seq2slate_net_copy(
@@ -370,7 +370,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
         )
 
         for _ in range(policy_gradient_interval):
-            trainer.train(rlt.PreprocessedTrainingBatch(training_input=batch))
+            trainer.train(batch)
 
         # manual compute gradient
         ranked_per_seq_probs = torch.exp(

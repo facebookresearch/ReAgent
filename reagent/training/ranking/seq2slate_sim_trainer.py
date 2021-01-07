@@ -202,13 +202,7 @@ class Seq2SlateSimulationTrainer(Trainer):
         )
         return on_policy_input
 
-    def train(self, training_batch: rlt.PreprocessedTrainingBatch):
-        assert type(training_batch) is rlt.PreprocessedTrainingBatch
-        training_input = training_batch.training_input
-        assert isinstance(training_input, rlt.PreprocessedRankingInput)
-        training_input = self._simulated_training_input(training_input)
-        return self.trainer.train(
-            rlt.PreprocessedTrainingBatch(
-                training_input=training_input, extras=training_batch.extras
-            )
-        )
+    def train(self, training_batch: rlt.PreprocessedRankingInput):
+        assert type(training_batch) is rlt.PreprocessedRankingInput
+        training_batch = self._simulated_training_input(training_batch)
+        return self.trainer.train(training_batch)
