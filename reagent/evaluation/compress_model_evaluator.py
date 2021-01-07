@@ -3,6 +3,7 @@
 import logging
 
 import torch
+from reagent.core.tracker import observable
 from reagent.training.world_model.compress_model_trainer import CompressModelTrainer
 from reagent.training.world_model.seq2reward_trainer import get_Q
 from reagent.types import MemoryNetworkInput
@@ -11,6 +12,12 @@ from reagent.types import MemoryNetworkInput
 logger = logging.getLogger(__name__)
 
 
+@observable(
+    mse_loss=torch.Tensor,
+    q_values=torch.Tensor,
+    action_distribution=torch.Tensor,
+    accuracy=torch.Tensor,
+)
 class CompressModelEvaluator:
     def __init__(self, trainer: CompressModelTrainer) -> None:
         self.trainer = trainer
@@ -42,4 +49,14 @@ class CompressModelEvaluator:
         ).tolist()
 
         self.compress_model_network.train(prev_mode)
+
+        # pyre-fixme[16]: `CompressModelEvaluator` has no attribute
+        #  `notify_observers`.
+        self.notify_observers(
+            mse_loss=detached_loss,
+            q_values=[q_values],
+            action_distribution=[action_distribution],
+            accuracy=acc,
+        )
+
         return (detached_loss, q_values, action_distribution, acc)

@@ -6,13 +6,13 @@ import logging
 import reagent.types as rlt
 import torch
 import torch.nn.functional as F
+from reagent.core.tracker import observable
 from reagent.models.seq2reward_model import Seq2RewardNetwork
 from reagent.parameters import Seq2RewardTrainerParameters
 from reagent.torch_utils import get_device
 from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.training.trainer import Trainer
 from reagent.training.utils import gen_permutations
-
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,7 @@ def get_Q(
     return max_acc_reward
 
 
+@observable(mse_loss=torch.Tensor, q_values=torch.Tensor)
 class Seq2RewardTrainer(Trainer):
     """ Trainer for Seq2Reward """
 
@@ -95,7 +96,10 @@ class Seq2RewardTrainer(Trainer):
         else:
             q_values = [0] * len(self.params.action_names)
 
-        logger.info(f"Seq2Reward trainer output: {(detached_loss, q_values)}")
+        logger.info(f"Seq2Reward trainer output: {(loss, q_values)}")
+        # pyre-fixme[16]: `Seq2SlatePairwiseAttnTrainer` has no attribute
+        #  `notify_observers`.
+        self.notify_observers(mse_loss=detached_loss, q_values=[q_values])
         return (detached_loss, q_values)
 
     def get_loss(self, training_batch: rlt.MemoryNetworkInput):
