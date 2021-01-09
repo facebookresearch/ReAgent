@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import random
 import unittest
 
 import reagent.models as models
@@ -18,19 +19,31 @@ from reagent.prediction.predictor_wrapper import (
     Seq2SlatePredictorWrapper,
     Seq2SlateWithPreprocessor,
 )
-from reagent.preprocessing.identify_types import CONTINUOUS, CONTINUOUS_ACTION
-from reagent.preprocessing.normalization import NormalizationParameters
 from reagent.preprocessing.postprocessor import Postprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
+from reagent.test.prediction.test_prediction_utils import _cont_norm, _cont_action_norm
+from reagent.test.prediction.test_prediction_utils import (
+    change_cand_size_slate_ranking,
+)
 
 
-def _cont_norm():
-    return NormalizationParameters(feature_type=CONTINUOUS, mean=0.0, stddev=1.0)
-
-
-def _cont_action_norm():
-    return NormalizationParameters(
-        feature_type=CONTINUOUS_ACTION, min_value=-3.0, max_value=3.0
+def seq2slate_input_prototype_to_ranking_input(
+    state_input_prototype,
+    candidate_input_prototype,
+    state_preprocessor,
+    candidate_preprocessor,
+):
+    batch_size, candidate_size, candidate_dim = candidate_input_prototype[0].shape
+    preprocessed_state = state_preprocessor(
+        state_input_prototype[0], state_input_prototype[1]
+    )
+    preprocessed_candidates = candidate_preprocessor(
+        candidate_input_prototype[0].view(batch_size * candidate_size, candidate_dim),
+        candidate_input_prototype[1].view(batch_size * candidate_size, candidate_dim),
+    ).view(batch_size, candidate_size, -1)
+    return rlt.PreprocessedRankingInput.from_tensors(
+        state=preprocessed_state,
+        src_seq=preprocessed_candidates,
     )
 
 
@@ -184,6 +197,17 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         self.assertTrue((expected_output == action).all())
 
+    def validate_seq2slate_output(self, expected_output, wrapper_output):
+        ranked_per_seq_probs, ranked_tgt_out_idx = (
+            expected_output.ranked_per_seq_probs,
+            expected_output.ranked_tgt_out_idx,
+        )
+        # -2 to offset padding symbol and decoder start symbol
+        ranked_tgt_out_idx -= 2
+
+        self.assertTrue(ranked_per_seq_probs == wrapper_output[0])
+        self.assertTrue(torch.all(torch.eq(ranked_tgt_out_idx, wrapper_output[1])))
+
     def test_seq2slate_transformer_frechet_sort_wrapper(self):
         self._test_seq2slate_wrapper(
             model="transformer", output_arch=Seq2SlateOutputArch.FRECHET_SORT
@@ -199,6 +223,8 @@ class TestPredictorWrapper(unittest.TestCase):
         candidate_normalization_parameters = {i: _cont_norm() for i in range(101, 106)}
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
         candidate_preprocessor = Preprocessor(candidate_normalization_parameters, False)
+        candidate_size = 10
+        slate_size = 4
 
         seq2slate = None
         if model == "transformer":
@@ -209,8 +235,8 @@ class TestPredictorWrapper(unittest.TestCase):
                 num_heads=2,
                 dim_model=10,
                 dim_feedforward=10,
-                max_src_seq_len=10,
-                max_tgt_seq_len=4,
+                max_src_seq_len=candidate_size,
+                max_tgt_seq_len=slate_size,
                 output_arch=output_arch,
                 temperature=0.5,
             )
@@ -226,39 +252,42 @@ class TestPredictorWrapper(unittest.TestCase):
             state_input_prototype,
             candidate_input_prototype,
         ) = seq2slate_with_preprocessor.input_prototype()
-        ret_val = wrapper(state_input_prototype, candidate_input_prototype)
+        wrapper_output = wrapper(state_input_prototype, candidate_input_prototype)
 
-        preprocessed_state = state_preprocessor(
-            state_input_prototype[0], state_input_prototype[1]
-        )
-        preprocessed_candidates = candidate_preprocessor(
-            candidate_input_prototype[0].view(
-                1 * seq2slate.max_src_seq_len, len(candidate_normalization_parameters)
-            ),
-            candidate_input_prototype[1].view(
-                1 * seq2slate.max_src_seq_len, len(candidate_normalization_parameters)
-            ),
-        ).view(1, seq2slate.max_src_seq_len, -1)
-        src_src_mask = torch.ones(
-            1, seq2slate.max_src_seq_len, seq2slate.max_src_seq_len
-        )
-        ranking_input = rlt.PreprocessedRankingInput.from_tensors(
-            state=preprocessed_state,
-            src_seq=preprocessed_candidates,
-            src_src_mask=src_src_mask,
+        ranking_input = seq2slate_input_prototype_to_ranking_input(
+            state_input_prototype,
+            candidate_input_prototype,
+            state_preprocessor,
+            candidate_preprocessor,
         )
         expected_output = seq2slate(
             ranking_input,
             mode=Seq2SlateMode.RANK_MODE,
-            tgt_seq_len=seq2slate.max_src_seq_len,
+            tgt_seq_len=candidate_size,
             greedy=True,
         )
-        ranked_per_seq_probs, ranked_tgt_out_idx = (
-            expected_output.ranked_per_seq_probs,
-            expected_output.ranked_tgt_out_idx,
-        )
-        # -2 to offset padding symbol and decoder start symbol
-        ranked_tgt_out_idx -= 2
+        self.validate_seq2slate_output(expected_output, wrapper_output)
 
-        self.assertTrue(ranked_per_seq_probs == ret_val[0])
-        self.assertTrue(torch.all(torch.eq(ret_val[1], ranked_tgt_out_idx)))
+        # Test Seq2SlatePredictorWrapper can handle variable lengths of inputs
+        random_length = random.randint(candidate_size + 1, candidate_size * 2)
+        (
+            state_input_prototype,
+            candidate_input_prototype,
+        ) = change_cand_size_slate_ranking(
+            seq2slate_with_preprocessor.input_prototype(), random_length
+        )
+        wrapper_output = wrapper(state_input_prototype, candidate_input_prototype)
+
+        ranking_input = seq2slate_input_prototype_to_ranking_input(
+            state_input_prototype,
+            candidate_input_prototype,
+            state_preprocessor,
+            candidate_preprocessor,
+        )
+        expected_output = seq2slate(
+            ranking_input,
+            mode=Seq2SlateMode.RANK_MODE,
+            tgt_seq_len=random_length,
+            greedy=True,
+        )
+        self.validate_seq2slate_output(expected_output, wrapper_output)

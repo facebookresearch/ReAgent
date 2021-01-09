@@ -421,27 +421,25 @@ class LearnVMSlateWithPreprocessor(ModelBase):
         return scores
 
 
-class Seq2SlateWithPreprocessor(ModelBase):
+class SlateRankingPreprocessor(ModelBase):
     def __init__(
         self,
-        model: Seq2SlateTransformerNet,
         state_preprocessor: Preprocessor,
         candidate_preprocessor: Preprocessor,
-        greedy: bool,
     ):
         super().__init__()
-        self.model = model
         self.state_preprocessor = state_preprocessor
         self.candidate_preprocessor = candidate_preprocessor
-        self.greedy = greedy
 
     def input_prototype(self):
+        # hard code the candidate size just for jit.trace
+        CANDIDATE_SIZE = 10
         candidate_input_prototype = self.candidate_preprocessor.input_prototype()
         return (
             self.state_preprocessor.input_prototype(),
             (
-                candidate_input_prototype[0].repeat((1, self.model.max_src_seq_len, 1)),
-                candidate_input_prototype[1].repeat((1, self.model.max_src_seq_len, 1)),
+                candidate_input_prototype[0].repeat((1, CANDIDATE_SIZE, 1)),
+                candidate_input_prototype[1].repeat((1, CANDIDATE_SIZE, 1)),
             ),
         )
 
@@ -469,33 +467,67 @@ class Seq2SlateWithPreprocessor(ModelBase):
                 batch_size * max_src_seq_len,
                 candidate_feat_num,
             ),
+            # the last dimension is preprocessed candidate feature dim,
+            # not necessarily = candidate_feat_num
         ).view(batch_size, max_src_seq_len, -1)
 
-        ranking_input = rlt.PreprocessedRankingInput.from_tensors(
+        return preprocessed_state, preprocessed_candidates
+
+
+class Seq2SlateWithPreprocessor(nn.Module):
+    def __init__(
+        self,
+        model: Seq2SlateTransformerNet,
+        state_preprocessor: Preprocessor,
+        candidate_preprocessor: Preprocessor,
+        greedy: bool,
+    ):
+        super().__init__()
+        preprocessor = SlateRankingPreprocessor(
+            state_preprocessor, candidate_preprocessor
+        )
+        self.input_prototype_data = preprocessor.input_prototype()
+        self.preprocessor = torch.jit.trace(
+            preprocessor, preprocessor.input_prototype()
+        )
+        # pyre-fixme[16]: `Seq2SlateTransformerNet` has no attribute `seq2slate`.
+        self.model = torch.jit.script(model.seq2slate)
+        self.greedy = greedy
+        self.state_sorted_features = state_preprocessor.sorted_features
+        self.candidate_sorted_features = candidate_preprocessor.sorted_features
+        self.state_feature_id_to_index = state_preprocessor.feature_id_to_index
+        self.candidate_feature_id_to_index = candidate_preprocessor.feature_id_to_index
+
+    def input_prototype(self):
+        return self.input_prototype_data
+
+    def forward(
+        self,
+        state_with_presence: Tuple[torch.Tensor, torch.Tensor],
+        candidate_with_presence: Tuple[torch.Tensor, torch.Tensor],
+    ):
+        preprocessed_state, preprocessed_candidates = self.preprocessor(
+            state_with_presence, candidate_with_presence
+        )
+        max_src_seq_len = preprocessed_candidates.shape[1]
+        res = self.model(
+            mode=Seq2SlateMode.RANK_MODE.value,
             state=preprocessed_state,
             src_seq=preprocessed_candidates,
-        )
-        ranking_output = self.model(
-            ranking_input,
-            mode=Seq2SlateMode.RANK_MODE,
-            # During serving, we rank all items, even though
-            # max_tgt_seq_len is possibly smaller than max_src_seq_len during training
             tgt_seq_len=max_src_seq_len,
             greedy=self.greedy,
         )
         return (
-            ranking_output.ranked_per_symbol_probs,
-            ranking_output.ranked_per_seq_probs,
-            ranking_output.ranked_tgt_out_idx,
+            res.ranked_per_symbol_probs,
+            res.ranked_per_seq_probs,
+            res.ranked_tgt_out_idx,
         )
 
 
 class Seq2SlatePredictorWrapper(torch.jit.ScriptModule):
     def __init__(self, seq2slate_with_preprocessor: Seq2SlateWithPreprocessor) -> None:
         super().__init__()
-        self.seq2slate_with_preprocessor = torch.jit.trace(
-            seq2slate_with_preprocessor, seq2slate_with_preprocessor.input_prototype()
-        )
+        self.seq2slate_with_preprocessor = torch.jit.script(seq2slate_with_preprocessor)
 
     # pyre-fixme[56]: Decorator `torch.jit.script_method` could not be resolved in a
     #  global scope.
@@ -510,6 +542,8 @@ class Seq2SlatePredictorWrapper(torch.jit.ScriptModule):
         _, ranked_per_seq_probs, ranked_tgt_out_idx = self.seq2slate_with_preprocessor(
             state_with_presence, candidate_with_presence
         )
+        assert ranked_tgt_out_idx is not None
+        assert ranked_per_seq_probs is not None
         # -2 to offset padding symbol and decoder start symbol
         ranked_tgt_out_idx -= 2
         return ranked_per_seq_probs, ranked_tgt_out_idx
