@@ -91,28 +91,11 @@ class TestSeq2SlateInference(unittest.TestCase):
             candidate_normalization_data.dense_normalization_parameters, False
         )
 
-        # test trace
-        seq2slate_net.seq2slate = seq2slate
+        # test seq2slate with preprocessor is scriptable
         seq2slate_with_preprocessor = Seq2SlateWithPreprocessor(
             seq2slate_net.eval(),
             state_preprocessor,
             candidate_preprocessor,
             greedy_serving,
         )
-        seq2slate_with_preprocessor(*seq2slate_with_preprocessor.input_prototype())
-        torch.jit.trace(
-            seq2slate_with_preprocessor, seq2slate_with_preprocessor.input_prototype()
-        )
-
-        # test mix of script + trace
-        seq2slate_net.seq2slate = seq2slate_scripted
-        seq2slate_with_preprocessor = Seq2SlateWithPreprocessor(
-            seq2slate_net.eval(),
-            state_preprocessor,
-            candidate_preprocessor,
-            greedy_serving,
-        )
-        seq2slate_with_preprocessor(*seq2slate_with_preprocessor.input_prototype())
-        torch.jit.trace(
-            seq2slate_with_preprocessor, seq2slate_with_preprocessor.input_prototype()
-        )
+        torch.jit.script(seq2slate_with_preprocessor)

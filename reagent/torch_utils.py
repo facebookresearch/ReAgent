@@ -85,7 +85,11 @@ def gather(data, index_2d):
     index_len = index_2d.shape[1]
     device = data.device
     res = data[
-        torch.arange(batch_size, device=device).repeat_interleave(index_len),
+        torch.arange(batch_size, device=device).repeat_interleave(
+            # index_len has to be moved to the device explicitly, otherwise
+            # error will throw during jit.trace
+            torch.tensor([index_len], device=device)
+        ),
         index_2d.flatten(),
     ].view(batch_size, index_len, data_dim)
     return res
