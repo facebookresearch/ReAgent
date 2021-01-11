@@ -54,6 +54,14 @@ class SoftmaxActionSampler(Sampler):
         # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
         return m.log_prob(action.argmax(dim=1))
 
+    def entropy(self, scores: torch.Tensor) -> torch.Tensor:
+        """
+        Returns average policy entropy. Simple unweighted average across the batch.
+        """
+        assert len(scores.shape) == 2, f"{scores.shape}"
+        m = self._get_distribution(scores)
+        return m.entropy().mean()
+
 
 class GreedyActionSampler(Sampler):
     """
