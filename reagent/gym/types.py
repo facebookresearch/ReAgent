@@ -23,6 +23,7 @@ class Transition(rlt.BaseDataClass):
     terminal: bool
     log_prob: Optional[float] = None
     possible_actions_mask: Optional[np.ndarray] = None
+    info: Optional[Dict] = None
 
     # Same as asdict but filters out none values.
     def asdict(self):
