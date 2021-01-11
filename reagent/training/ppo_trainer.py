@@ -23,7 +23,6 @@ class PPOTrainer(Trainer):
     Proximal Policy Optimization (PPO). See https://arxiv.org/pdf/1707.06347.pdf
     This is the "clip" version of PPO. It does not include:
     - KL divergence
-    - Entropy bonus
     - Bootstrapping with a critic model (this only works if full trajectories up to terminal state are fed in)
     Optionally, a value network can be trained and used as a baseline for rewards.
     """
@@ -48,6 +47,7 @@ class PPOTrainer(Trainer):
         update_epochs: int = 5,  # how many epochs to run when updating (for PPO)
         ppo_batch_size: int = 10,  # batch size (number of trajectories) used for PPO updates
         ppo_epsilon: float = 0.2,  # clamp importance weights between 1-epsilon and 1+epsilon
+        entropy_weight: float = 0.0,  # weight of the entropy term in the PPO loss
         value_net: Optional[ModelBase] = None,
     ):
         self.scorer = policy.scorer
@@ -63,6 +63,7 @@ class PPOTrainer(Trainer):
         self.update_epochs = update_epochs
         self.ppo_batch_size = ppo_batch_size
         self.ppo_epsilon = ppo_epsilon
+        self.entropy_weight = entropy_weight
 
         self.optimizer = optimizer.make_optimizer(self.scorer.parameters())
         if value_net is not None:
@@ -128,7 +129,6 @@ class PPOTrainer(Trainer):
         actions = trajectory.action
         rewards = trajectory.reward.detach()
         scores = self.scorer(trajectory.state, trajectory.possible_actions_mask)
-        characteristic_eligibility = self.sampler.log_prob(scores, actions).float()
         offset_reinforcement = discounted_returns(
             torch.clamp(rewards, max=self.reward_clip).clone(), self.gamma
         )
@@ -166,6 +166,10 @@ class PPOTrainer(Trainer):
                 1 + self.ppo_epsilon,
             ),
         )
+        if self.entropy_weight != 0:
+            entropy = self.sampler.entropy(scores)
+            # "-" bcs minimizing, not maximizing
+            losses["ppo_loss"] -= self.entropy_weight * entropy
         return losses
 
     def warm_start_components(self) -> List[str]:
