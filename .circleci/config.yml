@@ -144,7 +144,8 @@ commands:
       - run:
           command: |
             pip install --upgrade pip
-            pip install --upgrade tox wheel setuptools
+            pip install tox==3.20.1
+            pip install --upgrade wheel setuptools
       - when:
           condition: << parameters.install_gym >>
           steps:
