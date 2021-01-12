@@ -5,6 +5,7 @@ import logging
 from typing import Dict, List, Optional
 
 import pytorch_lightning as pl
+import torch
 
 # pyre-fixme[21]: Could not find `petastorm`.
 from petastorm import make_batch_reader
@@ -16,7 +17,7 @@ from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.training import StoppingEpochCallback
 
 from .spark_utils import get_spark_session
-from .types import Dataset, ReaderOptions
+from .types import Dataset, ReaderOptions, ResourceOptions
 
 
 logger = logging.getLogger(__name__)
@@ -99,6 +100,18 @@ class PetastormLightningDataModule(pl.LightningDataModule):
         return self._closing_iter(dataloader)
 
 
+def get_rank() -> int:
+    """
+    Returns the torch.distributed rank of the process. 0 represents
+    the main process and is the default if torch.distributed isn't set up
+    """
+    return (
+        torch.distributed.get_rank()
+        if torch.distributed.is_available() and torch.distributed.is_initialized()
+        else 0
+    )
+
+
 def train_eval_lightning(
     train_dataset,
     eval_dataset,
@@ -109,6 +122,7 @@ def train_eval_lightning(
     batch_preprocessor=None,
     reader_options: Optional[ReaderOptions] = None,
     checkpoint_path: Optional[str] = None,
+    resource_options: Optional[ResourceOptions] = None,
 ) -> pl.Trainer:
     reader_options = reader_options or ReaderOptions()
     datamodule = data_module or PetastormLightningDataModule(

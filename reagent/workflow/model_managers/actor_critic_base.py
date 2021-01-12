@@ -29,6 +29,7 @@ from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
     ReaderOptions,
+    ResourceOptions,
     RewardOptions,
     RLTrainingOutput,
     RLTrainingReport,
@@ -237,6 +238,7 @@ class ActorCriticBase(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
+        resource_options: Optional[ResourceOptions],
     ) -> RLTrainingOutput:
 
         batch_preprocessor = self.build_batch_preprocessor()
@@ -257,6 +259,7 @@ class ActorCriticBase(ModelManager):
             batch_preprocessor=batch_preprocessor,
             reader_options=self.reader_options,
             checkpoint_path=self._lightning_checkpoint_path,
+            resource_options=resource_options or ResourceOptions(),
         )
         # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
         training_report = RLTrainingReport.make_union_instance(

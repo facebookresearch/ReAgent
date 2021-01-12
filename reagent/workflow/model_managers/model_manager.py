@@ -243,8 +243,6 @@ class ModelManager(metaclass=RegistryMeta):
             use_gpu=use_gpu,
             # pyre-fixme[6]: Expected `RewardOptions` for 2nd param but got
             #  `Optional[RewardOptions]`.
-            # pyre-fixme[6]: Expected `RewardOptions` for 2nd param but got
-            #  `Optional[RewardOptions]`.
             reward_options=reward_options,
             normalization_data_map=normalization_data_map,
             warmstart_path=warmstart_input_path,
@@ -253,9 +251,17 @@ class ModelManager(metaclass=RegistryMeta):
         if not reader_options:
             reader_options = ReaderOptions()
 
+        if not resource_options:
+            resource_options = ResourceOptions()
+
         with summary_writer_context(writer):
             train_output = self.train(
-                train_dataset, eval_dataset, data_module, num_epochs, reader_options
+                train_dataset,
+                eval_dataset,
+                data_module,
+                num_epochs,
+                reader_options,
+                resource_options,
             )
 
         output_paths = {}
@@ -276,9 +282,16 @@ class ModelManager(metaclass=RegistryMeta):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
+        resource_options: Optional[ResourceOptions],
     ) -> RLTrainingOutput:
         """
         Train the model
+        Arguments:
+            train/eval_dataset: what you'd expect
+            data_module: [pytorch lightning only] a lightning data module that replaces the use of train/eval datasets
+            num_epochs: number of training epochs
+            reader_options: options for the data reader
+            resource_options: options for training resources (currently only used for setting num_nodes in pytorch lightning trainer)
         """
         pass
 

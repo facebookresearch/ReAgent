@@ -25,6 +25,7 @@ from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
     ReaderOptions,
+    ResourceOptions,
     RewardOptions,
     RLTrainingOutput,
     TableSpec,
@@ -169,5 +170,6 @@ class ParametricDQNBase(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
+        resource_options: Optional[ResourceOptions] = None,
     ) -> RLTrainingOutput:
         raise NotImplementedError()
