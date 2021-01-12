@@ -31,12 +31,13 @@ from reagent.workflow.types import (
     ModelFeatureConfigProvider__Union,
     PreprocessingOptions,
     ReaderOptions,
+    ResourceOptions,
     RewardOptions,
     RLTrainingOutput,
     RLTrainingReport,
     TableSpec,
 )
-from reagent.workflow.utils import train_eval_lightning
+from reagent.workflow.utils import train_eval_lightning, get_rank
 
 
 logger = logging.getLogger(__name__)
@@ -159,6 +160,7 @@ class DiscreteDQNBase(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
+        resource_options: Optional[ResourceOptions] = None,
     ) -> RLTrainingOutput:
         """
         Train the model
@@ -182,9 +184,14 @@ class DiscreteDQNBase(ModelManager):
             batch_preprocessor=batch_preprocessor,
             reader_options=self.reader_options,
             checkpoint_path=self._lightning_checkpoint_path,
+            resource_options=resource_options,
         )
-        # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
-        training_report = RLTrainingReport.make_union_instance(
-            reporter.generate_training_report()
-        )
-        return RLTrainingOutput(training_report=training_report)
+        rank = get_rank()
+        if rank == 0:
+            # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
+            training_report = RLTrainingReport.make_union_instance(
+                reporter.generate_training_report()
+            )
+            return RLTrainingOutput(training_report=training_report)
+        # Output from processes with non-0 rank is not used
+        return RLTrainingOutput()
