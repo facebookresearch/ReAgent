@@ -1,0 +1,57 @@
+env:
+  Gym:
+    env_name: Pendulum-v0
+model:
+  SAC:
+    trainer_param:
+      rl:
+        gamma: 0.99
+        target_update_rate: 0.005
+        softmax_policy: true
+      crr_config:
+        exponent_beta: 1.0
+        exponent_clamp: 20.0
+      q_network_optimizer:
+        Adam:
+          lr: 0.001
+      value_network_optimizer:
+        Adam:
+          lr: 0.001
+      actor_network_optimizer:
+        Adam:
+          lr: 0.001
+    actor_net_builder:
+      GaussianFullyConnected:
+        sizes:
+        - 64
+        - 64
+        activations:
+        - leaky_relu
+        - leaky_relu
+    critic_net_builder:
+      FullyConnected:
+        sizes:
+        - 64
+        - 64
+        activations:
+        - leaky_relu
+        - leaky_relu
+    value_net_builder:
+      FullyConnected:
+        sizes:
+        - 64
+        - 64
+        activations:
+        - leaky_relu
+        - leaky_relu
+    eval_parameters:
+      calc_cpe_in_training: false
+replay_memory_size: 100000
+train_every_ts: 1
+train_after_ts: 20000
+num_train_episodes: 40
+num_eval_episodes: 20
+# Though maximal score is 0, we set lower bar to let tests finish in time
+passing_score_bar: -500
+use_gpu: false
+minibatch_size: 256
