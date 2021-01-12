@@ -55,6 +55,7 @@ GYM_TESTS = [
         "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
     ),
     ("SAC Pendulum", "configs/pendulum/sac_pendulum_online.yaml"),
+    ("Continuous CRR Pendulum", "configs/pendulum/continuous_crr_pendulum_online.yaml"),
     ("TD3 Pendulum", "configs/pendulum/td3_pendulum_online.yaml"),
     ("Parametric DQN Cartpole", "configs/cartpole/parametric_dqn_cartpole_online.yaml"),
     (

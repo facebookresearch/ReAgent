@@ -9,6 +9,7 @@ import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.configuration import resolve_defaults
+from reagent.core.dataclasses import dataclass
 from reagent.core.dataclasses import field
 from reagent.optimizer import Optimizer__Union, SoftUpdate
 from reagent.parameters import RLParameters
@@ -17,6 +18,33 @@ from reagent.training.rl_trainer_pytorch import RLTrainerMixin
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class CRRWeightFn:
+    # pick indicator or exponent
+    indicator_fn_threshold: Optional[float] = None
+    exponent_beta: Optional[float] = None
+    exponent_clamp: Optional[float] = None
+
+    def __post_init_post_parse__(self):
+        assert self.exponent_beta or self.indicator_fn_threshold
+        assert not (self.exponent_beta and self.indicator_fn_threshold)
+        if self.exponent_beta:
+            assert self.exponent_beta > 1e-6
+
+        if self.exponent_clamp:
+            assert self.exponent_clamp > 1e-6
+
+    def get_weight_from_advantage(self, advantage):
+        if self.indicator_fn_threshold:
+            return (advantage >= self.indicator_fn_threshold).float()
+
+        if self.exponent_beta:
+            exp = torch.exp(advantage / self.exponent_beta)
+            if self.exponent_clamp:
+                exp = torch.clamp(exp, 0.0, self.exponent_clamp)
+            return exp
 
 
 class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
@@ -55,6 +83,7 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
         apply_kld_on_mean: bool = False,
         action_embedding_mean: Optional[List[float]] = None,
         action_embedding_variance: Optional[List[float]] = None,
+        crr_config: Optional[CRRWeightFn] = None,
     ) -> None:
         """
         Args:
@@ -105,6 +134,10 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
             # Assigning the values here instead of above so that typechecker wouldn't complain
             self.action_emb_mean = torch.tensor(action_embedding_mean)
             self.action_emb_variance = torch.tensor(action_embedding_variance)
+
+        self.crr_config = crr_config
+        if crr_config:
+            assert self.value_network is not None
 
     def configure_optimizers(self):
         optimizers = []
@@ -211,11 +244,20 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
             q2_actor_value = self.q2_network(*state_actor_action)
             min_q_actor_value = torch.min(q1_actor_value, q2_actor_value)
 
-        actor_loss = (
-            self.entropy_temperature * actor_output.log_prob - min_q_actor_value
-        )
+        if self.crr_config is not None:
+            cur_value = self.value_network(training_batch.state.float_features)
+            advantage = (min_q_actor_value - cur_value).detach()
+            # pyre-fixme[16]: `Optional` has no attribute `get_weight_from_advantage`.
+            crr_weight = self.crr_config.get_weight_from_advantage(advantage)
+            assert (
+                actor_output.log_prob.shape == crr_weight.shape
+            ), f"{actor_output.log_prob.shape} != {crr_weight.shape}"
+            actor_loss = -(actor_output.log_prob * crr_weight.detach())
+        else:
+            actor_loss = (
+                self.entropy_temperature * actor_output.log_prob - min_q_actor_value
+            )
         # Do this in 2 steps so we can log histogram of actor loss
-        # pyre-fixme[16]: `float` has no attribute `mean`.
         actor_loss_mean = actor_loss.mean()
 
         if self.add_kld_to_loss:
