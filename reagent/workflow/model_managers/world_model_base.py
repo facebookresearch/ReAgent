@@ -11,6 +11,7 @@ from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.types import (
     Dataset,
     ReaderOptions,
+    ResourceOptions,
     RewardOptions,
     RLTrainingOutput,
     TableSpec,
@@ -64,6 +65,7 @@ class WorldModelBase(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
+        resource_options: Optional[ResourceOptions] = None,
     ) -> RLTrainingOutput:
         """
         Train the model
