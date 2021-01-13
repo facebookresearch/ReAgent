@@ -78,6 +78,7 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
     def __iter__(self):
         mdp_id = 0
         global_num_steps = 0
+        rewards = []
 
         # TODO: We probably should put member vars into local vars to
         # reduce indirection, improving perf
@@ -87,6 +88,7 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
             possible_actions_mask = self._env.possible_actions_mask
             terminal = False
             num_steps = 0
+            episode_reward_sum = 0
             while not terminal:
                 action, log_prob = self._agent.act(obs, possible_actions_mask)
                 next_obs, reward, terminal, _ = self._env.step(action)
@@ -106,6 +108,7 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
                     possible_actions_mask=possible_actions_mask,
                 )
                 self._replay_buffer_inserter(self._replay_buffer, transition)
+                episode_reward_sum += reward
                 if (
                     global_num_steps % self._training_frequency == 0
                     and self._replay_buffer.size >= self._batch_size
@@ -122,4 +125,15 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
                 num_steps += 1
                 global_num_steps += 1
 
+            rewards.append(episode_reward_sum)
             mdp_id += 1
+            print()
+            print(
+                "Training episode: "
+                + str(mdp_id)
+                + ", total episode reward = "
+                + str(episode_reward_sum)
+            )
+
+        print("Episode rewards during training:")
+        print(rewards)

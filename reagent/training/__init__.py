@@ -3,6 +3,7 @@
 
 from reagent.training.c51_trainer import C51Trainer
 from reagent.training.cem_trainer import CEMTrainer
+from reagent.training.discrete_crr_trainer import DiscreteCRRTrainer
 from reagent.training.dqn_trainer import DQNTrainer
 from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
 from reagent.training.qrdqn_trainer import QRDQNTrainer
@@ -28,6 +29,7 @@ from .parameters import (
     Seq2SlateTrainerParameters,
     SlateQTrainerParameters,
     TD3TrainerParameters,
+    CRRTrainerParameters,
 )
 
 
@@ -42,6 +44,7 @@ __all__ = [
     "SACTrainer",
     "SlateQTrainer",
     "TD3Trainer",
+    "DiscreteCRRTrainer",
     "RewardNetTrainer",
     "C51TrainerParameters",
     "DQNTrainerParameters",
@@ -50,6 +53,7 @@ __all__ = [
     "SACTrainerParameters",
     "SlateQTrainerParameters",
     "TD3TrainerParameters",
+    "CRRTrainerParameters",
     "RewardNetworkTrainerParameters",
     "Seq2SlateTrainerParameters",
     "ReAgentLightningModule",

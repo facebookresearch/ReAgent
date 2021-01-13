@@ -414,15 +414,6 @@ class ParametricDqnInputMaker:
         )
 
 
-REPLAY_BUFFER_MAKER_MAP = {
-    rlt.DiscreteDqnInput: DiscreteDqnInputMaker,
-    rlt.PolicyNetworkInput: PolicyNetworkInputMaker,
-    rlt.MemoryNetworkInput: MemoryNetworkInputMaker,
-    rlt.ParametricDqnInput: ParametricDqnInputMaker,
-    rlt.SlateQInput: SlateQInputMaker,
-}
-
-
 class PolicyGradientInputMaker:
     def __init__(self, num_actions: Optional[int] = None, recsim_obs: bool = False):
         self.num_actions = num_actions
@@ -484,3 +475,11 @@ class PolicyGradientInputMaker:
 
 
 ONLINE_MAKER_MAP = {rlt.PolicyGradientInput: PolicyGradientInputMaker}
+
+REPLAY_BUFFER_MAKER_MAP = {
+    rlt.DiscreteDqnInput: DiscreteDqnInputMaker,
+    rlt.PolicyNetworkInput: PolicyNetworkInputMaker,
+    rlt.MemoryNetworkInput: MemoryNetworkInputMaker,
+    rlt.ParametricDqnInput: ParametricDqnInputMaker,
+    rlt.SlateQInput: SlateQInputMaker,
+}

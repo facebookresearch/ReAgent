@@ -17,6 +17,7 @@ from reagent.torch_utils import masked_softmax
 
 if TYPE_CHECKING:
     from reagent.training import ParametricDQNTrainer
+    from reagent.training.discrete_crr_trainer import DiscreteCRRTrainer
     from reagent.training.dqn_trainer import DQNTrainer
     from reagent.training.trainer import Trainer
 
@@ -57,7 +58,6 @@ class EvaluationDataPage(NamedTuple):
     ):
         if isinstance(tdb, rlt.DiscreteDqnInput):
             discrete_training_input = cast(rlt.DiscreteDqnInput, tdb)
-
             return EvaluationDataPage.create_from_tensors_dqn(
                 trainer,
                 tdb.extras.mdp_id,

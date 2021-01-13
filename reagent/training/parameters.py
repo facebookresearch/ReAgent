@@ -5,6 +5,7 @@ from reagent.core.configuration import make_config_class
 from reagent.types import BaseDataClass
 
 from .c51_trainer import C51Trainer
+from .discrete_crr_trainer import DiscreteCRRTrainer
 from .dqn_trainer import DQNTrainer
 from .parametric_dqn_trainer import ParametricDQNTrainer
 from .ppo_trainer import PPOTrainer
@@ -29,6 +30,24 @@ class SACTrainerParameters:
     blacklist=["use_gpu", "actor_network", "q1_network", "q2_network"],
 )
 class TD3TrainerParameters:
+    pass
+
+
+@make_config_class(
+    DiscreteCRRTrainer.__init__,
+    blacklist=[
+        "use_gpu",
+        "actor_network",
+        "q1_network",
+        "reward_network",
+        "q2_network",
+        "q_network_cpe",
+        "q_network_cpe_target",
+        "metrics_to_score",
+        "evaluation",
+    ],
+)
+class CRRTrainerParameters:
     pass
 
 
