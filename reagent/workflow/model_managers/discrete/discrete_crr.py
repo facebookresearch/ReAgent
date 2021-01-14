@@ -115,6 +115,7 @@ class DiscreteCRR(DiscreteDQNBase):
         # The target networks will be created in DiscreteCRRTrainer
         critic_net_builder = self.critic_net_builder.value
 
+        # pyre-fixme[16]: `DiscreteCRR` has no attribute `_q1_network`.
         self._q1_network = critic_net_builder.build_q_network(
             self.state_feature_config,
             self.state_normalization_data,
@@ -127,6 +128,8 @@ class DiscreteCRR(DiscreteDQNBase):
                 self.state_normalization_data,
                 len(self.action_names),
             )
+            # pyre-fixme[16]: `CRRTrainerParameters` has no attribute
+            #  `double_q_learning`.
             if self.trainer_param.double_q_learning
             else None
         )
@@ -135,6 +138,7 @@ class DiscreteCRR(DiscreteDQNBase):
         if self.eval_parameters.calc_cpe_in_training:
             # Metrics + reward
             num_output_nodes = (len(self.metrics_to_score) + 1) * len(
+                # pyre-fixme[16]: `CRRTrainerParameters` has no attribute `actions`.
                 self.trainer_param.actions
             )
 
@@ -161,6 +165,7 @@ class DiscreteCRR(DiscreteDQNBase):
             q_network_cpe_target=q_network_cpe_target,
             metrics_to_score=self.metrics_to_score,
             evaluation=self.eval_parameters,
+            # pyre-fixme[16]: `CRRTrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),
         )
         return trainer
