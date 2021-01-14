@@ -46,9 +46,8 @@ class DQNTrainerMixin:
             state i.
 
         Returns a tensor of maximum Q-values for every state in the batch
-            and also the index of the corresponding action. NOTE: looks like
-            this index is only used for informational purposes only and does
-            not affect any algorithms.
+            and also the index of the corresponding action (which is used in
+            evaluation_data_page.py, in create_from_tensors_dqn()).
 
         """
 

@@ -47,6 +47,7 @@ NOTE: These tests should ideally finish quickly (within 10 minutes) since they a
 unit tests which are run many times.
 """
 GYM_TESTS = [
+    ("Discrete CRR Cartpole", "configs/cartpole/discrete_crr_cartpole_online.yaml"),
     ("Discrete DQN Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
     ("Discrete C51 Cartpole", "configs/cartpole/discrete_c51_cartpole_online.yaml"),
     ("Discrete QR Cartpole", "configs/cartpole/discrete_qr_cartpole_online.yaml"),
@@ -191,6 +192,7 @@ def train_policy(
         train_rewards = []
         with trange(num_train_episodes, unit=" epoch") as t:
             for i in t:
+                # Note: run_episode also performs a training step for the agent, if specified in post_step
                 trajectory = run_episode(env=env, agent=agent, mdp_id=i, max_steps=200)
                 ep_reward = trajectory.calculate_cumulative_reward()
                 train_rewards.append(ep_reward)
@@ -278,7 +280,7 @@ def run_test(
     )
 
     device = torch.device("cuda") if use_gpu else torch.device("cpu")
-    # first fill the replay buffer to burn_in
+    # first fill the replay buffer using random policy
     train_after_ts = max(train_after_ts, minibatch_size)
     fill_replay_buffer(
         env=env, replay_buffer=replay_buffer, desired_size=train_after_ts
@@ -302,6 +304,9 @@ def run_test(
         data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
         # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
         pl_trainer = pl.Trainer(max_epochs=1, gpus=int(use_gpu))
+        # Note: the fit() function below also evaluates the agent along the way
+        # and adds the new transitions to the replay buffer, so it is training
+        # on incrementally larger and larger buffers.
         pl_trainer.fit(trainer, data_loader)
 
         # TODO: Also check train_reward

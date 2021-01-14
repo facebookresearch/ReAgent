@@ -15,6 +15,7 @@ from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.test.base.utils import (
     only_continuous_action_normalizer,
     only_continuous_normalizer,
+    discrete_action_normalizer,
 )
 from tqdm import tqdm
 
@@ -38,7 +39,9 @@ def fill_replay_buffer(env, replay_buffer: ReplayBuffer, desired_size: int):
         f"Replay buffer already has {replay_buffer.size} elements. "
         f"(more than desired_size = {desired_size})"
     )
-    logger.info(f"Starting to fill replay buffer to size: {desired_size}.")
+    logger.info(
+        f" Starting to fill replay buffer using random policy to size: {desired_size}."
+    )
     random_policy = make_random_policy_for_env(env)
     post_step = add_replay_buffer_post_step(replay_buffer, env=env)
     agent = Agent.create_for_env(
@@ -47,7 +50,7 @@ def fill_replay_buffer(env, replay_buffer: ReplayBuffer, desired_size: int):
     max_episode_steps = env.max_steps
     with tqdm(
         total=desired_size - replay_buffer.size,
-        desc=f"Filling replay buffer from {replay_buffer.size} to size {desired_size}",
+        desc=f"Filling replay buffer from {replay_buffer.size} to size {desired_size} using random policy",
     ) as pbar:
         mdp_id = 0
         while replay_buffer.size < desired_size:
@@ -97,9 +100,7 @@ def build_state_normalizer(env: EnvWrapper):
 def build_action_normalizer(env: EnvWrapper):
     action_space = env.action_space
     if isinstance(action_space, spaces.Discrete):
-        return only_continuous_normalizer(
-            list(range(action_space.n)), min_value=0, max_value=1
-        )
+        return discrete_action_normalizer(list(range(action_space.n)))
     elif isinstance(action_space, spaces.Box):
         assert (
             len(action_space.shape) == 1

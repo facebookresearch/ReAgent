@@ -4,16 +4,23 @@ from reagent.core.tagged_union import TaggedUnion
 
 from . import categorical_dqn  # noqa
 from . import continuous_actor  # noqa
+from . import discrete_actor  # noqa
 from . import discrete_dqn  # noqa
 from . import parametric_dqn  # noqa
 from . import quantile_dqn  # noqa
 from . import value  # noqa
 from .categorical_dqn_net_builder import CategoricalDQNNetBuilder
 from .continuous_actor_net_builder import ContinuousActorNetBuilder
+from .discrete_actor_net_builder import DiscreteActorNetBuilder
 from .discrete_dqn_net_builder import DiscreteDQNNetBuilder
 from .parametric_dqn_net_builder import ParametricDQNNetBuilder
 from .quantile_dqn_net_builder import QRDQNNetBuilder
 from .value_net_builder import ValueNetBuilder
+
+
+@DiscreteActorNetBuilder.fill_union()
+class DiscreteActorNetBuilder__Union(TaggedUnion):
+    pass
 
 
 @ContinuousActorNetBuilder.fill_union()
