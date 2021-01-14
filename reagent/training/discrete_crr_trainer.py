@@ -109,8 +109,10 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
 
         self.reward_boosts = torch.zeros([1, len(self._actions)])
         if rl.reward_boost is not None:
+            # pyre-fixme[16]: Optional type has no attribute `keys`.
             for k in rl.reward_boost.keys():
                 i = self._actions.index(k)
+                # pyre-fixme[16]: Optional type has no attribute `__getitem__`.
                 self.reward_boosts[0, i] = rl.reward_boost[k]
 
         self._initialize_cpe(
@@ -124,6 +126,8 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
     def q_network(self):
         return self.q1_network
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def get_detached_q_values(self, state) -> Tuple[torch.Tensor, None]:
         # This function is only used in evaluation_data_page.py, in create_from_tensors_dqn(),
