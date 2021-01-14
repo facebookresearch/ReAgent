@@ -95,10 +95,9 @@ def default_normalizer(feats, min_value=None, max_value=None):
     return normalization
 
 
-def only_continuous_normalizer_helper(
-    feats, feature_type, min_value=None, max_value=None
-):
+def normalizer_helper(feats, feature_type, min_value=None, max_value=None):
     assert feature_type in (
+        "DISCRETE_ACTION",
         "CONTINUOUS",
         "CONTINUOUS_ACTION",
     ), f"invalid feature type: {feature_type}."
@@ -134,14 +133,16 @@ def only_continuous_normalizer_helper(
     return normalization
 
 
+def discrete_action_normalizer(feats):
+    return normalizer_helper(feats, "DISCRETE_ACTION")
+
+
 def only_continuous_normalizer(feats, min_value=None, max_value=None):
-    return only_continuous_normalizer_helper(feats, "CONTINUOUS", min_value, max_value)
+    return normalizer_helper(feats, "CONTINUOUS", min_value, max_value)
 
 
 def only_continuous_action_normalizer(feats, min_value=None, max_value=None):
-    return only_continuous_normalizer_helper(
-        feats, "CONTINUOUS_ACTION", min_value, max_value
-    )
+    return normalizer_helper(feats, "CONTINUOUS_ACTION", min_value, max_value)
 
 
 def write_lists_to_csv(path, *args):

@@ -278,6 +278,19 @@ class Preprocessor(Module):
         ) * scaling_factor + min_training_value
         return torch.clamp(continuous_action, -1 + EPS, 1 - EPS)
 
+    def _create_parameters_DISCRETE_ACTION(
+        self, begin_index: int, norm_params: List[NormalizationParameters]
+    ):
+        pass
+
+    def _preprocess_DISCRETE_ACTION(
+        self,
+        begin_index: int,
+        input: torch.Tensor,
+        norm_params: List[NormalizationParameters],
+    ):
+        return input
+
     def _create_parameters_CONTINUOUS(
         self, begin_index: int, norm_params: List[NormalizationParameters]
     ):

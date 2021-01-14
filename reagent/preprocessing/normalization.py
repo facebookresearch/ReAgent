@@ -63,6 +63,7 @@ def identify_parameter(
         identify_types.BINARY,
         identify_types.ENUM,
         identify_types.CONTINUOUS_ACTION,
+        identify_types.DISCRETE_ACTION,
         identify_types.DO_NOT_PREPROCESS,
     ], "unknown type {}".format(feature_type)
     assert (

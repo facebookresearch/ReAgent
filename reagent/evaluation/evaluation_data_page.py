@@ -57,7 +57,6 @@ class EvaluationDataPage(NamedTuple):
     ):
         if isinstance(tdb, rlt.DiscreteDqnInput):
             discrete_training_input = cast(rlt.DiscreteDqnInput, tdb)
-
             return EvaluationDataPage.create_from_tensors_dqn(
                 trainer,
                 tdb.extras.mdp_id,

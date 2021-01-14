@@ -54,7 +54,7 @@ class TensorDataClass(BaseDataClass):
 
         if tensor_attr is None or not callable(tensor_attr):
             logger.error(
-                f"Attemping to call {self.__class__.__name__}.{attr} on "
+                f"Attempting to call {self.__class__.__name__}.{attr} on "
                 f"{type(self)} (instance of TensorDataClass)."
             )
             if tensor_attr is None:

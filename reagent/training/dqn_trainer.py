@@ -33,8 +33,12 @@ class DQNTrainer(DQNTrainerBaseLightning):
         q_network_cpe=None,
         q_network_cpe_target=None,
         metrics_to_score=None,
+        evaluation: EvaluationParameters = field(  # noqa: B008
+            default_factory=EvaluationParameters
+        ),
         imitator=None,
-        # Start DQNTrainerParameters
+        # Start DQNTrainerParameters. All parameters above should be
+        # in the blacklist for DQNTrainerParameters in parameters.py
         actions: List[str] = field(default_factory=list),  # noqa: B008
         rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
         double_q_learning: bool = True,
@@ -43,9 +47,6 @@ class DQNTrainer(DQNTrainerBaseLightning):
         minibatches_per_step: int = 1,
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
-        ),
-        evaluation: EvaluationParameters = field(  # noqa: B008
-            default_factory=EvaluationParameters
         ),
     ) -> None:
         """

@@ -46,6 +46,7 @@ class TD3(ActorCriticBase):
             FullyConnected=ParametricFullyConnected()
         )
     )
+    # Why isn't this a parameter in the .yaml config file?
     use_2_q_functions: bool = True
     eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
 

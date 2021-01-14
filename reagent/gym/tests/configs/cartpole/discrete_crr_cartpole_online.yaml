@@ -1,0 +1,49 @@
+env:
+  Gym:
+    env_name: CartPole-v0
+model:
+  DiscreteCRR:
+    trainer_param:
+      actions:
+      - 0
+      - 1
+      rl:
+        gamma: 0.99
+        target_update_rate: 0.2
+        temperature: 0.1
+      q_network_optimizer:
+        Adam:
+          lr: 0.001
+      actor_network_optimizer:
+        Adam:
+          lr: 0.001
+      use_target_actor: false
+      double_q_learning: true
+      delayed_policy_update: 1
+    actor_net_builder:
+      FullyConnected:
+        exploration_variance: 0.0000001
+        sizes:
+        - 1024
+        - 1024
+        activations:
+        - relu
+        - relu
+    critic_net_builder:
+      FullyConnected:
+        sizes:
+        - 1024
+        - 1024
+        activations:
+        - relu
+        - relu
+    eval_parameters:
+      calc_cpe_in_training: false
+replay_memory_size: 20000
+train_every_ts: 1
+train_after_ts: 5000
+num_train_episodes: 25
+num_eval_episodes: 20
+passing_score_bar: 100
+use_gpu: false
+minibatch_size: 256
