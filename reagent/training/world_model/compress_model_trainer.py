@@ -68,7 +68,13 @@ class CompressModelTrainer(Trainer):
         compress_model_output = self.compress_model_network(
             training_batch.state.float_features[0]
         )
-        target = get_Q(self.seq2reward_network, training_batch, self.all_permut)
+
+        state_first_step = training_batch.state.float_features[0]
+        target = get_Q(
+            self.seq2reward_network,
+            state_first_step,
+            self.all_permut,
+        )
         assert (
             compress_model_output.size() == target.size()
         ), f"{compress_model_output.size()}!={target.size()}"

@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple
 
 import reagent.types as rlt
 import torch
+import torch.nn.functional as F
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate import Seq2SlateTransformerNet
@@ -18,11 +19,23 @@ from reagent.preprocessing.sparse_preprocessor import (
 )
 from reagent.torch_utils import gather
 from reagent.training.utils import gen_permutations
+from reagent.training.world_model.seq2reward_trainer import get_Q
 from torch import nn
 
 
 logger = logging.getLogger(__name__)
 _DEFAULT_FEATURE_IDS = []
+
+FAKE_STATE_ID_LIST_FEATURES = {
+    42: (torch.zeros(1, dtype=torch.long), torch.tensor([], dtype=torch.long))
+}
+FAKE_STATE_ID_SCORE_LIST_FEATURES = {
+    42: (
+        torch.zeros(1, dtype=torch.long),
+        torch.tensor([], dtype=torch.long),
+        torch.tensor([], dtype=torch.float),
+    )
+}
 
 
 def serving_to_feature_data(
@@ -49,16 +62,8 @@ def sparse_input_prototype(
     model_prototype = model.input_prototype()
     # Terrible hack to make JIT tracing works. Python dict doesn't have type
     # so we need to insert something so JIT tracer can infer the type.
-    state_id_list_features = {
-        42: (torch.zeros(1, dtype=torch.long), torch.tensor([], dtype=torch.long))
-    }
-    state_id_score_list_features = {
-        42: (
-            torch.zeros(1, dtype=torch.long),
-            torch.tensor([], dtype=torch.long),
-            torch.tensor([], dtype=torch.float),
-        )
-    }
+    state_id_list_features = FAKE_STATE_ID_LIST_FEATURES
+    state_id_score_list_features = FAKE_STATE_ID_SCORE_LIST_FEATURES
     if isinstance(model_prototype, rlt.FeatureData):
         if model_prototype.id_list_features:
             state_id_list_features = {
@@ -552,7 +557,7 @@ class Seq2SlatePredictorWrapper(torch.jit.ScriptModule):
 class Seq2RewardWithPreprocessor(DiscreteDqnWithPreprocessor):
     def __init__(
         self,
-        model: ModelBase,
+        model: ModelBase,  # acc_reward prediction model
         state_preprocessor: Preprocessor,
         seq_len: int,
         num_action: int,
@@ -562,12 +567,10 @@ class Seq2RewardWithPreprocessor(DiscreteDqnWithPreprocessor):
         have to generate the action enumerations as constants
         here so that trace can use them directly.
         """
-
         super().__init__(model, state_preprocessor, rlt.ModelFeatureConfig())
         self.seq_len = seq_len
         self.num_action = num_action
         self.all_permut = gen_permutations(seq_len, num_action)
-        self.num_permut = self.all_permut.size(1)
 
     def forward(self, state: rlt.ServingFeatureData):
         """
@@ -581,41 +584,68 @@ class Seq2RewardWithPreprocessor(DiscreteDqnWithPreprocessor):
         """
         state_with_presence, _, _ = state
         batch_size, state_dim = state_with_presence[0].size()
-
-        # expand state tensor to match the enumerated action sequences:
-        # the tensor manipulations here are tricky:
-        # Suppose the input states are s1,s2, these manipulations
-        # will generate a input batch s1,s1,...,s1,s2,s2,...,s2
-        # where len(s1,s1,...,s1)=len(s2,s2,...,s2)=num_permut
-        preprocessed_state = (
-            self.state_preprocessor(state_with_presence[0], state_with_presence[1])
-            .repeat(1, self.seq_len * self.num_permut)
-            .reshape(batch_size * self.num_permut, self.seq_len, -1)
-            .transpose(0, 1)
+        state_first_step = self.state_preprocessor(
+            state_with_presence[0], state_with_presence[1]
+        ).reshape(batch_size, -1)
+        # shape: batch_size, num_action
+        max_acc_reward = get_Q(
+            self.model,
+            state_first_step,
+            self.all_permut,
         )
-        state_feature_vector = rlt.FeatureData(preprocessed_state)
+        return max_acc_reward
 
-        # expand action to match the expanded state sequence
-        action = self.all_permut.repeat(1, batch_size, 1)
-        reward = self.model(
-            state_feature_vector, rlt.FeatureData(action)
-        ).acc_reward.reshape(
-            batch_size, self.num_action, self.num_permut // self.num_action
+
+class Seq2RewardPlanShortSeqWithPreprocessor(DiscreteDqnWithPreprocessor):
+    def __init__(
+        self,
+        model: ModelBase,  # acc_reward prediction model
+        step_model: ModelBase,  # step prediction model
+        state_preprocessor: Preprocessor,
+        seq_len: int,
+        num_action: int,
+    ):
+        """
+        The difference with Seq2RewardWithPreprocessor:
+        This wrapper will plan for different look_ahead steps (between 1 and seq_len),
+        and merge results according to look_ahead step prediction probabilities.
+        """
+        super().__init__(model, state_preprocessor, rlt.ModelFeatureConfig())
+        self.step_model = step_model
+        self.seq_len = seq_len
+        self.num_action = num_action
+        # key: seq_len, value: all possible action sequences of length seq_len
+        self.all_permut = {
+            s + 1: gen_permutations(s + 1, num_action) for s in range(seq_len)
+        }
+
+    def forward(self, state: rlt.ServingFeatureData):
+        state_with_presence, _, _ = state
+        batch_size, state_dim = state_with_presence[0].size()
+
+        state_first_step = self.state_preprocessor(
+            state_with_presence[0], state_with_presence[1]
+        ).reshape(batch_size, -1)
+
+        # shape: batch_size, seq_len
+        step_probability = F.softmax(self.step_model(state_first_step), dim=1)
+        # shape: batch_size, seq_len, num_action
+        max_acc_reward = torch.cat(
+            [
+                get_Q(
+                    self.model,
+                    state_first_step,
+                    self.all_permut[i + 1],
+                ).unsqueeze(1)
+                for i in range(self.seq_len)
+            ],
+            dim=1,
         )
-
-        # The permuations are generated with lexical order
-        # the output has shape [num_perm, num_action,1]
-        # that means we can aggregate on the max reward
-        # then reshape it to (BATCH_SIZE, ACT_DIM)
-        max_reward = (
-            # pyre-fixme[16]: `Tuple` has no attribute `values`.
-            torch.max(reward, 2)
-            .values.cpu()
-            .detach()
-            .reshape(batch_size, self.num_action)
+        # shape: batch_size, num_action
+        max_acc_reward_weighted = torch.sum(
+            max_acc_reward * step_probability.unsqueeze(2), dim=1
         )
-
-        return max_reward
+        return max_acc_reward_weighted
 
 
 class Seq2SlateRewardWithPreprocessor(ModelBase):

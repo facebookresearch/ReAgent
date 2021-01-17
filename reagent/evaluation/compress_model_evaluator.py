@@ -33,9 +33,12 @@ class CompressModelEvaluator:
         detached_loss = mse.cpu().detach().item()
         acc = acc.item()
 
+        state_first_step = eval_batch.state.float_features[0]
         # shape: batch_size, action_dim
         q_values_all_action_all_data = get_Q(
-            self.trainer.seq2reward_network, eval_batch, self.trainer.all_permut
+            self.trainer.seq2reward_network,
+            state_first_step,
+            self.trainer.all_permut,
         ).cpu()
         q_values = q_values_all_action_all_data.mean(0).tolist()
 
