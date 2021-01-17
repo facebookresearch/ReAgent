@@ -25,6 +25,7 @@ ACTIVATION_MAP = {
     "relu": nn.ReLU,
     "leaky_relu": nn.LeakyReLU,
     "linear": nn.Identity,
+    "sigmoid": nn.Sigmoid,
 }
 
 

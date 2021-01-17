@@ -72,6 +72,7 @@ class Seq2RewardTrainerParameters(BaseDataClass):
     compress_model_learning_rate: float = 0.001
     gamma: float = 1.0
     view_q_value: bool = False
+    step_predict_net_size: int = 64
     reward_boost: Optional[Dict[str, float]] = None
 
 

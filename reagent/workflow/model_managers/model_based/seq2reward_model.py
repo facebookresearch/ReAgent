@@ -44,13 +44,15 @@ class Seq2RewardModel(WorldModelBase):
         seq2reward_network = self.net_builder.value.build_value_network(
             self.state_normalization_data
         )
-
-        if self.use_gpu:
-            seq2reward_network = seq2reward_network.cuda()
-
-        return Seq2RewardTrainer(
+        trainer = Seq2RewardTrainer(
             seq2reward_network=seq2reward_network, params=self.trainer_param
         )
+        if self.use_gpu:
+            trainer.seq2reward_network = trainer.seq2reward_network.cuda()
+            trainer.step_predict_network = trainer.step_predict_network.cuda()
+            trainer.all_permut = trainer.all_permut.cuda()
+
+        return trainer
 
     def build_serving_module(self) -> torch.nn.Module:
         """
