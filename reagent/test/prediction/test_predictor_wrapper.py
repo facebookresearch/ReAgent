@@ -4,6 +4,7 @@
 import random
 import unittest
 
+import numpy.testing as npt
 import reagent.models as models
 import reagent.types as rlt
 import torch
@@ -18,6 +19,9 @@ from reagent.prediction.predictor_wrapper import (
     ParametricDqnWithPreprocessor,
     Seq2SlatePredictorWrapper,
     Seq2SlateWithPreprocessor,
+)
+from reagent.prediction.ranking.predictor_wrapper import (
+    DeterminantalPointProcessPredictorWrapper,
 )
 from reagent.preprocessing.postprocessor import Postprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
@@ -291,3 +295,33 @@ class TestPredictorWrapper(unittest.TestCase):
             greedy=True,
         )
         self.validate_seq2slate_output(expected_output, wrapper_output)
+
+    def test_determinantal_point_process_wrapper(self):
+        # The second and third items are identical (similarity=1)
+        # So the second and third items have strong repulsion
+        # The expected ranked indices should be 2, 0, 1
+        quality_scores = torch.tensor(
+            [
+                [4],
+                [5],
+                [8],
+            ]
+        )
+
+        feature_vectors = torch.tensor([[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1]])
+
+        wrapper = DeterminantalPointProcessPredictorWrapper(alpha=1.0)
+        ranked_idx, determinants, L, B = wrapper(quality_scores, feature_vectors)
+        npt.assert_array_almost_equal(ranked_idx, [2, 0, 1])
+        npt.assert_array_almost_equal(
+            determinants,
+            torch.tensor(
+                [
+                    [16, 25, 64],
+                    [1024, 0, wrapper.MIN_VALUE],
+                    [wrapper.MIN_VALUE, 0, wrapper.MIN_VALUE],
+                ]
+            ),
+        )
+        npt.assert_array_almost_equal(L, [[16, 0, 0], [0, 25, 40], [0, 40, 64]])
+        npt.assert_array_almost_equal(B, [[4, 0, 0, 0], [0, 0, 0, 5], [0, 0, 0, 8]])
