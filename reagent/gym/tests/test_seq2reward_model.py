@@ -140,7 +140,7 @@ def train_seq2reward_and_compute_reward_mse(
         preprocessed_test_batch = trainer_preprocessor(test_batch)
         adhoc_padding(preprocessed_test_batch, state_dim=state_dim)
         losses = trainer.get_loss(preprocessed_test_batch)
-        detached_losses = losses.cpu().detach().item()
+        detached_losses = [loss.cpu().detach().item() for loss in losses]
         trainer.seq2reward_network.train()
     return detached_losses
 
