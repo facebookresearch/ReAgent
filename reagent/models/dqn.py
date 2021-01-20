@@ -55,5 +55,5 @@ class FullyConnectedDQN(ModelBase):
             x = x.view(float_features.shape[0], self.action_dim, self.num_atoms)
         if possible_actions_mask is not None:
             # subtract huge value from impossible actions to force their probabilities to 0
-            x -= (1 - possible_actions_mask.float()) * 1e10
+            x = x - (1 - possible_actions_mask.float()) * 1e10
         return x

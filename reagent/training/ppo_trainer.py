@@ -169,7 +169,7 @@ class PPOTrainer(Trainer):
         if self.entropy_weight != 0:
             entropy = self.sampler.entropy(scores)
             # "-" bcs minimizing, not maximizing
-            losses["ppo_loss"] -= self.entropy_weight * entropy
+            losses["ppo_loss"] = losses["ppo_loss"] - self.entropy_weight * entropy
         return losses
 
     def warm_start_components(self) -> List[str]:
