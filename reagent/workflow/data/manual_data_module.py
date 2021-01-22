@@ -48,6 +48,7 @@ class ManualDataModule(ReAgentDataModule):
         input_table_spec: Optional[TableSpec] = None,
         reward_options: Optional[RewardOptions] = None,
         setup_data: Optional[Dict[str, bytes]] = None,
+        saved_setup_data: Optional[Dict[str, bytes]] = None,
         reader_options: Optional[ReaderOptions] = None,
         model_manager=None,
     ):
@@ -57,6 +58,7 @@ class ManualDataModule(ReAgentDataModule):
         self.reader_options = reader_options
         self._model_manager = model_manager
         self.setup_data = setup_data
+        self.saved_setup_data = saved_setup_data or {}
 
         self._setup_done = False
 
@@ -64,7 +66,13 @@ class ManualDataModule(ReAgentDataModule):
         if self.setup_data is not None:
             return None
 
-        normalization_data_map = self.run_feature_identification(self.input_table_spec)
+        key = "normalization_data_map"
+
+        normalization_data_map = (
+            self.run_feature_identification(self.input_table_spec)
+            if key not in self.saved_setup_data
+            else pickle.loads(self.saved_setup_data[key])
+        )
         calc_cpe_in_training = self.should_generate_eval_dataset
         sample_range_output = get_sample_range(
             self.input_table_spec, calc_cpe_in_training
