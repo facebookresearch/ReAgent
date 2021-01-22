@@ -13,7 +13,6 @@ from reagent.optimizer.union import Optimizer__Union
 from reagent.training.trainer import Trainer
 from reagent.training.utils import discounted_returns, whiten
 
-
 logger = logging.getLogger(__name__)
 
 
