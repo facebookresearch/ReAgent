@@ -122,6 +122,7 @@ def query_and_train(
     use_gpu: bool,
     *,
     setup_data: Optional[Dict[str, bytes]] = None,
+    saved_setup_data: Optional[Dict[str, bytes]] = None,
     normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
     reward_options: Optional[RewardOptions] = None,
     reader_options: Optional[ReaderOptions] = None,
@@ -148,6 +149,7 @@ def query_and_train(
             input_table_spec=input_table_spec,
             reward_options=reward_options,
             reader_options=reader_options,
+            saved_setup_data=saved_setup_data,
         )
         if data_module is not None:
             setup_data = data_module.prepare_data()
