@@ -203,8 +203,11 @@ class ManualDataModule(ReAgentDataModule):
         reader_options = self.reader_options
         assert reader_options
         data_reader = make_batch_reader(
+            # pyre-fixme[16]: `HiveDataSetClass` has no attribute `parquet_url`.
             dataset.parquet_url,
             num_epochs=1,
+            # pyre-fixme[16]: `ReaderOptions` has no attribute
+            #  `petastorm_reader_pool_type`.
             reader_pool_type=reader_options.petastorm_reader_pool_type,
         )
         # NOTE: must be wrapped by DataLoaderWrapper to call __exit__() on end of epoch
