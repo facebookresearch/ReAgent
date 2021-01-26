@@ -144,6 +144,17 @@ def query_and_train(
     resource_options = resource_options or ResourceOptions()
     manager = model.value
 
+    if saved_setup_data is not None:
+
+        def _maybe_get_bytes(v) -> bytes:
+            if isinstance(v, bytes):
+                return v
+
+            # HACK: FBLearner sometimes pack bytes into Blob
+            return v.data
+
+        saved_setup_data = {k: _maybe_get_bytes(v) for k, v in saved_setup_data.items()}
+
     if setup_data is None:
         data_module = manager.get_data_module(
             input_table_spec=input_table_spec,
