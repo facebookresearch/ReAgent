@@ -124,11 +124,13 @@ class DiscreteDQNBase(ModelManager):
         reward_options: Optional[RewardOptions] = None,
         reader_options: Optional[ReaderOptions] = None,
         setup_data: Optional[Dict[str, bytes]] = None,
+        saved_setup_data: Optional[Dict[str, bytes]] = None,
     ) -> Optional[ReAgentDataModule]:
         return DiscreteDqnDataModule(
             input_table_spec=input_table_spec,
             reward_options=reward_options,
             setup_data=setup_data,
+            saved_setup_data=saved_setup_data,
             reader_options=reader_options,
             model_manager=self,
         )
