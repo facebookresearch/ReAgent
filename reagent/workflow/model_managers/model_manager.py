@@ -84,6 +84,7 @@ class ModelManager(metaclass=RegistryMeta):
         input_table_spec: Optional[TableSpec] = None,
         reward_options: Optional[RewardOptions] = None,
         setup_data: Optional[Dict[str, bytes]] = None,
+        saved_setup_data: Optional[Dict[str, bytes]] = None,
         reader_options: Optional[ReaderOptions] = None,
     ) -> Optional[ReAgentDataModule]:
         # Return the data module. If this is not None, then `run_feature_identification` &
