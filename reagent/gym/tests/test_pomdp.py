@@ -16,6 +16,12 @@ class TestPOMDPEnvironment(unittest.TestCase):
     def setUp(self):
         logging.getLogger().setLevel(logging.DEBUG)
 
+    def test_string_game_v1(self):
+        env = Gym(env_name="StringGame-v1")
+        env.seed(313)
+        mean_acc_reward = self._test_env(env)
+        assert 1.0 >= mean_acc_reward
+
     def test_string_game(self):
         env = Gym(env_name="StringGame-v0")
         env.seed(313)
@@ -36,11 +42,11 @@ class TestPOMDPEnvironment(unittest.TestCase):
             start_time = time.time()
             env.reset()
             acc_rw = 0
-            for i in range(env.max_steps):
+            for i in range(1, env.max_steps + 1):
                 env.print_internal_state()
                 action = env.random_action()
                 ob, rw, done, info = env.step(action)
-                print(
+                logger.debug(
                     "After action {}: reward {}, observation {} ({})".format(
                         env.print_action(action), rw, ob, env.print_ob(ob)
                     )
@@ -54,7 +60,6 @@ class TestPOMDPEnvironment(unittest.TestCase):
                         )
                     )
                     break
-                print("")
             acc_rws.append(acc_rw)
 
         mean_acc_rw = np.mean(acc_rws)
