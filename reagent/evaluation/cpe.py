@@ -128,7 +128,6 @@ class CpeEstimateSet(NamedTuple):
             ),
             ("CPE/{}/MAGIC".format(metric_name), self.magic.normalized),
         ]:
-            # pyre-fixme[16]: `SummaryWriterContext` has no attribute `add_scalar`.
             SummaryWriterContext.add_scalar(name, none_to_zero(value))
 
     def fill_empty_with_zero(self):

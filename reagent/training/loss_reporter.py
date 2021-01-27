@@ -41,8 +41,6 @@ class BatchStats(NamedTuple):
                 if val is None:
                     continue
                 for i, action in enumerate(actions):
-                    # pyre-fixme[16]: `SummaryWriterContext` has no attribute
-                    #  `add_scalar`.
                     SummaryWriterContext.add_scalar(
                         "{}/{}".format(log_key, action), (val == i).sum().item()
                     )
@@ -347,7 +345,6 @@ class LossReporter(object):
             ("Training/reward_loss", self.get_recent_reward_loss()),
             ("Training/imitator_loss", self.get_recent_imitator_loss()),
         ]:
-            # pyre-fixme[16]: `SummaryWriterContext` has no attribute `add_scalar`.
             SummaryWriterContext.add_scalar(name, none_to_zero(value), epoch)
 
     @staticmethod
