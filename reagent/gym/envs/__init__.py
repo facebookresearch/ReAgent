@@ -9,6 +9,7 @@ from .env_wrapper import EnvWrapper
 from .gym import Gym  # noqa
 from .pomdp.pocman import PocManEnv  # noqa
 from .pomdp.string_game import StringGameEnv  # noqa
+from .pomdp.string_game_v1 import StringGameEnvV1  # noqa
 from .utils import register_if_not_exists
 
 
@@ -23,6 +24,7 @@ ENV_CLASSES = [
         "PossibleActionsMaskTester-v0",
         ".functionality.possible_actions_mask_tester:PossibleActionsMaskTester",
     ),
+    ("StringGame-v1", ".pomdp.string_game_v1:StringGameEnvV1"),
 ]
 
 for env_name, rel_module_path in ENV_CLASSES:
