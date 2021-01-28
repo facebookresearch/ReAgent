@@ -84,6 +84,7 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
         action_embedding_mean: Optional[List[float]] = None,
         action_embedding_variance: Optional[List[float]] = None,
         crr_config: Optional[CRRWeightFn] = None,
+        backprop_through_log_prob: bool = True,
     ) -> None:
         """
         Args:
@@ -94,6 +95,9 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
                 from overestimation bias
             value_network (optional): states -> value of state under actor
             # alpha in the paper; controlling explore & exploit
+            backprop_through_log_prob: This is mostly for backward compatibility issue;
+                we used to have a bug that does this and it yields a better result in
+                some cases
             # TODO: finish
         """
         super().__init__()
@@ -138,6 +142,8 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
         self.crr_config = crr_config
         if crr_config:
             assert self.value_network is not None
+
+        self.backprop_through_log_prob = backprop_through_log_prob
 
     def configure_optimizers(self):
         optimizers = []
@@ -244,19 +250,22 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
             q2_actor_value = self.q2_network(*state_actor_action)
             min_q_actor_value = torch.min(q1_actor_value, q2_actor_value)
 
+        actor_log_prob = actor_output.log_prob
+
+        if not self.backprop_through_log_prob:
+            actor_log_prob = actor_log_prob.detach()
+
         if self.crr_config is not None:
             cur_value = self.value_network(training_batch.state.float_features)
             advantage = (min_q_actor_value - cur_value).detach()
             # pyre-fixme[16]: `Optional` has no attribute `get_weight_from_advantage`.
             crr_weight = self.crr_config.get_weight_from_advantage(advantage)
             assert (
-                actor_output.log_prob.shape == crr_weight.shape
-            ), f"{actor_output.log_prob.shape} != {crr_weight.shape}"
-            actor_loss = -(actor_output.log_prob * crr_weight.detach())
+                actor_log_prob.shape == crr_weight.shape
+            ), f"{actor_log_prob.shape} != {crr_weight.shape}"
+            actor_loss = -(actor_log_prob * crr_weight.detach())
         else:
-            actor_loss = (
-                self.entropy_temperature * actor_output.log_prob - min_q_actor_value
-            )
+            actor_loss = self.entropy_temperature * actor_log_prob - min_q_actor_value
         # Do this in 2 steps so we can log histogram of actor loss
         actor_loss_mean = actor_loss.mean()
 
