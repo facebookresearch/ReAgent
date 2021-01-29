@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import asyncio
 import logging
 import pickle
 from typing import Optional, Sequence
@@ -22,33 +21,9 @@ logger = logging.getLogger(__name__)
 
 
 def run_episode(
-    env: EnvWrapper,
-    agent: Agent,
-    mdp_id: int = 0,
-    max_steps: Optional[int] = None,
-    fill_info: bool = False,
-) -> Trajectory:
-    return asyncio.run(
-        async_run_episode(
-            env=env,
-            agent=agent,
-            mdp_id=mdp_id,
-            max_steps=max_steps,
-            fill_info=fill_info,
-        )
-    )
-
-
-async def async_run_episode(
-    env: EnvWrapper,
-    agent: Agent,
-    mdp_id: int = 0,
-    max_steps: Optional[int] = None,
-    fill_info: bool = False,
+    env: EnvWrapper, agent: Agent, mdp_id: int = 0, max_steps: Optional[int] = None
 ) -> Trajectory:
     """
-    NOTE: this funciton is an async coroutine in order to support async env.step(). If you are using
-        it with regular env.step() method, use non-async run_episode(), which wraps this function.
     Return sum of rewards from episode.
     After max_steps (if specified), the environment is assumed to be terminal.
     Can also specify the mdp_id and gamma of episode.
@@ -58,15 +33,9 @@ async def async_run_episode(
     possible_actions_mask = env.possible_actions_mask
     terminal = False
     num_steps = 0
-    step_is_coroutine = asyncio.iscoroutinefunction(env.step)
     while not terminal:
         action, log_prob = agent.act(obs, possible_actions_mask)
-        if step_is_coroutine:
-            next_obs, reward, terminal, info = await env.step(action)
-        else:
-            next_obs, reward, terminal, info = env.step(action)
-        if not fill_info:
-            info = None
+        next_obs, reward, terminal, _ = env.step(action)
         next_possible_actions_mask = env.possible_actions_mask
         if max_steps is not None and num_steps >= max_steps:
             terminal = True
@@ -81,7 +50,6 @@ async def async_run_episode(
             terminal=bool(terminal),
             log_prob=log_prob,
             possible_actions_mask=possible_actions_mask,
-            info=info,
         )
         agent.post_step(transition)
         trajectory.add_transition(transition)
