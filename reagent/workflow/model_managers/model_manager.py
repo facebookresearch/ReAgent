@@ -205,6 +205,9 @@ class ModelManager(metaclass=RegistryMeta):
         """
         pass
 
+    def destroy_trainer(self):
+        self._trainer = None
+
     def train_workflow(
         self,
         train_dataset: Optional[Dataset],
