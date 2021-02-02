@@ -7,7 +7,6 @@ from reagent.models.actor import FullyConnectedActor
 from reagent.models.base import ModelBase
 from reagent.net_builder.discrete_actor_net_builder import DiscreteActorNetBuilder
 from reagent.parameters import NormalizationData, param_hash
-from reagent.preprocessing.identify_types import DISCRETE_ACTION
 from reagent.preprocessing.normalization import get_num_output_features
 
 
@@ -29,24 +28,17 @@ class FullyConnected(DiscreteActorNetBuilder):
             f"{self.sizes}, {self.activations}"
         )
 
-    @property
-    def default_action_preprocessing(self) -> str:
-        return DISCRETE_ACTION
-
     def build_actor(
         self,
         state_normalization_data: NormalizationData,
-        action_normalization_data: NormalizationData,
+        num_actions: int,
     ) -> ModelBase:
         state_dim = get_num_output_features(
             state_normalization_data.dense_normalization_parameters
         )
-        action_dim = get_num_output_features(
-            action_normalization_data.dense_normalization_parameters
-        )
         return FullyConnectedActor(
             state_dim=state_dim,
-            action_dim=action_dim,
+            action_dim=num_actions,
             sizes=self.sizes,
             activations=self.activations,
             use_batch_norm=self.use_batch_norm,
