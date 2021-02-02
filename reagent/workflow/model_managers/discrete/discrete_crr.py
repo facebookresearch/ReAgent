@@ -95,6 +95,7 @@ class DiscreteCRR(DiscreteDQNBase):
     #  inconsistently.
     def build_trainer(self) -> DiscreteCRRTrainer:
         actor_net_builder = self.actor_net_builder.value
+        # pyre-fixme[16]: `DiscreteCRR` has no attribute `_actor_network`.
         self._actor_network = actor_net_builder.build_actor(
             self.state_normalization_data, len(self.action_names)
         )
@@ -103,6 +104,7 @@ class DiscreteCRR(DiscreteDQNBase):
         # The target networks will be created in DiscreteCRRTrainer
         critic_net_builder = self.critic_net_builder.value
 
+        # pyre-fixme[16]: `DiscreteCRR` has no attribute `_q1_network`.
         self._q1_network = critic_net_builder.build_q_network(
             self.state_feature_config,
             self.state_normalization_data,
