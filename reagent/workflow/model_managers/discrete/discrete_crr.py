@@ -86,6 +86,7 @@ class DiscreteCRR(DiscreteDQNBase):
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
         self._actor_network: Optional[ModelBase] = None
+        self._q1_network: Optional[ModelBase] = None
         self.rl_parameters = self.trainer_param.rl
         self.action_names = self.trainer_param.actions
         assert (
@@ -173,7 +174,7 @@ class DiscreteCRR(DiscreteDQNBase):
     def create_policy(self, serving: bool) -> Policy:
         """ Create online actor critic policy. """
         if serving:
-            return create_predictor_policy_from_model(self.build_serving_module())
+            return create_predictor_policy_from_model(self.build_actor_module())
         else:
             return ActorPolicyWrapper(self._actor_network)
 
@@ -188,6 +189,31 @@ class DiscreteCRR(DiscreteDQNBase):
     # The code then calls build_state_normalizer() and build_action_normalizer()
     # in utils.py
 
+    def serving_module_names(self):
+        return ["default_model", "dqn", "actor_dqn"]
+
+    def build_serving_modules(self):
+        """
+        `actor_dqn` is the actor module wrapped in the DQN predictor wrapper.
+        This helps putting the actor in places where DQN predictor wrapper is expected.
+        If the policy is greedy, then this wrapper would work.
+        """
+        return {
+            "default_model": self.build_actor_module(),
+            "dqn": self._build_dqn_module(self._q1_network),
+            "actor_dqn": self._build_dqn_module(ActorDQN(self._actor_network)),
+        }
+
+    def _build_dqn_module(self, network):
+        critic_net_builder = self.critic_net_builder.value
+        assert network is not None
+        return critic_net_builder.build_serving_module(
+            network,
+            self.state_normalization_data,
+            action_names=self.action_names,
+            state_feature_config=self.state_feature_config,
+        )
+
     # Also, even though the build_serving_module below is directed to
     # discrete_actor_net_builder.py, which returns ActorPredictorWrapper,
     # just like in the continuous_actor_net_builder.py, the outputs of the
@@ -200,7 +226,7 @@ class DiscreteCRR(DiscreteDQNBase):
     # action_extractor calls serving_action_extractor() in env_wrapper.py,
     # which checks the type of action_space during serving time and treats
     # spaces.Discrete differently from spaces.Box (continuous).
-    def build_serving_module(self) -> torch.nn.Module:
+    def build_actor_module(self) -> torch.nn.Module:
         net_builder = self.actor_net_builder.value
         assert self._actor_network is not None
         return net_builder.build_serving_module(
@@ -208,3 +234,15 @@ class DiscreteCRR(DiscreteDQNBase):
             self.state_normalization_data,
             self.action_normalization_data,
         )
+
+
+class ActorDQN(ModelBase):
+    def __init__(self, actor):
+        super().__init__()
+        self.actor = actor
+
+    def input_prototype(self):
+        return self.actor.input_prototype()
+
+    def forward(self, state):
+        return self.actor(state).action
