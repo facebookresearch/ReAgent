@@ -22,8 +22,6 @@ from reagent.net_builder.unions import (
     DiscreteDQNNetBuilder__Union,
 )
 from reagent.parameters import (
-    NormalizationData,
-    NormalizationParameters,
     EvaluationParameters,
     param_hash,
 )
@@ -93,30 +91,18 @@ class DiscreteCRR(DiscreteDQNBase):
             len(self.action_names) > 1
         ), f"DiscreteDQNModel needs at least 2 actions. Got {self.action_names}."
 
-    @property
-    def action_normalization_data(self) -> NormalizationData:
-        return NormalizationData(
-            dense_normalization_parameters={
-                i: NormalizationParameters(feature_type="DISCRETE_ACTION")
-                for i in range(len(self.action_names))
-            }
-        )
-
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
     def build_trainer(self) -> DiscreteCRRTrainer:
         actor_net_builder = self.actor_net_builder.value
-        # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
-        # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
         self._actor_network = actor_net_builder.build_actor(
-            self.state_normalization_data, self.action_normalization_data
+            self.state_normalization_data, len(self.action_names)
         )
 
         # The arguments to q_network1 and q_network2 below are modeled after those in discrete_dqn.py
         # The target networks will be created in DiscreteCRRTrainer
         critic_net_builder = self.critic_net_builder.value
 
-        # pyre-fixme[16]: `DiscreteCRR` has no attribute `_q1_network`.
         self._q1_network = critic_net_builder.build_q_network(
             self.state_feature_config,
             self.state_normalization_data,
@@ -232,7 +218,7 @@ class DiscreteCRR(DiscreteDQNBase):
         return net_builder.build_serving_module(
             self._actor_network,
             self.state_normalization_data,
-            self.action_normalization_data,
+            action_feature_ids=list(range(len(self.action_names))),
         )
 
 

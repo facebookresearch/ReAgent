@@ -113,7 +113,7 @@ class TestGym(HorizonTestBase):
         cartpole_scorer = net_builder.build_q_network(
             state_feature_config=None,
             state_normalization_data=norm["state"],
-            output_dim=len(norm["action"].dense_normalization_parameters),
+            output_dim=env.action_space.n,
         )
 
         from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
