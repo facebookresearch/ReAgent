@@ -27,19 +27,23 @@ class RewardNetEvaluator:
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
     @torch.no_grad()
-    def evaluate(self, eval_tdp: PreprocessedRankingInput):
+    def evaluate(self, eval_batch: PreprocessedRankingInput):
         reward_net = self.trainer.reward_net
         reward_net_prev_mode = reward_net.training
         reward_net.eval()
 
-        if isinstance(eval_tdp, rlt.PreprocessedRankingInput):
-            reward = eval_tdp.slate_reward
+        if isinstance(eval_batch, rlt.PreprocessedRankingInput):
+            reward = eval_batch.slate_reward
         else:
-            reward = eval_tdp.reward
+            reward = eval_batch.reward
         assert reward is not None
 
-        pred_reward = reward_net(eval_tdp).predicted_reward
-        loss = self.trainer.loss_fn(pred_reward, reward)
+        pred_reward = reward_net(eval_batch).predicted_reward
+        # pyre-fixme[58]: `/` is not supported for operand types `float` and
+        #  `Optional[torch.Tensor]`.
+        weight = 1.0 / eval_batch.tgt_out_probs
+
+        loss = self.trainer.loss_fn(pred_reward, reward, weight)
         self.loss.append(loss.flatten().detach().cpu())
         self.rewards.append(reward.flatten().detach().cpu())
         self.pred_rewards.append(pred_reward.flatten().detach().cpu())
