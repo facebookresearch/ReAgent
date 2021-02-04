@@ -163,12 +163,15 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         )
         self.register_buffer("reward_idx_offsets", reward_idx_offsets)
 
+        reward_stripped_metrics_to_score = (
+            self.metrics_to_score[:-1] if len(self.metrics_to_score) > 1 else None
+        )
         # pyre-fixme[16]: `DQNTrainerBase` has no attribute `evaluator`.
         self.evaluator = Evaluator(
             self._actions,
             self.rl_parameters.gamma,
-            self.trainer,
-            metrics_to_score=self.metrics_to_score,
+            self,
+            metrics_to_score=reward_stripped_metrics_to_score,
         )
 
     def _calculate_cpes(
