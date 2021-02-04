@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import copy
 import logging
+from typing import List
 
 import torch
 import torch.nn as nn
@@ -393,3 +394,32 @@ class Seq2SlateRewardNetJITWrapper(ModelBase):
                 tgt_out_idx=tgt_out_idx,
             )
         ).predicted_reward
+
+
+class Seq2SlateRewardNetEnsemble(ModelBase):
+    def __init__(self, models: List[ModelBase]):
+        super().__init__()
+        self.models = models
+
+    def forward(
+        self,
+        state: torch.Tensor,
+        src_seq: torch.Tensor,
+        tgt_out_seq: torch.Tensor,
+        src_src_mask: torch.Tensor,
+        tgt_out_idx: torch.Tensor,
+    ) -> torch.Tensor:
+        agg_pred = torch.cat(
+            [
+                model(
+                    state,
+                    src_seq,
+                    tgt_out_seq,
+                    src_src_mask,
+                    tgt_out_idx,
+                )
+                for model in self.models
+            ],
+            dim=1,
+        )
+        return torch.median(agg_pred, dim=1, keepdim=True).values
