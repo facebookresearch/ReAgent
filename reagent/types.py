@@ -861,6 +861,17 @@ class PolicyGradientInput(TensorDataClass):
             possible_actions_mask=torch.ones(batch_size, action_dim),
         )
 
+    @classmethod
+    def from_dict(cls, d: Dict[str, torch.Tensor]):
+        # TODO: rename "observation" to "state" in Trainsitiona and return cls(**d)
+        return cls(
+            state=FeatureData(float_features=d["observation"]),
+            action=d["action"],
+            reward=d["reward"],
+            log_prob=d["log_prob"],
+            possible_actions_mask=d.get("possible_actions_mask", None),
+        )
+
 
 @dataclass
 class MemoryNetworkInput(BaseInput):

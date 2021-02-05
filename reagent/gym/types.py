@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import numpy as np
 import reagent.types as rlt
 import torch
+import torch.nn.functional as F
 
 
 @dataclass
@@ -82,6 +83,25 @@ class Trajectory(rlt.BaseDataClass):
         rewards = self.reward
         discounts = [gamma ** i for i in range(num_transitions)]
         return sum(reward * discount for reward, discount in zip(rewards, discounts))
+
+    def to_dict(self):
+        d = {"action": F.one_hot(torch.from_numpy(np.stack(self.action)), 2)}
+        for f in [
+            "observation",
+            "reward",
+            "terminal",
+            "log_prob",
+            "possible_actions_mask",
+        ]:
+            if self.optional_field_exist.get(f, True):
+                f_value = getattr(self, f)
+                if np.isscalar(f_value[0]):
+                    # scalar values
+                    d[f] = torch.tensor(f_value)
+                else:
+                    # vector values, need to stack
+                    d[f] = rlt.FeatureData(torch.from_numpy(np.stack(f_value)).float())
+        return d
 
 
 class Sampler(ABC):

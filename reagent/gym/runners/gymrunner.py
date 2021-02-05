@@ -3,18 +3,22 @@
 
 import logging
 import pickle
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Any
 
 import numpy as np
+import torch
 import torch.multiprocessing as mp
+import torch.nn.functional as F
 from reagent.core.multiprocess_utils import (
     unwrap_function_outputs,
     wrap_function_arguments,
 )
 from reagent.gym.agents.agent import Agent
 from reagent.gym.envs import EnvWrapper
+from reagent.gym.envs.gym import Gym
 from reagent.gym.types import Trajectory, Transition
 from reagent.tensorboardX import SummaryWriterContext
+from reagent.types import PolicyGradientInput, FeatureData
 
 
 logger = logging.getLogger(__name__)
@@ -133,3 +137,35 @@ def evaluate_for_n_episodes(
             f"Rewards list: {gamma_rewards}"
         )
     return rewards
+
+
+class EnvDatasetWrapper(torch.utils.data.IterableDataset):
+    def __init__(
+        self,
+        env: Gym,
+        agent: Agent,
+        num_episodes: int,
+        seed: int = 0,
+        max_steps: Optional[int] = None,
+        return_class: Optional[Any] = None,
+    ):
+        self.env = env
+        self.agent = agent
+        self.num_episodes = num_episodes
+        self.seed = seed
+        self.max_steps = max_steps
+        self.return_class = return_class
+
+    def __iter__(self):
+        self.env.reset()
+        for i in range(self.num_episodes):
+            trajectory = run_episode(
+                self.env, self.agent, max_steps=self.max_steps, mdp_id=i
+            )
+            if self.return_class is not None:
+                yield self.return_class.from_dict(trajectory.to_dict())
+            else:
+                yield trajectory.to_dict()
+
+    def __len__(self):
+        return self.num_episodes
