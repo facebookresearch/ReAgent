@@ -23,9 +23,6 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class WorldModelBase(ModelManager):
-    def __post_init_post_parse__(self):
-        super().__init__()
-
     @classmethod
     def normalization_key(cls) -> str:
         raise NotImplementedError()
