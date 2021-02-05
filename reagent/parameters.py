@@ -149,10 +149,10 @@ class NormalizationData(BaseDataClass):
 #################################################
 @dataclass(frozen=True)
 class TransformerParameters(BaseDataClass):
-    num_heads: int
-    dim_model: int
-    dim_feedforward: int
-    num_stacked_layers: int
+    num_heads: int = 1
+    dim_model: int = 64
+    dim_feedforward: int = 32
+    num_stacked_layers: int = 2
     state_embed_dim: Optional[int] = None
 
 
@@ -179,6 +179,6 @@ class Seq2SlateParameters(BaseDataClass):
 
 @dataclass(frozen=True)
 class RankingParameters(BaseDataClass):
-    max_src_seq_len: int
-    max_tgt_seq_len: int
-    greedy_serving: bool
+    max_src_seq_len: int = 0
+    max_tgt_seq_len: int = 0
+    greedy_serving: bool = False

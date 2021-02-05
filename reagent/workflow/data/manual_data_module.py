@@ -54,8 +54,8 @@ class ManualDataModule(ReAgentDataModule):
     ):
         super().__init__()
         self.input_table_spec = input_table_spec
-        self.reward_options = reward_options
-        self.reader_options = reader_options
+        self.reward_options = reward_options or RewardOptions()
+        self.reader_options = reader_options or ReaderOptions()
         self._model_manager = model_manager
         self.setup_data = setup_data
         self.saved_setup_data = saved_setup_data or {}
@@ -206,8 +206,6 @@ class ManualDataModule(ReAgentDataModule):
             # pyre-fixme[16]: `HiveDataSetClass` has no attribute `parquet_url`.
             dataset.parquet_url,
             num_epochs=1,
-            # pyre-fixme[16]: `ReaderOptions` has no attribute
-            #  `petastorm_reader_pool_type`.
             reader_pool_type=reader_options.petastorm_reader_pool_type,
         )
         # NOTE: must be wrapped by DataLoaderWrapper to call __exit__() on end of epoch

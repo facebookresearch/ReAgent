@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Tuple
 import pytorch_lightning as pl
 import torch
 from fvcore.common.file_io import PathManager
+from reagent.core.dataclasses import dataclass
 from reagent.core.registry_meta import RegistryMeta
 from reagent.parameters import NormalizationData
 from reagent.tensorboardX import summary_writer_context
@@ -29,6 +30,7 @@ from torch.utils.tensorboard import SummaryWriter
 logger = logging.getLogger(__name__)
 
 
+@dataclass
 class ModelManager(metaclass=RegistryMeta):
     """
     ModelManager manages how to train models.
@@ -47,8 +49,7 @@ class ModelManager(metaclass=RegistryMeta):
     6. `save_tainer()` saves the trainer for warmstarting
     """
 
-    def __init__(self):
-        super().__init__()
+    def __post_init_post_parse__(self):
         # initialization is delayed to `initialize_trainer()`
         self._normalization_data_map: Optional[Dict[str, NormalizationData]] = None
         self._reward_options: Optional[RewardOptions] = None
@@ -62,20 +63,17 @@ class ModelManager(metaclass=RegistryMeta):
         assert (
             self._use_gpu is not None
         ), "Call initialize_trainer() to set the value first"
-        # pyre-fixme[7]: Expected `bool` but got `Optional[bool]`.
-        # pyre-fixme[7]: Expected `bool` but got `Optional[bool]`.
         return self._use_gpu
 
     @property
     def reward_options(self) -> RewardOptions:
         assert self._reward_options is not None
-        # pyre-fixme[7]: Expected `RewardOptions` but got `Optional[RewardOptions]`.
-        # pyre-fixme[7]: Expected `RewardOptions` but got `Optional[RewardOptions]`.
         return self._reward_options
 
     @reward_options.setter
     def reward_options(self, reward_options: RewardOptions):
         assert self._reward_options is None
+        # pyre-fixme[16]: `ModelManager` has no attribute `_reward_options`.
         self._reward_options = reward_options
 
     def get_data_module(
@@ -150,8 +148,6 @@ class ModelManager(metaclass=RegistryMeta):
     @property
     def trainer(self) -> Trainer:
         assert self._trainer is not None, "Call initialize_trainer() first"
-        # pyre-fixme[7]: Expected `Trainer` but got `Optional[Trainer]`.
-        # pyre-fixme[7]: Expected `Trainer` but got `Optional[Trainer]`.
         return self._trainer
 
     def initialize_trainer(
@@ -167,6 +163,7 @@ class ModelManager(metaclass=RegistryMeta):
         `build_trainer()`.
         """
         assert self._trainer is None, "Trainer was intialized"
+        # pyre-fixme[16]: `ModelManager` has no attribute `_use_gpu`.
         self._use_gpu = use_gpu
         self.reward_options = reward_options
         # validate that we have all the required keys
@@ -184,8 +181,10 @@ class ModelManager(metaclass=RegistryMeta):
         assert (
             self._normalization_data_map is None
         ), "Cannot reset self._normalization_data_map"
+        # pyre-fixme[16]: `ModelManager` has no attribute `_normalization_data_map`.
         self._normalization_data_map = normalization_data_map
         trainer = self.build_trainer()
+        # pyre-fixme[16]: `ModelManager` has no attribute `_trainer`.
         self._trainer = trainer
         if warmstart_path is not None:
             # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.

@@ -32,15 +32,15 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SlateQBase(ModelManager):
-    slate_feature_id: int
-    slate_score_id: Tuple[int, int]
+    slate_feature_id: int = 0
+    slate_score_id: Tuple[int, int] = (0, 0)
     item_preprocessing_options: Optional[PreprocessingOptions] = None
     state_preprocessing_options: Optional[PreprocessingOptions] = None
     state_float_features: Optional[List[Tuple[int, str]]] = None
     item_float_features: Optional[List[Tuple[int, str]]] = None
 
     def __post_init_post_parse__(self):
-        super().__init__()
+        super().__post_init_post_parse__()
         assert (
             self.state_preprocessing_options is None
             or self.state_preprocessing_options.whitelist_features is None
