@@ -93,7 +93,8 @@ class ReAgentLightningModule(pl.LightningModule):
 
     # pyre-fixme[14]: `training_step` overrides method defined in `LightningModule`
     #  inconsistently.
-    def training_step(self, batch, batch_idx: int, optimizer_idx: int):
+    def training_step(self, batch, batch_idx: int, optimizer_idx: int = 0):
+        assert (optimizer_idx == 0) or (self._num_optimizing_steps > 1)
         if self._training_step_generator is None:
             if self._training_batch_type and isinstance(batch, dict):
                 batch = self._training_batch_type.from_dict(batch)
@@ -120,7 +121,7 @@ class ReAgentLightningModule(pl.LightningModule):
 
     @lazy_property
     def _num_optimizing_steps(self) -> int:
-        return len(self.configure_optimizers())
+        return len(self._optimizers)
 
     def training_epoch_end(self, training_step_outputs):
         # Flush the reporter
@@ -129,6 +130,22 @@ class ReAgentLightningModule(pl.LightningModule):
         # Tell the trainer to stop.
         if self.current_epoch == self._next_stopping_epoch.item():
             self.trainer.should_stop = True
+
+    @lazy_property
+    def _optimizers(self):
+        optimizers = self.configure_optimizers()
+        if not isinstance(optimizers, (list, tuple)):
+            optimizers = [optimizers]
+        return optimizers
+
+    def train_old(self, batch):
+        """
+        Keeping this method for now for compatibility with non-Lightning workflows
+        Using this method is not recommended for new workflows
+        """
+        if self._trainer is None:
+            self._trainer = pl.Trainer(num_epochs=1)
+        self._trainer.fit(self, [batch])
 
 
 class StoppingEpochCallback(pl.Callback):

@@ -100,7 +100,7 @@ class Trajectory(rlt.BaseDataClass):
                     d[f] = torch.tensor(f_value)
                 else:
                     # vector values, need to stack
-                    d[f] = rlt.FeatureData(torch.from_numpy(np.stack(f_value)).float())
+                    d[f] = torch.from_numpy(np.stack(f_value)).float()
         return d
 
 
