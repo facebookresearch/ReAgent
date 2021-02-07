@@ -6,10 +6,7 @@ import unittest
 import numpy.testing as npt
 import torch
 from reagent.preprocessing.identify_types import CONTINUOUS_ACTION, DO_NOT_PREPROCESS
-from reagent.preprocessing.normalization import (
-    NormalizationData,
-    NormalizationParameters,
-)
+from reagent.preprocessing.normalization import NormalizationParameters
 from reagent.preprocessing.postprocessor import Postprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
 
