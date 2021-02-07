@@ -10,7 +10,7 @@ import numpy as np
 import reagent.types as rlt
 import six
 import torch
-from reagent.parameters import NormalizationData, NormalizationParameters
+from reagent.parameters import NormalizationParameters
 from reagent.preprocessing import identify_types
 from reagent.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
 from scipy import stats
@@ -57,15 +57,9 @@ def identify_parameter(
     stddev = 1.0
     possible_values = None
     quantiles = None
-    assert feature_type in [
-        identify_types.CONTINUOUS,
-        identify_types.PROBABILITY,
-        identify_types.BINARY,
-        identify_types.ENUM,
-        identify_types.CONTINUOUS_ACTION,
-        identify_types.DISCRETE_ACTION,
-        identify_types.DO_NOT_PREPROCESS,
-    ], "unknown type {}".format(feature_type)
+    assert feature_type in identify_types.FEATURE_TYPES, "unknown type {}".format(
+        feature_type
+    )
     assert (
         len(values) >= MINIMUM_SAMPLES_TO_IDENTIFY
     ), "insufficient information to identify parameter"
