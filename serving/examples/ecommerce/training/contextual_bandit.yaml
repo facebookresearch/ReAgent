@@ -22,8 +22,8 @@ model:
       optimizer:
         Adam:
           lr: 0.01
-      evaluation:
-        calc_cpe_in_training: true
+    eval_parameters:
+      calc_cpe_in_training: true
     net_builder:
       FullyConnected:
         sizes: []
