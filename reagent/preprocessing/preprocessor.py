@@ -214,6 +214,11 @@ class Preprocessor(Module):
         # ONNX doesn't support != yet
         return self.one_tensor - (input == self.zero_tensor).float()
 
+    def _create_parameters_CLIP_LOG(
+        self, begin_index: int, norm_params: List[NormalizationParameters]
+    ):
+        pass
+
     def _preprocess_CLIP_LOG(
         self,
         begin_index: int,
@@ -578,7 +583,7 @@ class Preprocessor(Module):
         feature_type = norm_params[0].feature_type
         min_value, max_value = batch.min(), batch.max()
 
-        if feature_type in ("BOXCOX", "CONTINUOUS", "DO_NOT_PREPROCESS"):
+        if feature_type in ("BOXCOX", "CONTINUOUS", "DO_NOT_PREPROCESS", "CLIP_LOG"):
             # Continuous features may be in range (-inf, inf)
             pass
         elif max_value.item() > MAX_FEATURE_VALUE:

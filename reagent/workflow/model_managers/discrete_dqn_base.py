@@ -58,7 +58,7 @@ class DiscreteDQNBase(ModelManager):
     eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
 
     def __post_init_post_parse__(self):
-        super().__init__()
+        super().__post_init_post_parse__()
         self._metrics_to_score = None
         self._q_network: Optional[ModelBase] = None
 
@@ -84,7 +84,6 @@ class DiscreteDQNBase(ModelManager):
         if self._metrics_to_score is None:
             # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `_metrics_to_score`.
             self._metrics_to_score = get_metrics_to_score(
-                # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
                 self._reward_options.metric_reward_values
             )
         return self._metrics_to_score

@@ -73,7 +73,7 @@ class ActorCriticBase(ModelManager):
     save_critic_bool: bool = True
 
     def __post_init_post_parse__(self):
-        super().__init__()
+        super().__post_init_post_parse__()
         assert (
             self.state_preprocessing_options is None
             or self.state_preprocessing_options.whitelist_features is None
@@ -117,8 +117,6 @@ class ActorCriticBase(ModelManager):
             # pyre-fixme[16]: `ActorCriticBase` has no attribute `_metrics_to_score`.
             # pyre-fixme[16]: `ActorCriticBase` has no attribute `_metrics_to_score`.
             self._metrics_to_score = get_metrics_to_score(
-                # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
-                # pyre-fixme[16]: `Optional` has no attribute `metric_reward_values`.
                 self._reward_options.metric_reward_values
             )
         return self._metrics_to_score
@@ -249,6 +247,7 @@ class ActorCriticBase(ModelManager):
 
         # assert eval_dataset is None
 
+        # pyre-fixme[16]: `ActorCriticBase` has no attribute `_lightning_trainer`.
         self._lightning_trainer = train_eval_lightning(
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,

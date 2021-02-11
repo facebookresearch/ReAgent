@@ -61,12 +61,6 @@ class CrossEntropyMethod(WorldModelBase):
         world_model_manager.initialize_trainer(
             self.use_gpu,
             self.reward_options,
-            # pyre-fixme[6]: Expected `Dict[str,
-            #  reagent.parameters.NormalizationData]` for 3rd param but got
-            #  `Optional[typing.Dict[str, reagent.parameters.NormalizationData]]`.
-            # pyre-fixme[6]: Expected `Dict[str,
-            #  reagent.parameters.NormalizationData]` for 3rd param but got
-            #  `Optional[typing.Dict[str, reagent.parameters.NormalizationData]]`.
             self._normalization_data_map,
         )
         world_model_trainers = [
