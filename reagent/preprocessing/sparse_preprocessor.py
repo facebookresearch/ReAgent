@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 def map_id_list(raw_values: torch.Tensor, id2index: Dict[int, int]) -> torch.Tensor:
     # TODO(kaiwenw): handle case where raw_ids not in mapping
     # (i.e. id2index[val.item()] not found)
-    # pyre-fixme[16]: `Tensor` has no attribute `__iter__`.
     return torch.tensor([id2index[x.item()] for x in raw_values], dtype=torch.long)
 
 
@@ -28,7 +27,6 @@ def map_id_score_list(
     # TODO(kaiwenw): handle case where raw_ids not in mapping
     # (i.e. id2index[val.item()] not found)
     return (
-        # pyre-fixme[16]: `Tensor` has no attribute `__iter__`.
         torch.tensor([id2index[x.item()] for x in raw_keys], dtype=torch.long),
         raw_values,
     )

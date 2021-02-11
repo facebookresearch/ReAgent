@@ -462,8 +462,6 @@ class MAGICEstimator(IPSEstimator):
             list(
                 map(
                     lambda a: a - ub if a > ub else (a - lb if a < lb else 0.0),
-                    # pyre-fixme[6]: Expected `Iterable[Variable[_T1]]` for 2nd
-                    #  param but got `Tensor`.
                     gs.sum(0),
                 )
             ),
