@@ -263,9 +263,14 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         yield metric_q_value_loss
 
     def test_step(self, batch, batch_idx):
-        return batch
+        # HACK: Move to cpu in order to hold more batches in memory
+        # This is only needed when trainers need to evaluate on
+        # the full evaluation dataset in memory
+        return batch.cpu()
 
     def gather_eval_data(self, test_step_outputs):
+        was_on_gpu = self.on_gpu
+        self.cpu()
         eval_data = None
         for batch in test_step_outputs:
             edp = EvaluationDataPage.create_from_training_batch(batch, self)
@@ -277,6 +282,8 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
             eval_data = eval_data.sort()
             eval_data = eval_data.compute_values(self.gamma)
             eval_data.validate()
+        if was_on_gpu:
+            self.cuda()
         return eval_data
 
     def test_epoch_end(self, test_step_outputs):
