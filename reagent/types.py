@@ -870,6 +870,20 @@ class PolicyGradientInput(TensorDataClass):
             possible_actions_mask=torch.ones(batch_size, action_dim),
         )
 
+    @staticmethod
+    def from_dict(d):
+        return PolicyGradientInput(
+            state=FeatureData(
+                float_features=d["state_features"],
+                candidate_docs=DocList(
+                    float_features=d["state_sequence_features:1"].float(),
+                ),
+            ),
+            action=d["action"].long(),
+            reward=d["reward"].float(),
+            log_prob=d["action_probability"].float().log(),
+        )
+
 
 @dataclass
 class MemoryNetworkInput(BaseInput):
@@ -967,3 +981,11 @@ class RankingOutput(TensorDataClass):
 @dataclass
 class RewardNetworkOutput(TensorDataClass):
     predicted_reward: torch.Tensor
+
+
+@dataclass
+class FrechetSortConfig:
+    shape: float
+    equiv_len: int
+    topk: Optional[int] = None
+    log_scores: bool = True
