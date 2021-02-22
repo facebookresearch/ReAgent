@@ -52,9 +52,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         ),
         use_target_actor: bool = False,
         actions: List[str] = field(default_factory=list),  # noqa: B008
-        minibatch_size: int = 256,
         delayed_policy_update: int = 1,
-        minibatches_per_step: int = 1,
     ) -> None:
         """
         Args:
@@ -69,11 +67,8 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
                 optimizer hyperparameters for the q network(s) optimizer
             actor_network_optimizer (optional): see q_network_optimizer
             use_target_actor (optional): specifies whether target actor is used
-            minibatch_size (optional): the size of the minibatch
             delayed_policy_update (optional): the ratio of q network updates
                 to target and policy network updates
-            minibatches_per_step (optional): the number of minibatch updates
-                per training step
         """
         super().__init__(
             rl,
@@ -88,8 +83,6 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         self.double_q_learning = double_q_learning
 
         self.use_target_actor = use_target_actor
-        self.minibatch_size = minibatch_size
-        self.minibatches_per_step = minibatches_per_step or 1
 
         self.q1_network = q1_network
         self.q1_network_target = copy.deepcopy(self.q1_network)
@@ -217,13 +210,10 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         q1 = (q1_values * action).sum(dim=1, keepdim=True)
 
         q1_loss = F.mse_loss(q1, target_q_value)
-        if batch_idx % self.trainer.log_every_n_steps == 0:
-            self.reporter.log(
-                q1_loss=q1_loss,
-                q1_value=q1,
-                next_q_value=next_V,
-                target_q_value=target_q_value,
-            )
+        self.reporter.log(
+            q1_loss=q1_loss,
+            q1_value=q1,
+        )
         self.log("td_loss", q1_loss, prog_bar=True)
         yield q1_loss
 
@@ -231,11 +221,10 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
             q2_values = self.q2_network(state)
             q2 = (q2_values * action).sum(dim=1, keepdim=True)
             q2_loss = F.mse_loss(q2, target_q_value)
-            if batch_idx % self.trainer.log_every_n_steps == 0:
-                self.reporter.log(
-                    q2_loss=q2_loss,
-                    q2_value=q2,
-                )
+            self.reporter.log(
+                q2_loss=q2_loss,
+                q2_value=q2,
+            )
             yield q2_loss
 
         all_q_values = self.q1_network(state)  # Q-values of all actions
@@ -273,11 +262,10 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
 
             actor_loss = (-log_pi_b * weight.detach()).mean()
 
-            if batch_idx % self.trainer.log_every_n_steps == 0:
-                self.reporter.log(
-                    actor_loss=actor_loss,
-                    actor_q1_value=values,
-                )
+            self.reporter.log(
+                actor_loss=actor_loss,
+                actor_q1_value=values,
+            )
             yield actor_loss
         else:
             # Yielding None prevents the actor and target networks from updating
