@@ -33,6 +33,7 @@ class DiscreteCRRReporter(FlexibleDataPointsPerEpochMixin, ReporterBase):
                 [
                     ("td_loss", agg.MeanAggregator("td_loss")),
                     ("reward_loss", agg.MeanAggregator("reward_loss")),
+                    ("actor_loss", agg.MeanAggregator("actor_loss")),
                     (
                         "model_values",
                         agg.FunctionsByActionAggregator(
@@ -69,6 +70,7 @@ class DiscreteCRRReporter(FlexibleDataPointsPerEpochMixin, ReporterBase):
                     for key, log_key in [
                         ("td_loss", "td_loss"),
                         ("reward_loss", "reward_loss"),
+                        ("actor_loss", "actor_loss"),
                         ("logged_propensities", "propensities/logged"),
                         ("logged_rewards", "reward/logged"),
                         ("q1_loss", "loss/q1_loss"),
