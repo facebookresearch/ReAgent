@@ -92,6 +92,15 @@ class TensorDataClass(BaseDataClass):
                 cuda_tensor[k] = v
         return type(self)(**cuda_tensor)
 
+    def cpu(self):
+        cpu_tensor = {}
+        for k, v in self.__dict__.items():  # noqa F402
+            if isinstance(v, (torch.Tensor, TensorDataClass)):
+                cpu_tensor[k] = v.cpu()
+            else:
+                cpu_tensor[k] = v
+        return type(self)(**cpu_tensor)
+
 
 # (offset, value)
 IdListFeatureValue = Tuple[torch.Tensor, torch.Tensor]
