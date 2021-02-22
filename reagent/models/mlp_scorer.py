@@ -3,7 +3,7 @@
 
 import itertools
 from dataclasses import field
-from typing import List
+from typing import List, Optional
 
 import reagent.types as rlt
 import torch
@@ -15,6 +15,15 @@ from torch import nn
 EPS = 1e-12
 
 
+class ScoreCap(nn.Module):
+    def __init__(self, cap: float):
+        super().__init__()
+        self.cap = cap
+
+    def forward(self, input):
+        return torch.clip(input, max=self.cap)
+
+
 class MLPScorer(ModelBase):
     @resolve_defaults
     def __init__(
@@ -23,6 +32,7 @@ class MLPScorer(ModelBase):
         layer_sizes: List[int] = field(default_factory=list),  # noqa: B008
         output_dim: int = 1,
         concat: bool = False,
+        score_cap: Optional[float] = None,
         log_transform: bool = False,
     ) -> None:
         super().__init__()
@@ -34,6 +44,8 @@ class MLPScorer(ModelBase):
         all_layers = list(itertools.chain.from_iterable(zip(fc_layers, relu_layers)))[
             :-1
         ]  # drop last relu layer
+        if score_cap is not None:
+            all_layers.append(ScoreCap(score_cap))
         self.concat = concat
         self.log_transform = log_transform
         self.mlp = nn.Sequential(*all_layers)
@@ -46,7 +58,11 @@ class MLPScorer(ModelBase):
                     float_features=obs.candidate_docs.float_features.clip(EPS).log(),
                 ),
             )
-        return self.mlp(self._concat_features(obs)).squeeze(-1)
+        mlp_input = self._concat_features(obs)
+        print("mlp_input: ", mlp_input.shape)
+        scores = self.mlp(mlp_input)
+        print("scores: ", scores.shape)
+        return scores.squeeze(-1)
 
     def _concat_features(self, obs):
         if self.concat:
