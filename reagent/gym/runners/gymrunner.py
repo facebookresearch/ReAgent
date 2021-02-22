@@ -37,7 +37,7 @@ def run_episode(
         action, log_prob = agent.act(obs, possible_actions_mask)
         next_obs, reward, terminal, _ = env.step(action)
         next_possible_actions_mask = env.possible_actions_mask
-        if max_steps is not None and num_steps >= max_steps:
+        if max_steps is not None and num_steps >= (max_steps - 1):
             terminal = True
 
         # Only partially filled. Agent can fill in more fields.
