@@ -59,9 +59,7 @@ class MLPScorer(ModelBase):
                 ),
             )
         mlp_input = self._concat_features(obs)
-        print("mlp_input: ", mlp_input.shape)
         scores = self.mlp(mlp_input)
-        print("scores: ", scores.shape)
         return scores.squeeze(-1)
 
     def _concat_features(self, obs):
