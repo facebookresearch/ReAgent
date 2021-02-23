@@ -30,7 +30,7 @@ model:
 replay_memory_size: 20000
 train_every_ts: 1
 train_after_ts: 5000
-num_train_episodes: 25
+num_train_episodes: 30
 num_eval_episodes: 20
 passing_score_bar: 100.0
 use_gpu: false
