@@ -11,6 +11,7 @@ from .parametric_dqn_trainer import ParametricDQNTrainer
 from .ppo_trainer import PPOTrainer
 from .qrdqn_trainer import QRDQNTrainer
 from .ranking.seq2slate_trainer import Seq2SlateTrainer
+from .reinforce_trainer import ReinforceTrainer
 from .reward_network_trainer import RewardNetTrainer
 from .sac_trainer import SACTrainer
 from .slate_q_trainer import SlateQTrainer
@@ -133,6 +134,17 @@ class RewardNetworkTrainerParameters:
     ],
 )
 class Seq2SlateTrainerParameters(BaseDataClass):
+    pass
+
+
+@make_config_class(
+    ReinforceTrainer.__init__,
+    blacklist=[
+        "policy",
+        "value_net",
+    ],
+)
+class ReinforceTrainerParameters:
     pass
 
 

@@ -11,6 +11,7 @@ from reagent.training.reagent_lightning_module import (
     ReAgentLightningModule,
     StoppingEpochCallback,
 )
+from reagent.training.reinforce_trainer import ReinforceTrainer
 from reagent.training.reward_network_trainer import RewardNetTrainer
 from reagent.training.rl_trainer_pytorch import RLTrainer
 from reagent.training.sac_trainer import SACTrainer
@@ -30,6 +31,7 @@ from .parameters import (
     SlateQTrainerParameters,
     TD3TrainerParameters,
     CRRTrainerParameters,
+    ReinforceTrainerParameters,
 )
 
 
@@ -59,4 +61,6 @@ __all__ = [
     "ReAgentLightningModule",
     "StoppingEpochCallback",
     "Trainer",
+    "ReinforceTrainer",
+    "ReinforceTrainerParameters",
 ]
