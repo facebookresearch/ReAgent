@@ -1,0 +1,26 @@
+env:
+  Gym:
+    env_name: CartPole-v0
+model:
+  Reinforce:
+    trainer_param:
+      actions:
+        - 0
+        - 1
+      gamma: 0.99
+      off_policy: False
+      optimizer:
+        Adam:
+          lr: 0.005
+          weight_decay: 0.001
+    policy_net_builder:
+      FullyConnected:
+        sizes:
+        - 8
+        activations:
+        - linear
+    sampler_temperature: 1.0
+num_train_episodes: 175
+num_eval_episodes: 100
+passing_score_bar: 180.0
+use_gpu: false

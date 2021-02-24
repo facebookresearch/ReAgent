@@ -872,7 +872,7 @@ class PolicyGradientInput(TensorDataClass):
 
     @classmethod
     def from_dict(cls, d: Dict[str, torch.Tensor]):
-        # TODO: rename "observation" to "state" in Trainsitiona and return cls(**d)
+        # TODO: rename "observation" to "state" in Transition and return cls(**d)
         return cls(
             state=FeatureData(float_features=d["observation"]),
             action=d["action"],
@@ -880,6 +880,9 @@ class PolicyGradientInput(TensorDataClass):
             log_prob=d["log_prob"],
             possible_actions_mask=d.get("possible_actions_mask", None),
         )
+
+    def __len__(self):
+        return len(self.action)
 
 
 @dataclass

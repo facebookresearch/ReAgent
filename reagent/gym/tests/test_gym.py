@@ -14,6 +14,7 @@ from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_episode import train_post_episode
 from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
+from reagent.gym.datasets.episodic_dataset import EpisodicDataset
 from reagent.gym.datasets.replay_buffer_dataset import ReplayBufferDataset
 from reagent.gym.envs import Env__Union, ToyVM
 from reagent.gym.envs.env_wrapper import EnvWrapper
@@ -46,7 +47,7 @@ Format path to be: "configs/<env_name>/<model_name>_<env_name>_online.yaml."
 NOTE: These tests should ideally finish quickly (within 10 minutes) since they are
 unit tests which are run many times.
 """
-GYM_TESTS = [
+REPLAY_BUFFER_GYM_TESTS = [
     ("Discrete CRR Cartpole", "configs/cartpole/discrete_crr_cartpole_online.yaml"),
     ("Discrete DQN Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
     ("Discrete C51 Cartpole", "configs/cartpole/discrete_c51_cartpole_online.yaml"),
@@ -71,103 +72,54 @@ GYM_TESTS = [
     ("PossibleActionsMask DQN", "configs/functionality/dqn_possible_actions_mask.yaml"),
 ]
 
+ONLINE_EPISODE_GYM_TESTS = [
+    (
+        "REINFORCE Cartpole online",
+        "configs/cartpole/discrete_reinforce_cartpole_online.yaml",
+    )
+]
+
 
 curr_dir = os.path.dirname(__file__)
 
 
 class TestGym(HorizonTestBase):
     # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
-    @parameterized.expand(GYM_TESTS)
-    def test_gym_cpu(self, name: str, config_path: str):
+    @parameterized.expand(REPLAY_BUFFER_GYM_TESTS)
+    def test_replay_buffer_gym_cpu(self, name: str, config_path: str):
         logger.info(f"Starting {name} on CPU")
         self.run_from_config(
-            run_test=run_test,
+            run_test=run_test_replay_buffer,
             config_path=os.path.join(curr_dir, config_path),
             use_gpu=False,
         )
         logger.info(f"{name} passes!")
 
     # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
-    @parameterized.expand(GYM_TESTS)
+    @parameterized.expand(REPLAY_BUFFER_GYM_TESTS)
     @pytest.mark.serial
     # pyre-fixme[56]: Argument `not torch.cuda.is_available()` to decorator factory
     #  `unittest.skipIf` could not be resolved in a global scope.
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_gym_gpu(self, name: str, config_path: str):
+    def test_replay_buffer_gym_gpu(self, name: str, config_path: str):
         logger.info(f"Starting {name} on GPU")
         self.run_from_config(
-            run_test=run_test,
+            run_test=run_test_replay_buffer,
             config_path=os.path.join(curr_dir, config_path),
             use_gpu=True,
         )
         logger.info(f"{name} passes!")
 
-    def test_cartpole_reinforce(self):
-        # TODO(@badri) Parameterize this test
-        env = Gym("CartPole-v0")
-        norm = build_normalizer(env)
-
-        from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
-
-        net_builder = FullyConnected(sizes=[8], activations=["linear"])
-        cartpole_scorer = net_builder.build_q_network(
-            state_feature_config=None,
-            state_normalization_data=norm["state"],
-            output_dim=env.action_space.n,
+    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
+    @parameterized.expand(ONLINE_EPISODE_GYM_TESTS)
+    def test_online_episode_gym_cpu(self, name: str, config_path: str):
+        logger.info(f"Starting {name} on CPU")
+        self.run_from_config(
+            run_test=run_test_online_episode,
+            config_path=os.path.join(curr_dir, config_path),
+            use_gpu=False,
         )
-
-        from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
-
-        policy = Policy(scorer=cartpole_scorer, sampler=SoftmaxActionSampler())
-
-        from reagent.optimizer.union import classes
-        from reagent.training.reinforce import Reinforce, ReinforceParams
-
-        trainer = Reinforce(
-            policy,
-            ReinforceParams(
-                gamma=0.995, optimizer=classes["Adam"](lr=5e-3, weight_decay=1e-3)
-            ),
-        )
-        run_test_episode_buffer(
-            env,
-            policy,
-            trainer,
-            num_train_episodes=500,
-            passing_score_bar=180,
-            num_eval_episodes=100,
-        )
-
-    def test_toyvm(self):
-        pl.seed_everything(SEED)
-        env = ToyVM(slate_size=5, initial_seed=SEED)
-        from reagent.models import MLPScorer
-
-        slate_scorer = MLPScorer(
-            input_dim=3, log_transform=True, layer_sizes=[64], concat=False
-        )
-
-        from reagent.samplers import FrechetSort
-
-        policy = Policy(slate_scorer, FrechetSort(log_scores=True, topk=5, equiv_len=5))
-        from reagent.optimizer.union import classes
-        from reagent.training.reinforce import Reinforce, ReinforceParams
-
-        trainer = Reinforce(
-            policy,
-            ReinforceParams(
-                gamma=0, optimizer=classes["Adam"](lr=1e-1, weight_decay=1e-3)
-            ),
-        )
-
-        run_test_episode_buffer(
-            env,
-            policy,
-            trainer,
-            num_train_episodes=500,
-            passing_score_bar=120,
-            num_eval_episodes=100,
-        )
+        logger.info(f"{name} passes!")
 
 
 def train_policy(
@@ -238,7 +190,7 @@ def identity_collate(batch):
     return batch[0]
 
 
-def run_test(
+def run_test_replay_buffer(
     env: Env__Union,
     model: ModelManager__Union,
     replay_memory_size: int,
@@ -250,6 +202,10 @@ def run_test(
     use_gpu: bool,
     minibatch_size: Optional[int] = None,
 ):
+    """
+    Run an online learning test with a replay buffer. The replay buffer is pre-filled, then the training starts.
+    Each transition is added to the replay buffer immediately after it takes place.
+    """
     env = env.value
     # pyre-fixme[16]: Module `pl` has no attribute `seed_everything`.
     pl.seed_everything(SEED)
@@ -286,59 +242,95 @@ def run_test(
         env=env, replay_buffer=replay_buffer, desired_size=train_after_ts
     )
 
-    # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
-    if isinstance(trainer, pl.LightningModule):
-        agent = Agent.create_for_env(env, policy=training_policy, device=device)
-        # TODO: Simplify this setup by creating LightningDataModule
-        dataset = ReplayBufferDataset.create_for_trainer(
-            trainer,
-            env,
-            agent,
-            replay_buffer,
-            batch_size=minibatch_size,
-            training_frequency=train_every_ts,
-            num_episodes=num_train_episodes,
-            max_steps=200,
-            device=device,
-        )
-        data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
-        # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
-        pl_trainer = pl.Trainer(max_epochs=1, gpus=int(use_gpu))
-        # Note: the fit() function below also evaluates the agent along the way
-        # and adds the new transitions to the replay buffer, so it is training
-        # on incrementally larger and larger buffers.
-        pl_trainer.fit(trainer, data_loader)
+    agent = Agent.create_for_env(env, policy=training_policy, device=device)
+    # TODO: Simplify this setup by creating LightningDataModule
+    dataset = ReplayBufferDataset.create_for_trainer(
+        trainer,
+        env,
+        agent,
+        replay_buffer,
+        batch_size=minibatch_size,
+        training_frequency=train_every_ts,
+        num_episodes=num_train_episodes,
+        max_steps=200,
+        device=device,
+    )
+    data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
+    # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
+    pl_trainer = pl.Trainer(max_epochs=1, gpus=int(use_gpu))
+    # Note: the fit() function below also evaluates the agent along the way
+    # and adds the new transitions to the replay buffer, so it is training
+    # on incrementally larger and larger buffers.
+    pl_trainer.fit(trainer, data_loader)
 
-        # TODO: Also check train_reward
-    else:
-        post_step = train_with_replay_buffer_post_step(
-            replay_buffer=replay_buffer,
-            env=env,
-            trainer=trainer,
-            training_freq=train_every_ts,
-            batch_size=trainer.minibatch_size,
-            device=device,
-        )
-
-        train_rewards = train_policy(
-            env,
-            training_policy,
-            num_train_episodes,
-            post_step=post_step,
-            post_episode=None,
-            use_gpu=use_gpu,
-        )
-
-        # Check whether the max score passed the score bar; we explore during training
-        # the return could be bad (leading to flakiness in C51 and QRDQN).
-        assert np.max(train_rewards) >= passing_score_bar, (
-            f"max reward ({np.max(train_rewards)}) after training for "
-            f"{len(train_rewards)} episodes is less than < {passing_score_bar}.\n"
-        )
+    # TODO: Also check train_reward
 
     serving_policy = manager.create_policy(serving=True)
 
     eval_rewards = eval_policy(env, serving_policy, num_eval_episodes, serving=True)
+    assert (
+        eval_rewards.mean() >= passing_score_bar
+    ), f"Eval reward is {eval_rewards.mean()}, less than < {passing_score_bar}.\n"
+
+
+def run_test_online_episode(
+    env: Env__Union,
+    model: ModelManager__Union,
+    num_train_episodes: int,
+    passing_score_bar: float,
+    num_eval_episodes: int,
+    use_gpu: bool,
+):
+    """
+    Run an online learning test. At the end of each episode training is run on the trajectory.
+    """
+    env = env.value
+    # pyre-fixme[16]: Module `pl` has no attribute `seed_everything`.
+    pl.seed_everything(SEED)
+    env.seed(SEED)
+    env.action_space.seed(SEED)
+
+    normalization = build_normalizer(env)
+    logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
+
+    manager = model.value
+    trainer = manager.initialize_trainer(
+        use_gpu=use_gpu,
+        reward_options=RewardOptions(),
+        normalization_data_map=normalization,
+    )
+    policy = manager.create_policy(serving=False)
+
+    device = torch.device("cuda") if use_gpu else torch.device("cpu")
+
+    agent = Agent.create_for_env(env, policy, device=device)
+
+    # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
+    if isinstance(trainer, pl.LightningModule):
+        # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
+        pl_trainer = pl.Trainer(max_epochs=1, gpus=int(use_gpu), deterministic=True)
+        dataset = EpisodicDataset(
+            env=env, agent=agent, num_episodes=num_train_episodes, seed=SEED
+        )
+        pl_trainer.fit(trainer, dataset)
+    else:
+        post_episode_callback = train_post_episode(env, trainer, use_gpu)
+        _ = train_policy(
+            env,
+            policy,
+            num_train_episodes,
+            post_step=None,
+            post_episode=post_episode_callback,
+            use_gpu=use_gpu,
+        )
+
+    eval_rewards = evaluate_for_n_episodes(
+        n=num_eval_episodes,
+        env=env,
+        agent=agent,
+        max_steps=env.max_steps,
+        num_processes=1,
+    ).squeeze(1)
     assert (
         eval_rewards.mean() >= passing_score_bar
     ), f"Eval reward is {eval_rewards.mean()}, less than < {passing_score_bar}.\n"
