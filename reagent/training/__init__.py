@@ -6,6 +6,7 @@ from reagent.training.cem_trainer import CEMTrainer
 from reagent.training.discrete_crr_trainer import DiscreteCRRTrainer
 from reagent.training.dqn_trainer import DQNTrainer
 from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
+from reagent.training.ppo_trainer import PPOTrainer
 from reagent.training.qrdqn_trainer import QRDQNTrainer
 from reagent.training.reagent_lightning_module import (
     ReAgentLightningModule,
@@ -32,6 +33,7 @@ from .parameters import (
     TD3TrainerParameters,
     CRRTrainerParameters,
     ReinforceTrainerParameters,
+    PPOTrainerParameters,
 )
 
 
@@ -63,4 +65,6 @@ __all__ = [
     "Trainer",
     "ReinforceTrainer",
     "ReinforceTrainerParameters",
+    "PPOTrainer",
+    "PPOTrainerParameters",
 ]

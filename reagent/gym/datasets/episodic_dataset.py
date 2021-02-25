@@ -2,7 +2,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Optional
+import math
+from typing import Optional, Callable
 
 import torch
 from reagent.gym.agents.agent import Agent
@@ -38,3 +39,45 @@ class EpisodicDataset(torch.utils.data.IterableDataset):
 
     def __len__(self):
         return self.num_episodes
+
+
+class EpisodicDatasetDataloader(torch.utils.data.DataLoader):
+    def __init__(
+        self,
+        dataset: EpisodicDataset,
+        num_episodes_between_updates: int = 1,
+        batch_size: int = 1,
+        num_epochs: int = 1,
+        collate_fn: Callable = lambda x: x,
+    ):
+        self._dataset_kind = torch.utils.data._DatasetKind.Iterable
+        self.num_workers = 0
+
+        self.dataset = dataset
+        self.num_episodes_between_updates = num_episodes_between_updates
+        self.batch_size = batch_size
+        self.num_epochs = num_epochs
+        self.collate_fn = collate_fn
+
+    def __iter__(self):
+        trajectories_buffer = []
+        for counter, traj in enumerate(self.dataset):
+            trajectories_buffer.append(traj)
+            if (len(trajectories_buffer) == self.num_episodes_between_updates) or (
+                counter == (len(self.dataset) - 1)
+            ):
+                for _ in range(self.num_epochs):
+                    random_order = torch.randperm(len(trajectories_buffer))
+                    for i in range(0, len(trajectories_buffer), self.batch_size):
+                        idx = random_order[i : i + self.batch_size]
+                        yield self.collate_fn([trajectories_buffer[k] for k in idx])
+                trajectories_buffer = []
+
+    def __len__(self):
+        return (
+            math.floor(len(self.dataset) / self.num_episodes_between_updates)
+            * math.ceil(self.num_episodes_between_updates / self.batch_size)
+            + math.ceil(
+                len(self.dataset) % self.num_episodes_between_updates / self.batch_size
+            )
+        ) * self.num_epochs
