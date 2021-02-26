@@ -6,6 +6,7 @@ import reagent.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.gym.types import Sampler
+from reagent.models.dqn import INVALID_ACTION_CONSTANT
 
 
 class SoftmaxActionSampler(Sampler):
@@ -13,15 +14,31 @@ class SoftmaxActionSampler(Sampler):
     Softmax sampler.
     Equation: http://incompleteideas.net/book/first/ebook/node17.html
     The action scores are logits.
+    Supports decaying the temperature over time.
 
     Args:
         temperature: A measure of how uniformly random the distribution looks.
             The higher the temperature, the more uniform the sampling.
+        temperature_decay: A multiplier by which temperature is reduced at each .update() call
+        minimum_temperature: Minimum temperature, below which the temperature is not decayed further
     """
 
-    def __init__(self, temperature: float = 1.0):
+    def __init__(
+        self,
+        temperature: float = 1.0,
+        temperature_decay: float = 1.0,
+        minimum_temperature: float = 0.1,
+    ):
         assert temperature > 0, f"Invalid non-positive temperature {temperature}."
         self.temperature = temperature
+        self.temperature_decay = temperature_decay
+        self.minimum_temperature = minimum_temperature
+        assert (
+            temperature_decay <= 1.0
+        ), f"Invalid temperature_decay>1: {temperature_decay}."
+        assert (
+            minimum_temperature <= temperature
+        ), f"minimum_temperature ({minimum_temperature}) exceeds initial temperature ({temperature})"
 
     def _get_distribution(
         self, scores: torch.Tensor
@@ -61,6 +78,10 @@ class SoftmaxActionSampler(Sampler):
         assert len(scores.shape) == 2, f"{scores.shape}"
         m = self._get_distribution(scores)
         return m.entropy().mean()
+
+    def update(self) -> None:
+        self.temperature *= self.temperature_decay
+        self.temperature = max(self.temperature, self.minimum_temperature)
 
 
 class GreedyActionSampler(Sampler):
@@ -130,11 +151,18 @@ class EpsilonGreedyActionSampler(Sampler):
         # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
         argmax = F.one_hot(scores.argmax(dim=1), num_actions).bool()
 
-        rand_prob = self.epsilon / num_actions
-        p = torch.full_like(rand_prob, scores)
+        valid_actions_ind = (scores > INVALID_ACTION_CONSTANT).bool()
+        num_valid_actions = valid_actions_ind.float().sum(1, keepdim=True)
+
+        rand_prob = self.epsilon / num_valid_actions
+        p = torch.ones_like(scores) * rand_prob
 
         greedy_prob = 1 - self.epsilon + rand_prob
-        p[argmax] = greedy_prob
+        p[argmax] = greedy_prob.squeeze()
+
+        p[~valid_actions_ind] = 0.0  # pyre-ignore
+
+        assert torch.isclose(p.sum(1) == torch.ones(p.shape[0]))
 
         m = torch.distributions.Categorical(probs=p)
         raw_action = m.sample()
