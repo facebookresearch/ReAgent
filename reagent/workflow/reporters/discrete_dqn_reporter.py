@@ -49,7 +49,10 @@ class DiscreteDQNReporter(FlexibleDataPointsPerEpochMixin, ReporterBase):
                         "model_action",
                         agg.ActionCountAggregator("model_action_idxs", actions),
                     ),
-                    ("recent_rewards", agg.RecentValuesAggregator("logged_rewards")),
+                    (
+                        "recent_rewards",
+                        agg.RecentValuesAggregator("logged_rewards"),
+                    ),
                 ],
                 [
                     (
