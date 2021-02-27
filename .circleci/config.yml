@@ -180,8 +180,17 @@ commands:
       - store_test_results:
           path: .tox/py37/log/
 
-
-
+  run_interrogate:
+    description: Install and run interrogate
+    steps:
+      - run:
+          name: Install interrogate
+          command: |
+            pip install interrogate
+      - run:
+          name: Run interrogate on reagent code base
+          command: |
+            interrogate -piImvv -f 15 reagent/
 
 jobs:
   gpu_unittest:
@@ -290,6 +299,14 @@ jobs:
           source: https://download.pytorch.org/libtorch/nightly/cpu/libtorch-macos-latest.zip
       - rasp_build_test
 
+  docstring_coverage:
+    docker:
+      - image: circleci/python:3.7
+    resource_class: small
+    steps:
+      - checkout_merge
+      - run_interrogate
+
 workflows:
   build:
     jobs:
@@ -301,3 +318,4 @@ workflows:
       - gym_unittest
       - rasp_test_linux
       - rasp_test_mac
+      - docstring_coverage
