@@ -10,21 +10,23 @@ import torch.optim
 from reagent.core.configuration import resolve_defaults
 from reagent.gym.policies.policy import Policy
 from reagent.models.base import ModelBase
+from reagent.optimizer.optimizer import Optimizer
 from reagent.optimizer.union import Optimizer__Union
-from reagent.training.trainer import Trainer
+from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.utils import discounted_returns, whiten
 
 
 logger = logging.getLogger(__name__)
 
 
-class PPOTrainer(Trainer):
+class PPOTrainer(ReAgentLightningModule):
     """
     Proximal Policy Optimization (PPO). See https://arxiv.org/pdf/1707.06347.pdf
     This is the "clip" version of PPO. It does not include:
     - KL divergence
-    - Bootstrapping with a critic model (this only works if full trajectories up to terminal state are fed in)
+    - Bootstrapping with a critic model (our approach only works if full trajectories up to terminal state are fed in)
     Optionally, a value network can be trained and used as a baseline for rewards.
+    Note that update frequency, number of epochs and batch size have to be specified in EpisodicDatasetDataloader
     """
 
     @resolve_defaults
@@ -38,85 +40,35 @@ class PPOTrainer(Trainer):
         optimizer_value_net: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
-        off_policy: bool = False,
+        actions: List[str] = field(default_factory=list),  # noqa: B008
         reward_clip: float = 1e6,
         normalize: bool = True,
         subtract_mean: bool = True,
         offset_clamp_min: bool = False,
-        update_freq: int = 100,  # how many env steps between updates
-        update_epochs: int = 5,  # how many epochs to run when updating (for PPO)
-        ppo_batch_size: int = 10,  # batch size (number of trajectories) used for PPO updates
         ppo_epsilon: float = 0.2,  # clamp importance weights between 1-epsilon and 1+epsilon
         entropy_weight: float = 0.0,  # weight of the entropy term in the PPO loss
         value_net: Optional[ModelBase] = None,
     ):
+        super().__init__()
         self.scorer = policy.scorer
         self.sampler = policy.sampler
         self.gamma = gamma
         self.optimizer_value_net = optimizer_value_net
-        self.off_policy = off_policy
+        self.actions = actions
         self.reward_clip = reward_clip
         self.normalize = normalize
         self.subtract_mean = subtract_mean
         self.offset_clamp_min = offset_clamp_min
-        self.update_freq = update_freq
-        self.update_epochs = update_epochs
-        self.ppo_batch_size = ppo_batch_size
         self.ppo_epsilon = ppo_epsilon
         self.entropy_weight = entropy_weight
 
-        self.optimizer = optimizer.make_optimizer(self.scorer.parameters())
+        self.optimizer = optimizer
+        self.value_net = value_net
         if value_net is not None:
-            self.value_net = value_net
-            self.value_net_optimizer = optimizer_value_net.make_optimizer(
-                self.value_net.parameters()
-            )
             self.value_loss_fn = torch.nn.MSELoss(reduction="mean")
-        else:
-            self.value_net = None
-            self.value_net_optimizer = None
         assert (ppo_epsilon >= 0) and (
             ppo_epsilon <= 1
         ), "ppo_epslion has to be in [0;1]"
-        self.step = 0
-        self.traj_buffer = []
-
-    def update_model(self):
-        """
-        Iterate through the PPO trajectory buffer `update_epochs` times, sampling minibatches
-        of `ppo_batch_size` trajectories. Perform gradient ascent on the clipped PPO loss.
-        If value network is being trained, also perform gradient descent steps for its loss.
-        """
-        assert len(self.traj_buffer) == self.update_freq
-        for _ in range(self.update_epochs):
-            # iterate through minibatches of PPO updates in random order
-            random_order = torch.randperm(len(self.traj_buffer))
-            for i in range(0, len(self.traj_buffer), self.ppo_batch_size):
-                idx = random_order[i : i + self.ppo_batch_size]
-                # get the losses for the sampled trajectories
-                ppo_loss = []
-                value_net_loss = []
-                for i in idx:
-                    traj_losses = self._trajectory_to_losses(self.traj_buffer[i])
-                    ppo_loss.append(traj_losses["ppo_loss"])
-                    if self.value_net_optimizer is not None:
-                        value_net_loss.append(traj_losses["value_net_loss"])
-                self.optimizer.zero_grad()
-                ppo_loss = torch.stack(ppo_loss).mean()
-                ppo_loss.backward()
-                self.optimizer.step()
-                if self.value_net_optimizer is not None:
-                    self.value_net_optimizer.zero_grad()
-                    value_net_loss = torch.stack(value_net_loss).mean()
-                    value_net_loss.backward()
-                    self.value_net_optimizer.step()
-        self.traj_buffer = []  # empty the buffer
-
-    def train(self, training_batch: rlt.PolicyGradientInput) -> None:
-        self.traj_buffer.append(training_batch)
-        self.step += 1
-        if self.step % self.update_freq == 0:
-            self.update_model()
 
     def _trajectory_to_losses(
         self, trajectory: rlt.PolicyGradientInput
@@ -144,7 +96,7 @@ class PPOTrainer(Trainer):
                     "Can't apply a baseline and normalize rewards simultaneously"
                 )
             # subtract learned value function baselines from rewards
-            baselines = self.value_net(trajectory.state).squeeze()
+            baselines = self.value_net(trajectory.state).squeeze()  # pyre-ignore
             # use reward-to-go as label for training the value function
             losses["value_net_loss"] = self.value_loss_fn(
                 baselines, offset_reinforcement
@@ -172,8 +124,30 @@ class PPOTrainer(Trainer):
             losses["ppo_loss"] = losses["ppo_loss"] - self.entropy_weight * entropy
         return losses
 
-    def warm_start_components(self) -> List[str]:
-        """
-        The trainer should specify what members to save and load
-        """
-        return ["scorer", "policy"]
+    def configure_optimizers(self) -> List[Optimizer]:
+        optimizers = []
+        # value net optimizer
+        if self.value_net is not None:
+            optimizers.append(
+                self.optimizer_value_net.make_optimizer(self.value_net.parameters())  # pyre-ignore
+            )
+        # policy optimizer
+        optimizers.append(self.optimizer.make_optimizer(self.scorer.parameters()))
+        return optimizers
+
+    def train_step_gen(
+        self, training_batch: List[rlt.PolicyGradientInput], batch_idx: int
+    ):
+        losses = {
+            "ppo_loss": [],
+            "value_net_loss": [],
+        }
+        for traj in training_batch:
+            loss = self._trajectory_to_losses(traj)
+            for k, v in loss.items():
+                losses[k].append(v)
+        if self.value_net is not None:
+            # TD loss for the baseline value network
+            yield torch.stack(losses["value_net_loss"]).sum()
+        # PPO "loss" for the policy network
+        yield torch.stack(losses["ppo_loss"]).sum()

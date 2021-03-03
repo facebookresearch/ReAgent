@@ -4,7 +4,7 @@ import logging
 import os
 import pprint
 import unittest
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import numpy as np
 import pytest
@@ -13,12 +13,13 @@ import torch
 from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_episode import train_post_episode
-from reagent.gym.agents.post_step import train_with_replay_buffer_post_step
-from reagent.gym.datasets.episodic_dataset import EpisodicDataset
+from reagent.gym.datasets.episodic_dataset import (
+    EpisodicDataset,
+    EpisodicDatasetDataloader,
+)
 from reagent.gym.datasets.replay_buffer_dataset import ReplayBufferDataset
-from reagent.gym.envs import Env__Union, ToyVM
+from reagent.gym.envs import Env__Union
 from reagent.gym.envs.env_wrapper import EnvWrapper
-from reagent.gym.envs.gym import Gym
 from reagent.gym.policies.policy import Policy
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes, run_episode
 from reagent.gym.types import PostEpisode, PostStep
@@ -76,7 +77,11 @@ ONLINE_EPISODE_GYM_TESTS = [
     (
         "REINFORCE Cartpole online",
         "configs/cartpole/discrete_reinforce_cartpole_online.yaml",
-    )
+    ),
+    (
+        "PPO Cartpole online",
+        "configs/cartpole/discrete_ppo_cartpole_online.yaml",
+    ),
 ]
 
 
@@ -280,6 +285,7 @@ def run_test_online_episode(
     passing_score_bar: float,
     num_eval_episodes: int,
     use_gpu: bool,
+    dataloader_kwargs: Optional[Dict[str, Any]] = None,
 ):
     """
     Run an online learning test. At the end of each episode training is run on the trajectory.
@@ -305,6 +311,9 @@ def run_test_online_episode(
 
     agent = Agent.create_for_env(env, policy, device=device)
 
+    if dataloader_kwargs is None:
+        dataloader_kwargs = {}
+
     # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
     if isinstance(trainer, pl.LightningModule):
         # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
@@ -312,7 +321,8 @@ def run_test_online_episode(
         dataset = EpisodicDataset(
             env=env, agent=agent, num_episodes=num_train_episodes, seed=SEED
         )
-        pl_trainer.fit(trainer, dataset)
+        dataloader = EpisodicDatasetDataloader(dataset=dataset, **dataloader_kwargs)
+        pl_trainer.fit(trainer, dataloader)
     else:
         post_episode_callback = train_post_episode(env, trainer, use_gpu)
         _ = train_policy(

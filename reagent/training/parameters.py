@@ -9,6 +9,7 @@ from .discrete_crr_trainer import DiscreteCRRTrainer
 from .dqn_trainer import DQNTrainer
 from .parametric_dqn_trainer import ParametricDQNTrainer
 from .ppo_trainer import PPOTrainer
+from .ppo_trainer import PPOTrainer
 from .qrdqn_trainer import QRDQNTrainer
 from .ranking.seq2slate_trainer import Seq2SlateTrainer
 from .reinforce_trainer import ReinforceTrainer
@@ -152,8 +153,6 @@ class ReinforceTrainerParameters:
     PPOTrainer.__init__,
     blacklist=[
         "policy",
-        "optimizer",
-        "optimizer_value_net",
         "value_net",
     ],
 )
