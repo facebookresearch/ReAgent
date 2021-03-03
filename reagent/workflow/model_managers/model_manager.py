@@ -6,11 +6,10 @@ from typing import Dict, List, Optional, Tuple
 
 import pytorch_lightning as pl
 import torch
-from fvcore.common.file_io import PathManager
 from reagent.core.dataclasses import dataclass
 from reagent.core.registry_meta import RegistryMeta
 from reagent.parameters import NormalizationData
-from reagent.training import ReAgentLightningModule, Trainer
+from reagent.training import Trainer
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.types import (
     Dataset,
@@ -33,6 +32,17 @@ class ModelManager(metaclass=RegistryMeta):
     Each type of models can have their own config type, implemented as
     `config_type()` class method. `__init__()` of the concrete class must take
     this type.
+
+    To integrate training algorithms into the standard training workflow, you need:
+    1. `build_trainer()`: Builds the ReAgentLightningModule
+    2. `get_data_module()`: Defines how to create data module for this algorithm
+    3. `build_serving_modules()`: Creates the TorchScript modules for serving
+    4. `get_reporter()`: Returns the reporter to collect training/evaluation metrics
+    5. `create_policy()`: (Optional) Creates Policy object for to interact with Gym
+
+
+    DEPRECATED: The comment below is outdated. We keep it for the context while
+    migrating.
 
     ModelManager abstracts over common phases of training, i.e.,:
     1. `run_feature_identification()` defines how to derive feature preprocessing
@@ -151,6 +161,14 @@ class ModelManager(metaclass=RegistryMeta):
 
     @property
     def trainer(self) -> Trainer:
+        """
+        DEPRECATED: The build_trainer() function should also return
+        a dictionary of created networks so that other functions can
+        refer to them.
+
+        Get access to the training module. This is mostly used to extract networks
+        in build_serving_modules() & create_policy().
+        """
         assert self._trainer is not None, "Call initialize_trainer() first"
         return self._trainer
 
@@ -162,6 +180,10 @@ class ModelManager(metaclass=RegistryMeta):
         warmstart_path: Optional[str] = None,
     ) -> Trainer:
         """
+        DEPRECATED: This should be baked into the train() function.
+        `normalization_data_map` is used in build_serving_modules().
+        We can pass it there directly.
+
         Initialize the trainer. Subclass should not override this. Instead,
         subclass should implement `required_normalization_keys()` and
         `build_trainer()`.
@@ -205,6 +227,9 @@ class ModelManager(metaclass=RegistryMeta):
     def build_trainer(self) -> Trainer:
         """
         Implement this to build the trainer, given the config
+
+        TODO: This function should return ReAgentLightningModule &
+        the dictionary of modules created
         """
         pass
 
@@ -237,6 +262,8 @@ class ModelManager(metaclass=RegistryMeta):
         pass
 
     # TODO: make abstract
+    # TODO: This function should take normalization_data_map &
+    # dictionary of modules created in `build_trainer()`
     def build_serving_modules(self) -> Dict[str, torch.nn.Module]:
         """
         Returns TorchScript for serving in production
@@ -251,25 +278,3 @@ class ModelManager(metaclass=RegistryMeta):
         these serving modules before we start the training.
         """
         return ["default_model"]
-
-    def save_trainer(self, output_path: str) -> None:
-        """
-        Save the trainer for warmstarting/checkpointing.
-        """
-        lightning_trainer = self._lightning_trainer
-        if lightning_trainer:
-            trainer = self.trainer
-            assert isinstance(trainer, ReAgentLightningModule)
-            trainer._cleanly_stopped[0] = True
-            # HACK: since lightning_trainer.save_checkpoint can only deal with
-            # local file paths (not even file handlers), we save to local file
-            # first, and then use PathManager
-            local_path = "/tmp/lightning_save_checkpoint_local_copy"
-            lightning_trainer.save_checkpoint(local_path)
-            with open(local_path, "rb") as local_f:
-                checkpoint_contents = local_f.read()
-            with PathManager.open(output_path, "wb") as output_f:
-                output_f.write(checkpoint_contents)
-        else:
-            trainer_state = self.trainer.state_dict()
-            torch.save(trainer_state, output_path)
