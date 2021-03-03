@@ -222,6 +222,14 @@ class ManualDataModule(ReAgentDataModule):
         return self.get_dataloader(self._train_dataset)
 
     def test_dataloader(self):
+        # TODO: we currently use the same data for test and validation.
+        # We should have three different splits of the total data
+        return self._get_eval_dataset()
+
+    def val_dataloader(self):
+        return self._get_eval_dataset()
+
+    def _get_eval_dataset(self):
         test_dataset = getattr(self, "_eval_dataset", None)
         if not test_dataset:
             return None
