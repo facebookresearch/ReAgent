@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+from typing import List
 
 import gym
 import numpy as np
@@ -10,6 +11,7 @@ from reagent.core.dataclasses import dataclass
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.envs.wrappers.recsim import ValueWrapper
 from reagent.gym.preprocessors.default_preprocessors import RecsimObsPreprocessor
+from reagent.gym.types import MetricExtractor, Trajectory, Transition
 from recsim import choice_model, utils
 from recsim.environments import interest_evolution, interest_exploration
 from recsim.simulator import environment, recsim_gym
@@ -83,6 +85,62 @@ class RecSim(EnvWrapper):
         state, r, t, i = self.env.step(action)
         state["user"] = np.copy(state["user"])
         return state, r, t, i
+
+    def get_metric_extractor(self):
+        return RecSimMetricExtractor(self)
+
+
+class RecSimMetricExtractor(MetricExtractor):
+    def __init__(self, env: RecSim):
+        super().__init__()
+        obs_space = env.observation_space
+        assert isinstance(obs_space, gym.spaces.Dict)
+
+        # RecSim envs should have "response" key, and it should be dict
+        response_space = obs_space["response"][0]
+        assert isinstance(response_space, gym.spaces.Dict)
+        self._discrete_metrics = []
+        self._box_metrics = []
+        for k, v in response_space.spaces.items():
+            if isinstance(v, gym.spaces.Discrete):
+                self._discrete_metrics.append(k)
+            elif isinstance(v, gym.spaces.Box):
+                if not (len(v.shape) == 0 or (len(v.shape) == 1 and v.shape[0] == 1)):
+                    raise NotImplementedError(
+                        f"Expecting scalar values here; got shape {v.shape}"
+                    )
+                self._box_metrics.append(k)
+            else:
+                raise NotImplementedError
+
+        self._metric_names = self._discrete_metrics + self._box_metrics
+
+    @property
+    def metric_names(self) -> List[str]:
+        return self._metric_names
+
+    def __call__(self, trajectory: Trajectory) -> np.ndarray:
+        transition_metrics = np.stack(
+            [
+                self._get_metric_from_transition(transition)
+                for transition in trajectory.transitions
+            ]
+        )
+        return np.sum(transition_metrics, axis=0)
+
+    def _get_metric_from_transition(self, transition: Transition) -> np.ndarray:
+        obs = transition.observation
+        # Response is a list of item responses or None (the first observation doesn't return response)
+        response = obs["response"] or []
+        metrics = np.zeros(len(self._metric_names))
+
+        for item_response in response:
+            for i, k in enumerate(self._discrete_metrics):
+                metrics[i] += item_response[k]
+            for i, k in enumerate(self._box_metrics):
+                metrics[len(self._discrete_metrics) + i] += item_response[k]
+
+        return metrics
 
 
 class MulticlickIEvUserModel(interest_evolution.IEvUserModel):

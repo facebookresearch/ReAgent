@@ -3,7 +3,7 @@
 
 import logging
 import pickle
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Tuple
 
 import numpy as np
 import torch.multiprocessing as mp
@@ -13,7 +13,7 @@ from reagent.core.multiprocess_utils import (
 )
 from reagent.gym.agents.agent import Agent
 from reagent.gym.envs import EnvWrapper
-from reagent.gym.types import Trajectory, Transition
+from reagent.gym.types import Trajectory, Transition, EvaluationResults
 from reagent.tensorboardX import SummaryWriterContext
 
 
@@ -68,12 +68,14 @@ def evaluate_for_n_episodes(
     max_steps: Optional[int] = None,
     gammas: Sequence[float] = (1.0,),
     num_processes: int = 4,
-) -> np.ndarray:
+) -> EvaluationResults:
     """Return an np array A of shape n x len(gammas)
     where A[i, j] = ith episode evaluated with gamma=gammas[j].
     Runs environments on num_processes, via multiprocessing.Pool.
     """
     num_processes = min(num_processes, n)
+
+    metric_extractor = env.get_metric_extractor()
 
     def evaluate_one_episode(
         mdp_id: int,
@@ -81,20 +83,26 @@ def evaluate_for_n_episodes(
         agent: Agent,
         max_steps: Optional[int],
         gammas: Sequence[float],
-    ) -> np.ndarray:
+    ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
         rewards = np.empty((len(gammas),))
         trajectory = run_episode(
             env=env, agent=agent, mdp_id=mdp_id, max_steps=max_steps
         )
         for i_gamma, gamma in enumerate(gammas):
             rewards[i_gamma] = trajectory.calculate_cumulative_reward(gamma)
-        return rewards
 
-    rewards = None
+        metrics = None
+
+        if metric_extractor is not None:
+            metrics = metric_extractor(trajectory)
+
+        return rewards, metrics
+
+    eval_results = None
     if num_processes > 1:
         try:
             with mp.Pool(num_processes) as pool:
-                rewards = unwrap_function_outputs(
+                eval_results = unwrap_function_outputs(
                     pool.map(
                         wrap_function_arguments(
                             evaluate_one_episode,
@@ -116,20 +124,33 @@ def evaluate_for_n_episodes(
             )
 
     # if we didn't run multiprocessing, or it failed, try single-processing instead.
-    if rewards is None:
-        rewards = []
+    if eval_results is None:
+        eval_results = []
         for i in range(n):
-            rewards.append(
+            eval_results.append(
                 evaluate_one_episode(
                     mdp_id=i, env=env, agent=agent, max_steps=max_steps, gammas=gammas
                 )
             )
 
-    rewards = np.array(rewards)
+    rewards = np.array([r[0] for r in eval_results])
     for i, gamma in enumerate(gammas):
         gamma_rewards = rewards[:, i]
         logger.info(
             f"For gamma={gamma}, average reward is {gamma_rewards.mean()}\n"
             f"Rewards list: {gamma_rewards}"
         )
-    return rewards
+
+    metrics = None
+    metric_names = None
+    if metric_extractor is not None:
+        metrics = np.stack([r[1] for r in eval_results])
+        metric_names = metric_extractor.metric_names
+
+        logger.info(
+            f"Metric names: {metric_names}; avg: {np.mean(metrics, axis=0)} stddev: {np.std(metrics, axis=0)}"
+        )
+
+    return EvaluationResults(
+        rewards=rewards, metrics=metrics, metric_names=metric_names
+    )

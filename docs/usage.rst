@@ -284,7 +284,7 @@ which performs the following pseudo-code
     # run Agent on environment, and record rewards
     rewards = evaluate_for_n_episodes(
         n=num_eval_episodes, env=env, agent=agent, max_steps=max_steps
-    )
+    ).rewards
 
 
 Even on completely random data, DQN can learn a policy that obtains scores close to the maximum possible score of 200!

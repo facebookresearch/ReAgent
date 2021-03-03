@@ -174,13 +174,14 @@ def eval_policy(
         else Agent.create_for_env(env, serving_policy)
     )
 
-    eval_rewards = evaluate_for_n_episodes(
+    eval_results = evaluate_for_n_episodes(
         n=num_eval_episodes,
         env=env,
         agent=agent,
         max_steps=env.max_steps,
         num_processes=1,
-    ).squeeze(1)
+    )
+    eval_rewards = eval_results.rewards.squeeze(1)
 
     logger.info("============Eval rewards==============")
     logger.info(eval_rewards)

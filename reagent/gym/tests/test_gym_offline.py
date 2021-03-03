@@ -80,7 +80,7 @@ def evaluate_cem(env, manager, num_eval_episodes: int):
     agent = Agent.create_for_env(env, policy)
     return evaluate_for_n_episodes(
         n=num_eval_episodes, env=env, agent=agent, max_steps=env.max_steps
-    )
+    ).rewards
 
 
 def run_test_offline(

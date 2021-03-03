@@ -12,6 +12,7 @@ import torch
 from gym import spaces
 from reagent.core.dataclasses import dataclass
 from reagent.core.registry_meta import RegistryMeta
+from reagent.gym.types import MetricExtractor
 from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 from reagent.training.utils import rescale_actions
 
@@ -139,3 +140,10 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
     @property
     def possible_actions_mask(self) -> Optional[np.ndarray]:
         return getattr(self.env, "possible_actions_mask", None)
+
+    def get_metric_extractor(self) -> Optional[MetricExtractor]:
+        """
+        If the environment provides more scalar metrics than reward,
+        returns a function to extract those metrics from Trajectory
+        """
+        return None

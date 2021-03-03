@@ -114,7 +114,7 @@ def evaluate_gym(
     agent = Agent.create_for_env_with_serving_policy(env, policy)
     rewards = evaluate_for_n_episodes(
         n=num_eval_episodes, env=env, agent=agent, max_steps=max_steps
-    )
+    ).rewards
     avg_reward = np.mean(rewards)
     logger.info(
         f"Average reward over {num_eval_episodes} is {avg_reward}.\n"

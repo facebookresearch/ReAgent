@@ -3,7 +3,6 @@
 
 import unittest
 
-import gym
 import numpy.testing as npt
 import torch
 import torch.nn.functional as F

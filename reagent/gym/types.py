@@ -104,6 +104,13 @@ class Trajectory(rlt.BaseDataClass):
         return d
 
 
+@dataclass
+class EvaluationResults:
+    rewards: np.ndarray
+    metrics: Optional[np.ndarray] = None
+    metric_names: Optional[List[str]] = None
+
+
 class Sampler(ABC):
     """Given scores, select the action."""
 
@@ -143,3 +150,24 @@ PostEpisode = Callable[[Trajectory], None]
 class GaussianSamplerScore(rlt.BaseDataClass):
     loc: torch.Tensor
     scale_log: torch.Tensor
+
+
+class MetricExtractor(ABC):
+    """
+    A callable that extract metrics from Trajectory
+    """
+
+    @property
+    @abstractmethod
+    def metric_names(self) -> List[str]:
+        """
+        The names of the metrics extracted by this callable
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def __call__(self, trajectory: Trajectory) -> np.ndarray:
+        """
+        The return value should be 1-D array with the same length as metric_names
+        """
+        raise NotImplementedError
