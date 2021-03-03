@@ -37,8 +37,15 @@ class ReAgentLightningModule(pl.LightningModule):
         annotation = param.annotation
         if annotation == inspect.Parameter.empty:
             return
+        self._input_is_list = False
         if hasattr(annotation, "from_dict"):
             self._training_batch_type = annotation
+        elif (annotation._name == "List") and hasattr(
+            annotation.__args__[0], "from_dict"
+        ):
+            # support for providing a list of inputs
+            self._training_batch_type = annotation.__args__[0]
+            self._input_is_list = True
 
     def set_reporter(self, reporter):
         if reporter is None:
@@ -96,8 +103,15 @@ class ReAgentLightningModule(pl.LightningModule):
     def training_step(self, batch, batch_idx: int, optimizer_idx: int = 0):
         assert (optimizer_idx == 0) or (self._num_optimizing_steps > 1)
         if self._training_step_generator is None:
-            if self._training_batch_type and isinstance(batch, dict):
-                batch = self._training_batch_type.from_dict(batch)
+            if self._training_batch_type:
+                if self._input_is_list:
+                    # check if it's a list of dicts
+                    if (isinstance(batch, list)) and all(
+                        isinstance(x, dict) for x in batch
+                    ):
+                        batch = [self._training_batch_type.from_dict(x) for x in batch]
+                elif isinstance(batch, dict):
+                    batch = self._training_batch_type.from_dict(batch)
             self._training_step_generator = self.train_step_gen(batch, batch_idx)
 
         ret = next(self._training_step_generator)
