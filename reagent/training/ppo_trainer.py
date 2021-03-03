@@ -26,7 +26,6 @@ class PPOTrainer(ReAgentLightningModule):
     - KL divergence
     - Bootstrapping with a critic model (our approach only works if full trajectories up to terminal state are fed in)
     Optionally, a value network can be trained and used as a baseline for rewards.
-    Note that update frequency, number of epochs and batch size have to be specified in EpisodicDatasetDataloader
     """
 
     @resolve_defaults
@@ -45,11 +44,15 @@ class PPOTrainer(ReAgentLightningModule):
         normalize: bool = True,
         subtract_mean: bool = True,
         offset_clamp_min: bool = False,
+        update_freq: int = 1,  # how many env steps between updates
+        update_epochs: int = 1,  # how many epochs to run when updating (for PPO)
+        ppo_batch_size: int = 1,  # batch size (number of trajectories) used for PPO updates
         ppo_epsilon: float = 0.2,  # clamp importance weights between 1-epsilon and 1+epsilon
         entropy_weight: float = 0.0,  # weight of the entropy term in the PPO loss
         value_net: Optional[ModelBase] = None,
     ):
-        super().__init__()
+        # PPO relies on customized update schemas, achieved by manual_backward()
+        super().__init__(automatic_optimization=False)
         self.scorer = policy.scorer
         self.sampler = policy.sampler
         self.gamma = gamma
@@ -59,6 +62,9 @@ class PPOTrainer(ReAgentLightningModule):
         self.normalize = normalize
         self.subtract_mean = subtract_mean
         self.offset_clamp_min = offset_clamp_min
+        self.update_freq = update_freq
+        self.update_epochs = update_epochs
+        self.ppo_batch_size = ppo_batch_size
         self.ppo_epsilon = ppo_epsilon
         self.entropy_weight = entropy_weight
 
@@ -69,6 +75,9 @@ class PPOTrainer(ReAgentLightningModule):
         assert (ppo_epsilon >= 0) and (
             ppo_epsilon <= 1
         ), "ppo_epslion has to be in [0;1]"
+
+        self.traj_buffer = []
+        self.step = 0
 
     def _trajectory_to_losses(
         self, trajectory: rlt.PolicyGradientInput
@@ -129,25 +138,64 @@ class PPOTrainer(ReAgentLightningModule):
         # value net optimizer
         if self.value_net is not None:
             optimizers.append(
-                self.optimizer_value_net.make_optimizer(self.value_net.parameters())  # pyre-ignore
+                self.optimizer_value_net.make_optimizer(
+                    self.value_net.parameters()  # pyre-ignore
+                )
             )
         # policy optimizer
         optimizers.append(self.optimizer.make_optimizer(self.scorer.parameters()))
         return optimizers
 
-    def train_step_gen(
-        self, training_batch: List[rlt.PolicyGradientInput], batch_idx: int
-    ):
+    def get_optimizers(self):
+        opts = self.optimizers()
+        if self.value_net is not None:
+            return opts[0], opts[1]
+        return None, opts[0]
+
+    def placeholder_loss(self):
+        """ PPO Trainer performs manual updates. Return placeholder losses to Pytorch Lightning. """
+        return [None] * len(self.optimizers())
+
+    def train_step_gen(self, training_batch: rlt.PolicyGradientInput, batch_idx: int):
+        self.traj_buffer.append(training_batch)
+        self.step += 1
+        if self.step % self.update_freq == 0:
+            self.update_model()
+        yield from self.placeholder_loss()
+
+    def update_model(self):
+        assert len(self.traj_buffer) == self.update_freq
+        for _ in range(self.update_epochs):
+            # iterate through minibatches of PPO updates in random order
+            random_order = torch.randperm(len(self.traj_buffer))
+            for i in range(0, len(self.traj_buffer), self.ppo_batch_size):
+                idx = random_order[i : i + self.ppo_batch_size]
+                training_batch_list = [self.traj_buffer[i] for i in idx]
+                self._update_model(training_batch_list)
+
+        self.traj_buffer = []  # empty the buffer
+
+    def _update_model(self, training_batch_list: List[rlt.PolicyGradientInput]):
         losses = {
             "ppo_loss": [],
             "value_net_loss": [],
         }
-        for traj in training_batch:
+        value_net_opt, ppo_opt = self.get_optimizers()
+
+        for traj in training_batch_list:
             loss = self._trajectory_to_losses(traj)
             for k, v in loss.items():
                 losses[k].append(v)
+
         if self.value_net is not None:
             # TD loss for the baseline value network
-            yield torch.stack(losses["value_net_loss"]).sum()
+            value_net_loss = torch.stack(losses["value_net_loss"]).sum()
+            value_net_opt.zero_grad()
+            self.manual_backward(value_net_loss, value_net_opt)
+            value_net_opt.step()
+
         # PPO "loss" for the policy network
-        yield torch.stack(losses["ppo_loss"]).sum()
+        ppo_loss = torch.stack(losses["ppo_loss"]).sum()
+        ppo_opt.zero_grad()
+        self.manual_backward(ppo_loss, ppo_opt)
+        ppo_opt.step()
