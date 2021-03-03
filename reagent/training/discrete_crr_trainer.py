@@ -228,16 +228,27 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
             yield q2_loss
 
         all_q_values = self.q1_network(state)  # Q-values of all actions
-        all_action_scores = all_q_values.detach()
+
+        # Note: action_dim (the length of each row of the actor_action
+        # matrix obtained below) is assumed to be > 1.
+        actor_actions = self.actor_network(state).action
+
+        # Note: while in discrete_dqn_trainer.py we do all_action_scores = all_q_values.detach(),
+        # here we only need to do
+        all_action_scores = actor_actions
+        # because a softmax over these scores will be taken in _calculate_cpes(),
+        # while dist computed below is also a softmax distribution.
 
         # Only update actor and target networks after a fixed number of Q updates
         if batch_idx % self.delayed_policy_update == 0:
-            # Note: action_dim (the length of each row of the actor_action
-            # matrix obtained below) is assumed to be > 1.
-            actor_actions = self.actor_network(state).action
+
             # dist is the distribution of actions derived from the actor's outputs (logits)
             dist = pyd.Categorical(logits=actor_actions)
 
+            # Note: D = dist.probs is equivalent to:
+            # e_x = torch.exp(actor_actions)
+            # D = e_x / e_x.sum(dim=1, keepdim=True)
+            # That is, dist gives a softmax distribution over actor's outputs
             values = (all_q_values * dist.probs).sum(dim=1, keepdim=True)
 
             advantages = all_q_values - values

@@ -228,6 +228,7 @@ class DoublyRobustEstimator:
         importance_weights = (
             target_propensity_for_action / ed.logged_propensities_eval
         ).float()
+        logger.info(f"Mean IPS weight on the eval dataset: {importance_weights.mean()}")
         return ImportanceSamplingData(
             importance_weight=importance_weights,
             logged_rewards=ed.logged_rewards_eval,
