@@ -11,20 +11,21 @@ model:
       ppo_epsilon: 0.2
       optimizer:
         Adam:
-          lr: 0.008
+          lr: 0.01
           weight_decay: 0.001
+      update_freq: 2
+      update_epochs: 1
+      ppo_batch_size: 2
     policy_net_builder:
       FullyConnected:
         sizes:
-        - 8
+          - 32
+          - 32
         activations:
-        - linear
+          - relu
+          - relu
     sampler_temperature: 1.0
-num_train_episodes: 75
+num_train_episodes: 400
 num_eval_episodes: 100
 passing_score_bar: 180.0
 use_gpu: false
-dataloader_kwargs:
-  num_episodes_between_updates: 1
-  batch_size: 1
-  num_epochs: 2
