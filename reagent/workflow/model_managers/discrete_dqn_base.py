@@ -161,7 +161,7 @@ class DiscreteDQNBase(ModelManager):
         self.trainer.set_reporter(reporter)
         assert data_module
 
-        train_eval_lightning(
+        self._lightning_trainer = train_eval_lightning(
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
             trainer_module=self.trainer,
