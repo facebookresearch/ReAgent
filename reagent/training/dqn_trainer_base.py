@@ -6,6 +6,7 @@ from typing import List, Optional
 
 import torch
 import torch.nn.functional as F
+from pytorch_lightning.utilities import rank_zero_only
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.evaluation.evaluator import Evaluator
 from reagent.optimizer import Optimizer__Union
@@ -13,7 +14,6 @@ from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.torch_utils import masked_softmax
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.rl_trainer_pytorch import RLTrainerMixin
-
 
 logger = logging.getLogger(__name__)
 
@@ -262,12 +262,6 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
 
         yield metric_q_value_loss
 
-    def test_step(self, batch, batch_idx):
-        # HACK: Move to cpu in order to hold more batches in memory
-        # This is only needed when trainers need to evaluate on
-        # the full evaluation dataset in memory
-        return batch.cpu()
-
     def gather_eval_data(self, test_step_outputs):
         was_on_gpu = self.on_gpu
         self.cpu()
@@ -286,8 +280,16 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
             self.cuda()
         return eval_data
 
-    def test_epoch_end(self, test_step_outputs):
-        eval_data = self.gather_eval_data(test_step_outputs)
+    @rank_zero_only
+    def validation_step(self, batch, batch_idx):
+        # HACK: Move to cpu in order to hold more batches in memory
+        # This is only needed when trainers need to evaluate on
+        # the full evaluation dataset in memory
+        return batch.cpu()
+
+    @rank_zero_only
+    def validation_epoch_end(self, valid_step_outputs):
+        eval_data = self.gather_eval_data(valid_step_outputs)
         if eval_data and eval_data.mdp_id is not None:
             cpe_details = self.evaluator.evaluate_post_training(eval_data)
             self.reporter.log(cpe_details=cpe_details)
