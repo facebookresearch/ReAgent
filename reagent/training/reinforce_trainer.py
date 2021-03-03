@@ -68,41 +68,51 @@ class ReinforceTrainer(ReAgentLightningModule):
         optimizers.append(self.optimizer.make_optimizer(self.scorer.parameters()))
         return optimizers
 
-    def train_step_gen(self, training_batch: rlt.PolicyGradientInput, batch_idx: int):
-        actions = training_batch.action
-        rewards = training_batch.reward
-        if training_batch.possible_actions_mask is not None:
-            scores = self.scorer(
-                training_batch.state, training_batch.possible_actions_mask
+    def train_step_gen(
+        self, training_batch: List[rlt.PolicyGradientInput], batch_idx: int
+    ):
+        pg_losses = []
+        value_net_losses = []
+        for traj in training_batch:
+            actions = traj.action
+            rewards = traj.reward
+            if traj.possible_actions_mask is not None:
+                scores = self.scorer(traj.state, traj.possible_actions_mask)
+            else:
+                scores = self.scorer(traj.state)
+            characteristic_eligibility = self.sampler.log_prob(scores, actions).float()
+            offset_reinforcement = discounted_returns(
+                torch.clamp(rewards, max=self.reward_clip).clone(), self.gamma
             )
-        else:
-            scores = self.scorer(training_batch.state)
-        characteristic_eligibility = self.sampler.log_prob(scores, actions).float()
-        offset_reinforcement = discounted_returns(
-            torch.clamp(rewards, max=self.reward_clip).clone(), self.gamma
-        )
-        if self.normalize:
-            offset_reinforcement = whiten(
-                offset_reinforcement, subtract_mean=self.subtract_mean
-            )
-        if self.offset_clamp_min:
-            offset_reinforcement = offset_reinforcement.clamp(min=0)  # pyre-ignore
-        if self.value_net is not None:
             if self.normalize:
-                raise RuntimeError(
-                    "Can't apply a baseline and normalize rewards simultaneously"
+                offset_reinforcement = whiten(
+                    offset_reinforcement, subtract_mean=self.subtract_mean
                 )
-            baselines = self.value_net(training_batch.state).squeeze()
-            yield self.value_loss_fn(baselines, offset_reinforcement)
-            # subtract learned value function baselines from rewards
-            offset_reinforcement = offset_reinforcement - baselines
+            if self.offset_clamp_min:
+                offset_reinforcement = offset_reinforcement.clamp(min=0)  # pyre-ignore
+            if self.value_net is not None:
+                if self.normalize:
+                    raise RuntimeError(
+                        "Can't apply a baseline and normalize rewards simultaneously"
+                    )
+                baselines = self.value_net(traj.state).squeeze()
+                value_net_losses.append(
+                    self.value_loss_fn(baselines, offset_reinforcement)
+                )
+                # subtract learned value function baselines from rewards
+                offset_reinforcement = offset_reinforcement - baselines
 
-        if self.off_policy:
-            target_propensity = self.sampler.log_prob(scores, actions).float()
-            characteristic_eligibility = torch.exp(
-                torch.clamp(
-                    target_propensity - training_batch.log_prob,
-                    max=math.log(float(self.clip_param)),
-                )
-            ).float()
-        yield -(offset_reinforcement.float()) @ characteristic_eligibility  # PG "loss"
+            if self.off_policy:
+                target_propensity = self.sampler.log_prob(scores, actions).float()
+                characteristic_eligibility = torch.exp(
+                    torch.clamp(
+                        target_propensity - traj.log_prob,
+                        max=math.log(float(self.clip_param)),
+                    )
+                ).float()
+            pg_losses.append(
+                -(offset_reinforcement.float()) @ characteristic_eligibility
+            )  # PG "loss"
+        if self.value_net is not None:
+            yield torch.stack(value_net_losses).sum()
+        yield torch.stack(pg_losses).sum()
