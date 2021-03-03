@@ -2,15 +2,19 @@
 
 import dataclasses
 import logging
+import time
 from typing import Dict, NamedTuple, Optional, Tuple
 
 import torch
 from reagent.parameters import NormalizationData
 from reagent.publishers.union import ModelPublisher__Union
+from reagent.tensorboardX import summary_writer_context
 from reagent.validators.union import ModelValidator__Union
 from reagent.workflow.env import get_new_named_entity_ids, get_workflow_id
+from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import (
+    Dataset,
     ModuleNameToEntityId,
     ReaderOptions,
     RecurringPeriod,
@@ -19,6 +23,7 @@ from reagent.workflow.types import (
     RLTrainingOutput,
     TableSpec,
 )
+from torch.utils.tensorboard import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
@@ -189,7 +194,9 @@ def query_and_train(
             )
 
     logger.info("Starting training")
-    results = manager.train_workflow(
+
+    results = train_workflow(
+        manager,
         train_dataset,
         eval_dataset,
         num_epochs=num_epochs,
@@ -218,6 +225,76 @@ def query_and_train(
         )
 
     return results
+
+
+def train_workflow(
+    model_manager: ModelManager,
+    train_dataset: Optional[Dataset],
+    eval_dataset: Optional[Dataset],
+    *,
+    num_epochs: int,
+    use_gpu: bool,
+    named_model_ids: ModuleNameToEntityId,
+    child_workflow_id: int,
+    setup_data: Optional[Dict[str, bytes]] = None,
+    normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
+    reward_options: Optional[RewardOptions] = None,
+    reader_options: Optional[ReaderOptions] = None,
+    resource_options: Optional[ResourceOptions] = None,
+    warmstart_path: Optional[str] = None,
+) -> RLTrainingOutput:
+    writer = SummaryWriter()
+    logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
+
+    if setup_data is not None:
+        data_module = model_manager.get_data_module(
+            setup_data=setup_data, reader_options=reader_options
+        )
+        assert data_module is not None
+        data_module.setup()
+    else:
+        data_module = None
+
+    if normalization_data_map is None:
+        assert data_module is not None
+        normalization_data_map = data_module.get_normalization_data_map(
+            model_manager.required_normalization_keys
+        )
+
+    warmstart_input_path = warmstart_path or None
+    model_manager.initialize_trainer(
+        use_gpu=use_gpu,
+        # pyre-fixme[6]: Expected `RewardOptions` for 2nd param but got
+        #  `Optional[RewardOptions]`.
+        reward_options=reward_options,
+        normalization_data_map=normalization_data_map,
+        warmstart_path=warmstart_input_path,
+    )
+
+    if not reader_options:
+        reader_options = ReaderOptions()
+
+    if not resource_options:
+        resource_options = ResourceOptions()
+
+    with summary_writer_context(writer):
+        train_output = model_manager.train(
+            train_dataset,
+            eval_dataset,
+            data_module,
+            num_epochs,
+            reader_options,
+            resource_options,
+        )
+
+    output_paths = {}
+    for module_name, serving_module in model_manager.build_serving_modules().items():
+        # TODO: make this a parameter
+        torchscript_output_path = f"model_{round(time.time())}.torchscript"
+        torch.jit.save(serving_module, torchscript_output_path)
+        logger.info(f"Saved {module_name} to {torchscript_output_path}")
+        output_paths[module_name] = torchscript_output_path
+    return dataclasses.replace(train_output, output_paths=output_paths)
 
 
 def run_validator(
