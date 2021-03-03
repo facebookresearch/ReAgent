@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 import abc
-import dataclasses
 import logging
-import time
 from typing import Dict, List, Optional, Tuple
 
 import pytorch_lightning as pl
@@ -12,19 +10,16 @@ from fvcore.common.file_io import PathManager
 from reagent.core.dataclasses import dataclass
 from reagent.core.registry_meta import RegistryMeta
 from reagent.parameters import NormalizationData
-from reagent.tensorboardX import summary_writer_context
 from reagent.training import ReAgentLightningModule, Trainer
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.types import (
     Dataset,
-    ModuleNameToEntityId,
     ReaderOptions,
     ResourceOptions,
     RewardOptions,
     RLTrainingOutput,
     TableSpec,
 )
-from torch.utils.tensorboard import SummaryWriter
 
 
 logger = logging.getLogger(__name__)
@@ -85,8 +80,10 @@ class ModelManager(metaclass=RegistryMeta):
         saved_setup_data: Optional[Dict[str, bytes]] = None,
         reader_options: Optional[ReaderOptions] = None,
     ) -> Optional[ReAgentDataModule]:
-        # Return the data module. If this is not None, then `run_feature_identification` &
-        # `query_data` will not be run.
+        """
+        Return the data module. If this is not None, then `run_feature_identification` &
+        `query_data` will not be run.
+        """
         return None
 
     @abc.abstractmethod
@@ -94,6 +91,8 @@ class ModelManager(metaclass=RegistryMeta):
         self, input_table_spec: TableSpec
     ) -> Dict[str, NormalizationData]:
         """
+        DEPRECATED: Implement get_data_module() instead
+
         Derive preprocessing parameters from data. The keys of the dict should
         match the keys from `required_normalization_keys()`
         """
@@ -131,6 +130,9 @@ class ModelManager(metaclass=RegistryMeta):
     @property
     @abc.abstractmethod
     def should_generate_eval_dataset(self) -> bool:
+        """
+        DEPRECATED: Implement get_data_module() instead
+        """
         pass
 
     @abc.abstractmethod
@@ -141,6 +143,8 @@ class ModelManager(metaclass=RegistryMeta):
         reward_options: RewardOptions,
     ) -> Dataset:
         """
+        DEPRECATED: Implement get_data_module() instead
+
         Massage input table into the format expected by the trainer
         """
         pass
@@ -207,76 +211,6 @@ class ModelManager(metaclass=RegistryMeta):
     def destroy_trainer(self):
         self._trainer = None
 
-    def train_workflow(
-        self,
-        train_dataset: Optional[Dataset],
-        eval_dataset: Optional[Dataset],
-        *,
-        num_epochs: int,
-        use_gpu: bool,
-        named_model_ids: ModuleNameToEntityId,
-        child_workflow_id: int,
-        setup_data: Optional[Dict[str, bytes]] = None,
-        normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
-        reward_options: Optional[RewardOptions] = None,
-        reader_options: Optional[ReaderOptions] = None,
-        resource_options: Optional[ResourceOptions] = None,
-        warmstart_path: Optional[str] = None,
-    ) -> RLTrainingOutput:
-        writer = SummaryWriter()
-        logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
-
-        if setup_data is not None:
-            data_module = self.get_data_module(
-                setup_data=setup_data, reader_options=reader_options
-            )
-            assert data_module is not None
-            data_module.setup()
-        else:
-            data_module = None
-
-        if normalization_data_map is None:
-            assert data_module is not None
-            normalization_data_map = data_module.get_normalization_data_map(
-                self.required_normalization_keys
-            )
-
-        warmstart_input_path = warmstart_path or None
-        self.initialize_trainer(
-            use_gpu=use_gpu,
-            # pyre-fixme[6]: Expected `RewardOptions` for 2nd param but got
-            #  `Optional[RewardOptions]`.
-            reward_options=reward_options,
-            normalization_data_map=normalization_data_map,
-            warmstart_path=warmstart_input_path,
-        )
-
-        if not reader_options:
-            reader_options = ReaderOptions()
-
-        if not resource_options:
-            resource_options = ResourceOptions()
-
-        with summary_writer_context(writer):
-            train_output = self.train(
-                train_dataset,
-                eval_dataset,
-                data_module,
-                num_epochs,
-                reader_options,
-                resource_options,
-            )
-
-        output_paths = {}
-        for module_name, serving_module in self.build_serving_modules().items():
-            # TODO: make this a parameter
-            torchscript_output_path = f"model_{round(time.time())}.torchscript"
-            serving_module = self.build_serving_module()
-            torch.jit.save(serving_module, torchscript_output_path)
-            logger.info(f"Saved {module_name} to {torchscript_output_path}")
-            output_paths[module_name] = torchscript_output_path
-        return dataclasses.replace(train_output, output_paths=output_paths)
-
     @abc.abstractmethod
     def train(
         self,
@@ -288,6 +222,10 @@ class ModelManager(metaclass=RegistryMeta):
         resource_options: Optional[ResourceOptions],
     ) -> RLTrainingOutput:
         """
+        DEPRECATED: Delete this once every trainer is built on PyTorch Lightning &
+        every ModelManager implemnts get_data_module(). Then, we can just move the code
+        in train() of DiscreteDQNBase into the training workflow function
+
         Train the model
         Arguments:
             train/eval_dataset: what you'd expect
@@ -300,12 +238,18 @@ class ModelManager(metaclass=RegistryMeta):
 
     # TODO: make abstract
     def build_serving_modules(self) -> Dict[str, torch.nn.Module]:
-        # eventually move to this method to be more generic
+        """
+        Returns TorchScript for serving in production
+        """
         return {"default_model": self.build_serving_module()}
 
     # TODO: make abstract
     def serving_module_names(self) -> List[str]:
-        # should match sorted(self.build_serving_modules.keys())
+        """
+        Returns the keys that would be returned in `build_serving_modules()`.
+        This method is required because we need to reserve entity IDs for
+        these serving modules before we start the training.
+        """
         return ["default_model"]
 
     def save_trainer(self, output_path: str) -> None:
