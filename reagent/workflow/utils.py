@@ -115,6 +115,7 @@ def get_rank() -> int:
 def train_eval_lightning(
     train_dataset,
     eval_dataset,
+    test_dataset,
     trainer_module,
     data_module,
     num_epochs,
