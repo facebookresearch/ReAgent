@@ -70,13 +70,16 @@ class ReinforceTrainer(ReAgentLightningModule):
 
     def train_step_gen(self, training_batch: rlt.PolicyGradientInput, batch_idx: int):
         actions = training_batch.action
-        rewards = training_batch.reward
-        if training_batch.possible_actions_mask is not None:
-            scores = self.scorer(
-                training_batch.state, training_batch.possible_actions_mask
-            )
+        rewards = training_batch.reward.detach()
+        scorer_inputs = []
+        if getattr(training_batch, "graph", None) is not None:
+            # GNN
+            scorer_inputs.append(training_batch.graph)
         else:
-            scores = self.scorer(training_batch.state)
+            scorer_inputs.append(training_batch.state)
+        if training_batch.possible_actions_mask is not None:
+            scorer_inputs.append(training_batch.possible_actions_mask)
+        scores = self.scorer(*scorer_inputs)
         characteristic_eligibility = self.sampler.log_prob(scores, actions).float()
         offset_reinforcement = discounted_returns(
             torch.clamp(rewards, max=self.reward_clip).clone(), self.gamma
