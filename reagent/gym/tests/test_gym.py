@@ -189,11 +189,6 @@ def eval_policy(
     return np.array(eval_rewards)
 
 
-def identity_collate(batch):
-    assert isinstance(batch, list) and len(batch) == 1, f"Got {batch}"
-    return batch[0]
-
-
 def run_test_replay_buffer(
     env: Env__Union,
     model: ModelManager__Union,
@@ -259,13 +254,12 @@ def run_test_replay_buffer(
         max_steps=200,
         device=device,
     )
-    data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
     # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
-    pl_trainer = pl.Trainer(max_epochs=1, gpus=int(use_gpu))
+    pl_trainer = pl.Trainer(max_epochs=1, gpus=int(use_gpu), deterministic=True)
     # Note: the fit() function below also evaluates the agent along the way
     # and adds the new transitions to the replay buffer, so it is training
     # on incrementally larger and larger buffers.
-    pl_trainer.fit(trainer, data_loader)
+    pl_trainer.fit(trainer, dataset)
 
     # TODO: Also check train_reward
 
