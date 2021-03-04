@@ -297,8 +297,8 @@ class FeatureData(TensorDataClass):
     def __post_init__(self):
         def usage():
             return (
-                f"For sequence features, use `stacked_float_features`."
-                f"For document features, use `candidate_doc_float_features`."
+                "For sequence features, use `stacked_float_features`."
+                "For document features, use `candidate_doc_float_features`."
             )
 
         if self.float_features.ndim == 3:

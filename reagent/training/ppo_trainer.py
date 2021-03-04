@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 from dataclasses import field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import reagent.types as rlt
 import torch
@@ -89,7 +89,15 @@ class PPOTrainer(ReAgentLightningModule):
         losses = {}
         actions = trajectory.action
         rewards = trajectory.reward.detach()
-        scores = self.scorer(trajectory.state, trajectory.possible_actions_mask)
+        scorer_inputs = []
+        if getattr(trajectory, "graph", None) is not None:
+            # GNN
+            scorer_inputs.append(trajectory.graph)
+        else:
+            scorer_inputs.append(trajectory.state)
+        if trajectory.possible_actions_mask is not None:
+            scorer_inputs.append(trajectory.possible_actions_mask)
+        scores = self.scorer(*scorer_inputs)
         offset_reinforcement = discounted_returns(
             torch.clamp(rewards, max=self.reward_clip).clone(), self.gamma
         )
