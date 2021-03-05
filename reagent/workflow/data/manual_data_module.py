@@ -85,7 +85,7 @@ class ManualDataModule(ReAgentDataModule):
         eval_dataset = None
         if calc_cpe_in_training:
             eval_dataset = self.query_data(
-                input_table_spec=self.input_table_spec,
+                input_table_spec=self.input_table_spec.eval_dataset_table_spec(),
                 sample_range=sample_range_output.eval_sample_range,
                 reward_options=self.reward_options,
             )
@@ -250,6 +250,7 @@ def get_sample_range(
     input_table_spec: TableSpec, calc_cpe_in_training: bool
 ) -> TrainEvalSampleRanges:
     table_sample = input_table_spec.table_sample
+    eval_dataset = input_table_spec.eval_dataset
     eval_table_sample = input_table_spec.eval_table_sample
 
     if not calc_cpe_in_training:
@@ -266,15 +267,21 @@ def get_sample_range(
 
     error_msg = (
         "calc_cpe_in_training is set to True. "
-        f"Please specify table_sample(current={table_sample}) and "
+        "Please specify eval_table in input_table_spec. Alternatively"
+        "you can split eval dataset from input_table_spec.dataset, but"
+        f"please specify table_sample(current={table_sample}) and "
         f"eval_table_sample(current={eval_table_sample}) such that "
         "eval_table_sample + table_sample <= 100. "
         "In order to reliably calculate CPE, eval_table_sample "
         "should not be too small."
     )
-    assert table_sample is not None, error_msg
-    assert eval_table_sample is not None, error_msg
-    assert (eval_table_sample + table_sample) <= (100.0 + 1e-3), error_msg
+    eval_table_sample = 100.0 if eval_table_sample is None else eval_table_sample
+    table_sample = 100.0 if table_sample is None else table_sample
+
+    assert table_sample <= 100.0 + 1e-3 and eval_table_sample <= 100.0 + 1e-3, error_msg
+    assert eval_dataset is not None or (eval_table_sample + table_sample) <= (
+        100.0 + 1e-3
+    ), error_msg
 
     return TrainEvalSampleRanges(
         train_sample_range=(0.0, table_sample),
