@@ -164,6 +164,7 @@ class DiscreteDQNBase(ModelManager):
         self._lightning_trainer = train_eval_lightning(
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
+            test_dataset=None,
             trainer_module=self.trainer,
             data_module=data_module,
             num_epochs=num_epochs,
