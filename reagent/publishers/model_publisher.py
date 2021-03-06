@@ -5,8 +5,8 @@ import inspect
 from typing import Dict, Optional
 
 from reagent.core.registry_meta import RegistryMeta
+from reagent.core.result_registries import PublishingResult
 from reagent.workflow.model_managers.model_manager import ModelManager
-from reagent.workflow.result_registries import PublishingResult
 from reagent.workflow.types import (
     ModuleNameToEntityId,
     RecurringPeriod,

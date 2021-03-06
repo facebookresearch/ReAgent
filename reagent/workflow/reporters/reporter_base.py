@@ -12,9 +12,9 @@ from reagent.core.observers import (
     IntervalAggregatingObserver,
     ValueListObserver,
 )
+from reagent.core.result_registries import TrainingReport
 from reagent.core.tracker import ObservableMixin
 from reagent.core.utils import lazy_property
-from reagent.workflow.result_registries import TrainingReport
 
 
 logger = logging.getLogger(__name__)
