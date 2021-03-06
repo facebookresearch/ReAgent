@@ -5,7 +5,7 @@ import inspect
 import logging
 
 from reagent.core.registry_meta import RegistryMeta
-from reagent.workflow.result_registries import ValidationResult
+from reagent.core.result_registries import ValidationResult
 from reagent.workflow.types import RLTrainingOutput
 
 

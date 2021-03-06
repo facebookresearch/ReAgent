@@ -6,14 +6,8 @@ import unittest
 
 import numpy as np
 import pytest
-
-# pyre-fixme[21]: Could not find `pyspark`.
-from pyspark.sql.functions import asc
-
-# pyre-fixme[21]: Could not find `workflow`.
+from pyspark.sql.functions import asc  # @manual=//python/wheel/pyspark:pyspark
 from reagent.test.workflow.reagent_sql_test_base import ReagentSQLTestBase
-
-# pyre-fixme[21]: Could not find module `reagent.test.workflow.test_data.ex_mdps`.
 from reagent.test.workflow.test_data.ex_mdps import generate_discrete_mdp_pandas_df
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.types import Dataset, TableSpec

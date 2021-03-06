@@ -23,7 +23,7 @@ from reagent.model_utils.seq2slate_utils import (
     subsequent_mask,
     pytorch_decoder_mask,
 )
-from reagent.test.ranking.test_seq2slate_utils import (
+from reagent.test.ranking.seq2slate_utils import (
     MODEL_TRANSFORMER,
     ON_POLICY,
     create_batch,
