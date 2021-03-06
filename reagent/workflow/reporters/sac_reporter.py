@@ -17,17 +17,12 @@ class SACReporter(ActorCriticReporter):
     @property
     def value_list_observers(self):
         ret = super().value_list_observers
-        ret.update(
-            {
-                f"{key}_tb": TensorBoardScalarObserver(key, log_key)
-                for key, log_key in [("entropy_temperature", None), ("kld", "kld/kld")]
-            }
-        )
         return ret
 
     @property
     def aggregating_observers(self):
         ret = super().aggregating_observers
+        ret.update({})
         ret.update(
             {
                 name: IntervalAggregatingObserver(1, aggregator)
@@ -48,6 +43,7 @@ class SACReporter(ActorCriticReporter):
                         ("actor_loss", "actor/loss"),
                         ("action_batch_mean", "kld/mean"),
                         ("action_batch_var", "kld/var"),
+                        ("entropy_temperature", "entropy_temperature"),
                     ]
                 ]
             }

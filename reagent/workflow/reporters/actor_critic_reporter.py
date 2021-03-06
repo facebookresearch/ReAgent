@@ -19,34 +19,44 @@ class ActorCriticReporter(ReporterBase):
 
     @property
     def value_list_observers(self):
-        return {"cpe_results": ValueListObserver("cpe_details")}
+        return {}
 
     @property
     def aggregating_observers(self):
         return {
-            name: IntervalAggregatingObserver(self.report_interval, aggregator)
-            for name, aggregator in itertools.chain(
-                [
-                    ("td_loss", agg.MeanAggregator("td_loss")),
-                    ("recent_rewards", agg.RecentValuesAggregator("logged_rewards")),
-                    (
-                        "logged_action_q_value",
-                        agg.MeanAggregator("model_values_on_logged_actions"),
-                    ),
-                ],
-                [
-                    (
-                        f"{key}_tb",
-                        agg.TensorBoardHistogramAndMeanAggregator(key, log_key),
-                    )
-                    for key, log_key in [
-                        ("td_loss", "td_loss"),
-                        ("reward_loss", "reward_loss"),
-                        ("logged_propensities", "propensities/logged"),
-                        ("logged_rewards", "reward/logged"),
-                    ]
-                ],
-            )
+            **{
+                "cpe_results": IntervalAggregatingObserver(
+                    1, agg.ListAggregator("cpe_details")
+                ),
+            },
+            **{
+                name: IntervalAggregatingObserver(self.report_interval, aggregator)
+                for name, aggregator in itertools.chain(
+                    [
+                        ("td_loss", agg.MeanAggregator("td_loss")),
+                        (
+                            "recent_rewards",
+                            agg.RecentValuesAggregator("logged_rewards"),
+                        ),
+                        (
+                            "logged_action_q_value",
+                            agg.MeanAggregator("model_values_on_logged_actions"),
+                        ),
+                    ],
+                    [
+                        (
+                            f"{key}_tb",
+                            agg.TensorBoardHistogramAndMeanAggregator(key, log_key),
+                        )
+                        for key, log_key in [
+                            ("td_loss", "td_loss"),
+                            ("reward_loss", "reward_loss"),
+                            ("logged_propensities", "propensities/logged"),
+                            ("logged_rewards", "reward/logged"),
+                        ]
+                    ],
+                )
+            },
         }
 
     # TODO: write this for OSS
