@@ -3,7 +3,7 @@
 
 import logging
 from collections import deque
-from typing import Callable, Deque, Dict, List, Optional
+from typing import Callable, Deque, Dict, List, Optional, Any
 
 import numpy as np
 import torch
@@ -103,6 +103,15 @@ class MeanAggregator(TensorAggregator):
         mean = values.mean().item()
         logger.info(f"{self.key}: {mean}")
         self.values.append(mean)
+
+
+class ListAggregator(Aggregator):
+    def __init__(self, key: str):
+        super().__init__(key)
+        self.values: Optional[Any] = []
+
+    def aggregate(self, values):
+        self.values.extend(values)
 
 
 class FunctionsByActionAggregator(TensorAggregator):
