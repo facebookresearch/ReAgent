@@ -56,7 +56,7 @@ class MDNRNNTrainerParameters(BaseDataClass):
     not_terminal_loss_weight: float = 1.0
     fit_only_one_next_step: bool = False
     action_dim: int = 2
-    action_names: List[str] = field(default_factory=lambda: [])
+    action_names: Optional[List[str]] = None
     multi_steps: int = 1
 
 

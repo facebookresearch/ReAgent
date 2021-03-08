@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class WorldModelBase(ModelManager):
+    reward_boost: Optional[Dict[str, float]] = None
+
     @classmethod
     def normalization_key(cls) -> str:
         raise NotImplementedError()
