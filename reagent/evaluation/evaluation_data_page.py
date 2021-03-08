@@ -559,7 +559,7 @@ class EvaluationDataPage(NamedTuple):
             assert self.model_metrics_values.shape[1] == num_metrics * num_actions
 
         minibatch_size = self.logged_propensities.shape[0]
-        logger.info("EvaluationDataPage minibatch size: {}".format(minibatch_size))
+        logger.info("EvaluationDataPage data size: {}".format(minibatch_size))
         assert minibatch_size == self.logged_rewards.shape[0]
         assert minibatch_size == self.logged_values.shape[0]
         assert minibatch_size == self.model_propensities.shape[0]
@@ -570,6 +570,20 @@ class EvaluationDataPage(NamedTuple):
             assert minibatch_size == self.logged_metrics_values.shape[0]
             assert minibatch_size == self.model_metrics.shape[0]
             assert minibatch_size == self.model_metrics_values.shape[0]
+
+        logger.info("Average logged reward = %s", self.logged_rewards.mean())
+        logger.info(
+            "Average model propensity for action 0 = %s",
+            self.model_propensities[:, 0].mean(),
+        )
+        logger.info(
+            "Average model propensity for action 1 = %s",
+            self.model_propensities[:, 1].mean(),
+        )
+        logger.info(
+            "Average logged propensity = %s",
+            self.logged_propensities.mean(),
+        )
 
         flatten_mdp_id = self.mdp_id.reshape(-1)
         unique_mdp_ids = set(flatten_mdp_id.tolist())
