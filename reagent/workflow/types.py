@@ -8,6 +8,11 @@ from typing import Dict, List, Optional
 import reagent.core.result_types  # noqa
 import reagent.workflow.training_reports  # noqa
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.result_registries import (
+    PublishingResult,
+    TrainingReport,
+    ValidationResult,
+)
 from reagent.core.tagged_union import TaggedUnion
 from reagent.models.model_feature_config_provider import ModelFeatureConfigProvider
 from reagent.preprocessing.normalization import (
@@ -17,11 +22,6 @@ from reagent.preprocessing.normalization import (
     DEFAULT_QUANTILE_K2_THRESHOLD,
 )
 from reagent.types import BaseDataClass
-from reagent.workflow.result_registries import (
-    PublishingResult,
-    TrainingReport,
-    ValidationResult,
-)
 
 
 try:

@@ -23,7 +23,6 @@ Hessel for providing useful pointers on the algorithm and its implementation.
 import numpy as np
 import torch
 from reagent.replay_memory import circular_replay_buffer, sum_tree
-from reagent.replay_memory.circular_replay_buffer import ReplayElement
 
 
 class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):

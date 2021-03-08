@@ -8,15 +8,15 @@ from gym import spaces
 from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import add_replay_buffer_post_step
 from reagent.gym.envs import EnvWrapper
+from reagent.gym.normalizers import (
+    only_continuous_normalizer,
+    discrete_action_normalizer,
+    only_continuous_action_normalizer,
+)
 from reagent.gym.policies.random_policies import make_random_policy_for_env
 from reagent.gym.runners.gymrunner import run_episode
 from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
-from reagent.test.base.utils import (
-    only_continuous_action_normalizer,
-    only_continuous_normalizer,
-    discrete_action_normalizer,
-)
 from tqdm import tqdm
 
 
@@ -44,6 +44,7 @@ def fill_replay_buffer(env, replay_buffer: ReplayBuffer, desired_size: int):
     )
     random_policy = make_random_policy_for_env(env)
     post_step = add_replay_buffer_post_step(replay_buffer, env=env)
+
     agent = Agent.create_for_env(
         env, policy=random_policy, post_transition_callback=post_step
     )
