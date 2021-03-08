@@ -89,14 +89,13 @@ class IntervalAggregatingObserver(Observer):
         if key == "epoch_end":
             self.flush()
             return
-
         self.intermediate_values.append(value)
         self.iteration += 1
         # pyre-fixme[58]: `%` is not supported for operand types `int` and
         #  `Optional[int]`.
         if self.interval and self.iteration % self.interval == 0:
             logger.info(
-                "Interval Agg. Update: %s; iteration %s; aggregator: %s",
+                "Aggregating values over the recent interval for %s at iteration %s; aggregator: %s",
                 self.key,
                 self.iteration,
                 self.aggregator.__class__.__name__,

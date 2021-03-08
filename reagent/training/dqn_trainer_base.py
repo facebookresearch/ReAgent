@@ -246,6 +246,8 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
             else training_batch.action,
             self.rl_temperature,
         )
+        # Extract rewards predicted by the reward_network. The other columns will
+        # give predicted values for other metrics, if such were specified.
         model_rewards = reward_estimates[
             :,
             torch.arange(
