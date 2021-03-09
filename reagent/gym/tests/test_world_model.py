@@ -372,7 +372,7 @@ def train_mdnrnn_and_train_on_embedded_env(
         env=embed_env,
         agent=agent,
         num_processes=1,
-    )
+    ).rewards
     assert (
         np.mean(rewards) >= passing_score_bar
     ), f"average reward doesn't pass our bar {passing_score_bar}"
