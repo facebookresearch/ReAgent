@@ -21,6 +21,7 @@ from reagent.preprocessing.batch_preprocessor import (
 )
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.preprocessing.types import InputColumn
+from reagent.reporting.reporter_printer import ReporterPrinter
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.data.manual_data_module import ManualDataModule
 from reagent.workflow.data_fetcher import query_data
@@ -147,6 +148,7 @@ class DiscreteDQNBase(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
+        reporter_printer: ReporterPrinter,
         resource_options: Optional[ResourceOptions] = None,
     ) -> RLTrainingOutput:
         """
@@ -178,7 +180,7 @@ class DiscreteDQNBase(ModelManager):
         if rank == 0:
             # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
             training_report = RLTrainingReport.make_union_instance(
-                reporter.generate_training_report()
+                reporter.generate_training_report(reporter_printer)
             )
             return RLTrainingOutput(training_report=training_report)
         # Output from processes with non-0 rank is not used

@@ -18,6 +18,7 @@ from reagent.preprocessing.normalization import (
     get_num_output_features,
 )
 from reagent.preprocessing.types import InputColumn
+from reagent.reporting.reporter_printer import ReporterPrinter
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
@@ -169,6 +170,7 @@ class ParametricDQNBase(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
+        reporter_printer: ReporterPrinter,
         resource_options: Optional[ResourceOptions] = None,
     ) -> RLTrainingOutput:
         raise NotImplementedError()

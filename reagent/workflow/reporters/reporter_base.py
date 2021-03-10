@@ -15,12 +15,14 @@ from reagent.core.observers import (
 from reagent.core.result_registries import TrainingReport
 from reagent.core.tracker import ObservableMixin
 from reagent.core.utils import lazy_property
+from reagent.reporter import Reporter
+from reagent.types import ReportData, ReportEntry
 
 
 logger = logging.getLogger(__name__)
 
 
-class ReporterBase(CompositeObserver):
+class ReporterBase(CompositeObserver, Reporter):
     def __init__(
         self,
         value_list_observers: Dict[str, ValueListObserver],
@@ -55,6 +57,20 @@ class ReporterBase(CompositeObserver):
         for observer in self._aggregating_observers.values():
             observer.flush()
 
+    @rank_zero_only
+    def generate_report(self) -> ReportData:
+        rd = ReportData(
+            entries=[
+                observer.generate_report_entry()
+                for observer in self._aggregating_observers.values()
+            ]
+            + [
+                observer.generate_report_entry()
+                for observer in self._value_list_observers.values()
+            ]
+        )
+        return rd
+
     def __getattr__(self, key: str):
         val = self._value_list_observers.get(key, None)
         if val is not None:
@@ -63,11 +79,6 @@ class ReporterBase(CompositeObserver):
         if val is not None:
             return val.aggregator
         raise AttributeError
-
-    # TODO: write this for OSS
-    @abc.abstractmethod
-    def generate_training_report(self) -> TrainingReport:
-        pass
 
 
 class _ReporterObservable(ObservableMixin):

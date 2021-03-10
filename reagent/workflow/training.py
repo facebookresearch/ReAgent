@@ -9,6 +9,8 @@ import torch
 from reagent.oss_workflow.data.manual_data_module import get_sample_range
 from reagent.parameters import NormalizationData
 from reagent.publishers.union import ModelPublisher__Union
+from reagent.reporting.reporter_printer import ReporterPrinter
+from reagent.reporting.tensorboard_reporter_printer import TensorboardReporterPrinter
 from reagent.tensorboardX import summary_writer_context
 from reagent.validators.union import ModelValidator__Union
 from reagent.workflow.env import get_new_named_entity_ids, get_workflow_id
@@ -69,6 +71,7 @@ def identify_and_train_network(
         model,
         num_epochs,
         use_gpu=use_gpu,
+        reporter_printer=TensorboardReporterPrinter(),
         setup_data=setup_data,
         normalization_data_map=normalization_data_map,
         reward_options=reward_options,
@@ -85,6 +88,7 @@ def query_and_train(
     model: ModelManager__Union,
     num_epochs: int,
     use_gpu: bool,
+    reporter_printer: ReporterPrinter,
     *,
     setup_data: Optional[Dict[str, bytes]] = None,
     saved_setup_data: Optional[Dict[str, bytes]] = None,
@@ -159,6 +163,7 @@ def query_and_train(
         manager,
         train_dataset,
         eval_dataset,
+        reporter_printer,
         num_epochs=num_epochs,
         use_gpu=use_gpu,
         setup_data=setup_data,
@@ -191,6 +196,7 @@ def train_workflow(
     model_manager: ModelManager,
     train_dataset: Optional[Dataset],
     eval_dataset: Optional[Dataset],
+    reporter_printer: ReporterPrinter,
     *,
     num_epochs: int,
     use_gpu: bool,
@@ -244,6 +250,7 @@ def train_workflow(
             data_module,
             num_epochs,
             reader_options,
+            reporter_printer,
             resource_options,
         )
 

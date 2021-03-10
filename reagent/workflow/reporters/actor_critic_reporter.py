@@ -5,6 +5,7 @@ import logging
 
 from reagent.core import aggregators as agg
 from reagent.core.observers import IntervalAggregatingObserver, ValueListObserver
+from reagent.reporting.reporter_printer import ReporterPrinter
 from reagent.workflow.reporters.reporter_base import ReporterBase
 from reagent.workflow.training_reports import ActorCriticTrainingReport
 
@@ -60,5 +61,7 @@ class ActorCriticReporter(ReporterBase):
         }
 
     # TODO: write this for OSS
-    def generate_training_report(self) -> ActorCriticTrainingReport:
+    def generate_training_report(
+        self, reporter_printer: ReporterPrinter
+    ) -> ActorCriticTrainingReport:
         return ActorCriticTrainingReport()

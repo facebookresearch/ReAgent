@@ -12,6 +12,7 @@ from reagent.models.base import ModelBase
 from reagent.parameters import NormalizationData, NormalizationKey
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
+from reagent.reporting.reporter_printer import ReporterPrinter
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.model_managers.model_manager import ModelManager
@@ -153,6 +154,7 @@ class SlateQBase(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
+        reporter_printer: ReporterPrinter,
         resource_options: Optional[ResourceOptions] = None,
     ) -> RLTrainingOutput:
         raise NotImplementedError("Write for OSS")

@@ -8,6 +8,7 @@ from typing import List, Optional
 import torch
 from reagent.core import aggregators as agg
 from reagent.core.observers import IntervalAggregatingObserver, ValueListObserver
+from reagent.reporting.reporter_printer import ReporterPrinter
 from reagent.workflow.reporters.reporter_base import (
     ReporterBase,
     FlexibleDataPointsPerEpochMixin,
@@ -103,5 +104,8 @@ class DiscreteDQNReporter(FlexibleDataPointsPerEpochMixin, ReporterBase):
         self.recent_window_size = recent_window_size
 
     # TODO: write this for OSS
-    def generate_training_report(self) -> DQNTrainingReport:
+    def generate_training_report(
+        self, reporter_printer: ReporterPrinter
+    ) -> DQNTrainingReport:
+        reporter_printer.line_plot_mean(self.td_loss)
         return DQNTrainingReport()

@@ -195,7 +195,7 @@ class ActionCountAggregator(TensorAggregator):
 
     def get_distributions(self) -> Dict[str, List[float]]:
         """
-        Returns the action disributions in each aggregating step
+        Returns the action distributions in each aggregating step
         """
         totals = np.array([sum(counts) for counts in zip(*self.values.values())])
         return {

@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import dataclasses
 import logging
 
 # The dataclasses in this file should be vanilla dataclass to have minimal overhead
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Dict, List, NamedTuple, Optional, Tuple, Union
 
 # Triggering registration to registries
@@ -283,8 +282,8 @@ class DocList(TensorDataClass):
 class FeatureData(TensorDataClass):
     # For dense features, shape is (batch_size, feature_dim)
     float_features: torch.Tensor
-    id_list_features: IdListFeature = dataclasses.field(default_factory=dict)
-    id_score_list_features: IdScoreListFeature = dataclasses.field(default_factory=dict)
+    id_list_features: IdListFeature = field(default_factory=dict)
+    id_score_list_features: IdScoreListFeature = field(default_factory=dict)
     # For sequence, shape is (stack_size, batch_size, feature_dim)
     stacked_float_features: Optional[torch.Tensor] = None
     # For ranking algos,
@@ -411,7 +410,7 @@ class ExtraData(TensorDataClass):
 
     @classmethod
     def from_dict(cls, d):
-        return cls(**{f.name: d.get(f.name, None) for f in dataclasses.fields(cls)})
+        return cls(**{f.name: d.get(f.name, None) for f in fields(cls)})
 
 
 @dataclass
@@ -989,3 +988,15 @@ class FrechetSortConfig:
     equiv_len: int
     topk: Optional[int] = None
     log_scores: bool = True
+
+
+@dataclass
+class ReportEntry:
+    key: str
+    title: str
+    scalar_data: Optional[Dict[str, List[float]]] = None
+
+
+@dataclass
+class ReportData:
+    entries: List[ReportEntry] = field(default_factory=list)

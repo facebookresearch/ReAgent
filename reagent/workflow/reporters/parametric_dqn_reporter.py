@@ -6,6 +6,7 @@ from collections import OrderedDict
 
 from reagent.core import aggregators as agg
 from reagent.core.observers import IntervalAggregatingObserver, ValueListObserver
+from reagent.reporting.reporter_printer import ReporterPrinter
 from reagent.workflow.reporters.reporter_base import ReporterBase
 from reagent.workflow.training_reports import ParametricDQNTrainingReport
 
@@ -55,5 +56,7 @@ class ParametricDQNReporter(ReporterBase):
         super().__init__(self.value_list_observers, self.aggregating_observers)
 
     # TODO: write this for OSS
-    def generate_training_report(self) -> ParametricDQNTrainingReport:
+    def generate_training_report(
+        self, reporter_printer: ReporterPrinter
+    ) -> ParametricDQNTrainingReport:
         return ParametricDQNTrainingReport()
