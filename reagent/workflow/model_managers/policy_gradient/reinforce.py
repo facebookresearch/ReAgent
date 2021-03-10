@@ -18,6 +18,7 @@ from reagent.net_builder.unions import (
 from reagent.parameters import NormalizationData
 from reagent.parameters import NormalizationKey
 from reagent.parameters import param_hash
+from reagent.reporting.reporter_printer import ReporterPrinter
 from reagent.training import ReinforceTrainer, ReinforceTrainerParameters
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.model_managers.model_manager import ModelManager
@@ -134,6 +135,7 @@ class Reinforce(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
+        reporter_printer: ReporterPrinter,
         resource_options: Optional[ResourceOptions],
     ) -> RLTrainingOutput:
         raise NotImplementedError

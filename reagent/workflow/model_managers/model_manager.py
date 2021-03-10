@@ -9,6 +9,8 @@ import torch
 from reagent.core.dataclasses import dataclass
 from reagent.core.registry_meta import RegistryMeta
 from reagent.parameters import NormalizationData
+from reagent.reporting.reporter_printer import ReporterPrinter
+from reagent.training import Trainer
 from reagent.training import Trainer
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.types import (
@@ -244,6 +246,7 @@ class ModelManager(metaclass=RegistryMeta):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
+        reporter_printer: ReporterPrinter,
         resource_options: Optional[ResourceOptions],
     ) -> RLTrainingOutput:
         """

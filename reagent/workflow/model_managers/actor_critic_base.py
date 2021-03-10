@@ -20,6 +20,7 @@ from reagent.preprocessing.batch_preprocessor import (
 )
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
+from reagent.reporting.reporter_printer import ReporterPrinter
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
@@ -236,6 +237,7 @@ class ActorCriticBase(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
+        reporter_printer: ReporterPrinter,
         resource_options: Optional[ResourceOptions],
     ) -> RLTrainingOutput:
 
@@ -263,6 +265,6 @@ class ActorCriticBase(ModelManager):
         )
         # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
         training_report = RLTrainingReport.make_union_instance(
-            reporter.generate_training_report()
+            reporter.generate_training_report(reporter_printer)
         )
         return RLTrainingOutput(training_report=training_report)

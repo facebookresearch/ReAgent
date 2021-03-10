@@ -6,6 +6,7 @@ import logging
 from typing import Dict, List, Type
 
 import torch
+from reagent.types import ReportEntry
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,9 @@ class Observer:
 
     def update(self, key: str, value):
         pass
+
+    def generate_report_entry(self) -> ReportEntry:
+        raise NotImplementedError()
 
 
 class Aggregator:
