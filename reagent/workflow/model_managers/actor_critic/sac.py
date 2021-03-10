@@ -62,6 +62,7 @@ class SAC(ActorCriticBase):
         super().__post_init_post_parse__()
         self._actor_network: Optional[ModelBase] = None
         self.rl_parameters = self.trainer_param.rl
+        # test
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
