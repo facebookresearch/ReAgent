@@ -161,6 +161,7 @@ class DiscreteDQNBase(ModelManager):
         self.trainer.set_reporter(reporter)
         assert data_module
 
+        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `_lightning_trainer`.
         self._lightning_trainer = train_eval_lightning(
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
@@ -199,13 +200,13 @@ class DiscreteDqnDataModule(ManualDataModule):
         preprocessing_options = (
             self.model_manager.preprocessing_options or PreprocessingOptions()
         )
-        logger.info("Overriding whitelist_features")
+        logger.info("Overriding allowedlist_features")
         state_features = [
             ffi.feature_id
             for ffi in self.model_manager.state_feature_config.float_feature_infos
         ]
         preprocessing_options = preprocessing_options._replace(
-            whitelist_features=state_features
+            allowedlist_features=state_features
         )
         return {
             NormalizationKey.STATE: NormalizationData(

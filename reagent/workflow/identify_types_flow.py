@@ -24,8 +24,8 @@ def normalization_helper(
     skip_box_cox: bool = False,
     skip_quantiles: bool = False,
     feature_overrides: Optional[Dict[int, str]] = None,
-    whitelist_features: Optional[List[int]] = None,
-    assert_whitelist_feature_coverage: bool = True,
+    allowedlist_features: Optional[List[int]] = None,
+    assert_allowedlist_feature_coverage: bool = True,
 ):
     """Construct a preprocessing closure to obtain normalization parameters
     from rows of feature_name and a sample of feature_values.
@@ -39,22 +39,24 @@ def normalization_helper(
         "skip_quantiles": skip_quantiles,
         "feature_overrides": feature_overrides,
     }
-    # pyre-fixme[9]: whitelist_features has type `Optional[List[int]]`; used as
+    # pyre-fixme[9]: allowedlist_features has type `Optional[List[int]]`; used as
     #  `Set[int]`.
-    # pyre-fixme[9]: whitelist_features has type `Optional[List[int]]`; used as
+    # pyre-fixme[9]: allowedlist_features has type `Optional[List[int]]`; used as
     #  `Set[int]`.
-    whitelist_features = set(whitelist_features or [])
+    allowedlist_features = set(allowedlist_features or [])
 
-    def validate_whitelist_features(params: Dict[int, NormalizationParameters]) -> None:
-        if not whitelist_features:
+    def validate_allowedlist_features(
+        params: Dict[int, NormalizationParameters]
+    ) -> None:
+        if not allowedlist_features:
             return
-        whitelist_feature_set = {int(fid) for fid in whitelist_features}
+        allowedlist_feature_set = {int(fid) for fid in allowedlist_features}
         available_features = set(params.keys())
         assert (
-            whitelist_feature_set == available_features
+            allowedlist_feature_set == available_features
         ), "Could not identify preprocessing type for these features: {}; " "extra features: {}".format(
-            whitelist_feature_set - available_features,
-            available_features - whitelist_feature_set,
+            allowedlist_feature_set - available_features,
+            available_features - allowedlist_feature_set,
         )
 
     def process(rows: List) -> Dict[int, NormalizationParameters]:
@@ -66,12 +68,12 @@ def normalization_helper(
                 row["feature_name"], row["feature_values"], norm_params
             )
             if norm_metdata is not None and (
-                not whitelist_features or row["feature_name"] in whitelist_features
+                not allowedlist_features or row["feature_name"] in allowedlist_features
             ):
                 params[row["feature_name"]] = norm_metdata
 
-        if assert_whitelist_feature_coverage:
-            validate_whitelist_features(params)
+        if assert_allowedlist_feature_coverage:
+            validate_allowedlist_features(params)
         return params
 
     return process
@@ -98,8 +100,8 @@ def identify_normalization_parameters(
         skip_box_cox=preprocessing_options.skip_box_cox,
         skip_quantiles=preprocessing_options.skip_quantiles,
         feature_overrides=preprocessing_options.feature_overrides,
-        whitelist_features=preprocessing_options.whitelist_features,
-        assert_whitelist_feature_coverage=preprocessing_options.assert_whitelist_feature_coverage,
+        allowedlist_features=preprocessing_options.allowedlist_features,
+        assert_allowedlist_feature_coverage=preprocessing_options.assert_allowedlist_feature_coverage,
     )
     return normalization_processor(rows)
 

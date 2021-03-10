@@ -246,6 +246,7 @@ def compute_best_reward(input_cities):
     return best_possible_reward_mean
 
 
+# pyre-ignore
 @torch.no_grad()
 def rank_on_policy(
     model, batch: rlt.PreprocessedRankingInput, tgt_seq_len: int, greedy: bool
@@ -260,6 +261,7 @@ def rank_on_policy(
     return ranked_slate_prob, ranked_order
 
 
+# pyre-ignore
 @torch.no_grad()
 def rank_on_policy_and_eval(
     seq2slate_net, batch: rlt.PreprocessedRankingInput, tgt_seq_len: int, greedy: bool

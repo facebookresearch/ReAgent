@@ -75,8 +75,8 @@ class PreprocessingOptions(BaseDataClass):
     feature_overrides: Optional[Dict[int, str]] = None
     tablesample: Optional[float] = None
     set_missing_value_to_zero: Optional[bool] = False
-    whitelist_features: Optional[List[int]] = None
-    assert_whitelist_feature_coverage: bool = True
+    allowedlist_features: Optional[List[int]] = None
+    assert_allowedlist_feature_coverage: bool = True
 
 
 @ModelFeatureConfigProvider.fill_union()
