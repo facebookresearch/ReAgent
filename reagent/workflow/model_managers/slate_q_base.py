@@ -43,14 +43,14 @@ class SlateQBase(ModelManager):
         super().__post_init_post_parse__()
         assert (
             self.state_preprocessing_options is None
-            or self.state_preprocessing_options.whitelist_features is None
+            or self.state_preprocessing_options.allowedlist_features is None
         ), (
             "Please set state whitelist features in state_float_features field of "
             "config instead"
         )
         assert (
             self.item_preprocessing_options is None
-            or self.item_preprocessing_options.whitelist_features is None
+            or self.item_preprocessing_options.allowedlist_features is None
         ), (
             "Please set item whitelist features in item_float_features field of "
             "config instead"
@@ -99,9 +99,9 @@ class SlateQBase(ModelManager):
         state_features = [
             ffi.feature_id for ffi in self.state_feature_config.float_feature_infos
         ]
-        logger.info(f"state whitelist_features: {state_features}")
+        logger.info(f"state allowedlist_features: {state_features}")
         state_preprocessing_options = state_preprocessing_options._replace(
-            whitelist_features=state_features
+            allowedlist_features=state_features
         )
         state_normalization_parameters = identify_normalization_parameters(
             input_table_spec, InputColumn.STATE_FEATURES, state_preprocessing_options
@@ -112,9 +112,10 @@ class SlateQBase(ModelManager):
         item_features = [
             ffi.feature_id for ffi in self.item_feature_config.float_feature_infos
         ]
-        logger.info(f"item whitelist_features: {item_features}")
+        logger.info(f"item allowedlist_features: {item_features}")
         item_preprocessing_options = item_preprocessing_options._replace(
-            whitelist_features=item_features, sequence_feature_id=self.slate_feature_id
+            allowedlist_features=item_features,
+            sequence_feature_id=self.slate_feature_id,
         )
         item_normalization_parameters = identify_normalization_parameters(
             input_table_spec,

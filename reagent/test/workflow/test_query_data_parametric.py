@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 def generate_data_parametric(sqlCtx, multi_steps: bool, table_name: str):
-    # pyre-fixme[16]: Module `test` has no attribute `workflow`.
     df, _ = generate_parametric_mdp_pandas_df(
         multi_steps=multi_steps, use_seq_num_diff_as_time_diff=False
     )

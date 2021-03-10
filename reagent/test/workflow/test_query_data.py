@@ -6,8 +6,12 @@ import unittest
 
 import numpy as np
 import pytest
+
+# pyre-ignore
 from pyspark.sql.functions import asc  # @manual=//python/wheel/pyspark:pyspark
 from reagent.test.test_data.ex_mdps import generate_discrete_mdp_pandas_df
+
+# pyre-ignore
 from reagent.test.workflow.reagent_sql_test_base import ReagentSQLTestBase
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.types import Dataset, TableSpec
@@ -17,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 
 def generate_data_discrete(sqlCtx, multi_steps: bool, table_name: str):
-    # pyre-fixme[16]: Module `test` has no attribute `workflow`.
     df, _ = generate_discrete_mdp_pandas_df(
         multi_steps=multi_steps, use_seq_num_diff_as_time_diff=False
     )

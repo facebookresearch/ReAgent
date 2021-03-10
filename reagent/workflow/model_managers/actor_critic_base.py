@@ -76,14 +76,14 @@ class ActorCriticBase(ModelManager):
         super().__post_init_post_parse__()
         assert (
             self.state_preprocessing_options is None
-            or self.state_preprocessing_options.whitelist_features is None
+            or self.state_preprocessing_options.allowedlist_features is None
         ), (
             "Please set state whitelist features in state_float_features field of "
             "config instead"
         )
         assert (
             self.action_preprocessing_options is None
-            or self.action_preprocessing_options.whitelist_features is None
+            or self.action_preprocessing_options.allowedlist_features is None
         ), (
             "Please set action whitelist features in action_float_features field of "
             "config instead"
@@ -137,9 +137,9 @@ class ActorCriticBase(ModelManager):
         state_features = [
             ffi.feature_id for ffi in self.state_feature_config.float_feature_infos
         ]
-        logger.info(f"state whitelist_features: {state_features}")
+        logger.info(f"state allowedlist_features: {state_features}")
         state_preprocessing_options = state_preprocessing_options._replace(
-            whitelist_features=state_features
+            allowedlist_features=state_features
         )
         return state_preprocessing_options
 
@@ -150,7 +150,7 @@ class ActorCriticBase(ModelManager):
         action_features = [
             ffi.feature_id for ffi in self.action_feature_config.float_feature_infos
         ]
-        logger.info(f"action whitelist_features: {action_features}")
+        logger.info(f"action allowedlist_features: {action_features}")
 
         actor_net_builder = self.actor_net_builder.value
         action_feature_override = actor_net_builder.default_action_preprocessing
@@ -160,7 +160,7 @@ class ActorCriticBase(ModelManager):
 
         assert action_preprocessing_options.feature_overrides is None
         action_preprocessing_options = action_preprocessing_options._replace(
-            whitelist_features=action_features,
+            allowedlist_features=action_features,
             feature_overrides={fid: action_feature_override for fid in action_features},
         )
         return action_preprocessing_options
