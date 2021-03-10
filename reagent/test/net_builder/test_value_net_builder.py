@@ -4,9 +4,9 @@
 import unittest
 
 import torch
+from reagent.core.parameters import NormalizationData, NormalizationParameters
 from reagent.net_builder import value
 from reagent.net_builder.unions import ValueNetBuilder__Union
-from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.preprocessing.identify_types import CONTINUOUS
 
 

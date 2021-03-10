@@ -3,8 +3,8 @@
 import abc
 
 import torch
+from reagent.core.parameters import NormalizationData
 from reagent.core.registry_meta import RegistryMeta
-from reagent.parameters import NormalizationData
 
 
 class ValueNetBuilder(metaclass=RegistryMeta):

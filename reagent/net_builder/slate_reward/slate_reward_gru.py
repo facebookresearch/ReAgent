@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import GRUParameters, param_hash
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate_reward import Seq2SlateGRURewardNet
 from reagent.net_builder.slate_reward_net_builder import SlateRewardNetBuilder
-from reagent.parameters import GRUParameters, param_hash
 
 
 @dataclass

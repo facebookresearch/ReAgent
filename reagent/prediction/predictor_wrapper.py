@@ -4,9 +4,10 @@
 import logging
 from typing import Dict, List, Optional, Tuple
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
+from reagent.core.torch_utils import gather
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate import Seq2SlateTransformerNet
@@ -17,7 +18,6 @@ from reagent.preprocessing.sparse_preprocessor import (
     SparsePreprocessor,
     make_sparse_preprocessor,
 )
-from reagent.torch_utils import gather
 from reagent.training.utils import gen_permutations
 from reagent.training.world_model.seq2reward_trainer import get_Q
 from torch import nn

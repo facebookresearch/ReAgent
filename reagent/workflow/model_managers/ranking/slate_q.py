@@ -5,10 +5,10 @@ from typing import Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import param_hash
 from reagent.models.base import ModelBase
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
-from reagent.parameters import param_hash
 from reagent.training import SlateQTrainer, SlateQTrainerParameters
 from reagent.workflow.model_managers.slate_q_base import SlateQBase
 

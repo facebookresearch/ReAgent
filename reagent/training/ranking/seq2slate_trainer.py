@@ -3,14 +3,14 @@
 import logging
 from typing import Optional, Tuple
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import field
+from reagent.core.parameters import Seq2SlateParameters
 from reagent.core.tracker import observable
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode
 from reagent.models.seq2slate import BaselineNet, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
-from reagent.parameters import Seq2SlateParameters
 from reagent.training.ranking.helper import ips_clamp
 from reagent.training.trainer import Trainer
 

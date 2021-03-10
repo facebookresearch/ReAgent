@@ -5,9 +5,9 @@ from typing import List
 
 import torch
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
+from reagent.core.parameters import NormalizationData
 from reagent.core.registry_meta import RegistryMeta
 from reagent.models.base import ModelBase
-from reagent.parameters import NormalizationData
 from reagent.prediction.predictor_wrapper import ActorWithPreprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
 

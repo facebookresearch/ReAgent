@@ -2,12 +2,12 @@
 
 from typing import List
 
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import NormalizationData, param_hash
 from reagent.models.base import ModelBase
 from reagent.models.dqn import FullyConnectedDQN
 from reagent.net_builder.discrete_dqn_net_builder import DiscreteDQNNetBuilder
-from reagent.parameters import NormalizationData, param_hash
 
 
 @dataclass

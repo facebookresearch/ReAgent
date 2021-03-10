@@ -3,12 +3,12 @@
 import abc
 from typing import List
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
+from reagent.core.parameters import NormalizationData
 from reagent.core.registry_meta import RegistryMeta
 from reagent.models import ModelBase, Sequential
-from reagent.parameters import NormalizationData
 from reagent.prediction.predictor_wrapper import DiscreteDqnWithPreprocessor
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.preprocessing.preprocessor import Preprocessor

@@ -4,9 +4,10 @@
 from typing import Any, Optional, Tuple, Union
 
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
+from reagent.core.parameters import RLParameters
 from reagent.gym.policies import Policy
 from reagent.gym.policies.samplers.discrete_sampler import (
     GreedyActionSampler,
@@ -18,7 +19,6 @@ from reagent.gym.policies.scorers.discrete_scorer import (
     parametric_dqn_serving_scorer,
 )
 from reagent.gym.policies.scorers.slate_q_scorer import slate_q_serving_scorer
-from reagent.parameters import RLParameters
 
 
 if IS_FB_ENVIRONMENT:

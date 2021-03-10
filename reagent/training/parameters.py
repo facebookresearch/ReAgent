@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from reagent.core.configuration import make_config_class
-from reagent.types import BaseDataClass
+from reagent.core.types import BaseDataClass
 
 from .c51_trainer import C51Trainer
 from .discrete_crr_trainer import DiscreteCRRTrainer

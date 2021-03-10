@@ -5,8 +5,8 @@ import random
 import unittest
 
 import numpy.testing as npt
+import reagent.core.types as rlt
 import reagent.models as models
-import reagent.types as rlt
 import torch
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode, Seq2SlateOutputArch
 from reagent.models.seq2slate import Seq2SlateTransformerNet

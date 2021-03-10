@@ -5,11 +5,11 @@ import math
 from typing import List, Optional
 
 import torch
-from reagent import types as rlt
+from reagent.core import types as rlt
+from reagent.core.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
+from reagent.core.tensorboardX import SummaryWriterContext
 from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import FullyConnectedNetwork
-from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
-from reagent.tensorboardX import SummaryWriterContext
 from torch.distributions import Dirichlet
 from torch.distributions.normal import Normal
 

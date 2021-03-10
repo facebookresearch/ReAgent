@@ -4,8 +4,8 @@
 import logging
 from typing import Optional
 
-import reagent.parameters as rlp
-import reagent.types as rlt
+import reagent.core.parameters as rlp
+import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.dataclasses import field

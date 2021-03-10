@@ -8,7 +8,7 @@ from typing import Optional
 import numpy as np
 import torch
 import torch.nn as nn
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.evaluation.doubly_robust_estimator import DoublyRobustEstimator
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.evaluation.ope_adapter import OPEstimatorAdapter

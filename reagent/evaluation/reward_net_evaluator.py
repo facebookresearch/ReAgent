@@ -5,9 +5,9 @@ import logging
 
 import numpy as np
 import torch
-from reagent import types as rlt
+from reagent.core import types as rlt
+from reagent.core.types import PreprocessedRankingInput
 from reagent.training.reward_network_trainer import RewardNetTrainer
-from reagent.types import PreprocessedRankingInput
 
 
 logger = logging.getLogger(__name__)

@@ -4,7 +4,7 @@ import abc
 from typing import Dict, List
 
 import pytorch_lightning as pl
-from reagent.parameters import NormalizationData
+from reagent.core.parameters import NormalizationData
 
 
 class ReAgentDataModule(pl.LightningDataModule):

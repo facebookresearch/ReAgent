@@ -4,8 +4,11 @@ import logging
 from typing import Dict, Optional, Tuple, List
 
 import torch
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import NormalizationData
+from reagent.core.parameters import NormalizationKey
+from reagent.core.parameters import param_hash
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
@@ -15,9 +18,6 @@ from reagent.net_builder.unions import (
     DiscreteDQNNetBuilder__Union,
     ValueNetBuilder__Union,
 )
-from reagent.parameters import NormalizationData
-from reagent.parameters import NormalizationKey
-from reagent.parameters import param_hash
 from reagent.training import PPOTrainer, PPOTrainerParameters
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.model_managers.model_manager import ModelManager

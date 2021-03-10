@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 
 import torch
 import torch.nn as nn
-from reagent.parameters import NormalizationParameters
+from reagent.core.parameters import NormalizationParameters
 from reagent.preprocessing.identify_types import (
     CONTINUOUS_ACTION,
     DISCRETE_ACTION,

@@ -9,7 +9,7 @@ from typing import Callable
 import numpy as np
 import torch
 from reagent.core.configuration import make_config_class
-from reagent.tensorboardX import SummaryWriterContext
+from reagent.core.tensorboardX import SummaryWriterContext
 from ruamel.yaml import YAML
 
 

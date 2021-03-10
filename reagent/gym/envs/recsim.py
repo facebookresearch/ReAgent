@@ -5,7 +5,7 @@ import logging
 
 import gym
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 from reagent.core.dataclasses import dataclass
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.envs.wrappers.recsim import ValueWrapper

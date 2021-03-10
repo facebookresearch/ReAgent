@@ -5,11 +5,11 @@ import logging
 from typing import List, Optional, Tuple
 
 import torch
-from reagent import types as rlt
+from reagent.core import types as rlt
+from reagent.core.tensorboardX import SummaryWriterContext
 from reagent.models.base import ModelBase
 from reagent.models.critic import FullyConnectedCritic
 from reagent.models.dqn import FullyConnectedDQN
-from reagent.tensorboardX import SummaryWriterContext
 
 
 logger = logging.getLogger(__name__)

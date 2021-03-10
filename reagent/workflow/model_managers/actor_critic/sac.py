@@ -7,6 +7,7 @@ from typing import Dict, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import param_hash
 from reagent.models.base import ModelBase
 from reagent.net_builder.continuous_actor.gaussian_fully_connected import (
     GaussianFullyConnected,
@@ -20,7 +21,6 @@ from reagent.net_builder.unions import (
 from reagent.net_builder.value.fully_connected import (
     FullyConnected as ValueFullyConnected,
 )
-from reagent.parameters import param_hash
 from reagent.training import SACTrainer, SACTrainerParameters
 from reagent.workflow.model_managers.actor_critic_base import ActorCriticBase
 from reagent.workflow.reporters.sac_reporter import SACReporter

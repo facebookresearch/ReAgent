@@ -4,10 +4,10 @@ import logging
 
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import param_hash
 from reagent.net_builder.discrete_dqn.dueling import Dueling
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
-from reagent.parameters import param_hash
 from reagent.training import DQNTrainer, DQNTrainerParameters
 from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
 from reagent.workflow.reporters.discrete_dqn_reporter import DiscreteDQNReporter

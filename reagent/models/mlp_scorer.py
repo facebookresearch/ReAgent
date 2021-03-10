@@ -5,7 +5,7 @@ import itertools
 from dataclasses import field
 from typing import List, Optional
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.models.base import ModelBase

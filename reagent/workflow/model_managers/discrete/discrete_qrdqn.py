@@ -4,13 +4,13 @@ import logging
 
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import param_hash
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.quantile_dqn.dueling_quantile import DuelingQuantile
 from reagent.net_builder.unions import (
     DiscreteDQNNetBuilder__Union,
     QRDQNNetBuilder__Union,
 )
-from reagent.parameters import param_hash
 from reagent.training import QRDQNTrainer, QRDQNTrainerParameters
 from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
 

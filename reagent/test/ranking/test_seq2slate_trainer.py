@@ -7,14 +7,14 @@ from itertools import permutations
 
 import numpy as np
 import numpy.testing as npt
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from parameterized import parameterized
+from reagent.core.parameters import Seq2SlateParameters
+from reagent.core.parameters_seq2slate import IPSClamp, IPSClampMethod
 from reagent.model_utils.seq2slate_utils import Seq2SlateOutputArch
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union, classes
-from reagent.parameters import Seq2SlateParameters
-from reagent.parameters_seq2slate import IPSClamp, IPSClampMethod
 from reagent.samplers.frechet import FrechetSort
 from reagent.training.ranking.helper import ips_clamp
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer

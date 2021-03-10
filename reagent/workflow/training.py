@@ -6,10 +6,10 @@ import time
 from typing import Dict, Optional
 
 import torch
-from reagent.oss_workflow.data.manual_data_module import get_sample_range
-from reagent.parameters import NormalizationData
+from reagent.core.parameters import NormalizationData
+from reagent.core.tensorboardX import summary_writer_context
+from reagent.core.utils import get_sample_range
 from reagent.publishers.union import ModelPublisher__Union
-from reagent.tensorboardX import summary_writer_context
 from reagent.validators.union import ModelValidator__Union
 from reagent.workflow.env import get_new_named_entity_ids, get_workflow_id
 from reagent.workflow.model_managers.model_manager import ModelManager

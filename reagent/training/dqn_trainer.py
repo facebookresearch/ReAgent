@@ -4,12 +4,12 @@
 import logging
 from typing import List, Optional, Tuple
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import EvaluationParameters, RLParameters
 from reagent.optimizer import Optimizer__Union, SoftUpdate
-from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBaseLightning
 from reagent.training.imitator_training import get_valid_actions_from_imitator
 

@@ -5,10 +5,10 @@ import logging
 from typing import Callable, List, Optional
 
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
-from reagent.parameters import NormalizationData
+from reagent.core.parameters import NormalizationData
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.preprocessing.sparse_preprocessor import make_sparse_preprocessor
 

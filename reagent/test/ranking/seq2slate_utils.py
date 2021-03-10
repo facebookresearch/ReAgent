@@ -3,15 +3,15 @@ import math
 import tempfile
 from itertools import permutations
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn as nn
+from reagent.core.parameters import Seq2SlateParameters
+from reagent.core.parameters_seq2slate import LearningMethod, SimulationParameters
+from reagent.core.torch_utils import gather
 from reagent.model_utils.seq2slate_utils import Seq2SlateOutputArch
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
-from reagent.parameters import Seq2SlateParameters
-from reagent.parameters_seq2slate import LearningMethod, SimulationParameters
-from reagent.torch_utils import gather
 from reagent.training.ranking.seq2slate_sim_trainer import Seq2SlateSimulationTrainer
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 

@@ -7,12 +7,12 @@ from typing import Callable, Optional
 
 import gym
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from gym import spaces
 from reagent.core.dataclasses import dataclass
+from reagent.core.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 from reagent.core.registry_meta import RegistryMeta
-from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
 from reagent.training.utils import rescale_actions
 
 
