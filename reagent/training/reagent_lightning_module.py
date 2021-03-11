@@ -2,12 +2,12 @@
 
 import inspect
 import logging
-from typing import final
 
 import pytorch_lightning as pl
 import torch
 from reagent.core.tensorboardX import SummaryWriterContext
 from reagent.core.utils import lazy_property
+from typing_extensions import final
 
 
 logger = logging.getLogger(__name__)
