@@ -3,7 +3,7 @@
 import math
 from typing import Optional
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.configuration import resolve_defaults

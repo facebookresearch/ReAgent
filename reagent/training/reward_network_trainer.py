@@ -4,7 +4,7 @@ import logging
 from enum import Enum
 from typing import Optional
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import field
 from reagent.models.base import ModelBase

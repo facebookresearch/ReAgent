@@ -5,14 +5,14 @@ from itertools import permutations
 from typing import List, Optional
 
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import field
+from reagent.core.parameters import Seq2SlateParameters
+from reagent.core.torch_utils import gather
 from reagent.core.tracker import observable
 from reagent.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
-from reagent.parameters import Seq2SlateParameters
-from reagent.torch_utils import gather
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
 from reagent.training.trainer import Trainer
 

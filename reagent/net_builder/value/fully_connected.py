@@ -4,9 +4,9 @@ from typing import List
 
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import NormalizationData, param_hash
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.net_builder.value_net_builder import ValueNetBuilder
-from reagent.parameters import NormalizationData, param_hash
 from reagent.preprocessing.normalization import get_num_output_features
 
 

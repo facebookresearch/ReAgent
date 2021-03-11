@@ -4,8 +4,8 @@ import logging
 from typing import Dict, List
 
 import torch
+from reagent.core.types import FeatureData, MemoryNetworkInput
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
-from reagent.types import FeatureData, MemoryNetworkInput
 
 
 logger = logging.getLogger(__name__)

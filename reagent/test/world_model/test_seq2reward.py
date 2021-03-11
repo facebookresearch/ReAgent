@@ -7,7 +7,7 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.prediction.predictor_wrapper import (
     Seq2RewardWithPreprocessor,
     Seq2RewardPlanShortSeqWithPreprocessor,

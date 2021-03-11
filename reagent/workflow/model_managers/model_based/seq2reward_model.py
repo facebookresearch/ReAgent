@@ -5,10 +5,10 @@ from typing import Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import Seq2RewardTrainerParameters, param_hash
 from reagent.net_builder.unions import ValueNetBuilder__Union
 from reagent.net_builder.value.fully_connected import FullyConnected
 from reagent.net_builder.value.seq2reward_rnn import Seq2RewardNetBuilder
-from reagent.parameters import Seq2RewardTrainerParameters, param_hash
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer
 from reagent.workflow.model_managers.world_model_base import WorldModelBase
 from reagent.workflow.types import PreprocessingOptions

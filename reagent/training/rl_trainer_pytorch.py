@@ -6,9 +6,9 @@ from typing import List, Optional
 
 import torch
 import torch.nn.functional as F
+from reagent.core.parameters import EvaluationParameters, RLParameters
+from reagent.core.torch_utils import masked_softmax
 from reagent.optimizer.union import Optimizer__Union
-from reagent.parameters import EvaluationParameters, RLParameters
-from reagent.torch_utils import masked_softmax
 from reagent.training.loss_reporter import LossReporter
 from reagent.training.trainer import Trainer
 

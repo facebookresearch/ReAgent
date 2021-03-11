@@ -14,7 +14,7 @@ from ruamel.yaml import YAML
 
 @click.group()
 def reagent():
-    from reagent import debug_on_error
+    from reagent.core import debug_on_error
 
     debug_on_error.start()
 

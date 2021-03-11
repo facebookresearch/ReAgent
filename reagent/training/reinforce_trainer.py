@@ -5,7 +5,7 @@ import math
 from dataclasses import field
 from typing import List, Optional
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.optim
 from reagent.gym.policies.policy import Policy

@@ -5,12 +5,12 @@ import logging
 from collections import deque
 from typing import Deque, Optional
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
+from reagent.core.parameters import MDNRNNTrainerParameters
 from reagent.models.mdn_rnn import gmm_loss
 from reagent.models.world_model import MemoryNetwork
-from reagent.parameters import MDNRNNTrainerParameters
 from reagent.training.trainer import Trainer
 
 

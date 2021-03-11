@@ -3,13 +3,13 @@
 import copy
 import logging
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
+from reagent.core.parameters import CONTINUOUS_TRAINING_ACTION_RANGE, RLParameters
 from reagent.optimizer import Optimizer__Union, SoftUpdate
-from reagent.parameters import CONTINUOUS_TRAINING_ACTION_RANGE, RLParameters
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.rl_trainer_pytorch import RLTrainerMixin
 

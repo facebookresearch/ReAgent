@@ -4,7 +4,7 @@ import logging
 from dataclasses import field
 from typing import Dict, List, Optional, Union
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.optim
 from reagent.core.configuration import resolve_defaults

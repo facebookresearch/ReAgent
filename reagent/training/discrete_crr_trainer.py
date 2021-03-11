@@ -7,13 +7,13 @@ import copy
 import logging
 from typing import List, Tuple
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
+from reagent.core.parameters import EvaluationParameters, RLParameters
 from reagent.optimizer import Optimizer__Union, SoftUpdate
-from reagent.parameters import EvaluationParameters, RLParameters
 from reagent.training.dqn_trainer_base import DQNTrainerBaseLightning
 from torch import distributions as pyd
 

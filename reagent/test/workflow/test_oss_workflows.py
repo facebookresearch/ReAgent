@@ -14,7 +14,7 @@ import reagent
 import reagent.workflow.cli as cli
 import torch
 from click.testing import CliRunner
-from reagent.parameters import NormalizationParameters
+from reagent.core.parameters import NormalizationParameters
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.workflow.types import Dataset
 from ruamel.yaml import YAML

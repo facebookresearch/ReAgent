@@ -4,12 +4,12 @@ import logging
 from typing import Optional
 
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import CEMTrainerParameters, param_hash
 from reagent.gym.policies.policy import Policy
 from reagent.models.cem_planner import CEMPlannerNetwork
-from reagent.parameters import CEMTrainerParameters, param_hash
 from reagent.preprocessing.identify_types import CONTINUOUS_ACTION
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.training.cem_trainer import CEMTrainer

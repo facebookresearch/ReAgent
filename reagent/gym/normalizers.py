@@ -5,7 +5,7 @@ import collections
 import logging
 
 import numpy as np
-from reagent.parameters import NormalizationParameters
+from reagent.core.parameters import NormalizationParameters
 
 
 logger = logging.getLogger(__name__)

@@ -3,10 +3,14 @@
 
 from typing import Dict, List, Optional
 
-from reagent.base_dataclass import BaseDataClass
+from reagent.core.base_dataclass import BaseDataClass
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass, field
-from reagent.parameters_seq2slate import IPSClamp, LearningMethod, SimulationParameters
+from reagent.core.parameters_seq2slate import (
+    IPSClamp,
+    LearningMethod,
+    SimulationParameters,
+)
 
 
 # For TD3 and SAC: actions are normalized in this range for training and

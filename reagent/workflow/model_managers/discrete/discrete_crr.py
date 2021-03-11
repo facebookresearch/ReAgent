@@ -6,9 +6,13 @@ import logging
 from typing import Optional
 
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import (
+    EvaluationParameters,
+    param_hash,
+)
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.models.base import ModelBase
@@ -20,10 +24,6 @@ from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import (
     DiscreteActorNetBuilder__Union,
     DiscreteDQNNetBuilder__Union,
-)
-from reagent.parameters import (
-    EvaluationParameters,
-    param_hash,
 )
 from reagent.training import DiscreteCRRTrainer, CRRTrainerParameters
 from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase

@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.tracker import observable
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer, get_Q

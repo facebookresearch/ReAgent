@@ -3,10 +3,10 @@
 from typing import List
 
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import NormalizationData, param_hash
 from reagent.models.actor import GaussianFullyConnectedActor
 from reagent.models.base import ModelBase
 from reagent.net_builder.continuous_actor_net_builder import ContinuousActorNetBuilder
-from reagent.parameters import NormalizationData, param_hash
 from reagent.preprocessing.identify_types import CONTINUOUS_ACTION
 from reagent.preprocessing.normalization import get_num_output_features
 

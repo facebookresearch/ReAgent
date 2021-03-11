@@ -7,14 +7,14 @@ import unittest
 import numpy as np
 import torch
 import torch
+from reagent.core.parameters import (
+    NormalizationData,
+    NormalizationParameters,
+)
 from reagent.model_utils.seq2slate_utils import (
     Seq2SlateOutputArch,
 )
 from reagent.models.seq2slate import Seq2SlateTransformerModel, Seq2SlateTransformerNet
-from reagent.parameters import (
-    NormalizationData,
-    NormalizationParameters,
-)
 from reagent.prediction.predictor_wrapper import Seq2SlateWithPreprocessor
 from reagent.preprocessing.identify_types import DO_NOT_PREPROCESS
 from reagent.preprocessing.preprocessor import Preprocessor
