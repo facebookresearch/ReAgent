@@ -169,6 +169,74 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         optimizers.append(SoftUpdate(target_params, source_params, tau=self.tau))
         return optimizers
 
+    def compute_target_q_values(self, next_state, rewards, not_terminal, next_q_values):
+        if self.use_target_actor:
+            next_state_actor_output = self.actor_network_target(next_state).action
+        else:
+            next_state_actor_output = self.actor_network(next_state).action
+
+        next_dist = pyd.Categorical(logits=next_state_actor_output)
+        next_V = (next_q_values * next_dist.probs).sum(dim=1, keepdim=True)
+        if self.q2_network is not None:
+            next_q2_values = self.q2_network_target(next_state)
+            next_V2 = (next_q2_values * next_dist.probs).sum(dim=1, keepdim=True)
+            next_V = torch.min(next_V, next_V2)
+
+        target_q_values = rewards + self.gamma * next_V * not_terminal.float()
+        return target_q_values
+
+    def compute_q_value_and_loss(self, q_network, state, action, target_q_values):
+        q_values = q_network(state)
+        q = (q_values * action).sum(dim=1, keepdim=True)
+        q_loss = F.mse_loss(q, target_q_values)
+        return q, q_loss
+
+    def compute_actor_loss_and_value(
+        self, batch_idx, action, all_q_values, all_action_scores
+    ):
+        # Only update actor network after a fixed number of Q updates
+        if batch_idx % self.delayed_policy_update != 0:
+            # Yielding None prevents the actor network from updating
+            actor_loss = None
+            actor_q1_values = None
+            return actor_loss, actor_q1_values
+
+        # dist is the distribution of actions derived from the actor's outputs (logits)
+        dist = pyd.Categorical(logits=all_action_scores)
+
+        # Note: D = dist.probs is equivalent to:
+        # e_x = torch.exp(actor_actions)
+        # D = e_x / e_x.sum(dim=1, keepdim=True)
+        # That is, dist gives a softmax distribution over actor's outputs
+        values = (all_q_values * dist.probs).sum(dim=1, keepdim=True)
+
+        advantages = all_q_values - values
+        # Note: the above statement subtracts the "values" column vector from
+        # every column of the all_q_values matrix, giving us the advantages
+        # of every action in the present state
+
+        weight = torch.clamp(
+            (advantages * action).sum(dim=1, keepdim=True).exp(), 0, 20.0
+        )
+        # Remember: training_batch.action is in the one-hot format
+        logged_action_idxs = torch.argmax(action, dim=1, keepdim=True)
+
+        # Note: action space is assumed to be discrete with actions
+        # belonging to the set {0, 1, ..., action_dim-1}. Therefore,
+        # advantages.gather(1, logged_action_idxs) will select, for each data point
+        # (row i of the Advantage matrix "advantages"), the element with index
+        # action.float_features[i]
+
+        # Note: dist.logits already gives log(p), which can be verified by
+        # comparing dist.probs and dist.logits.
+        # https://pytorch.org/docs/master/distributions.html#multinomial
+        # states: logits (Tensor) – event log probabilities
+        log_pi_b = dist.log_prob(logged_action_idxs.squeeze(1)).unsqueeze(1)
+
+        actor_loss = (-log_pi_b * weight.detach()).mean()
+
+        return actor_loss, values
+
     def train_step_gen(self, training_batch: rlt.DiscreteDqnInput, batch_idx: int):
         """
         IMPORTANT: the input action here is preprocessed according to the
@@ -182,34 +250,20 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         state = training_batch.state
         action = training_batch.action
         next_state = training_batch.next_state
-        reward = training_batch.reward
         not_terminal = training_batch.not_terminal
+        rewards = self.boost_rewards(training_batch.reward, training_batch.action)
 
-        boosted_rewards = self.boost_rewards(reward, training_batch.action)
-        rewards = boosted_rewards
-
-        if self.use_target_actor:
-            next_state_actor_output = self.actor_network_target(next_state).action
-        else:
-            next_state_actor_output = self.actor_network(next_state).action
+        # Remember: training_batch.action is in the one-hot format
+        logged_action_idxs = torch.argmax(action, dim=1, keepdim=True)
+        discount_tensor = torch.full_like(rewards, self.gamma)
 
         next_q_values = self.q1_network_target(next_state)
-        next_dist = pyd.Categorical(logits=next_state_actor_output)
-        next_V = (next_q_values * next_dist.probs).sum(dim=1, keepdim=True)
-        if self.q2_network is not None:
-            next_q2_values = self.q2_network_target(next_state)
-            next_V2 = (next_q2_values * next_dist.probs).sum(dim=1, keepdim=True)
-            next_V = torch.min(next_V, next_V2)
-
-        target_q_value = rewards + self.gamma * next_V * not_terminal.float()
-
-        # Optimize Q1 and Q2
-        q1_values = self.q1_network(state)
-        # Remember: training_batch.action is in the one-hot format
-        logged_action_idxs = torch.argmax(training_batch.action, dim=1, keepdim=True)
-        q1 = (q1_values * action).sum(dim=1, keepdim=True)
-
-        q1_loss = F.mse_loss(q1, target_q_value)
+        target_q_values = self.compute_target_q_values(
+            next_state, rewards, not_terminal, next_q_values
+        )
+        q1, q1_loss = self.compute_q_value_and_loss(
+            self.q1_network, state, action, target_q_values
+        )
         self.reporter.log(
             q1_loss=q1_loss,
             q1_value=q1,
@@ -218,9 +272,9 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         yield q1_loss
 
         if self.q2_network:
-            q2_values = self.q2_network(state)
-            q2 = (q2_values * action).sum(dim=1, keepdim=True)
-            q2_loss = F.mse_loss(q2, target_q_value)
+            q2, q2_loss = self.compute_q_value_and_loss(
+                self.q2_network, state, action, target_q_values
+            )
             self.reporter.log(
                 q2_loss=q2_loss,
                 q2_value=q2,
@@ -231,64 +285,21 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
 
         # Note: action_dim (the length of each row of the actor_action
         # matrix obtained below) is assumed to be > 1.
-        actor_actions = self.actor_network(state).action
+        all_action_scores = self.actor_network(state).action
 
-        # Note: while in discrete_dqn_trainer.py we do all_action_scores = all_q_values.detach(),
-        # here we only need to do
-        all_action_scores = actor_actions
-        # because a softmax over these scores will be taken in _calculate_cpes(),
-        # while dist computed below is also a softmax distribution.
-
-        # Only update actor and target networks after a fixed number of Q updates
-        if batch_idx % self.delayed_policy_update == 0:
-
-            # dist is the distribution of actions derived from the actor's outputs (logits)
-            dist = pyd.Categorical(logits=actor_actions)
-
-            # Note: D = dist.probs is equivalent to:
-            # e_x = torch.exp(actor_actions)
-            # D = e_x / e_x.sum(dim=1, keepdim=True)
-            # That is, dist gives a softmax distribution over actor's outputs
-            values = (all_q_values * dist.probs).sum(dim=1, keepdim=True)
-
-            advantages = all_q_values - values
-            # Note: the above statement subtracts the "values" column vector from
-            # every column of the all_q_values matrix, giving us the advantages
-            # of every action in the present state
-
-            weight = torch.clamp(
-                (advantages * action).sum(dim=1, keepdim=True).exp(), 0, 20.0
-            )
-            # Note: action space is assumed to be discrete with actions
-            # belonging to the set {0, 1, ..., action_dim-1}. Therefore,
-            # advantages.gather(1, logged_action_idxs) will select, for each data point
-            # (row i of the Advantage matrix "advantages"), the element with index
-            # action.float_features[i]
-
-            # Note: dist.logits already gives log(p), which can be verified by
-            # comparing dist.probs and dist.logits.
-            # https://pytorch.org/docs/master/distributions.html#multinomial
-            # states: logits (Tensor) – event log probabilities
-            log_pi_b = dist.log_prob(logged_action_idxs.squeeze(1)).unsqueeze(1)
-
-            actor_loss = (-log_pi_b * weight.detach()).mean()
-
-            self.reporter.log(
-                actor_loss=actor_loss,
-                actor_q1_value=values,
-            )
-            yield actor_loss
-        else:
-            # Yielding None prevents the actor and target networks from updating
-            yield None
-            yield None
-
-        discount_tensor = torch.full_like(rewards, self.gamma)
+        actor_loss, actor_q1_values = self.compute_actor_loss_and_value(
+            batch_idx, action, all_q_values, all_action_scores
+        )
+        self.reporter.log(
+            actor_loss=actor_loss,
+            actor_q1_value=actor_q1_values,
+        )
+        yield actor_loss
 
         yield from self._calculate_cpes(
             training_batch,
-            training_batch.state,
-            training_batch.next_state,
+            state,
+            next_state,
             all_action_scores,
             next_q_values.detach(),
             logged_action_idxs,
@@ -299,9 +310,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         # Do we ever use model_action_idxs computed below?
         model_action_idxs = self.get_max_q_values(
             all_action_scores,
-            training_batch.possible_actions_mask
-            if self.maxq_learning
-            else training_batch.action,
+            training_batch.possible_actions_mask if self.maxq_learning else action,
         )[1]
 
         self.reporter.log(
@@ -318,3 +327,38 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         # optimizer added in the configure_optimizers() function.
         result = self.soft_update_result()
         yield result
+
+    def validation_step(self, batch, batch_idx):
+        # raw data
+        state = batch.state
+        action = batch.action
+        next_state = batch.next_state
+        not_terminal = batch.not_terminal
+        rewards = self.boost_rewards(batch.reward, action)
+
+        # intermediate values
+        next_q_values = self.q1_network_target(next_state)
+        target_q_values = self.compute_target_q_values(
+            next_state, rewards, not_terminal, next_q_values
+        )
+        all_q_values = self.q1_network(state)
+        all_action_scores = self.actor_network(state).action
+
+        # loss to log
+        actor_loss, actor_q1_values = self.compute_actor_loss_and_value(
+            batch_idx, action, all_q_values, all_action_scores
+        )
+        q1, q1_loss = self.compute_q_value_and_loss(
+            self.q1_network, state, action, target_q_values
+        )
+        self.reporter.log(
+            eval_actor_loss=actor_loss,
+            eval_q1_loss=q1_loss,
+        )
+        if self.q2_network:
+            q2, q2_loss = self.compute_q_value_and_loss(
+                self.q2_network, state, action, target_q_values
+            )
+            self.reporter.log(eval_q2_loss=q2_loss)
+
+        return super().validation_step(batch, batch_idx)

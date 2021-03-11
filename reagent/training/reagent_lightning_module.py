@@ -2,6 +2,7 @@
 
 import inspect
 import logging
+from typing import final
 
 import pytorch_lightning as pl
 import torch
@@ -124,8 +125,10 @@ class ReAgentLightningModule(pl.LightningModule):
     def _num_optimizing_steps(self) -> int:
         return len(self.configure_optimizers())
 
-    def training_epoch_end(self, training_step_outputs):
-        # Flush the reporter
+    @final
+    def on_epoch_end(self):
+        # Flush the reporter which has accumulated data in
+        # training and validation phase
         self.reporter.flush(self.current_epoch)
 
         # Tell the trainer to stop.
