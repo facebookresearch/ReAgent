@@ -6,7 +6,6 @@ from typing import List, Optional
 
 import torch
 import torch.nn.functional as F
-from pytorch_lightning.utilities import rank_zero_only
 from reagent.core.parameters import EvaluationParameters, RLParameters
 from reagent.core.torch_utils import masked_softmax
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
@@ -282,14 +281,12 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
             self.cuda()
         return eval_data
 
-    @rank_zero_only
     def validation_step(self, batch, batch_idx):
         # HACK: Move to cpu in order to hold more batches in memory
         # This is only needed when trainers need to evaluate on
         # the full evaluation dataset in memory
         return batch.cpu()
 
-    @rank_zero_only
     def validation_epoch_end(self, valid_step_outputs):
         eval_data = self.gather_eval_data(valid_step_outputs)
         if eval_data and eval_data.mdp_id is not None:

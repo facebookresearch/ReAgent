@@ -77,6 +77,7 @@ class DiscreteDQNReporter(FlexibleDataPointsPerEpochMixin, ReporterBase):
                         )
                         for key, log_key in [
                             ("td_loss", "td_loss"),
+                            ("eval_td_loss", "eval_td_loss"),
                             ("reward_loss", "reward_loss"),
                             ("logged_propensities", "propensities/logged"),
                             ("logged_rewards", "reward/logged"),

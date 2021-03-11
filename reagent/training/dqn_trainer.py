@@ -141,38 +141,37 @@ class DQNTrainer(DQNTrainerBaseLightning):
         q_values_target = self.q_network_target(state)
         return q_values, q_values_target
 
-    def train_step_gen(self, training_batch: rlt.DiscreteDqnInput, batch_idx: int):
-        # TODO: calls to _maybe_run_optimizer removed, should be replaced with Trainer parameter
-        assert isinstance(training_batch, rlt.DiscreteDqnInput)
-        boosted_rewards = self.boost_rewards(
-            training_batch.reward, training_batch.action
-        )
-        rewards = boosted_rewards
-        discount_tensor = torch.full_like(rewards, self.gamma)
-        not_done_mask = training_batch.not_terminal.float()
-        assert not_done_mask.dim() == 2
-
+    def compute_discount_tensor(
+        self, batch: rlt.DiscreteDqnInput, boosted_rewards: torch.Tensor
+    ):
+        discount_tensor = torch.full_like(boosted_rewards, self.gamma)
         if self.use_seq_num_diff_as_time_diff:
             assert self.multi_steps is None
-            discount_tensor = torch.pow(self.gamma, training_batch.time_diff.float())
+            discount_tensor = torch.pow(self.gamma, batch.time_diff.float())
         if self.multi_steps is not None:
-            assert training_batch.step is not None
+            assert batch.step is not None
             # pyre-fixme[16]: `Optional` has no attribute `float`.
-            discount_tensor = torch.pow(self.gamma, training_batch.step.float())
+            discount_tensor = torch.pow(self.gamma, batch.step.float())
+        return discount_tensor
 
+    def compute_td_loss(
+        self,
+        batch: rlt.DiscreteDqnInput,
+        boosted_rewards: torch.Tensor,
+        discount_tensor: torch.Tensor,
+    ):
+        not_done_mask = batch.not_terminal.float()
         all_next_q_values, all_next_q_values_target = self.get_detached_q_values(
-            training_batch.next_state
+            batch.next_state
         )
 
         if self.maxq_learning:
             # Compute max a' Q(s', a') over all possible actions using target network
-            possible_next_actions_mask = (
-                training_batch.possible_next_actions_mask.float()
-            )
+            possible_next_actions_mask = batch.possible_next_actions_mask.float()
             if self.bcq:
                 action_on_policy = get_valid_actions_from_imitator(
                     self.bcq_imitator,
-                    training_batch.next_state,
+                    batch.next_state,
                     self.bcq_drop_threshold,
                 )
                 possible_next_actions_mask *= action_on_policy
@@ -186,23 +185,32 @@ class DQNTrainer(DQNTrainerBaseLightning):
             next_q_values, max_q_action_idxs = self.get_max_q_values_with_target(
                 all_next_q_values,
                 all_next_q_values_target,
-                training_batch.next_action,
+                batch.next_action,
             )
 
         filtered_next_q_vals = next_q_values * not_done_mask
 
-        target_q_values = rewards + (discount_tensor * filtered_next_q_vals)
+        target_q_values = boosted_rewards + (discount_tensor * filtered_next_q_vals)
 
         # Get Q-value of action taken
-        all_q_values = self.q_network(training_batch.state)
+        all_q_values = self.q_network(batch.state)
         # pyre-fixme[16]: `DQNTrainer` has no attribute `all_action_scores`.
         self.all_action_scores = all_q_values.detach()
-        q_values = torch.sum(all_q_values * training_batch.action, 1, keepdim=True)
-        loss = self.q_network_loss(q_values, target_q_values.detach())
+        q_values = torch.sum(all_q_values * batch.action, 1, keepdim=True)
+        td_loss = self.q_network_loss(q_values, target_q_values.detach())
+        return td_loss
 
-        # pyre-fixme[16]: `DQNTrainer` has no attribute `loss`.
-        self.loss = loss.detach()
-        yield loss
+    def train_step_gen(self, training_batch: rlt.DiscreteDqnInput, batch_idx: int):
+        # TODO: calls to _maybe_run_optimizer removed, should be replaced with Trainer parameter
+        assert isinstance(training_batch, rlt.DiscreteDqnInput)
+        rewards = self.boost_rewards(training_batch.reward, training_batch.action)
+        not_done_mask = training_batch.not_terminal.float()
+        assert not_done_mask.dim() == 2
+
+        discount_tensor = self.compute_discount_tensor(training_batch, rewards)
+        td_loss = self.compute_td_loss(training_batch, rewards, discount_tensor)
+        yield td_loss
+        td_loss = td_loss.detach()
 
         # Get Q-values of next states, used in computing cpe
         all_next_action_scores = self.q_network(training_batch.next_state).detach()
@@ -212,6 +220,7 @@ class DQNTrainer(DQNTrainerBaseLightning):
             training_batch,
             training_batch.state,
             training_batch.next_state,
+            # pyre-fixme[16]: `DQNTrainer` has no attribute `all_action_scores`.
             self.all_action_scores,
             all_next_action_scores,
             logged_action_idxs,
@@ -235,7 +244,7 @@ class DQNTrainer(DQNTrainerBaseLightning):
         )[1]
 
         self.reporter.log(
-            td_loss=self.loss,
+            td_loss=td_loss,
             logged_actions=logged_action_idxs,
             logged_propensities=training_batch.extras.action_probability,
             logged_rewards=rewards,
@@ -247,3 +256,10 @@ class DQNTrainer(DQNTrainerBaseLightning):
 
         # Use the soft update rule to update target network
         yield self.soft_update_result()
+
+    def validation_step(self, batch, batch_idx):
+        rewards = self.boost_rewards(batch.reward, batch.action)
+        discount_tensor = self.compute_discount_tensor(batch, rewards)
+        td_loss = self.compute_td_loss(batch, rewards, discount_tensor)
+        self.reporter.log(eval_td_loss=td_loss)
+        return super().validation_step(batch, batch_idx)
