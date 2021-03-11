@@ -4,9 +4,9 @@
 import unittest
 
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
+from reagent.core.parameters import NormalizationData, NormalizationParameters
 from reagent.net_builder import continuous_actor
 from reagent.net_builder.unions import ContinuousActorNetBuilder__Union
-from reagent.parameters import NormalizationData, NormalizationParameters
 from reagent.preprocessing.identify_types import CONTINUOUS
 
 

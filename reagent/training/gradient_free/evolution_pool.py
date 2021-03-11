@@ -8,7 +8,7 @@ import torch
 import torch.fb.rendezvous.zeus
 import torch.nn
 import torch.optim
-from reagent.parameters import EvolutionParameters
+from reagent.core.parameters import EvolutionParameters
 
 
 logger = logging.getLogger(__name__)

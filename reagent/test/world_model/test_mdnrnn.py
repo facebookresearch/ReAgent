@@ -6,9 +6,9 @@ import unittest
 
 import numpy as np
 import torch
+from reagent.core.parameters import MDNRNNTrainerParameters
 from reagent.models.mdn_rnn import MDNRNNMemoryPool, gmm_loss
 from reagent.models.world_model import MemoryNetwork
-from reagent.parameters import MDNRNNTrainerParameters
 from reagent.test.world_model.simulated_world_model import SimulatedWorldModel
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 from torch.distributions.categorical import Categorical

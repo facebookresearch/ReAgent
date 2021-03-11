@@ -9,7 +9,7 @@ from itertools import permutations
 
 import numpy as np
 import pytest
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from parameterized import parameterized

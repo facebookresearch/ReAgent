@@ -3,7 +3,7 @@
 from typing import Optional
 
 import torch
-from reagent.parameters_seq2slate import IPSClamp, IPSClampMethod
+from reagent.core.parameters_seq2slate import IPSClamp, IPSClampMethod
 
 
 def ips_clamp(impt_smpl, ips_clamp: Optional[IPSClamp]):

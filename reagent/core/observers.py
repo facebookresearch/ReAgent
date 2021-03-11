@@ -4,8 +4,8 @@
 import logging
 from typing import Any, Dict, Iterable, List, Optional
 
+from reagent.core.tensorboardX import SummaryWriterContext
 from reagent.core.tracker import Aggregator, Observer
-from reagent.tensorboardX import SummaryWriterContext
 
 
 logger = logging.getLogger(__name__)

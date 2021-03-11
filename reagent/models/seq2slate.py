@@ -8,9 +8,10 @@ from typing import Optional, NamedTuple
 import torch
 import torch.nn as nn
 import torch.nn.modules.transformer as transformer
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass
+from reagent.core.torch_utils import gather
 from reagent.model_utils.seq2slate_utils import (
     DECODER_START_SYMBOL,
     PADDING_SYMBOL,
@@ -24,7 +25,6 @@ from reagent.model_utils.seq2slate_utils import (
     print_model_info,
 )
 from reagent.models.base import ModelBase
-from reagent.torch_utils import gather
 from torch.nn.parallel.distributed import DistributedDataParallel
 
 

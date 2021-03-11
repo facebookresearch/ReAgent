@@ -5,14 +5,18 @@ import logging
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import (
+    EvaluationParameters,
+    NormalizationData,
+    NormalizationKey,
+)
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.models.base import ModelBase
-from reagent.parameters import EvaluationParameters, NormalizationData, NormalizationKey
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
     PolicyNetworkBatchPreprocessor,

@@ -2,9 +2,9 @@
 
 import torch
 from reagent.core.dataclasses import dataclass
+from reagent.core.parameters import NormalizationData, param_hash
 from reagent.models.seq2reward_model import Seq2RewardNetwork
 from reagent.net_builder.value_net_builder import ValueNetBuilder
-from reagent.parameters import NormalizationData, param_hash
 from reagent.preprocessing.normalization import get_num_output_features
 
 

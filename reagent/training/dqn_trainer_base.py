@@ -7,11 +7,11 @@ from typing import List, Optional
 import torch
 import torch.nn.functional as F
 from pytorch_lightning.utilities import rank_zero_only
+from reagent.core.parameters import EvaluationParameters, RLParameters
+from reagent.core.torch_utils import masked_softmax
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.evaluation.evaluator import Evaluator
 from reagent.optimizer import Optimizer__Union
-from reagent.parameters import EvaluationParameters, RLParameters
-from reagent.torch_utils import masked_softmax
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.rl_trainer_pytorch import RLTrainerMixin
 

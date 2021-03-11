@@ -7,8 +7,8 @@ import unittest
 import numpy.testing as npt
 import torch
 import torch.nn as nn
+from reagent.core.parameters import RLParameters
 from reagent.models.no_soft_update_embedding import NoSoftUpdateEmbedding
-from reagent.parameters import RLParameters
 from reagent.training.rl_trainer_pytorch import RLTrainer
 
 

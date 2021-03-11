@@ -4,9 +4,9 @@ import logging
 
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import param_hash
 from reagent.net_builder.categorical_dqn.categorical import Categorical
 from reagent.net_builder.unions import CategoricalDQNNetBuilder__Union
-from reagent.parameters import param_hash
 from reagent.training import C51Trainer, C51TrainerParameters
 from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
 

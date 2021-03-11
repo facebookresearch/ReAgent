@@ -5,7 +5,7 @@ import logging
 from typing import Dict, List, Optional, Tuple, cast
 
 import torch
-from reagent.parameters import NormalizationParameters
+from reagent.core.parameters import NormalizationParameters
 from reagent.preprocessing.identify_types import DO_NOT_PREPROCESS, ENUM, FEATURE_TYPES
 from reagent.preprocessing.normalization import (
     EPS,

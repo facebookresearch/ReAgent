@@ -8,8 +8,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 from reagent.core.tracker import observable
+from reagent.core.types import PreprocessedRankingInput
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode
-from reagent.types import PreprocessedRankingInput
 from sklearn.metrics import (
     average_precision_score,
     dcg_score,

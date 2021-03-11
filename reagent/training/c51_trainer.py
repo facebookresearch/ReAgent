@@ -3,12 +3,12 @@
 
 from typing import List
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
+from reagent.core.parameters import RLParameters
 from reagent.optimizer import Optimizer__Union, SoftUpdate
-from reagent.parameters import RLParameters
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.rl_trainer_pytorch import RLTrainerMixin, RLTrainer
 

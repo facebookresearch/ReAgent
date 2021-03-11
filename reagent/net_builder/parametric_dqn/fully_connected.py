@@ -3,10 +3,10 @@
 from typing import List
 
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import NormalizationData, param_hash
 from reagent.models.base import ModelBase
 from reagent.models.critic import FullyConnectedCritic
 from reagent.net_builder.parametric_dqn_net_builder import ParametricDQNNetBuilder
-from reagent.parameters import NormalizationData, param_hash
 from reagent.preprocessing.normalization import get_num_output_features
 
 

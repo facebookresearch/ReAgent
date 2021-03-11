@@ -4,9 +4,9 @@ import logging
 
 import torch
 from reagent.core.tracker import observable
+from reagent.core.types import MemoryNetworkInput
 from reagent.training.world_model.compress_model_trainer import CompressModelTrainer
 from reagent.training.world_model.seq2reward_trainer import get_Q
-from reagent.types import MemoryNetworkInput
 
 
 logger = logging.getLogger(__name__)

@@ -5,7 +5,7 @@ from copy import deepcopy
 from typing import Any, Optional
 
 import torch.nn as nn
-from reagent import types as rlt
+from reagent.core import types as rlt
 
 
 # add ABCMeta once https://github.com/sphinx-doc/sphinx/issues/5995 is fixed

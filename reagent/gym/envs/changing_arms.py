@@ -19,12 +19,12 @@ import random
 
 import gym
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass
+from reagent.core.parameters import NormalizationData, NormalizationKey
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.normalizers import only_continuous_normalizer
-from reagent.parameters import NormalizationData, NormalizationKey
 
 
 ABS_LOW = -1000.0

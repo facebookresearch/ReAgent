@@ -3,7 +3,7 @@
 
 import torch
 import torch.nn.functional as F
-from reagent import types as rlt
+from reagent.core import types as rlt
 from reagent.models.base import ModelBase
 
 

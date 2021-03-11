@@ -2,15 +2,15 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from reagent.core.dataclasses import field
+from reagent.core.parameters import Seq2SlateParameters
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode
 from reagent.models.seq2slate import Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
-from reagent.parameters import Seq2SlateParameters
 from reagent.training.trainer import Trainer
 
 

@@ -3,14 +3,14 @@
 
 import logging
 
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from reagent.core.parameters import Seq2RewardTrainerParameters
 from reagent.core.tracker import observable
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.models.seq2reward_model import Seq2RewardNetwork
-from reagent.parameters import Seq2RewardTrainerParameters
 from reagent.training.loss_reporter import NoOpLossReporter
 from reagent.training.trainer import Trainer
 from reagent.training.utils import gen_permutations

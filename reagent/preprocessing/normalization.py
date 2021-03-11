@@ -7,10 +7,10 @@ from dataclasses import asdict
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import six
 import torch
-from reagent.parameters import NormalizationParameters
+from reagent.core.parameters import NormalizationParameters
 from reagent.preprocessing import identify_types
 from reagent.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
 from scipy import stats  # @manual=third-party//scipy:scipy-py

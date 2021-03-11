@@ -4,8 +4,8 @@ import logging
 
 import torch
 from reagent.core.dataclasses import dataclass, field
+from reagent.core.parameters import MDNRNNTrainerParameters, param_hash
 from reagent.models.world_model import MemoryNetwork
-from reagent.parameters import MDNRNNTrainerParameters, param_hash
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 from reagent.workflow.model_managers.world_model_base import WorldModelBase

@@ -7,7 +7,7 @@ from typing import Callable, Dict, List
 
 import gym
 import numpy as np
-import reagent.types as rlt
+import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass
 from reagent.gym.envs import RecSim

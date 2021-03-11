@@ -11,10 +11,10 @@ from reagent.core.multiprocess_utils import (
     unwrap_function_outputs,
     wrap_function_arguments,
 )
+from reagent.core.tensorboardX import SummaryWriterContext
 from reagent.gym.agents.agent import Agent
 from reagent.gym.envs import EnvWrapper
 from reagent.gym.types import Trajectory, Transition
-from reagent.tensorboardX import SummaryWriterContext
 
 
 logger = logging.getLogger(__name__)

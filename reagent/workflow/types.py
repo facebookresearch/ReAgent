@@ -13,7 +13,13 @@ from reagent.core.result_registries import (
     TrainingReport,
     ValidationResult,
 )
+from reagent.core.result_registries import (
+    PublishingResult,
+    TrainingReport,
+    ValidationResult,
+)
 from reagent.core.tagged_union import TaggedUnion
+from reagent.core.types import BaseDataClass
 from reagent.models.model_feature_config_provider import ModelFeatureConfigProvider
 from reagent.preprocessing.normalization import (
     DEFAULT_MAX_QUANTILE_SIZE,
@@ -21,7 +27,6 @@ from reagent.preprocessing.normalization import (
     DEFAULT_NUM_SAMPLES,
     DEFAULT_QUANTILE_K2_THRESHOLD,
 )
-from reagent.types import BaseDataClass
 
 
 try:

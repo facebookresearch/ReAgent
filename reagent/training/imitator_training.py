@@ -6,8 +6,8 @@ import logging
 import torch
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
+from reagent.core.parameters import RLParameters
 from reagent.optimizer.union import Optimizer__Union
-from reagent.parameters import RLParameters
 from reagent.training.rl_trainer_pytorch import RLTrainer
 
 

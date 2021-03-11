@@ -12,13 +12,13 @@ from typing import Dict, List, NamedTuple, Optional, Tuple, Union
 import reagent.core.result_types  # noqa
 import torch
 import torch.nn.functional as F
-from reagent.base_dataclass import BaseDataClass
+from reagent.core.base_dataclass import BaseDataClass
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
+from reagent.core.torch_utils import gather
 from reagent.model_utils.seq2slate_utils import DECODER_START_SYMBOL, subsequent_mask
 from reagent.preprocessing.types import InputColumn
-from reagent.torch_utils import gather
 
 
 if IS_FB_ENVIRONMENT:
