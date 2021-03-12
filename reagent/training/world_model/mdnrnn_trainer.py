@@ -8,16 +8,17 @@ from typing import Deque, Optional
 import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
+from pytorch_lightning.utilities import rank_zero_only
 from reagent.core.parameters import MDNRNNTrainerParameters
 from reagent.models.mdn_rnn import gmm_loss
 from reagent.models.world_model import MemoryNetwork
-from reagent.training.trainer import Trainer
+from reagent.training.reagent_lightning_module import ReAgentLightningModule
 
 
 logger = logging.getLogger(__name__)
 
 
-class MDNRNNTrainer(Trainer):
+class MDNRNNTrainer(ReAgentLightningModule):
     """ Trainer for MDN-RNN """
 
     def __init__(
@@ -26,40 +27,81 @@ class MDNRNNTrainer(Trainer):
         params: MDNRNNTrainerParameters,
         cum_loss_hist: int = 100,
     ):
+        super().__init__()
         self.memory_network = memory_network
         self.params = params
-        self.optimizer = torch.optim.Adam(
-            self.memory_network.mdnrnn.parameters(), lr=params.learning_rate
+
+    def configure_optimizers(self):
+        optimizers = []
+
+        optimizers.append(
+            torch.optim.Adam(
+                self.memory_network.mdnrnn.parameters(), lr=self.params.learning_rate
+            )
         )
-        self.minibatch = 0
-        self.minibatch_size = params.minibatch_size
-        self.cum_loss: Deque[float] = deque([], maxlen=cum_loss_hist)
-        self.cum_bce: Deque[float] = deque([], maxlen=cum_loss_hist)
-        self.cum_gmm: Deque[float] = deque([], maxlen=cum_loss_hist)
-        self.cum_mse: Deque[float] = deque([], maxlen=cum_loss_hist)
 
-        # PageHandler must use this to activate evaluator:
-        self.calc_cpe_in_training = True
+        return optimizers
 
-    def train(self, training_batch: rlt.MemoryNetworkInput):
-        self.minibatch += 1
-
+    def train_step_gen(self, training_batch: rlt.MemoryNetworkInput, batch_idx: int):
         (seq_len, batch_size, state_dim) = training_batch.state.float_features.shape
 
-        self.memory_network.mdnrnn.train()
-        self.optimizer.zero_grad()
         losses = self.get_loss(training_batch, state_dim)
-        losses["loss"].backward()
-        self.optimizer.step()
 
         detached_losses = {k: loss.cpu().detach().item() for k, loss in losses.items()}
-        self.cum_loss.append(detached_losses["loss"])
-        self.cum_gmm.append(detached_losses["gmm"])
-        self.cum_bce.append(detached_losses["bce"])
-        self.cum_mse.append(detached_losses["mse"])
-        del losses
+        self.reporter.log(
+            loss=detached_losses["loss"],
+            gmm=detached_losses["gmm"],
+            bce=detached_losses["bce"],
+            mse=detached_losses["mse"],
+        )
 
-        return detached_losses
+        loss = losses["loss"]
+        self.log("td_loss", loss, prog_bar=True)
+        yield loss
+
+    @rank_zero_only
+    def validation_step(  # pyre-ignore inconsistent override because lightning doesn't use types
+        self,
+        training_batch: rlt.MemoryNetworkInput,
+        batch_idx: int,
+    ):
+        (seq_len, batch_size, state_dim) = training_batch.state.float_features.shape
+
+        losses = self.get_loss(training_batch, state_dim)
+
+        detached_losses = {k: loss.cpu().detach().item() for k, loss in losses.items()}
+        self.reporter.log(
+            eval_loss=detached_losses["loss"],
+            eval_gmm=detached_losses["gmm"],
+            eval_bce=detached_losses["bce"],
+            eval_mse=detached_losses["mse"],
+        )
+
+        loss = losses["loss"]
+        self.log("td_loss", loss, prog_bar=True)
+        return loss
+
+    @rank_zero_only
+    def test_step(  # pyre-ignore inconsistent override because lightning doesn't use types
+        self,
+        training_batch: rlt.MemoryNetworkInput,
+        batch_idx: int,
+    ):
+        (seq_len, batch_size, state_dim) = training_batch.state.float_features.shape
+
+        losses = self.get_loss(training_batch, state_dim)
+
+        detached_losses = {k: loss.cpu().detach().item() for k, loss in losses.items()}
+        self.reporter.log(
+            test_loss=detached_losses["loss"],
+            test_gmm=detached_losses["gmm"],
+            test_bce=detached_losses["bce"],
+            test_mse=detached_losses["mse"],
+        )
+
+        loss = losses["loss"]
+        self.log("td_loss", loss, prog_bar=True)
+        return loss
 
     def get_loss(
         self, training_batch: rlt.MemoryNetworkInput, state_dim: Optional[int] = None
@@ -129,7 +171,3 @@ class MDNRNNTrainer(Trainer):
         else:
             loss = gmm + bce + mse
         return {"gmm": gmm, "bce": bce, "mse": mse, "loss": loss}
-
-    def warm_start_components(self):
-        components = ["memory_network"]
-        return components

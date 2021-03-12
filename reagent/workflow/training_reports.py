@@ -27,6 +27,11 @@ class ActorCriticTrainingReport(TrainingReport):
 
 
 @dataclass
+class WorldModelTrainingReport(TrainingReport):
+    __registry_name__ = "world_model_report"
+
+
+@dataclass
 class ParametricDQNTrainingReport(TrainingReport):
     __registry_name__ = "parametric_dqn_report"
 

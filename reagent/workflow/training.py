@@ -243,6 +243,7 @@ def train_workflow(
         train_output = model_manager.train(
             train_dataset,
             eval_dataset,
+            None,
             data_module,
             num_epochs,
             reader_options,

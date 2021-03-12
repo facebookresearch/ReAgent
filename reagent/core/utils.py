@@ -26,6 +26,7 @@ class lazy_property(object):
 class TrainEvalSampleRanges(NamedTuple):
     train_sample_range: Tuple[float, float]
     eval_sample_range: Tuple[float, float]
+    test_sample_range: Tuple[float, float]
 
 
 def get_sample_range(
@@ -33,6 +34,7 @@ def get_sample_range(
 ) -> TrainEvalSampleRanges:
     table_sample = input_table_spec.table_sample
     eval_table_sample = input_table_spec.eval_table_sample
+    test_table_sample = input_table_spec.test_table_sample
 
     if not calc_cpe_in_training:
         # use all data if table sample = None
@@ -44,6 +46,7 @@ def get_sample_range(
             train_sample_range=train_sample_range,
             # eval samples will not be used
             eval_sample_range=(0.0, 0.0),
+            test_sample_range=(0, 0),
         )
 
     error_msg = (
@@ -57,14 +60,22 @@ def get_sample_range(
         "should not be too small."
     )
     eval_table_sample = 100.0 if eval_table_sample is None else eval_table_sample
+    test_table_sample = 0.0 if test_table_sample is None else test_table_sample
     table_sample = 100.0 if table_sample is None else table_sample
 
-    assert table_sample <= 100.0 + 1e-3 and eval_table_sample <= 100.0 + 1e-3, error_msg
-    assert has_external_eval_dataset or (eval_table_sample + table_sample) <= (
-        100.0 + 1e-3
-    ), error_msg
+    assert table_sample + test_table_sample + eval_table_sample <= 100.1
+    assert table_sample + test_table_sample + eval_table_sample >= 99.9
+    train_sample_range, validate_sample_range, test_sample_range = (
+        (0, table_sample),
+        (
+            table_sample,
+            table_sample + eval_table_sample,
+        ),
+        (100 - test_table_sample, 100),
+    )
 
     return TrainEvalSampleRanges(
-        train_sample_range=(0.0, table_sample),
-        eval_sample_range=(100.0 - eval_table_sample, 100.0),
+        train_sample_range=train_sample_range,
+        eval_sample_range=validate_sample_range,
+        test_sample_range=test_sample_range,
     )

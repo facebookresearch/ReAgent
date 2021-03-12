@@ -79,7 +79,7 @@ class ManualDataModule(ReAgentDataModule):
         sample_range_output = get_sample_range(
             self.input_table_spec,
             calc_cpe_in_training,
-            self.input_table_spec.eval_dataset is not None,
+            False,
         )
         train_dataset = self.query_data(
             input_table_spec=self.input_table_spec,
@@ -88,8 +88,14 @@ class ManualDataModule(ReAgentDataModule):
         )
         eval_dataset = None
         if calc_cpe_in_training:
+            eval_spec = None
+            if hasattr(self.input_table_spec, "eval_dataset_table_spec"):
+                self.input_table_spec.eval_dataset_table_spec()
+            if eval_spec is None:
+                # If we are doing CPE without an eval table, use the training table
+                eval_spec = self.input_table_spec
             eval_dataset = self.query_data(
-                input_table_spec=self.input_table_spec.eval_dataset_table_spec(),
+                input_table_spec=eval_spec,
                 sample_range=sample_range_output.eval_sample_range,
                 reward_options=self.reward_options,
             )

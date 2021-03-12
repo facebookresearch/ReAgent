@@ -25,6 +25,8 @@ class WorldModel(WorldModelBase):
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
 
+    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
+    #  inconsistently.
     def build_trainer(self) -> MDNRNNTrainer:
         memory_network = MemoryNetwork(
             state_dim=get_num_output_features(
