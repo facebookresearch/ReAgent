@@ -3,10 +3,7 @@
 import abc
 import logging
 import pickle
-from typing import Dict, List, Optional, Tuple
-
-from reagent.core.utils import get_sample_range
-
+from typing import NamedTuple, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +31,47 @@ from reagent.workflow.types import (
 )
 
 from .reagent_data_module import ReAgentDataModule
+
+
+class TrainEvalSampleRanges(NamedTuple):
+    train_sample_range: Tuple[float, float]
+    eval_sample_range: Tuple[float, float]
+
+
+def get_sample_range(
+    input_table_spec: TableSpec, calc_cpe_in_training: bool
+) -> TrainEvalSampleRanges:
+    table_sample = input_table_spec.table_sample
+    eval_table_sample = input_table_spec.eval_table_sample
+
+    if not calc_cpe_in_training:
+        # use all data if table sample = None
+        if table_sample is None:
+            train_sample_range = (0.0, 100.0)
+        else:
+            train_sample_range = (0.0, table_sample)
+        return TrainEvalSampleRanges(
+            train_sample_range=train_sample_range,
+            # eval samples will not be used
+            eval_sample_range=(0.0, 0.0),
+        )
+
+    error_msg = (
+        "calc_cpe_in_training is set to True. "
+        f"Please specify table_sample(current={table_sample}) and "
+        f"eval_table_sample(current={eval_table_sample}) such that "
+        "eval_table_sample + table_sample <= 100. "
+        "In order to reliably calculate CPE, eval_table_sample "
+        "should not be too small."
+    )
+    assert table_sample is not None, error_msg
+    assert eval_table_sample is not None, error_msg
+    assert (eval_table_sample + table_sample) <= (100.0 + 1e-3), error_msg
+
+    return TrainEvalSampleRanges(
+        train_sample_range=(0.0, table_sample),
+        eval_sample_range=(100.0 - eval_table_sample, 100.0),
+    )
 
 
 # pyre-fixme[13]: Attribute `_normalization_data_map` is never initialized.
@@ -77,9 +115,7 @@ class ManualDataModule(ReAgentDataModule):
         )
         calc_cpe_in_training = self.should_generate_eval_dataset
         sample_range_output = get_sample_range(
-            self.input_table_spec,
-            calc_cpe_in_training,
-            self.input_table_spec.eval_dataset is not None,
+            self.input_table_spec, calc_cpe_in_training
         )
         train_dataset = self.query_data(
             input_table_spec=self.input_table_spec,
@@ -89,7 +125,7 @@ class ManualDataModule(ReAgentDataModule):
         eval_dataset = None
         if calc_cpe_in_training:
             eval_dataset = self.query_data(
-                input_table_spec=self.input_table_spec.eval_dataset_table_spec(),
+                input_table_spec=self.input_table_spec,
                 sample_range=sample_range_output.eval_sample_range,
                 reward_options=self.reward_options,
             )
