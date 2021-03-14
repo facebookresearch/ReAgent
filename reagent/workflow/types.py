@@ -50,6 +50,7 @@ class TableSpec:
     table_name: str
     table_sample: Optional[float] = None
     eval_table_sample: Optional[float] = None
+    test_table_sample: Optional[float] = None
 
 
 @dataclass

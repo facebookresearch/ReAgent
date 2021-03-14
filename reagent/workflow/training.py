@@ -8,9 +8,9 @@ from typing import Dict, Optional
 import torch
 from reagent.core.parameters import NormalizationData
 from reagent.core.tensorboardX import summary_writer_context
-from reagent.core.utils import get_sample_range
 from reagent.publishers.union import ModelPublisher__Union
 from reagent.validators.union import ModelValidator__Union
+from reagent.workflow.data.manual_data_module import get_sample_range
 from reagent.workflow.env import get_new_named_entity_ids, get_workflow_id
 from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.model_managers.union import ModelManager__Union
@@ -139,9 +139,7 @@ def query_and_train(
     eval_dataset = None
     if normalization_data_map is not None:
         calc_cpe_in_training = manager.should_generate_eval_dataset
-        sample_range_output = get_sample_range(
-            input_table_spec, calc_cpe_in_training, False
-        )
+        sample_range_output = get_sample_range(input_table_spec, calc_cpe_in_training)
         train_dataset = manager.query_data(
             input_table_spec=input_table_spec,
             sample_range=sample_range_output.train_sample_range,
@@ -150,7 +148,7 @@ def query_and_train(
         eval_dataset = None
         if calc_cpe_in_training:
             eval_dataset = manager.query_data(
-                input_table_spec=input_table_spec.eval_dataset_table_spec(),
+                input_table_spec=input_table_spec,
                 sample_range=sample_range_output.eval_sample_range,
                 reward_options=reward_options,
             )
@@ -243,6 +241,7 @@ def train_workflow(
         train_output = model_manager.train(
             train_dataset,
             eval_dataset,
+            None,
             data_module,
             num_epochs,
             reader_options,

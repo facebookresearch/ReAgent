@@ -237,6 +237,7 @@ class ActorCriticBase(ModelManager):
         self,
         train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
+        test_dataset: Optional[Dataset],
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
@@ -255,7 +256,7 @@ class ActorCriticBase(ModelManager):
         self._lightning_trainer = train_eval_lightning(
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
-            test_dataset=None,
+            test_dataset=test_dataset,
             trainer_module=self.trainer,
             data_module=data_module,
             num_epochs=num_epochs,

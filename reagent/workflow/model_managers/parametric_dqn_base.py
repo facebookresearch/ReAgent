@@ -170,6 +170,7 @@ class ParametricDQNBase(ModelManager):
         self,
         train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
+        test_dataset: Optional[Dataset],
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,

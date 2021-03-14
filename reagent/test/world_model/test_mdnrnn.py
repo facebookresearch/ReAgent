@@ -11,6 +11,7 @@ from reagent.models.mdn_rnn import MDNRNNMemoryPool, gmm_loss
 from reagent.models.world_model import MemoryNetwork
 from reagent.test.world_model.simulated_world_model import SimulatedWorldModel
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
+from reagent.workflow.reporters.world_model_reporter import WorldModelReporter
 from torch.distributions.categorical import Categorical
 from torch.distributions.normal import Normal
 
@@ -147,35 +148,42 @@ class TestMDNRNN(unittest.TestCase):
         trainer = MDNRNNTrainer(
             memory_network=mdnrnn_net, params=mdnrnn_params, cum_loss_hist=num_batch
         )
+        reporter = WorldModelReporter(report_interval=1)
+        trainer.set_reporter(reporter)
 
+        optimizer = trainer.configure_optimizers()[0]
         for e in range(num_epochs):
             for i in range(num_batch):
                 training_batch = replay_buffer.sample_memories(
                     batch_size, use_gpu=use_gpu
                 )
-                losses = trainer.train(training_batch)
+                optimizer.zero_grad()
+                loss = next(trainer.train_step_gen(training_batch, i))
+                loss.backward()
+                optimizer.step()
+
                 logger.info(
                     "{}-th epoch, {}-th minibatch: \n"
                     "loss={}, bce={}, gmm={}, mse={} \n"
                     "cum loss={}, cum bce={}, cum gmm={}, cum mse={}\n".format(
                         e,
                         i,
-                        losses["loss"],
-                        losses["bce"],
-                        losses["gmm"],
-                        losses["mse"],
-                        np.mean(trainer.cum_loss),
-                        np.mean(trainer.cum_bce),
-                        np.mean(trainer.cum_gmm),
-                        np.mean(trainer.cum_mse),
+                        reporter.loss.values[-1],
+                        reporter.bce.values[-1],
+                        reporter.gmm.values[-1],
+                        reporter.mse.values[-1],
+                        np.mean(reporter.loss.values[-100:]),
+                        np.mean(reporter.bce.values[-100:]),
+                        np.mean(reporter.gmm.values[-100:]),
+                        np.mean(reporter.mse.values[-100:]),
                     )
                 )
 
                 if (
-                    np.mean(trainer.cum_loss) < 0
-                    and np.mean(trainer.cum_gmm) < -3.0
-                    and np.mean(trainer.cum_bce) < 0.6
-                    and np.mean(trainer.cum_mse) < 0.2
+                    np.mean(reporter.loss.values[-100:]) < 0
+                    and np.mean(reporter.gmm.values[-100:]) < -3.0
+                    and np.mean(reporter.bce.values[-100:]) < 0.6
+                    and np.mean(reporter.mse.values[-100:]) < 0.2
                 ):
                     return
 
