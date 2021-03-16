@@ -570,6 +570,7 @@ def evaluate(
         query_choices = np.random.choice(log_length, num_samples, replace=False)
         for i in query_choices:
             q = log_queries[i]
+            # pyre-fixme[60]: Expected to unpack an iterable, but got `unknown`.
             context = SlateContext(SlateQuery((q.query_id, *(q.query_terms))), slots)
             url_relevances = q.url_relevances
             if len(url_relevances) > item_size:
