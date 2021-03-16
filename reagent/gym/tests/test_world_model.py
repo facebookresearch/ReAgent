@@ -37,14 +37,6 @@ curr_dir = os.path.dirname(__file__)
 SEED = 0
 
 
-def print_mdnrnn_losses(epoch, batch_num, losses):
-    logger.info(
-        f"Printing loss for Epoch {epoch}, Batch {batch_num};\n"
-        f"loss={losses['loss']}, bce={losses['bce']},"
-        f"gmm={losses['gmm']}, mse={losses['mse']} \n"
-    )
-
-
 def calculate_feature_importance(
     env: gym.Env,
     trainer: MDNRNNTrainer,
@@ -132,13 +124,17 @@ def train_mdnrnn(
     )
     fill_replay_buffer(env, train_replay_buffer, num_train_transitions)
     num_batch_per_epoch = train_replay_buffer.size // batch_size
+
     logger.info("Made RBs, starting to train now!")
-    for epoch in range(num_train_epochs):
+    optimizer = trainer.configure_optimizers()[0]
+    for _ in range(num_train_epochs):
         for i in range(num_batch_per_epoch):
             batch = train_replay_buffer.sample_transition_batch(batch_size=batch_size)
             preprocessed_batch = trainer_preprocessor(batch)
-            losses = trainer.train(preprocessed_batch)
-            print_mdnrnn_losses(epoch, i, losses)
+            loss = next(trainer.train_step_gen(preprocessed_batch, i))
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
         # validation
         if test_replay_buffer is not None:
@@ -149,7 +145,6 @@ def train_mdnrnn(
                 )
                 preprocessed_test_batch = trainer_preprocessor(test_batch)
                 valid_losses = trainer.get_loss(preprocessed_test_batch)
-                print_mdnrnn_losses(epoch, "validation", valid_losses)
                 trainer.memory_network.mdnrnn.train()
     return trainer
 
