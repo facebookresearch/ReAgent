@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class ModelManager(metaclass=RegistryMeta):
+class ModelManager:
     """
     ModelManager manages how to train models.
 

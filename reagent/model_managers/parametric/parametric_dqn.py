@@ -5,10 +5,10 @@ import logging
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import param_hash
+from reagent.model_managers.parametric_dqn_base import ParametricDQNBase
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
 from reagent.training import ParametricDQNTrainer, ParametricDQNTrainerParameters
-from reagent.workflow.model_managers.parametric_dqn_base import ParametricDQNBase
 
 
 logger = logging.getLogger(__name__)

@@ -12,15 +12,15 @@ from reagent.core.parameters import param_hash
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
+from reagent.model_managers.model_manager import ModelManager
 from reagent.models.model_feature_config_provider import RawModelFeatureConfigProvider
 from reagent.net_builder.discrete_dqn.dueling import Dueling
 from reagent.net_builder.unions import (
     DiscreteDQNNetBuilder__Union,
     ValueNetBuilder__Union,
 )
-from reagent.training import PPOTrainer, PPOTrainerParameters
+from reagent.training import ReinforceTrainer, ReinforceTrainerParameters
 from reagent.workflow.data import ReAgentDataModule
-from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.types import (
     Dataset,
     ModelFeatureConfigProvider__Union,
@@ -36,10 +36,12 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class PPO(ModelManager):
+class Reinforce(ModelManager):
     __hash__ = param_hash
 
-    trainer_param: PPOTrainerParameters = field(default_factory=PPOTrainerParameters)
+    trainer_param: ReinforceTrainerParameters = field(
+        default_factory=ReinforceTrainerParameters
+    )
     # using DQN net here because it supports `possible_actions_mask`
     policy_net_builder: DiscreteDQNNetBuilder__Union = field(
         # pyre-ignore
@@ -60,10 +62,10 @@ class PPO(ModelManager):
         self._policy: Optional[Policy] = None
         assert (
             len(self.action_names) > 1
-        ), f"PPO needs at least 2 actions. Got {self.action_names}."
+        ), f"REINFORCE needs at least 2 actions. Got {self.action_names}."
 
     # pyre-ignore
-    def build_trainer(self) -> PPOTrainer:
+    def build_trainer(self) -> ReinforceTrainer:
         policy_net_builder = self.policy_net_builder.value
         # pyre-ignore
         self._policy_network = policy_net_builder.build_q_network(
@@ -77,7 +79,7 @@ class PPO(ModelManager):
             value_net = value_net_builder.build_value_network(
                 self.state_normalization_data
             )
-        trainer = PPOTrainer(
+        trainer = ReinforceTrainer(
             policy=self.create_policy(),
             value_net=value_net,
             **self.trainer_param.asdict(),  # pyre-ignore

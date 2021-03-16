@@ -17,6 +17,7 @@ from reagent.gym.policies.samplers.discrete_sampler import (
     GreedyActionSampler,
 )
 from reagent.gym.policies.scorers.discrete_scorer import discrete_dqn_scorer
+from reagent.model_managers.model_manager import ModelManager
 from reagent.models.base import ModelBase
 from reagent.models.model_feature_config_provider import RawModelFeatureConfigProvider
 from reagent.preprocessing.batch_preprocessor import (
@@ -29,7 +30,6 @@ from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.data.manual_data_module import ManualDataModule
 from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
-from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.reporters.discrete_dqn_reporter import DiscreteDQNReporter
 from reagent.workflow.types import (
     Dataset,

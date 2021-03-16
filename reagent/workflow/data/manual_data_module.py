@@ -124,8 +124,11 @@ class ManualDataModule(ReAgentDataModule):
         )
         eval_dataset = None
         if calc_cpe_in_training:
+            spec = self.input_table_spec
+            if hasattr(self.input_table_spec, "eval_dataset_table_spec"):
+                spec = self.input_table_spec.eval_dataset_table_spec()
             eval_dataset = self.query_data(
-                input_table_spec=self.input_table_spec,
+                input_table_spec=spec,
                 sample_range=sample_range_output.eval_sample_range,
                 reward_options=self.reward_options,
             )

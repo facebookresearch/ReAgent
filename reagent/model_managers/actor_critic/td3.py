@@ -8,6 +8,7 @@ from typing import Optional
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import EvaluationParameters, param_hash
+from reagent.model_managers.actor_critic_base import ActorCriticBase
 from reagent.models.base import ModelBase
 from reagent.net_builder.continuous_actor.fully_connected import (
     FullyConnected as ContinuousFullyConnected,
@@ -20,7 +21,6 @@ from reagent.net_builder.unions import (
     ParametricDQNNetBuilder__Union,
 )
 from reagent.training import TD3Trainer, TD3TrainerParameters
-from reagent.workflow.model_managers.actor_critic_base import ActorCriticBase
 from reagent.workflow.reporters.td3_reporter import TD3Reporter
 
 
