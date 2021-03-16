@@ -78,9 +78,8 @@ def train_seq2reward(
 
 def adhoc_padding(preprocessed_batch, state_dim):
     seq_len, batch_size, _ = preprocessed_batch.state.float_features.shape
-    valid_seq_len = valid_next_seq_len = torch.full((batch_size, 1), seq_len)
-    preprocessed_batch.valid_seq_len = valid_seq_len
-    preprocessed_batch.valid_next_seq_len = valid_next_seq_len
+    valid_step = torch.full((batch_size, 1), seq_len)
+    preprocessed_batch.valid_step = valid_step
 
 
 def train_seq2reward_and_compute_reward_mse(
