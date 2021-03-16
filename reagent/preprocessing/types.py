@@ -37,5 +37,4 @@ class InputColumn(object):
     NEXT_ITEM_PROBABILITY = "next_item_probability"
     EXTRAS = "extras"
     SCORES = "scores"
-    VALID_SEQ_LEN = "valid_seq_len"
-    VALID_NEXT_SEQ_LEN = "valid_next_seq_len"
+    VALID_STEP = "valid_step"
