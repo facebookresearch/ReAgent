@@ -51,9 +51,6 @@ class MDNRNNTrainerParameters(BaseDataClass):
     minibatch_size: int = 16
     learning_rate: float = 0.001
     num_gaussians: int = 5
-    train_data_percentage: float = 60.0
-    validation_data_percentage: float = 20.0
-    test_data_percentage: float = 20.0
     # weight in calculating world-model loss
     reward_loss_weight: float = 1.0
     next_state_loss_weight: float = 1.0

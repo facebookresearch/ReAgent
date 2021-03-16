@@ -242,6 +242,7 @@ class ModelManager(metaclass=RegistryMeta):
         self,
         train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
+        test_dataset: Optional[Dataset],
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
@@ -254,7 +255,7 @@ class ModelManager(metaclass=RegistryMeta):
 
         Train the model
         Arguments:
-            train/eval_dataset: what you'd expect
+            train/eval/test_dataset: what you'd expect
             data_module: [pytorch lightning only] a lightning data module that replaces the use of train/eval datasets
             num_epochs: number of training epochs
             reader_options: options for the data reader

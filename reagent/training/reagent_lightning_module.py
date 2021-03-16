@@ -157,3 +157,8 @@ class StoppingEpochCallback(pl.Callback):
         logger.info(f"cleanly stopped: {cleanly_stopped}")
         if cleanly_stopped:
             pl_module.increase_next_stopping_epochs(self.num_epochs)
+
+
+def has_test_step_override(trainer_module: ReAgentLightningModule):
+    """ Detect if a subclass of LightningModule has test_step overridden """
+    return type(trainer_module).test_step != pl.LightningModule.test_step
