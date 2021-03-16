@@ -161,4 +161,5 @@ class StoppingEpochCallback(pl.Callback):
 
 def has_test_step_override(trainer_module: ReAgentLightningModule):
     """ Detect if a subclass of LightningModule has test_step overridden """
+    # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
     return type(trainer_module).test_step != pl.LightningModule.test_step
