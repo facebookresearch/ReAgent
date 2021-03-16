@@ -888,8 +888,7 @@ class PolicyGradientInput(TensorDataClass):
 @dataclass
 class MemoryNetworkInput(BaseInput):
     action: torch.Tensor
-    valid_seq_len: Optional[torch.Tensor] = None
-    valid_next_seq_len: Optional[torch.Tensor] = None
+    valid_step: Optional[torch.Tensor] = None
     extras: ExtraData = field(default_factory=ExtraData)
 
     def __len__(self):

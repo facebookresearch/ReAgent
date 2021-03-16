@@ -25,8 +25,8 @@ def get_step_prediction(
     step_predict_network: FullyConnectedNetwork, training_batch: rlt.MemoryNetworkInput
 ):
     first_step_state = training_batch.state.float_features[0]
-    pred_reward_len_output = step_predict_network(first_step_state)
-    step_probability = F.softmax(pred_reward_len_output, dim=1)
+    pred_step = step_predict_network(first_step_state)
+    step_probability = F.softmax(pred_step, dim=1)
     return step_probability
 
 
@@ -179,18 +179,17 @@ class Seq2RewardTrainer(Trainer):
             step_entropy_loss on step prediction
         """
         # pyre-fixme[16]: Optional type has no attribute `flatten`.
-        valid_reward_len = training_batch.valid_next_seq_len.flatten()
+        valid_step = training_batch.valid_step.flatten()
 
         first_step_state = training_batch.state.float_features[0]
-        valid_reward_len_output = self.step_predict_network(first_step_state)
-        step_entropy_loss = self.step_loss(
-            valid_reward_len_output, valid_reward_len - 1
-        )
+        valid_step_output = self.step_predict_network(first_step_state)
+        # entropy loss's target is zero-based indexed, so subtract 1 from valid_step
+        step_entropy_loss = self.step_loss(valid_step_output, valid_step - 1)
 
         seq2reward_output = self.seq2reward_network(
             training_batch.state,
             rlt.FeatureData(training_batch.action),
-            valid_reward_len,
+            valid_step,
         )
         predicted_acc_reward = seq2reward_output.acc_reward
 
@@ -206,7 +205,7 @@ class Seq2RewardTrainer(Trainer):
 
         target_acc_rewards = torch.cumsum(training_batch.reward * gamma_mask, dim=0)
         target_acc_reward = target_acc_rewards[
-            valid_reward_len - 1, torch.arange(batch_size)
+            valid_step - 1, torch.arange(batch_size)
         ].unsqueeze(1)
 
         # make sure the prediction and target tensors have the same size
