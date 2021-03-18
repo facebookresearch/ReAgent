@@ -29,6 +29,7 @@ def print_mdnrnn_losses(minibatch, model_index, losses) -> None:
     )
 
 
+# TODO: Convert CEMTrainer to PytorchLightning
 class CEMTrainer(RLTrainer):
     def __init__(
         self,
@@ -43,8 +44,14 @@ class CEMTrainer(RLTrainer):
         self.minibatch_size = parameters.mdnrnn.minibatch_size
 
     def train(self, training_batch: rlt.MemoryNetworkInput) -> None:
+        # batch_idx is not used in MDNRNNTrainer
+        batch_idx_placeholder = 0
         for i, trainer in enumerate(self.world_model_trainers):
-            losses = trainer.train(training_batch)
+            optimizer = trainer.configure_optimizers()[0]
+            loss = next(trainer.train_step_gen(training_batch, batch_idx_placeholder))
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
             # TODO: report losses instead of printing them
             # print_mdnrnn_losses(self.minibatch, i, losses)
 
