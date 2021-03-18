@@ -43,6 +43,7 @@ def calc_custom_reward(df, custom_reward_expression: str):
 
 
 def calc_reward_multi_steps(df, multi_steps: int, gamma: float):
+    print("whatever")
     # assumes df[reward] is array[float] and 1 <= len(df[reward]) <= multi_steps
     # computes r_0 + gamma * (r_1 + gamma * (r_2 + ... ))
     expr = f"AGGREGATE(REVERSE(reward), FLOAT(0), (s, x) -> FLOAT({gamma}) * s + x)"
