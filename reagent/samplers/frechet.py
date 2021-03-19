@@ -31,9 +31,12 @@ class FrechetSort(Sampler):
         aggressive deviations from descending sort.
         :param topk: If specified, only the first topk actions are specified.
         :param equiv_len: Orders are considered equivalent if the top equiv_len match. Used
-            in probability computations
+            in probability computations.
+            Essentially specifies the action space.
         :param log_scores Scores passed in are already log-transformed. In this case, we would
         simply add Gumbel noise.
+        For LearnVM, we set this to be True because we expect input and output scores
+        to be in the log space.
 
         Example:
 
@@ -76,9 +79,30 @@ class FrechetSort(Sampler):
             action = action[: self.topk]
         return rlt.ActorOutput(action, log_prob)
 
-    def log_prob(self, scores: torch.Tensor, action) -> torch.Tensor:
-        """What is the probability of a given set of scores producing the given
-        list of permutations only considering the top `equiv_len` ranks?"""
+    def log_prob(
+        self,
+        scores: torch.Tensor,
+        action: torch.Tensor,
+        equiv_len_override: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        """
+        What is the probability of a given set of scores producing the given
+        list of permutations only considering the top `equiv_len` ranks?
+
+        We may want to override the default equiv_len here when we know the having larger
+        action space doesn't matter. i.e. in Reels
+        """
+        upto = self.upto
+        if equiv_len_override is not None:
+            assert equiv_len_override.shape == (
+                scores.shape[0],
+            ), f"Invalid shape {equiv_len_override.shape}, compared to scores {scores.shape}. equiv_len_override {equiv_len_override}"
+            upto = equiv_len_override.long()
+            if self.topk is not None and torch.any(equiv_len_override > self.topk):
+                raise ValueError(
+                    f"Override {equiv_len_override} cannot exceed topk={self.topk}."
+                )
+
         squeeze = False
         if len(scores.shape) == 1:
             squeeze = True
@@ -109,11 +133,20 @@ class FrechetSort(Sampler):
         )
         s = torch.gather(log_scores, 1, action) * self.shape
 
-        p = self.upto if self.upto is not None else n
-
+        p = upto if upto is not None else n
         # We should unsqueeze here
-        probs = sum(
-            torch.nan_to_num(F.log_softmax(s[:, i:], dim=1)[:, 0], neginf=0.0)
-            for i in range(p)
-        )
+        if isinstance(p, int):
+            probs = sum(
+                torch.nan_to_num(F.log_softmax(s[:, i:], dim=1)[:, 0], neginf=0.0)
+                for i in range(p)
+            )
+        elif isinstance(p, torch.Tensor):
+            # do masked sum
+            probs = sum(
+                torch.nan_to_num(F.log_softmax(s[:, i:], dim=1)[:, 0], neginf=0.0)
+                * (i < p).float()
+                for i in range(n)
+            )
+        else:
+            raise RuntimeError(f"p is {p}")
         return probs
