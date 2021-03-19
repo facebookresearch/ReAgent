@@ -2,12 +2,21 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+import os
 import unittest
 from typing import Optional
 
 import torch
 import torch.nn as nn
 from reagent.core import types as rlt
+from reagent.core.parameters import (
+    NormalizationParameters,
+    ProblemDomain,
+    Seq2RewardTrainerParameters,
+)
+from reagent.gym.envs import Gym
+from reagent.gym.utils import create_df_from_replay_buffer
+from reagent.models.seq2reward_model import Seq2RewardNetwork
 from reagent.prediction.predictor_wrapper import (
     Seq2RewardWithPreprocessor,
     Seq2RewardPlanShortSeqWithPreprocessor,
@@ -15,10 +24,9 @@ from reagent.prediction.predictor_wrapper import (
     FAKE_STATE_ID_SCORE_LIST_FEATURES,
 )
 from reagent.preprocessing.identify_types import DO_NOT_PREPROCESS
-from reagent.preprocessing.normalization import NormalizationParameters
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.training.utils import gen_permutations
-from reagent.training.world_model.seq2reward_trainer import get_Q
+from reagent.training.world_model.seq2reward_trainer import get_Q, Seq2RewardTrainer
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +82,135 @@ class FakeSeq2RewardNetwork(nn.Module):
         ).reshape(-1, 1)
         logger.info(f"acc_reward: {acc_reward}")
         return rlt.Seq2RewardOutput(acc_reward=acc_reward)
+
+
+def create_string_game_data(dataset_size=10000, training_data_ratio=0.9):
+    SEQ_LEN = 6
+    NUM_ACTION = 2
+    NUM_MDP_PER_BATCH = 5
+
+    env = Gym(env_name="StringGame-v0", set_max_steps=SEQ_LEN)
+    df = create_df_from_replay_buffer(
+        env=env,
+        problem_domain=ProblemDomain.DISCRETE_ACTION,
+        desired_size=dataset_size,
+        multi_steps=None,
+        ds="2020-10-10",
+    )
+
+    batch_size = NUM_MDP_PER_BATCH * SEQ_LEN
+    time_diff = torch.ones(SEQ_LEN, batch_size)
+    valid_step = torch.arange(SEQ_LEN, 0, -1).tile(NUM_MDP_PER_BATCH)[:, None]
+    not_terminal = torch.transpose(
+        torch.tril(torch.ones(SEQ_LEN, SEQ_LEN), diagonal=-1).tile(
+            NUM_MDP_PER_BATCH, 1
+        ),
+        0,
+        1,
+    )
+
+    num_batches = int(dataset_size / batch_size)
+    batches = [None for _ in range(num_batches)]
+    batch_count, batch_seq_count = 0, 0
+    batch_reward = torch.zeros(SEQ_LEN, batch_size)
+    batch_action = torch.zeros(SEQ_LEN, batch_size, NUM_ACTION)
+    batch_state = torch.zeros(SEQ_LEN, batch_size, NUM_ACTION)
+    for mdp_id in sorted(set(df.mdp_id)):
+        mdp = df[df["mdp_id"] == mdp_id].sort_values("sequence_number", ascending=True)
+        if len(mdp) != SEQ_LEN:
+            continue
+
+        all_step_reward = torch.Tensor(list(mdp["reward"]))
+        all_step_state = torch.Tensor([list(s.values()) for s in mdp["state_features"]])
+        all_step_action = torch.zeros_like(all_step_state)
+        all_step_action[torch.arange(SEQ_LEN), [int(a) for a in mdp["action"]]] = 1.0
+
+        for j in range(SEQ_LEN):
+            reward = torch.zeros_like(all_step_reward)
+            reward[: SEQ_LEN - j] = all_step_reward[-(SEQ_LEN - j) :]
+            batch_reward[:, batch_seq_count] = reward
+
+            state = torch.zeros_like(all_step_state)
+            state[: SEQ_LEN - j] = all_step_state[-(SEQ_LEN - j) :]
+            batch_state[:, batch_seq_count] = state
+
+            action = torch.zeros_like(all_step_action)
+            action[: SEQ_LEN - j] = all_step_action[-(SEQ_LEN - j) :]
+            batch_action[:, batch_seq_count] = action
+
+            batch_seq_count += 1
+
+        if batch_seq_count == batch_size:
+            batches[batch_count] = rlt.MemoryNetworkInput(
+                reward=batch_reward,
+                action=batch_action,
+                state=rlt.FeatureData(float_features=batch_state),
+                next_state=rlt.FeatureData(
+                    float_features=torch.zeros_like(batch_state)
+                ),  # fake, not used anyway
+                not_terminal=not_terminal,
+                time_diff=time_diff,
+                valid_step=valid_step,
+                step=None,
+            )
+            batch_count += 1
+            batch_seq_count = 0
+            batch_reward = torch.zeros_like(batch_reward)
+            batch_action = torch.zeros_like(batch_action)
+            batch_state = torch.zeros_like(batch_state)
+    assert batch_count == num_batches
+
+    num_training_batches = int(training_data_ratio * num_batches)
+    training_data = batches[:num_training_batches]
+    eval_data = batches[num_training_batches:]
+    return training_data, eval_data
+
+
+def train_and_eval_seq2reward_model(
+    training_data, eval_data, learning_rate=0.01, num_epochs=5
+):
+    SEQ_LEN, batch_size, NUM_ACTION = training_data[0].action.shape
+    assert SEQ_LEN == 6 and NUM_ACTION == 2
+
+    seq2reward_network = Seq2RewardNetwork(
+        state_dim=NUM_ACTION,
+        action_dim=NUM_ACTION,
+        num_hiddens=64,
+        num_hidden_layers=2,
+    )
+
+    trainer_param = Seq2RewardTrainerParameters(
+        learning_rate=learning_rate,
+        multi_steps=SEQ_LEN,
+        action_names=["0", "1"],
+        batch_size=batch_size,
+        gamma=1.0,
+        view_q_value=True,
+    )
+
+    trainer = Seq2RewardTrainer(
+        seq2reward_network=seq2reward_network, params=trainer_param
+    )
+
+    for _ in range(num_epochs):
+        for batch in training_data:
+            trainer.train(batch)
+
+    total_eval_mse_loss = 0
+    for batch in eval_data:
+        mse_loss, _ = trainer.get_loss(batch)
+        total_eval_mse_loss += mse_loss.cpu().detach().item()
+    eval_mse_loss = total_eval_mse_loss / len(eval_data)
+
+    initial_state = torch.Tensor([[0, 0]])
+    q_values = torch.squeeze(
+        get_Q(
+            trainer.seq2reward_network,
+            initial_state,
+            trainer.all_permut,
+        )
+    )
+    return eval_mse_loss, q_values
 
 
 class TestSeq2Reward(unittest.TestCase):
@@ -171,3 +308,13 @@ class TestSeq2Reward(unittest.TestCase):
         assert result.shape == (SEQ_LEN, NUM_ACTION ** SEQ_LEN, NUM_ACTION)
         outcome = torch.argmax(result.transpose(0, 1), dim=-1)
         assert torch.all(outcome == expected_outcome)
+
+    @unittest.skipIf("SANDCASTLE" in os.environ, "Skipping long test on sandcastle.")
+    def test_seq2reward_on_string_game_v0(self):
+        training_data, eval_data = create_string_game_data()
+        eval_mse_loss, q_values = train_and_eval_seq2reward_model(
+            training_data, eval_data
+        )
+        assert eval_mse_loss < 10
+        assert abs(q_values[0].item() - 10) < 1.0
+        assert abs(q_values[1].item() - 5) < 1.0
