@@ -17,6 +17,12 @@ class SACReporter(ActorCriticReporter):
     @property
     def value_list_observers(self):
         ret = super().value_list_observers
+        ret.update(
+            {
+                f"{key}_tb": TensorBoardScalarObserver(key, log_key)
+                for key, log_key in [("entropy_temperature", None), ("kld", "kld/kld")]
+            }
+        )
         return ret
 
     @property
