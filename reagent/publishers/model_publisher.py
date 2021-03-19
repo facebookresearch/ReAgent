@@ -24,6 +24,7 @@ class ModelPublisher(metaclass=RegistryMeta):
         self,
         model_manager: ModelManager,
         training_output: RLTrainingOutput,
+        setup_data: Optional[Dict[str, bytes]],
         # Mapping from serving_module name -> recurring_workflow_id
         recurring_workflow_ids: ModuleNameToEntityId,
         child_workflow_id: int,
@@ -38,6 +39,7 @@ class ModelPublisher(metaclass=RegistryMeta):
         result = self.do_publish(
             model_manager,
             training_output,
+            setup_data,
             recurring_workflow_ids,
             child_workflow_id,
             recurring_period,
@@ -60,6 +62,7 @@ class ModelPublisher(metaclass=RegistryMeta):
         self,
         model_manager: ModelManager,
         training_output: RLTrainingOutput,
+        setup_data: Optional[Dict[str, bytes]],
         recurring_workflow_ids: ModuleNameToEntityId,
         child_workflow_id: int,
         recurring_period: Optional[RecurringPeriod],

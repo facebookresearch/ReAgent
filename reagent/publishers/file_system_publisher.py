@@ -75,6 +75,7 @@ if HAS_TINYDB:
             self,
             model_manager: ModelManager,
             training_output: RLTrainingOutput,
+            setup_data: Optional[Dict[str, bytes]],
             recurring_workflow_ids: ModuleNameToEntityId,
             child_workflow_id: int,
             recurring_period: Optional[RecurringPeriod],
