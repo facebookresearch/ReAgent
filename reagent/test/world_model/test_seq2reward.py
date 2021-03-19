@@ -8,6 +8,7 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
+from parameterized import parameterized
 from reagent.core import types as rlt
 from reagent.core.parameters import (
     NormalizationParameters,
@@ -29,6 +30,8 @@ from reagent.training.utils import gen_permutations
 from reagent.training.world_model.seq2reward_trainer import get_Q, Seq2RewardTrainer
 
 logger = logging.getLogger(__name__)
+
+STRING_GAME_TESTS = [(False,), (True,)]
 
 
 class FakeStepPredictionNetwork(nn.Module):
@@ -84,7 +87,9 @@ class FakeSeq2RewardNetwork(nn.Module):
         return rlt.Seq2RewardOutput(acc_reward=acc_reward)
 
 
-def create_string_game_data(dataset_size=10000, training_data_ratio=0.9):
+def create_string_game_data(
+    dataset_size=10000, training_data_ratio=0.9, filter_short_sequence=False
+):
     SEQ_LEN = 6
     NUM_ACTION = 2
     NUM_MDP_PER_BATCH = 5
@@ -98,18 +103,27 @@ def create_string_game_data(dataset_size=10000, training_data_ratio=0.9):
         ds="2020-10-10",
     )
 
-    batch_size = NUM_MDP_PER_BATCH * SEQ_LEN
-    time_diff = torch.ones(SEQ_LEN, batch_size)
-    valid_step = torch.arange(SEQ_LEN, 0, -1).tile(NUM_MDP_PER_BATCH)[:, None]
-    not_terminal = torch.transpose(
-        torch.tril(torch.ones(SEQ_LEN, SEQ_LEN), diagonal=-1).tile(
-            NUM_MDP_PER_BATCH, 1
-        ),
-        0,
-        1,
-    )
+    if filter_short_sequence:
+        batch_size = NUM_MDP_PER_BATCH
+        time_diff = torch.ones(SEQ_LEN, batch_size)
+        valid_step = SEQ_LEN * torch.ones(batch_size, dtype=torch.int64)[:, None]
+        not_terminal = torch.Tensor(
+            [0 if i == SEQ_LEN - 1 else 1 for i in range(SEQ_LEN)]
+        )
+        not_terminal = torch.transpose(not_terminal.tile(NUM_MDP_PER_BATCH, 1), 0, 1)
+    else:
+        batch_size = NUM_MDP_PER_BATCH * SEQ_LEN
+        time_diff = torch.ones(SEQ_LEN, batch_size)
+        valid_step = torch.arange(SEQ_LEN, 0, -1).tile(NUM_MDP_PER_BATCH)[:, None]
+        not_terminal = torch.transpose(
+            torch.tril(torch.ones(SEQ_LEN, SEQ_LEN), diagonal=-1).tile(
+                NUM_MDP_PER_BATCH, 1
+            ),
+            0,
+            1,
+        )
 
-    num_batches = int(dataset_size / batch_size)
+    num_batches = int(dataset_size / SEQ_LEN / NUM_MDP_PER_BATCH)
     batches = [None for _ in range(num_batches)]
     batch_count, batch_seq_count = 0, 0
     batch_reward = torch.zeros(SEQ_LEN, batch_size)
@@ -126,6 +140,9 @@ def create_string_game_data(dataset_size=10000, training_data_ratio=0.9):
         all_step_action[torch.arange(SEQ_LEN), [int(a) for a in mdp["action"]]] = 1.0
 
         for j in range(SEQ_LEN):
+            if filter_short_sequence and j > 0:
+                break
+
             reward = torch.zeros_like(all_step_reward)
             reward[: SEQ_LEN - j] = all_step_reward[-(SEQ_LEN - j) :]
             batch_reward[:, batch_seq_count] = reward
@@ -309,12 +326,22 @@ class TestSeq2Reward(unittest.TestCase):
         outcome = torch.argmax(result.transpose(0, 1), dim=-1)
         assert torch.all(outcome == expected_outcome)
 
+    @parameterized.expand(STRING_GAME_TESTS)
     @unittest.skipIf("SANDCASTLE" in os.environ, "Skipping long test on sandcastle.")
-    def test_seq2reward_on_string_game_v0(self):
-        training_data, eval_data = create_string_game_data()
-        eval_mse_loss, q_values = train_and_eval_seq2reward_model(
-            training_data, eval_data
+    def test_seq2reward_on_string_game_v0(self, filter_short_sequence):
+        training_data, eval_data = create_string_game_data(
+            filter_short_sequence=filter_short_sequence
         )
-        assert eval_mse_loss < 10
+        eval_mse_loss, q_values = train_and_eval_seq2reward_model(
+            training_data,
+            eval_data,
+        )
+        if filter_short_sequence:
+            assert eval_mse_loss < 0.1
+        else:
+            # Same short sequences may have different total rewards due to the missing
+            # states and actions in previous steps, so the trained network is not able
+            # to reduce the mse loss to values close to zero.
+            assert eval_mse_loss < 10
         assert abs(q_values[0].item() - 10) < 1.0
         assert abs(q_values[1].item() - 5) < 1.0
