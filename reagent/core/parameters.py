@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import enum
 from typing import Dict, List, Optional
 
 from reagent.core.base_dataclass import BaseDataClass
@@ -16,6 +17,16 @@ from reagent.core.parameters_seq2slate import (
 # For TD3 and SAC: actions are normalized in this range for training and
 # rescaled back to action_space.low/high at serving time.
 CONTINUOUS_TRAINING_ACTION_RANGE = (-1.0, 1.0)
+
+
+class ProblemDomain(enum.Enum):
+    CONTINUOUS_ACTION = "continuous_action"
+    DISCRETE_ACTION = "discrete_action"
+    PARAMETRIC_ACTION = "parametric_action"
+
+    # I don't think the data generated for these 2 types are generic
+    SEQ_TO_REWARD = "seq2reward"
+    MDN_RNN = "mdn_rnn"
 
 
 @dataclass(frozen=True)
