@@ -179,6 +179,7 @@ def query_and_train(
             publisher,
             model,
             results,
+            setup_data,
             named_model_ids,
             child_workflow_id,
             recurring_period,
@@ -273,6 +274,7 @@ def run_publisher(
     publisher: ModelPublisher__Union,
     model_chooser: ModelManager__Union,
     training_output: RLTrainingOutput,
+    setup_data: Optional[Dict[str, bytes]],
     recurring_workflow_ids: ModuleNameToEntityId,
     child_workflow_id: int,
     recurring_period: Optional[RecurringPeriod],
@@ -285,6 +287,7 @@ def run_publisher(
     publishing_result = model_publisher.publish(
         model_manager,
         training_output,
+        setup_data,
         recurring_workflow_ids,
         child_workflow_id,
         recurring_period,
