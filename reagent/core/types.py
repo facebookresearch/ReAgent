@@ -891,6 +891,23 @@ class MemoryNetworkInput(BaseInput):
     valid_step: Optional[torch.Tensor] = None
     extras: ExtraData = field(default_factory=ExtraData)
 
+    @classmethod
+    def from_dict(cls, d):
+        return cls(
+            state=FeatureData(
+                float_features=d["state"],
+            ),
+            next_state=FeatureData(
+                float_features=d["next_state"],
+            ),
+            action=d["action"],
+            reward=d["reward"],
+            time_diff=d["time_diff"],
+            not_terminal=d["not_terminal"],
+            step=d["step"],
+            extras=ExtraData.from_dict(d),
+        )
+
     def __len__(self):
         if len(self.state.float_features.size()) == 2:
             return self.state.float_features.size()[0]
