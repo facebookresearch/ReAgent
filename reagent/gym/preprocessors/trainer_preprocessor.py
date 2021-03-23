@@ -28,7 +28,6 @@ logger.setLevel(logging.INFO)
 ONLINE_MAKER_MAP = {}
 REPLAY_BUFFER_MAKER_MAP = {}
 
-
 def make_trainer_preprocessor(
     trainer: Trainer,
     device: torch.device,
@@ -344,16 +343,16 @@ class MemoryNetworkInputMaker:
             stacked_not_terminal[-1] = scalar_fields["not_terminal"]
             scalar_fields["not_terminal"] = stacked_not_terminal
 
-        return rlt.MemoryNetworkInput(
-            state=rlt.FeatureData(float_features=vector_fields["state"]),
-            next_state=rlt.FeatureData(float_features=vector_fields["next_state"]),
-            action=vector_fields["action"],
-            reward=scalar_fields["reward"],
-            not_terminal=scalar_fields["not_terminal"],
-            step=None,
-            time_diff=None,
-        )
-
+        dict_batch = {
+            "state": vector_fields["state"],
+            "next_state": vector_fields["next_state"],
+            "action": vector_fields["action"],
+            "reward": scalar_fields["reward"],
+            "not_terminal": scalar_fields["not_terminal"],
+            "step": None,
+            "time_diff": None,
+        }
+        return rlt.MemoryNetworkInput.from_dict(dict_batch)
 
 def get_possible_actions_for_gym(batch_size: int, num_actions: int) -> rlt.FeatureData:
     """

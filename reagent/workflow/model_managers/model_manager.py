@@ -9,8 +9,7 @@ import torch
 from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData
 from reagent.core.registry_meta import RegistryMeta
-from reagent.core.tensorboardX import summary_writer_context
-from reagent.training import ReAgentLightningModule, Trainer
+from reagent.training import Trainer
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.types import (
     Dataset,
