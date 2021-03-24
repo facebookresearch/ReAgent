@@ -24,10 +24,10 @@ from reagent.gym.policies.policy import Policy
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes, run_episode
 from reagent.gym.types import PostEpisode, PostStep
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
+from reagent.model_managers.union import ModelManager__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.training.trainer import Trainer
-from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import RewardOptions
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import trange

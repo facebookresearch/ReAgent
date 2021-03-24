@@ -5,9 +5,9 @@ from typing import Dict, List, Optional, Tuple
 from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData, NormalizationKey
 from reagent.gym.policies.policy import Policy
+from reagent.model_managers.model_manager import ModelManager
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.workflow.data import ReAgentDataModule
-from reagent.workflow.model_managers.model_manager import ModelManager
 from reagent.workflow.types import (
     Dataset,
     ReaderOptions,

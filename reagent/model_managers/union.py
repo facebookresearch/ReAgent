@@ -4,7 +4,7 @@
 """ Register all ModelManagers. Must import them before filling union. """
 
 from reagent.core.tagged_union import TaggedUnion
-from reagent.workflow.model_managers.model_manager import ModelManager
+from reagent.model_managers.model_manager import ModelManager
 
 from .actor_critic import *  # noqa
 from .discrete import *  # noqa

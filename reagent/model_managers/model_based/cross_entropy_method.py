@@ -9,12 +9,12 @@ import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import CEMTrainerParameters, param_hash
 from reagent.gym.policies.policy import Policy
+from reagent.model_managers.model_based.world_model import WorldModel
+from reagent.model_managers.world_model_base import WorldModelBase
 from reagent.models.cem_planner import CEMPlannerNetwork
 from reagent.preprocessing.identify_types import CONTINUOUS_ACTION
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.training.cem_trainer import CEMTrainer
-from reagent.workflow.model_managers.model_based.world_model import WorldModel
-from reagent.workflow.model_managers.world_model_base import WorldModelBase
 
 
 logger = logging.getLogger(__name__)
