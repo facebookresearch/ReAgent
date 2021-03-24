@@ -28,6 +28,7 @@ logger.setLevel(logging.INFO)
 ONLINE_MAKER_MAP = {}
 REPLAY_BUFFER_MAKER_MAP = {}
 
+
 def make_trainer_preprocessor(
     trainer: Trainer,
     device: torch.device,
@@ -353,6 +354,7 @@ class MemoryNetworkInputMaker:
             "time_diff": None,
         }
         return rlt.MemoryNetworkInput.from_dict(dict_batch)
+
 
 def get_possible_actions_for_gym(batch_size: int, num_actions: int) -> rlt.FeatureData:
     """
