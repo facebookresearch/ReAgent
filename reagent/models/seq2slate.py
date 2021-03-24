@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
-import copy
 import logging
 import math
 from typing import Optional, NamedTuple
@@ -572,66 +571,27 @@ class Seq2SlateTransformerModel(nn.Module):
         # memory shape: batch_size, src_seq_len, dim_model
         memory = self.encode(state, src_seq)
 
-        ranked_per_symbol_probs = torch.zeros(
-            batch_size, tgt_seq_len, candidate_size, device=device
-        )
-        ranked_per_seq_probs = torch.zeros(batch_size, 1)
-
         if self.output_arch == Seq2SlateOutputArch.ENCODER_SCORE:
-            # encoder_scores shape: batch_size, src_seq_len
-            encoder_scores = self.encoder_scorer(memory).squeeze(dim=2)
-            tgt_out_idx = torch.argsort(encoder_scores, dim=1, descending=True)[
-                :, :tgt_seq_len
-            ]
-            # +2 to account for start symbol and padding symbol
-            tgt_out_idx += 2
-            # every position has propensity of 1 because we are just using argsort
-            ranked_per_symbol_probs = ranked_per_symbol_probs.scatter(
-                2, tgt_out_idx.unsqueeze(2), 1.0
+            tgt_out_idx, ranked_per_symbol_probs = self._encoder_rank(
+                memory, tgt_seq_len
             )
-            ranked_per_seq_probs[:, :] = 1.0
-            return Seq2SlateTransformerOutput(
-                ranked_per_symbol_probs=ranked_per_symbol_probs,
-                ranked_per_seq_probs=ranked_per_seq_probs,
-                ranked_tgt_out_idx=tgt_out_idx,
-                per_symbol_log_probs=self._OUTPUT_PLACEHOLDER,
-                per_seq_log_probs=self._OUTPUT_PLACEHOLDER,
-                encoder_scores=self._OUTPUT_PLACEHOLDER,
+        elif self.output_arch == Seq2SlateOutputArch.FRECHET_SORT and greedy:
+            # greedy decoding for non-autoregressive decoder
+            tgt_out_idx, ranked_per_symbol_probs = self._greedy_rank(
+                state, memory, candidate_features, tgt_seq_len
             )
-
-        tgt_in_idx = (
-            torch.ones(batch_size, 1, device=device)
-            .fill_(self._DECODER_START_SYMBOL)
-            .long()
-        )
-
-        assert greedy is not None
-        for l in range(tgt_seq_len):
-            tgt_in_seq = gather(candidate_features, tgt_in_idx)
-
-            # shape batch_size, l + 1, candidate_size
-            probs = self.decode(
-                memory=memory,
-                state=state,
-                tgt_in_idx=tgt_in_idx,
-                tgt_in_seq=tgt_in_seq,
+        else:
+            assert greedy is not None
+            # autoregressive decoding
+            tgt_out_idx, ranked_per_symbol_probs = self._autoregressive_ranking(
+                state, memory, candidate_features, tgt_seq_len, greedy
             )
-            # next candidate shape: batch_size, 1
-            # prob shape: batch_size, candidate_size
-            next_candidate, next_candidate_sample_prob = self.generator(probs, greedy)
-            ranked_per_symbol_probs[:, l, :] = next_candidate_sample_prob
-            tgt_in_idx = torch.cat([tgt_in_idx, next_candidate], dim=1)
-
-        # remove the decoder start symbol
-        # tgt_out_idx shape: batch_size, tgt_seq_len
-        tgt_out_idx = tgt_in_idx[:, 1:]
-
+        # ranked_per_symbol_probs shape: batch_size, tgt_seq_len, candidate_size
+        # ranked_per_seq_probs shape: batch_size, 1
         ranked_per_seq_probs = per_symbol_to_per_seq_probs(
             ranked_per_symbol_probs, tgt_out_idx
         )
 
-        # ranked_per_symbol_probs shape: batch_size, tgt_seq_len, candidate_size
-        # ranked_per_seq_probs shape: batch_size, 1
         # tgt_out_idx shape: batch_size, tgt_seq_len
         return Seq2SlateTransformerOutput(
             ranked_per_symbol_probs=ranked_per_symbol_probs,
@@ -641,6 +601,83 @@ class Seq2SlateTransformerModel(nn.Module):
             per_seq_log_probs=self._OUTPUT_PLACEHOLDER,
             encoder_scores=self._OUTPUT_PLACEHOLDER,
         )
+
+    def _greedy_rank(
+        self,
+        state: torch.Tensor,
+        memory: torch.Tensor,
+        candidate_features: torch.Tensor,
+        tgt_seq_len: int,
+    ):
+        """ Using the first step decoder scores to greedily sort items """
+        # candidate_features shape: batch_size, src_seq_len + 2, candidate_dim
+
+        batch_size, candidate_size, _ = candidate_features.shape
+        device = candidate_features.device
+
+        # Only one step input to the decoder
+        tgt_in_idx = (
+            torch.ones(batch_size, 1, device=device)
+            .fill_(self._DECODER_START_SYMBOL)
+            .long()
+        )
+        tgt_in_seq = gather(candidate_features, tgt_in_idx)
+        # shape: batch_size, candidate_size
+        probs = self.decode(
+            memory=memory,
+            state=state,
+            tgt_in_idx=tgt_in_idx,
+            tgt_in_seq=tgt_in_seq,
+        )[:, -1, :]
+        # tgt_out_idx shape: batch_size, tgt_seq_len
+        tgt_out_idx = torch.argsort(probs, dim=1, descending=True)[:, :tgt_seq_len]
+
+        # since it is greedy ranking, we set selected items' probs to 1
+        ranked_per_symbol_probs = torch.zeros(
+            batch_size, tgt_seq_len, candidate_size, device=device
+        ).scatter(2, tgt_out_idx.unsqueeze(2), 1.0)
+        return tgt_out_idx, ranked_per_symbol_probs
+
+    def _autoregressive_ranking(
+        self,
+        state: torch.Tensor,
+        memory: torch.Tensor,
+        candidate_features: torch.Tensor,
+        tgt_seq_len: int,
+        greedy: bool,
+    ):
+        batch_size, candidate_size, _ = candidate_features.shape
+        device = candidate_features.device
+        tgt_in_idx = (
+            torch.ones(batch_size, 1, device=device)
+            .fill_(self._DECODER_START_SYMBOL)
+            .long()
+        )
+
+        ranked_per_symbol_probs = torch.zeros(
+            batch_size, tgt_seq_len, candidate_size, device=device
+        )
+        for step in torch.arange(tgt_seq_len, device=device):
+            tgt_in_seq = gather(candidate_features, tgt_in_idx)
+
+            # shape batch_size, step + 1, candidate_size
+            probs = self.decode(
+                memory=memory,
+                state=state,
+                tgt_in_idx=tgt_in_idx,
+                tgt_in_seq=tgt_in_seq,
+            )
+            # next candidate shape: batch_size, 1
+            # prob shape: batch_size, candidate_size
+            next_candidate, next_candidate_sample_prob = self.generator(probs, greedy)
+            ranked_per_symbol_probs[:, step, :] = next_candidate_sample_prob
+            tgt_in_idx = torch.cat([tgt_in_idx, next_candidate], dim=1)
+
+        # remove the decoder start symbol
+        # tgt_out_idx shape: batch_size, tgt_seq_len
+        tgt_out_idx = tgt_in_idx[:, 1:]
+
+        return tgt_out_idx, ranked_per_symbol_probs
 
     def _log_probs(
         self,
@@ -694,6 +731,27 @@ class Seq2SlateTransformerModel(nn.Module):
             per_seq_log_probs=per_seq_log_probs,
             encoder_scores=None,
         )
+
+    def _encoder_rank(self, memory: torch.Tensor, tgt_seq_len: int):
+        batch_size, src_seq_len, _ = memory.shape
+        candidate_size = src_seq_len + 2
+        device = memory.device
+
+        ranked_per_symbol_probs = torch.zeros(
+            batch_size, tgt_seq_len, candidate_size, device=device
+        )
+        # encoder_scores shape: batch_size, src_seq_len
+        encoder_scores = self.encoder_scorer(memory).squeeze(dim=2)
+        tgt_out_idx = torch.argsort(encoder_scores, dim=1, descending=True)[
+            :, :tgt_seq_len
+        ]
+        # +2 to account for start symbol and padding symbol
+        tgt_out_idx += 2
+        # every position has propensity of 1 because we are just using argsort
+        ranked_per_symbol_probs = ranked_per_symbol_probs.scatter(
+            2, tgt_out_idx.unsqueeze(2), 1.0
+        )
+        return tgt_out_idx, ranked_per_symbol_probs
 
     def encoder_output_to_scores(
         self, state: torch.Tensor, src_seq: torch.Tensor, tgt_out_idx: torch.Tensor

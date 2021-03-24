@@ -9,6 +9,7 @@ import torch
 import torch.nn.functional as F
 from reagent.core.torch_utils import gather
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode
+from reagent.model_utils.seq2slate_utils import Seq2SlateOutputArch
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate import Seq2SlateTransformerNet
 from reagent.models.seq2slate_reward import Seq2SlateRewardNetBase
@@ -431,20 +432,20 @@ class SlateRankingPreprocessor(ModelBase):
         self,
         state_preprocessor: Preprocessor,
         candidate_preprocessor: Preprocessor,
+        candidate_size: int,
     ):
         super().__init__()
         self.state_preprocessor = state_preprocessor
         self.candidate_preprocessor = candidate_preprocessor
+        self.candidate_size = candidate_size
 
     def input_prototype(self):
-        # hard code the candidate size just for jit.trace
-        CANDIDATE_SIZE = 10
         candidate_input_prototype = self.candidate_preprocessor.input_prototype()
         return (
             self.state_preprocessor.input_prototype(),
             (
-                candidate_input_prototype[0].repeat((1, CANDIDATE_SIZE, 1)),
-                candidate_input_prototype[1].repeat((1, CANDIDATE_SIZE, 1)),
+                candidate_input_prototype[0].repeat((1, self.candidate_size, 1)),
+                candidate_input_prototype[1].repeat((1, self.candidate_size, 1)),
             ),
         )
 
@@ -488,16 +489,17 @@ class Seq2SlateWithPreprocessor(nn.Module):
         greedy: bool,
     ):
         super().__init__()
+        # pyre-fixme[16]: `Seq2SlateTransformerNet` has no attribute `seq2slate`.
+        self.model = model.seq2slate
+        self.greedy = greedy
         preprocessor = SlateRankingPreprocessor(
-            state_preprocessor, candidate_preprocessor
+            state_preprocessor, candidate_preprocessor, model.max_src_seq_len
         )
         self.input_prototype_data = preprocessor.input_prototype()
-        self.preprocessor = torch.jit.trace(
-            preprocessor, preprocessor.input_prototype()
-        )
-        # pyre-fixme[16]: `Seq2SlateTransformerNet` has no attribute `seq2slate`.
-        self.model = torch.jit.script(model.seq2slate)
-        self.greedy = greedy
+        # if the module has to be serialized via jit.script, preprocessor has to be traced first
+        if not self.can_be_traced():
+            preprocessor = torch.jit.trace(preprocessor, preprocessor.input_prototype())
+        self.preprocessor = preprocessor
         self.state_sorted_features = state_preprocessor.sorted_features
         self.candidate_sorted_features = candidate_preprocessor.sorted_features
         self.state_feature_id_to_index = state_preprocessor.feature_id_to_index
@@ -528,11 +530,31 @@ class Seq2SlateWithPreprocessor(nn.Module):
             res.ranked_tgt_out_idx,
         )
 
+    def can_be_traced(self):
+        """
+        Whether this module can be serialized by jit.trace.
+        In production, we find jit.trace has faster performance than jit.script.
+        The models that can be traced are those don't have for-loop in inference,
+        since we want to deal with inputs of variable lengths
+        """
+        output_arch = self.model.output_arch
+        return output_arch == Seq2SlateOutputArch.ENCODER_SCORE or (
+            output_arch == Seq2SlateOutputArch.FRECHET_SORT and self.greedy
+        )
+
 
 class Seq2SlatePredictorWrapper(torch.jit.ScriptModule):
     def __init__(self, seq2slate_with_preprocessor: Seq2SlateWithPreprocessor) -> None:
         super().__init__()
-        self.seq2slate_with_preprocessor = torch.jit.script(seq2slate_with_preprocessor)
+        if seq2slate_with_preprocessor.can_be_traced():
+            self.seq2slate_with_preprocessor = torch.jit.trace(
+                seq2slate_with_preprocessor,
+                seq2slate_with_preprocessor.input_prototype(),
+            )
+        else:
+            self.seq2slate_with_preprocessor = torch.jit.script(
+                seq2slate_with_preprocessor
+            )
 
     # pyre-fixme[56]: Decorator `torch.jit.script_method` could not be resolved in a
     #  global scope.
