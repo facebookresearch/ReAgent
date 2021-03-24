@@ -15,11 +15,11 @@ from reagent.gym.envs import Gym
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import fill_replay_buffer
+from reagent.model_managers.union import ModelManager__Union
 from reagent.publishers.union import FileSystemPublisher, ModelPublisher__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.replay_memory.utils import replay_buffer_to_pre_timeline_df
 
-from .model_managers.union import ModelManager__Union
 from .spark_utils import call_spark_class, get_spark_session
 from .types import TableSpec
 
