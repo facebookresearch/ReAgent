@@ -38,7 +38,7 @@ DQN_WORKFLOW_YAML = os.path.join(
 NEW_CONFIG_NAME = "config.yaml"
 
 # module to patch
-DISCRETE_DQN_BASE = "reagent.workflow.model_managers.discrete_dqn_base"
+DISCRETE_DQN_BASE = "reagent.model_managers.discrete_dqn_base"
 
 
 def get_test_workflow_config(path_to_config: str, use_gpu: bool):

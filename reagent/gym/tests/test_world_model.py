@@ -19,11 +19,11 @@ from reagent.gym.envs.pomdp.state_embed_env import StateEmbedEnvironment
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
+from reagent.model_managers.union import ModelManager__Union
 from reagent.models.world_model import MemoryNetwork
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
-from reagent.workflow.model_managers.union import ModelManager__Union
 from reagent.workflow.types import RewardOptions
 from tqdm import tqdm
 

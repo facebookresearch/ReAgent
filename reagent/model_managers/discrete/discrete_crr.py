@@ -15,6 +15,7 @@ from reagent.core.parameters import (
 )
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
+from reagent.model_managers.discrete_dqn_base import DiscreteDQNBase
 from reagent.models.base import ModelBase
 from reagent.net_builder.discrete_actor.fully_connected import (
     FullyConnected as DiscreteFullyConnected,
@@ -26,7 +27,6 @@ from reagent.net_builder.unions import (
     DiscreteDQNNetBuilder__Union,
 )
 from reagent.training import DiscreteCRRTrainer, CRRTrainerParameters
-from reagent.workflow.model_managers.discrete_dqn_base import DiscreteDQNBase
 from reagent.workflow.reporters.discrete_crr_reporter import DiscreteCRRReporter
 
 logger = logging.getLogger(__name__)
