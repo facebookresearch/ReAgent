@@ -59,15 +59,21 @@ class TestModelWithPreprocessor(unittest.TestCase):
         )
         input_prototype = seq2slate_with_preprocessor.input_prototype()
 
-        seq2slate_with_preprocessor_scripted = torch.jit.script(
-            seq2slate_with_preprocessor
-        )
+        if seq2slate_with_preprocessor.can_be_traced():
+            seq2slate_with_preprocessor_jit = torch.jit.trace(
+                seq2slate_with_preprocessor,
+                seq2slate_with_preprocessor.input_prototype(),
+            )
+        else:
+            seq2slate_with_preprocessor_jit = torch.jit.script(
+                seq2slate_with_preprocessor
+            )
         expected_output = seq2slate_with_preprocessor(*input_prototype)
-        scripted_output = seq2slate_with_preprocessor_scripted(*input_prototype)
-        self.verify_results(expected_output, scripted_output)
+        jit_output = seq2slate_with_preprocessor_jit(*input_prototype)
+        self.verify_results(expected_output, jit_output)
 
         # Test if scripted model can handle variable lengths of input
         input_prototype = change_cand_size_slate_ranking(input_prototype, 20)
         expected_output = seq2slate_with_preprocessor(*input_prototype)
-        scripted_output = seq2slate_with_preprocessor_scripted(*input_prototype)
-        self.verify_results(expected_output, scripted_output)
+        jit_output = seq2slate_with_preprocessor_jit(*input_prototype)
+        self.verify_results(expected_output, jit_output)
