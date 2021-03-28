@@ -133,7 +133,7 @@ class DQNTrainer(DQNTrainerBaseLightning):
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
     @torch.no_grad()
-    def get_detached_q_values(
+    def get_detached_model_outputs(
         self, state
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """ Gets the q values from the model and target networks """
@@ -161,7 +161,7 @@ class DQNTrainer(DQNTrainerBaseLightning):
         discount_tensor: torch.Tensor,
     ):
         not_done_mask = batch.not_terminal.float()
-        all_next_q_values, all_next_q_values_target = self.get_detached_q_values(
+        all_next_q_values, all_next_q_values_target = self.get_detached_model_outputs(
             batch.next_state
         )
 

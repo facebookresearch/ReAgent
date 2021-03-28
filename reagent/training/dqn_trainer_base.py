@@ -238,6 +238,9 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
             metric_q_values, target_metric_q_values
         )
 
+        # The model_propensities computed below are not used right now. The CPE graphs in the Outputs
+        # tab use model_propensities computed in the function create_from_tensors_dqn() in evaluation_data_page.py,
+        # which is called on the eval_table_sample in the gather_eval_data() function below.
         model_propensities = masked_softmax(
             all_action_scores,
             training_batch.possible_actions_mask
