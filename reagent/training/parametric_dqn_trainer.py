@@ -69,7 +69,9 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
     @torch.no_grad()
-    def get_detached_q_values(self, state, action) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_detached_model_outputs(
+        self, state, action
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """ Gets the q values from the model and target networks """
         q_values = self.q_network(state, action)
         q_values_target = self.q_network_target(state, action)
@@ -99,7 +101,10 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
             )
             max_num_action = product // batch_size
             tiled_next_state = training_batch.next_state.get_tiled_batch(max_num_action)
-            all_next_q_values, all_next_q_values_target = self.get_detached_q_values(
+            (
+                all_next_q_values,
+                all_next_q_values_target,
+            ) = self.get_detached_model_outputs(
                 tiled_next_state, training_batch.possible_next_actions
             )
             # Compute max a' Q(s', a') over all possible actions using target network
@@ -114,7 +119,7 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
 
         else:
             # SARSA (Use the target network)
-            _, next_q_values = self.get_detached_q_values(
+            _, next_q_values = self.get_detached_model_outputs(
                 training_batch.next_state, training_batch.next_action
             )
             assert (
