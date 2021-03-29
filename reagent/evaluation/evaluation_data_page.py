@@ -214,7 +214,7 @@ class EvaluationDataPage(NamedTuple):
         # should be calculated using q_network_cpe (as in discrete dqn).
         # q_network_cpe has not been added in parametric dqn yet.
         model_values = trainer.q_network(*possible_actions_state_concat)
-        optimal_q_values, _ = trainer.get_detached_q_values(
+        optimal_q_values, _ = trainer.get_detached_model_outputs(
             *possible_actions_state_concat
         )
         eval_action_idxs = None
@@ -335,13 +335,15 @@ class EvaluationDataPage(NamedTuple):
 
         rewards = trainer.boost_rewards(rewards, actions)
         model_values = trainer.q_network_cpe(states)[:, 0:num_actions]
-        optimal_q_values, _ = trainer.get_detached_q_values(states)
-        # Do we ever really use eval_action_idxs?
+        # Note: model_outputs are obtained from the q_network for DQN algorithms
+        # and from the actor_network for CRR.
+        model_outputs, _ = trainer.get_detached_model_outputs(states)
+        # Note: eval_action_idxs is used in evaluate_post_training() function in evaluator.py
         eval_action_idxs = trainer.get_max_q_values(
-            optimal_q_values, possible_actions_mask
+            model_outputs, possible_actions_mask
         )[1]
         model_propensities = masked_softmax(
-            optimal_q_values, possible_actions_mask, trainer.rl_temperature
+            model_outputs, possible_actions_mask, trainer.rl_temperature
         )
         assert model_values.shape == actions.shape, (
             "Invalid shape: " + str(model_values.shape) + " != " + str(actions.shape)
@@ -448,7 +450,7 @@ class EvaluationDataPage(NamedTuple):
             logged_values=None,
             logged_metrics_values=None,
             possible_actions_mask=possible_actions_mask,
-            optimal_q_values=optimal_q_values,
+            optimal_q_values=model_outputs,
             eval_action_idxs=eval_action_idxs,
         )
 

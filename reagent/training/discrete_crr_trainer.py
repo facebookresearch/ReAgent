@@ -122,12 +122,13 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
     @torch.no_grad()
-    def get_detached_q_values(self, state) -> Tuple[torch.Tensor, None]:
+    def get_detached_model_outputs(self, state) -> Tuple[torch.Tensor, None]:
         # This function is only used in evaluation_data_page.py, in create_from_tensors_dqn(),
-        # where two values are expected to be returned from get_detached_q_values(), which
-        # is what this function returns in dqn_trainer.py
-        q_values = self.q1_network(state)
-        return q_values, None
+        # in order to compute model propensities. The definition of this function in
+        # dqn_trainer.py returns two values, and so we also return two values here, for
+        # consistency.
+        action_scores = self.actor_network(state).action
+        return action_scores, None
 
     def configure_optimizers(self):
         optimizers = []
