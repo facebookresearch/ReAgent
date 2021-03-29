@@ -28,7 +28,6 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
         # Start ParametricDQNTrainerParameters
         rl: rlp.RLParameters = field(default_factory=rlp.RLParameters),  # noqa: B008
         double_q_learning: bool = True,
-        minibatch_size: int = 1024,
         minibatches_per_step: int = 1,
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
@@ -38,7 +37,6 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
         self.rl_parameters = rl
 
         self.double_q_learning = double_q_learning
-        self.minibatch_size = minibatch_size
         self.minibatches_per_step = minibatches_per_step or 1
 
         self.q_network = q_network
