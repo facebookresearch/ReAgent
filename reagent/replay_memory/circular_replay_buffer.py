@@ -47,31 +47,49 @@ class ElementMetadata:
     @classmethod
     @abc.abstractmethod
     def create_from_example(cls, name: str, example):
+        """Constructor of the Metadata.
+        Given an input example, construct an ElementMetadata for this key `name`.
+        Good practice to call self.validate here after initializing metadata.
+        """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def zero_example(self):
+        """ What would an empty `input` example look like? """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def validate(self, name: str, input):
+        """ Does the input look correct? """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def create_storage(self, capacity: int):
+        """Initialize the replay buffer with given `capacity`, for this data type.
+        I.e. what is the "internal representation" of this data type in the replay buffer?
+        """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def input_to_storage(self, input):
+        """ Convert `input` to the "internal representation" of the replay buffer. """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def sample_to_output(self, sample):
+        """Convert "internal representation" of replay buffer to `output`.
+        Concretely, when we call replay_buffer.sample(...), what do we want the output to look like?
+        """
         raise NotImplementedError()
 
 
 @dataclass
 class DenseMetadata(ElementMetadata):
+    """
+    Internal representation is a torch tensor.
+    Batched output is tensor of shape (batch_size, obs_shape, stack_size)
+    """
+
     shape: Tuple[int, ...]
     dtype: np.dtype
 
@@ -123,6 +141,13 @@ class DenseMetadata(ElementMetadata):
 
 @dataclass
 class IDListMetadata(ElementMetadata):
+    """
+    Internal representation is a np.array of Dict[str, np.array of type int64]
+    Output is Dict[str, Tuple[np.array of type int32, np.array of type int64]], same as id_list in FeatureStore.
+    The tuple is (offset, ids).
+    TODO: implement for stack size > 1
+    """
+
     keys: List[str]
 
     @classmethod
@@ -153,7 +178,6 @@ class IDListMetadata(ElementMetadata):
         return input
 
     def sample_to_output(self, sample):
-        # TODO: implement for stack size > 1
         sample = sample.squeeze(1)
         result: Dict[str, Tuple[torch.Tensor, torch.Tensor]] = {}
         for k in self.keys:
@@ -176,6 +200,13 @@ class IDListMetadata(ElementMetadata):
 
 @dataclass
 class IDScoreListMetadata(ElementMetadata):
+    """
+    Internal representation is a np.array of Dict[str, np.array of type int64]
+    Output is Dict[str, Tuple[np.array of type int32, np.array of type int64, np.array of type np.float32]], same as id_list in FeatureStore.
+    The tuple is (offset, ids, scores).
+    TODO: implement for stack size > 1
+    """
+
     keys: List[str]
 
     @classmethod
@@ -215,7 +246,6 @@ class IDScoreListMetadata(ElementMetadata):
         return input
 
     def sample_to_output(self, sample):
-        # TODO: implement for stack size > 1
         sample = sample.squeeze(1)
         result: Dict[str, Tuple[torch.Tensor, torch.Tensor]] = {}
         for k in self.keys:
