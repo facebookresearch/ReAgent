@@ -9,7 +9,6 @@ from reagent.core import aggregators as agg
 from reagent.core.observers import IntervalAggregatingObserver
 from reagent.workflow.reporters.reporter_base import (
     ReporterBase,
-    FlexibleDataPointsPerEpochMixin,
 )
 from reagent.workflow.training_reports import DQNTrainingReport
 
@@ -17,7 +16,7 @@ from reagent.workflow.training_reports import DQNTrainingReport
 logger = logging.getLogger(__name__)
 
 
-class DiscreteCRRReporter(FlexibleDataPointsPerEpochMixin, ReporterBase):
+class DiscreteCRRReporter(ReporterBase):
     def __init__(
         self,
         actions: List[str],
