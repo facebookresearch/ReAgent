@@ -330,7 +330,22 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         yield result
 
     def validation_step(self, batch, batch_idx):
-        # raw data
+        # As explained in the comments to the validation_step function in
+        # pytorch_lightning/core/lightning.py, this function operates on a
+        # single batch of data from the validation set. For example:
+        # val_outs = []
+        # for val_batch in val_data:
+        #     out = validation_step(val_batch)
+        #     val_outs.append(out)
+        # validation_epoch_end(val_outs)
+        # Note: the relevant validation_epoch_end() function is defined in dqn_trainer_base.py
+
+        # RETURN ARGS:
+        # The super() call at the end of this function calls the function with the same name
+        # in dqn_trainer_base.py, which simply returns the batch.cpu(). In other words,
+        # the validation_epoch_end() function will be called on a list of validation batches.
+
+        # validation data
         state = batch.state
         action = batch.action
         next_state = batch.next_state

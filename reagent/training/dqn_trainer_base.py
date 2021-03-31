@@ -266,11 +266,11 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
 
         yield metric_q_value_loss
 
-    def gather_eval_data(self, test_step_outputs):
+    def gather_eval_data(self, validation_step_outputs):
         was_on_gpu = self.on_gpu
         self.cpu()
         eval_data = None
-        for batch in test_step_outputs:
+        for batch in validation_step_outputs:
             edp = EvaluationDataPage.create_from_training_batch(batch, self)
             if eval_data is None:
                 eval_data = edp
@@ -291,6 +291,19 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         return batch.cpu()
 
     def validation_epoch_end(self, valid_step_outputs):
+        # As explained in the comments to the validation_step function in
+        # pytorch_lightning/core/lightning.py, this function is generally used as follows:
+        # val_outs = []
+        # for val_batch in val_data:
+        #     out = validation_step(val_batch)
+        #     val_outs.append(out)
+        # validation_epoch_end(val_outs)
+
+        # Note: the relevant validation_step() function is defined in discrete_crr_trainer.py.
+        # That function does some logging and then returns batch.cpu(). In other words,
+        # the arguments to the current function, valid_step_outputs, is just a list of
+        # validation batches, which matches the way it is used in gather_eval_data() above.
+
         eval_data = self.gather_eval_data(valid_step_outputs)
         if eval_data and eval_data.mdp_id is not None:
             cpe_details = self.evaluator.evaluate_post_training(eval_data)
