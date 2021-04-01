@@ -204,11 +204,12 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
 
         # dist is the distribution of actions derived from the actor's outputs (logits)
         dist = pyd.Categorical(logits=all_action_scores)
-
         # Note: D = dist.probs is equivalent to:
         # e_x = torch.exp(actor_actions)
         # D = e_x / e_x.sum(dim=1, keepdim=True)
         # That is, dist gives a softmax distribution over actor's outputs
+
+        # values is the vector of state values in this batch
         values = (all_q_values * dist.probs).sum(dim=1, keepdim=True)
 
         advantages = all_q_values - values
@@ -232,8 +233,18 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         # comparing dist.probs and dist.logits.
         # https://pytorch.org/docs/master/distributions.html#multinomial
         # states: logits (Tensor) – event log probabilities
+
+        # log_pi_b is the log of the probability assigned by the
+        # actor (abbreviated as pi) to the actions of the behavioral (b) policy
         log_pi_b = dist.log_prob(logged_action_idxs.squeeze(1)).unsqueeze(1)
 
+        # Note: the CRR loss for each datapoint (and the magnitude of the corresponding
+        # parameter update) is proportional to log_pi_b * weight. Therefore, as mentioned
+        # at the top of Section 3.2, the actor on the one hand has incentive to assign
+        # larger probabilities to the actions observed in the dataset (so as to reduce
+        # the magnitude of log_pi_b), but on the other hand it gives preference to doing
+        # this on datapoints where weight is large (i.e., those points on which the
+        # Q-value of the observed action is large).
         actor_loss = (-log_pi_b * weight.detach()).mean()
 
         return actor_loss, values
@@ -269,6 +280,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
             q1_loss=q1_loss,
             q1_value=q1,
         )
+        # Show td_loss on the progress bar:
         self.log("td_loss", q1_loss, prog_bar=True)
         yield q1_loss
 
@@ -295,6 +307,8 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
             actor_loss=actor_loss,
             actor_q1_value=actor_q1_values,
         )
+        # Show actor_loss on the progress bar:
+        self.log("actor_loss", actor_loss, prog_bar=True)
         yield actor_loss
 
         yield from self._calculate_cpes(
@@ -330,7 +344,22 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         yield result
 
     def validation_step(self, batch, batch_idx):
-        # raw data
+        # As explained in the comments to the validation_step function in
+        # pytorch_lightning/core/lightning.py, this function operates on a
+        # single batch of data from the validation set. For example:
+        # val_outs = []
+        # for val_batch in val_data:
+        #     out = validation_step(val_batch)
+        #     val_outs.append(out)
+        # validation_epoch_end(val_outs)
+        # Note: the relevant validation_epoch_end() function is defined in dqn_trainer_base.py
+
+        # RETURN ARGS:
+        # The super() call at the end of this function calls the function with the same name
+        # in dqn_trainer_base.py, which simply returns the batch.cpu(). In other words,
+        # the validation_epoch_end() function will be called on a list of validation batches.
+
+        # validation data
         state = batch.state
         action = batch.action
         next_state = batch.next_state
