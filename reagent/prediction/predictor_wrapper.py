@@ -716,7 +716,7 @@ class Seq2SlateRewardWithPreprocessor(ModelBase):
         max_tgt_seq_len = self.model.max_tgt_seq_len
         max_src_seq_len = self.model.max_src_seq_len
 
-        # we use a fake slate_idx_with_presence to retrive the first
+        # we use a fake slate_idx_with_presence to retrieve the first
         # max_tgt_seq_len candidates from
         # len(slate_idx_with presence) == batch_size
         # component: 1d tensor with length max_tgt_seq_len
