@@ -261,6 +261,7 @@ class ActorCriticBase(ModelManager):
             data_module=data_module,
             num_epochs=num_epochs,
             use_gpu=self.use_gpu,
+            logger_name="ActorCritic",
             batch_preprocessor=batch_preprocessor,
             reader_options=self.reader_options,
             checkpoint_path=self._lightning_checkpoint_path,
