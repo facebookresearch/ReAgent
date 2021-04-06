@@ -175,6 +175,7 @@ class DiscreteDQNBase(ModelManager):
             data_module=data_module,
             num_epochs=num_epochs,
             use_gpu=self.use_gpu,
+            logger_name="DiscreteDqn",
             reader_options=reader_options,
             checkpoint_path=self._lightning_checkpoint_path,
             resource_options=resource_options,
