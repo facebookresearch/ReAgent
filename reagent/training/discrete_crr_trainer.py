@@ -186,21 +186,18 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         target_q_values = rewards + self.gamma * next_V * not_terminal.float()
         return target_q_values
 
-    def compute_q_value_and_loss(self, q_network, state, action, target_q_values):
-        q_values = q_network(state)
-        q = (q_values * action).sum(dim=1, keepdim=True)
-        q_loss = F.mse_loss(q, target_q_values)
-        return q, q_loss
+    def compute_td_loss(self, q_network, state, action, target_q_values):
+        all_q_values = q_network(state)
+        q_values = (all_q_values * action).sum(dim=1, keepdim=True)
+        q_loss = F.mse_loss(q_values, target_q_values)
+        return q_loss
 
-    def compute_actor_loss_and_value(
-        self, batch_idx, action, all_q_values, all_action_scores
-    ):
+    def compute_actor_loss(self, batch_idx, action, all_q_values, all_action_scores):
         # Only update actor network after a fixed number of Q updates
         if batch_idx % self.delayed_policy_update != 0:
             # Yielding None prevents the actor network from updating
             actor_loss = None
-            actor_q1_values = None
-            return actor_loss, actor_q1_values
+            return actor_loss
 
         # dist is the distribution of actions derived from the actor's outputs (logits)
         dist = pyd.Categorical(logits=all_action_scores)
@@ -246,8 +243,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         # this on datapoints where weight is large (i.e., those points on which the
         # Q-value of the observed action is large).
         actor_loss = (-log_pi_b * weight.detach()).mean()
-
-        return actor_loss, values
+        return actor_loss
 
     def train_step_gen(self, training_batch: rlt.DiscreteDqnInput, batch_idx: int):
         """
@@ -273,24 +269,15 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         target_q_values = self.compute_target_q_values(
             next_state, rewards, not_terminal, next_q_values
         )
-        q1, q1_loss = self.compute_q_value_and_loss(
-            self.q1_network, state, action, target_q_values
-        )
-        self.reporter.log(
-            q1_loss=q1_loss,
-            q1_value=q1,
-        )
-        # Show td_loss on the progress bar:
+        q1_loss = self.compute_td_loss(self.q1_network, state, action, target_q_values)
+
+        # Show td_loss on the progress bar and in tensorboard graphs:
         self.log("td_loss", q1_loss, prog_bar=True)
         yield q1_loss
 
         if self.q2_network:
-            q2, q2_loss = self.compute_q_value_and_loss(
+            q2_loss = self.compute_td_loss(
                 self.q2_network, state, action, target_q_values
-            )
-            self.reporter.log(
-                q2_loss=q2_loss,
-                q2_value=q2,
             )
             yield q2_loss
 
@@ -300,14 +287,15 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         # matrix obtained below) is assumed to be > 1.
         all_action_scores = self.actor_network(state).action
 
-        actor_loss, actor_q1_values = self.compute_actor_loss_and_value(
+        actor_loss = self.compute_actor_loss(
             batch_idx, action, all_q_values, all_action_scores
         )
-        self.reporter.log(
-            actor_loss=actor_loss,
-            actor_q1_value=actor_q1_values,
-        )
-        # Show actor_loss on the progress bar:
+        # self.reporter.log(
+        #     actor_loss=actor_loss,
+        #     actor_q1_value=actor_q1_values,
+        # )
+
+        # Show actor_loss on the progress bar and also in Tensorboard graphs
         self.log("actor_loss", actor_loss, prog_bar=True)
         yield actor_loss
 
@@ -375,20 +363,12 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         all_action_scores = self.actor_network(state).action
 
         # loss to log
-        actor_loss, actor_q1_values = self.compute_actor_loss_and_value(
+        actor_loss = self.compute_actor_loss(
             batch_idx, action, all_q_values, all_action_scores
         )
-        q1, q1_loss = self.compute_q_value_and_loss(
-            self.q1_network, state, action, target_q_values
-        )
-        self.reporter.log(
-            eval_actor_loss=actor_loss,
-            eval_q1_loss=q1_loss,
-        )
-        if self.q2_network:
-            q2, q2_loss = self.compute_q_value_and_loss(
-                self.q2_network, state, action, target_q_values
-            )
-            self.reporter.log(eval_q2_loss=q2_loss)
+        td_loss = self.compute_td_loss(self.q1_network, state, action, target_q_values)
+
+        self.log("eval_actor_loss", actor_loss)
+        self.log("eval_td_loss", td_loss)
 
         return super().validation_step(batch, batch_idx)
