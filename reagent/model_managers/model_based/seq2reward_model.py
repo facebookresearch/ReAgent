@@ -11,6 +11,7 @@ from reagent.net_builder.unions import ValueNetBuilder__Union
 from reagent.net_builder.value.fully_connected import FullyConnected
 from reagent.net_builder.value.seq2reward_rnn import Seq2RewardNetBuilder
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer
+from reagent.workflow.reporters.seq2reward_reporter import Seq2RewardReporter
 from reagent.workflow.types import PreprocessingOptions
 
 
@@ -40,6 +41,8 @@ class Seq2RewardModel(WorldModelBase):
 
     preprocessing_options: Optional[PreprocessingOptions] = None
 
+    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
+    #  inconsistently.
     def build_trainer(self) -> Seq2RewardTrainer:
         seq2reward_network = self.net_builder.value.build_value_network(
             self.state_normalization_data
@@ -47,12 +50,10 @@ class Seq2RewardModel(WorldModelBase):
         trainer = Seq2RewardTrainer(
             seq2reward_network=seq2reward_network, params=self.trainer_param
         )
-        if self.use_gpu:
-            trainer.seq2reward_network = trainer.seq2reward_network.cuda()
-            trainer.step_predict_network = trainer.step_predict_network.cuda()
-            trainer.all_permut = trainer.all_permut.cuda()
-
         return trainer
+
+    def get_reporter(self) -> Seq2RewardReporter:
+        return Seq2RewardReporter(self.trainer_param.action_names)
 
     def build_serving_module(self) -> torch.nn.Module:
         """
