@@ -10,6 +10,7 @@ from reagent.core.parameters import (
     NormalizationData,
     NormalizationKey,
 )
+from reagent.data.data_fetcher import DataFetcher
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
@@ -150,6 +151,7 @@ class ParametricDQNBase(ModelManager):
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
+        data_fetcher: DataFetcher,
     ) -> Dataset:
         raise NotImplementedError()
 

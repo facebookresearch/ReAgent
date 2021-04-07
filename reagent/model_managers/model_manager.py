@@ -9,6 +9,7 @@ import torch
 from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData
 from reagent.core.registry_meta import RegistryMeta
+from reagent.data.data_fetcher import DataFetcher
 from reagent.training import Trainer
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.types import (
@@ -151,6 +152,7 @@ class ModelManager(metaclass=RegistryMeta):
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
+        data_fetcher: DataFetcher,
     ) -> Dataset:
         """
         DEPRECATED: Implement get_data_module() instead

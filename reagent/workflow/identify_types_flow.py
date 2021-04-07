@@ -8,12 +8,12 @@ import reagent.core.types as rlt
 # pyre-fixme[21]: Could not find `pyspark`.
 # pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import col, collect_list, explode
+from reagent.data.spark_utils import get_spark_session
 from reagent.preprocessing.normalization import (
     NormalizationParameters,
     get_feature_norm_metadata,
 )
 
-from .spark_utils import get_spark_session
 from .types import PreprocessingOptions, TableSpec
 
 

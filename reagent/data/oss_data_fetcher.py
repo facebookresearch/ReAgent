@@ -14,9 +14,9 @@ from pyspark.sql.types import (
     StructField,
     StructType,
 )
-
-from .spark_utils import get_spark_session, get_table_url
-from .types import Dataset, TableSpec
+from reagent.data.data_fetcher import DataFetcher
+from reagent.data.spark_utils import get_spark_session, get_table_url
+from reagent.workflow.types import Dataset, TableSpec
 
 
 logger = logging.getLogger(__name__)
@@ -428,51 +428,56 @@ def upload_as_parquet(df) -> Dataset:
     return Dataset(parquet_url=parquet_url)
 
 
-def query_data(
-    input_table_spec: TableSpec,
-    discrete_action: bool,
-    actions: Optional[List[str]] = None,
-    include_possible_actions=True,
-    custom_reward_expression: Optional[str] = None,
-    sample_range: Optional[Tuple[float, float]] = None,
-    multi_steps: Optional[int] = None,
-    gamma: Optional[float] = None,
-) -> Dataset:
-    """Perform reward calculation, hashing mdp + subsampling and
-    other preprocessing such as sparse2dense.
-    """
-    sqlCtx = get_spark_session()
-    df = sqlCtx.sql(f"SELECT * FROM {input_table_spec.table_name}")
-    df = set_reward_col_as_reward(
-        df,
-        custom_reward_expression=custom_reward_expression,
-        multi_steps=multi_steps,
-        gamma=gamma,
-    )
-    df = hash_mdp_id_and_subsample(df, sample_range=sample_range)
-    df = misc_column_preprocessing(df, multi_steps=multi_steps)
-    df = state_and_metrics_sparse2dense(
-        df,
-        states=infer_states_names(df, multi_steps),
-        metrics=infer_metrics_names(df, multi_steps),
-        multi_steps=multi_steps,
-    )
-    if discrete_action:
-        assert include_possible_actions
-        assert actions is not None, "in discrete case, actions must be given."
-        df = discrete_action_preprocessing(df, actions=actions, multi_steps=multi_steps)
-    else:
-        actions = infer_action_names(df, multi_steps)
-        df = parametric_action_preprocessing(
+class OssDataFetcher(DataFetcher):
+    def query_data(
+        self,
+        input_table_spec: TableSpec,
+        discrete_action: bool,
+        actions: Optional[List[str]] = None,
+        include_possible_actions=True,
+        custom_reward_expression: Optional[str] = None,
+        sample_range: Optional[Tuple[float, float]] = None,
+        multi_steps: Optional[int] = None,
+        gamma: Optional[float] = None,
+    ) -> Dataset:
+        """Perform reward calculation, hashing mdp + subsampling and
+        other preprocessing such as sparse2dense.
+        """
+        sqlCtx = get_spark_session()
+        # pyre-ignore
+        df = sqlCtx.sql(f"SELECT * FROM {input_table_spec.table_name}")
+        df = set_reward_col_as_reward(
             df,
-            actions=actions,
+            custom_reward_expression=custom_reward_expression,
             multi_steps=multi_steps,
+            gamma=gamma,
+        )
+        df = hash_mdp_id_and_subsample(df, sample_range=sample_range)
+        df = misc_column_preprocessing(df, multi_steps=multi_steps)
+        df = state_and_metrics_sparse2dense(
+            df,
+            states=infer_states_names(df, multi_steps),
+            metrics=infer_metrics_names(df, multi_steps),
+            multi_steps=multi_steps,
+        )
+        if discrete_action:
+            assert include_possible_actions
+            assert actions is not None, "in discrete case, actions must be given."
+            df = discrete_action_preprocessing(
+                df, actions=actions, multi_steps=multi_steps
+            )
+        else:
+            actions = infer_action_names(df, multi_steps)
+            df = parametric_action_preprocessing(
+                df,
+                actions=actions,
+                multi_steps=multi_steps,
+                include_possible_actions=include_possible_actions,
+            )
+
+        df = select_relevant_columns(
+            df,
+            discrete_action=discrete_action,
             include_possible_actions=include_possible_actions,
         )
-
-    df = select_relevant_columns(
-        df,
-        discrete_action=discrete_action,
-        include_possible_actions=include_possible_actions,
-    )
-    return upload_as_parquet(df)
+        return upload_as_parquet(df)

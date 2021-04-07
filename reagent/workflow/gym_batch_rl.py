@@ -10,6 +10,7 @@ import gym
 import numpy as np
 import pandas as pd
 import torch
+from reagent.data.spark_utils import call_spark_class, get_spark_session
 from reagent.gym.agents.agent import Agent
 from reagent.gym.envs import Gym
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
@@ -20,7 +21,6 @@ from reagent.publishers.union import FileSystemPublisher, ModelPublisher__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.replay_memory.utils import replay_buffer_to_pre_timeline_df
 
-from .spark_utils import call_spark_class, get_spark_session
 from .types import TableSpec
 
 
