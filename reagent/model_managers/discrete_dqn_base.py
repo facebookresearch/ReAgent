@@ -167,7 +167,6 @@ class DiscreteDQNBase(ModelManager):
         assert data_module
 
         # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `_lightning_trainer`.
-        # pyre-fixme[28]: Unexpected keyword argument `manifold_tb_logger_name`.
         self._lightning_trainer = train_eval_lightning(
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
