@@ -9,6 +9,7 @@ from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import NormalizationData
 from reagent.core.parameters import NormalizationKey
 from reagent.core.parameters import param_hash
+from reagent.data.data_fetcher import DataFetcher
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
@@ -124,6 +125,7 @@ class Reinforce(ModelManager):
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
+        data_fetcher: DataFetcher,
     ) -> Dataset:
         raise NotImplementedError
 

@@ -95,7 +95,8 @@ class TestOSSWorkflows(HorizonTestBase):
             )
             mock_normalization = mock_cartpole_normalization()
             with patch(
-                f"{DISCRETE_DQN_BASE}.query_data", return_value=mock_dataset
+                "reagent.data.oss_data_fetcher.OssDataFetcher.query_data",
+                return_value=mock_dataset,
             ), patch(
                 f"{DISCRETE_DQN_BASE}.identify_normalization_parameters",
                 return_value=mock_normalization,

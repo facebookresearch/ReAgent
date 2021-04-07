@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Tuple
 import reagent.core.types as rlt
 from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData, NormalizationKey
+from reagent.data.data_fetcher import DataFetcher
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.top_k_sampler import TopKSampler
@@ -140,6 +141,7 @@ class SlateQBase(ModelManager):
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
+        data_fetcher: DataFetcher,
     ) -> Dataset:
         raise NotImplementedError("Write for OSS")
 

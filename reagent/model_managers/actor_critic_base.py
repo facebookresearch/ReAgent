@@ -13,6 +13,7 @@ from reagent.core.parameters import (
     NormalizationData,
     NormalizationKey,
 )
+from reagent.data.data_fetcher import DataFetcher
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
@@ -26,7 +27,6 @@ from reagent.preprocessing.batch_preprocessor import (
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
 from reagent.workflow.data import ReAgentDataModule
-from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.reporters.actor_critic_reporter import ActorCriticReporter
 from reagent.workflow.types import (
@@ -204,9 +204,10 @@ class ActorCriticBase(ModelManager):
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
+        data_fetcher: DataFetcher,
     ) -> Dataset:
         logger.info("Starting query")
-        return query_data(
+        return data_fetcher.query_data(
             input_table_spec=input_table_spec,
             discrete_action=False,
             include_possible_actions=False,

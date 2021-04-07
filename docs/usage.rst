@@ -231,6 +231,7 @@ To train the model, we first save our Spark table to Parquet format, and use `Pe
         input_table_spec=input_table_spec,  # description of Spark table
         sample_range=train_sample_range,  # what percentage of data to use for training
         reward_options=reward_options,  # config to calculate rewards
+        data_fetcher=data_fetcher, # Controller for fetching data
     )
     # train_dataset now points to a Parquet
 
