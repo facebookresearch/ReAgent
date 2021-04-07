@@ -14,10 +14,10 @@ from petastorm import make_batch_reader
 # pyre-fixme[21]: Could not find module `petastorm.pytorch`.
 from petastorm.pytorch import DataLoader, decimal_friendly_collate
 from pytorch_lightning.loggers import TensorBoardLogger
+from reagent.data.spark_utils import get_spark_session
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.training import StoppingEpochCallback
 
-from .spark_utils import get_spark_session
 from .types import Dataset, ReaderOptions, ResourceOptions
 
 

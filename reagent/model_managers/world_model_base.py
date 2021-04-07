@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Tuple
 
 from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData, NormalizationKey
+from reagent.data.data_fetcher import DataFetcher
 from reagent.gym.policies.policy import Policy
 from reagent.model_managers.model_manager import ModelManager
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
@@ -51,6 +52,7 @@ class WorldModelBase(ModelManager):
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
+        data_fetcher: DataFetcher,
     ) -> Dataset:
         raise NotImplementedError()
 

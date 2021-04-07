@@ -8,6 +8,7 @@ from typing import Dict, Optional
 import torch
 from reagent.core.parameters import NormalizationData
 from reagent.core.tensorboardX import summary_writer_context
+from reagent.data.oss_data_fetcher import OssDataFetcher
 from reagent.model_managers.model_manager import ModelManager
 from reagent.model_managers.union import ModelManager__Union
 from reagent.publishers.union import ModelPublisher__Union
@@ -138,6 +139,7 @@ def query_and_train(
 
     train_dataset = None
     eval_dataset = None
+    data_fetcher = OssDataFetcher()
     if normalization_data_map is not None:
         calc_cpe_in_training = manager.should_generate_eval_dataset
         sample_range_output = get_sample_range(input_table_spec, calc_cpe_in_training)
@@ -145,6 +147,7 @@ def query_and_train(
             input_table_spec=input_table_spec,
             sample_range=sample_range_output.train_sample_range,
             reward_options=reward_options,
+            data_fetcher=data_fetcher,
         )
         eval_dataset = None
         if calc_cpe_in_training:
@@ -152,6 +155,7 @@ def query_and_train(
                 input_table_spec=input_table_spec,
                 sample_range=sample_range_output.eval_sample_range,
                 reward_options=reward_options,
+                data_fetcher=data_fetcher,
             )
 
     logger.info("Starting training")

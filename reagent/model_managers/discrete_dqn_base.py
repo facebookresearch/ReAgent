@@ -10,6 +10,7 @@ from reagent.core.parameters import (
     NormalizationData,
     NormalizationKey,
 )
+from reagent.data.data_fetcher import DataFetcher
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
@@ -28,7 +29,6 @@ from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.preprocessing.types import InputColumn
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.data.manual_data_module import ManualDataModule
-from reagent.workflow.data_fetcher import query_data
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.reporters.discrete_dqn_reporter import DiscreteDQNReporter
 from reagent.workflow.types import (
@@ -110,6 +110,7 @@ class DiscreteDQNBase(ModelManager):
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
+        data_fetcher: DataFetcher,
     ) -> Dataset:
         raise RuntimeError
 
@@ -227,8 +228,9 @@ class DiscreteDqnDataModule(ManualDataModule):
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
+        data_fetcher: DataFetcher,
     ) -> Dataset:
-        return query_data(
+        return data_fetcher.query_data(
             input_table_spec=input_table_spec,
             discrete_action=True,
             actions=self.model_manager.action_names,

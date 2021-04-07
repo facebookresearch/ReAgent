@@ -9,9 +9,7 @@ import shutil
 import numpy as np
 import torch
 from pyspark import SparkConf
-
-# pyre-fixme[21]: Could not find module `reagent.workflow.spark_utils`.
-from reagent.workflow.spark_utils import DEFAULT_SPARK_CONFIG
+from reagent.data.spark_utils import DEFAULT_SPARK_CONFIG
 
 # pyre-fixme[21]: Could not find `sparktestingbase`.
 from sparktestingbase.sqltestcase import SQLTestCase

@@ -20,6 +20,8 @@ except ModuleNotFoundError:
 
 
 from reagent.core.parameters import NormalizationData
+from reagent.data.data_fetcher import DataFetcher
+from reagent.data.oss_data_fetcher import OssDataFetcher
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
 )
@@ -108,6 +110,8 @@ class ManualDataModule(ReAgentDataModule):
 
         key = "normalization_data_map"
 
+        data_fetcher = OssDataFetcher()
+
         normalization_data_map = (
             self.run_feature_identification(self.input_table_spec)
             if key not in self.saved_setup_data
@@ -121,6 +125,7 @@ class ManualDataModule(ReAgentDataModule):
             input_table_spec=self.input_table_spec,
             sample_range=sample_range_output.train_sample_range,
             reward_options=self.reward_options,
+            data_fetcher=data_fetcher,
         )
         eval_dataset = None
         if calc_cpe_in_training:
@@ -128,6 +133,7 @@ class ManualDataModule(ReAgentDataModule):
                 input_table_spec=self.input_table_spec,
                 sample_range=sample_range_output.eval_sample_range,
                 reward_options=self.reward_options,
+                data_fetcher=data_fetcher,
             )
 
         return self._pickle_setup_data(
@@ -228,6 +234,7 @@ class ManualDataModule(ReAgentDataModule):
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
+        data_fetcher: DataFetcher,
     ) -> Dataset:
         """
         Massage input table into the format expected by the trainer
