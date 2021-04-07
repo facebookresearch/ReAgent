@@ -6,6 +6,7 @@ import os
 import unittest
 from typing import Optional
 
+import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 from parameterized import parameterized
@@ -28,6 +29,7 @@ from reagent.preprocessing.identify_types import DO_NOT_PREPROCESS
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.training.utils import gen_permutations
 from reagent.training.world_model.seq2reward_trainer import get_Q, Seq2RewardTrainer
+from torch.utils.data import DataLoader
 
 logger = logging.getLogger(__name__)
 
@@ -178,15 +180,17 @@ def create_string_game_data(
     assert batch_count == num_batches
 
     num_training_batches = int(training_data_ratio * num_batches)
-    training_data = batches[:num_training_batches]
-    eval_data = batches[num_training_batches:]
+    training_data = DataLoader(
+        batches[:num_training_batches], collate_fn=lambda x: x[0]
+    )
+    eval_data = DataLoader(batches[num_training_batches:], collate_fn=lambda x: x[0])
     return training_data, eval_data
 
 
 def train_and_eval_seq2reward_model(
     training_data, eval_data, learning_rate=0.01, num_epochs=5
 ):
-    SEQ_LEN, batch_size, NUM_ACTION = training_data[0].action.shape
+    SEQ_LEN, batch_size, NUM_ACTION = next(iter(training_data)).action.shape
     assert SEQ_LEN == 6 and NUM_ACTION == 2
 
     seq2reward_network = Seq2RewardNetwork(
@@ -209,13 +213,12 @@ def train_and_eval_seq2reward_model(
         seq2reward_network=seq2reward_network, params=trainer_param
     )
 
-    for _ in range(num_epochs):
-        for batch in training_data:
-            trainer.train(batch)
+    pl_trainer = pl.Trainer(max_epochs=num_epochs)
+    pl_trainer.fit(trainer, training_data)
 
     total_eval_mse_loss = 0
     for batch in eval_data:
-        mse_loss, _ = trainer.get_loss(batch)
+        mse_loss = trainer.get_mse_loss(batch)
         total_eval_mse_loss += mse_loss.cpu().detach().item()
     eval_mse_loss = total_eval_mse_loss / len(eval_data)
 
