@@ -39,3 +39,8 @@ class ParametricDQNTrainingReport(TrainingReport):
 @dataclass
 class SlateQTrainingReport(TrainingReport):
     __registry_name__ = "slate_q_report"
+
+
+@dataclass
+class Seq2RewardTrainingReport(TrainingReport):
+    __registry_name__ = "seq2reward_report"

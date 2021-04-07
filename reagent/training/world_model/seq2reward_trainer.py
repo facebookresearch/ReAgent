@@ -8,11 +8,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from reagent.core.parameters import Seq2RewardTrainerParameters
-from reagent.core.tracker import observable
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.models.seq2reward_model import Seq2RewardNetwork
-from reagent.training.loss_reporter import NoOpLossReporter
-from reagent.training.trainer import Trainer
+from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.utils import gen_permutations
 
 logger = logging.getLogger(__name__)
@@ -72,25 +70,17 @@ def get_Q(
     return max_acc_reward
 
 
-@observable(
-    mse_loss=torch.Tensor, step_entropy_loss=torch.Tensor, q_values=torch.Tensor
-)
-class Seq2RewardTrainer(Trainer):
+class Seq2RewardTrainer(ReAgentLightningModule):
     """ Trainer for Seq2Reward """
 
     def __init__(
         self, seq2reward_network: Seq2RewardNetwork, params: Seq2RewardTrainerParameters
     ):
+        super().__init__()
         self.seq2reward_network = seq2reward_network
         self.params = params
-        self.mse_optimizer = torch.optim.Adam(
-            self.seq2reward_network.parameters(), lr=params.learning_rate
-        )
         self.minibatch_size = self.params.batch_size
-        self.loss_reporter = NoOpLossReporter()
 
-        # PageHandler must use this to activate evaluator:
-        self.calc_cpe_in_training = True
         # Turning off Q value output during training:
         self.view_q_value = params.view_q_value
         # permutations used to do planning
@@ -111,22 +101,27 @@ class Seq2RewardTrainer(Trainer):
             use_layer_norm=False,
         )
         self.step_loss = nn.CrossEntropyLoss(reduction="mean")
-        self.step_optimizer = torch.optim.Adam(
-            self.step_predict_network.parameters(), lr=params.learning_rate
+
+    def configure_optimizers(self):
+        optimizers = []
+        optimizers.append(
+            torch.optim.Adam(
+                self.seq2reward_network.parameters(), lr=self.params.learning_rate
+            )
         )
+        optimizers.append(
+            torch.optim.Adam(
+                self.step_predict_network.parameters(), lr=self.params.learning_rate
+            )
+        )
+        return optimizers
 
-    def train(self, training_batch: rlt.MemoryNetworkInput):
-        mse_loss, step_entropy_loss = self.get_loss(training_batch)
-
-        self.mse_optimizer.zero_grad()
-        mse_loss.backward()
-        self.mse_optimizer.step()
-
-        self.step_optimizer.zero_grad()
-        step_entropy_loss.backward()
-        self.step_optimizer.step()
-
+    def train_step_gen(self, training_batch: rlt.MemoryNetworkInput, batch_idx: int):
+        mse_loss = self.get_mse_loss(training_batch)
         detached_mse_loss = mse_loss.cpu().detach().item()
+        yield mse_loss
+
+        step_entropy_loss = self.get_step_entropy_loss(training_batch)
         detached_step_entropy_loss = step_entropy_loss.cpu().detach().item()
 
         if self.view_q_value:
@@ -155,15 +150,54 @@ class Seq2RewardTrainer(Trainer):
             f"step_entropy_loss={detached_step_entropy_loss}, q_values={q_values}, "
             f"step_probability={step_probability}"
         )
-        # pyre-fixme[16]: `Seq2RewardTrainer` has no attribute `notify_observers`.
-        self.notify_observers(
+        self.reporter.log(
             mse_loss=detached_mse_loss,
             step_entropy_loss=detached_step_entropy_loss,
             q_values=[q_values],
         )
-        return (detached_mse_loss, detached_step_entropy_loss, q_values)
 
-    def get_loss(self, training_batch: rlt.MemoryNetworkInput):
+        yield step_entropy_loss
+
+    # pyre-ignore inconsistent override because lightning doesn't use types
+    def validation_step(self, batch: rlt.MemoryNetworkInput, batch_idx: int):
+        detached_mse_loss = self.get_mse_loss(batch).cpu().detach().item()
+
+        detached_step_entropy_loss = (
+            self.get_step_entropy_loss(batch).cpu().detach().item()
+        )
+
+        state_first_step = batch.state.float_features[0]
+        # shape: batch_size, action_dim
+        q_values_all_action_all_data = get_Q(
+            self.seq2reward_network,
+            state_first_step,
+            self.all_permut,
+        ).cpu()
+        q_values = q_values_all_action_all_data.mean(0).tolist()
+
+        action_distribution = torch.bincount(
+            torch.argmax(q_values_all_action_all_data, dim=1),
+            minlength=len(self.params.action_names),
+        )
+        # normalize
+        action_distribution = (
+            action_distribution.float() / torch.sum(action_distribution)
+        ).tolist()
+
+        self.reporter.log(
+            eval_mse_loss=detached_mse_loss,
+            eval_step_entropy_loss=detached_step_entropy_loss,
+            eval_q_values=[q_values],
+            eval_action_distribution=[action_distribution],
+        )
+        return (
+            detached_mse_loss,
+            detached_step_entropy_loss,
+            q_values,
+            action_distribution,
+        )
+
+    def get_mse_loss(self, training_batch: rlt.MemoryNetworkInput):
         """
         Compute losses:
             MSE(predicted_acc_reward, target_acc_reward)
@@ -176,15 +210,9 @@ class Seq2RewardTrainer(Trainer):
 
         :returns:
             mse loss on reward
-            step_entropy_loss on step prediction
         """
         # pyre-fixme[16]: Optional type has no attribute `flatten`.
         valid_step = training_batch.valid_step.flatten()
-
-        first_step_state = training_batch.state.float_features[0]
-        valid_step_output = self.step_predict_network(first_step_state)
-        # entropy loss's target is zero-based indexed, so subtract 1 from valid_step
-        step_entropy_loss = self.step_loss(valid_step_output, valid_step - 1)
 
         seq2reward_output = self.seq2reward_network(
             training_batch.state,
@@ -213,8 +241,29 @@ class Seq2RewardTrainer(Trainer):
         assert (
             predicted_acc_reward.size() == target_acc_reward.size()
         ), f"{predicted_acc_reward.size()}!={target_acc_reward.size()}"
-        mse = self.mse_loss(predicted_acc_reward, target_acc_reward)
-        return mse, step_entropy_loss
+        return self.mse_loss(predicted_acc_reward, target_acc_reward)
+
+    def get_step_entropy_loss(self, training_batch: rlt.MemoryNetworkInput):
+        """
+        Compute cross-entropy losses of step predictions
+
+        :param training_batch:
+            training_batch has these fields:
+            - state: (SEQ_LEN, BATCH_SIZE, STATE_DIM) torch tensor
+            - action: (SEQ_LEN, BATCH_SIZE, ACTION_DIM) torch tensor
+            - reward: (SEQ_LEN, BATCH_SIZE) torch tensor
+
+        :returns:
+            step_entropy_loss on step prediction
+        """
+        # pyre-fixme[16]: Optional type has no attribute `flatten`.
+        valid_step = training_batch.valid_step.flatten()
+
+        first_step_state = training_batch.state.float_features[0]
+        valid_step_output = self.step_predict_network(first_step_state)
+
+        # step loss's target is zero-based indexed, so subtract 1 from valid_step
+        return self.step_loss(valid_step_output, valid_step - 1)
 
     def warm_start_components(self):
         components = ["seq2reward_network"]
