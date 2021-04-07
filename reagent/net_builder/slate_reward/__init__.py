@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 
+from typing import Optional
+
+from reagent.core.registry_meta import wrap_oss_with_dataclass
 from reagent.core.tagged_union import TaggedUnion
-from reagent.net_builder.slate_reward_net_builder import SlateRewardNetBuilder
 
-from . import slate_reward_gru  # noqa
-from . import slate_reward_transformer  # noqa
+from .slate_reward_gru import SlateRewardGRU as SlateRewardGRUType
+from .slate_reward_transformer import (
+    SlateRewardTransformer as SlateRewardTransformerType,
+)
 
 
-@SlateRewardNetBuilder.fill_union()
+@wrap_oss_with_dataclass()
 class SlateRewardNetBuilder__Union(TaggedUnion):
-    pass
+    SlateRewardGRU: Optional[SlateRewardGRUType] = None
+    SlateRewardTransformer: Optional[SlateRewardTransformerType] = None

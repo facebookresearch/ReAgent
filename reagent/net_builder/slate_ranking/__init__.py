@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
+from typing import Optional
+
+from reagent.core.registry_meta import wrap_oss_with_dataclass
 from reagent.core.tagged_union import TaggedUnion
-from reagent.net_builder.slate_ranking_net_builder import SlateRankingNetBuilder
 
-from . import slate_ranking_transformer  # noqa
+from .slate_ranking_transformer import (
+    SlateRankingTransformer as SlateRankingTransformerType,
+)
 
 
-@SlateRankingNetBuilder.fill_union()
+@wrap_oss_with_dataclass()
 class SlateRankingNetBuilder__Union(TaggedUnion):
-    pass
+    SlateRankingTransformer: Optional[SlateRankingTransformerType] = None

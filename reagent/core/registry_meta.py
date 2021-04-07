@@ -67,3 +67,15 @@ class RegistryMeta(abc.ABCMeta):
                 return union
 
         return wrapper
+
+
+def wrap_oss_with_dataclass():
+    def wrapper(union):
+        if not INTERNAL_TAGGED_UNION:
+            # OSS TaggedUnion
+            return dataclass(frozen=True)(union)
+        else:
+            # FBL TaggedUnion
+            return union
+
+    return wrapper

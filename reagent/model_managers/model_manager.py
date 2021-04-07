@@ -8,7 +8,6 @@ import pytorch_lightning as pl
 import torch
 from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData
-from reagent.core.registry_meta import RegistryMeta
 from reagent.training import Trainer
 from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.types import (
@@ -25,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class ModelManager(metaclass=RegistryMeta):
+class ModelManager:
     """
     ModelManager manages how to train models.
 

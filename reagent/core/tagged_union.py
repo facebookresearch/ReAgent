@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import os
+
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 
-
-if IS_FB_ENVIRONMENT:
+VANILLA_DATACLASS_BANNED = (
+    not bool(int(os.environ["USE_VANILLA_DATACLASS"]))
+    if "USE_VANILLA_DATACLASS" in os.environ
+    else False
+)
+if IS_FB_ENVIRONMENT and not VANILLA_DATACLASS_BANNED:
     from fblearner.flow.core.types_lib.union import TaggedUnion as FlowTaggedUnion
 
     INTERNAL_TAGGED_UNION = True
