@@ -126,6 +126,7 @@ def train_eval_lightning(
     reader_options: Optional[ReaderOptions] = None,
     checkpoint_path: Optional[str] = None,
     resource_options: Optional[ResourceOptions] = None,
+    manifold_tb_logger_name: Optional[str] = None,
 ) -> pl.Trainer:
     reader_options = reader_options or ReaderOptions()
     datamodule = data_module or PetastormLightningDataModule(
