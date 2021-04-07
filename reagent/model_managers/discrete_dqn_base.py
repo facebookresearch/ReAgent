@@ -180,7 +180,6 @@ class DiscreteDQNBase(ModelManager):
             reader_options=reader_options,
             checkpoint_path=self._lightning_checkpoint_path,
             resource_options=resource_options,
-            manifold_tb_logger_name="DQN_base",
         )
         rank = get_rank()
         if rank == 0:
