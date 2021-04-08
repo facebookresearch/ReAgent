@@ -63,12 +63,9 @@ class PythonSparseToDenseProcessor(SparseToDenseProcessor):
         state_features_df = pd.DataFrame(sparse_data).fillna(missing_value)
         # Add columns identified by normalization, but not present in batch
         for col in self.sorted_features:
-            # pyre-fixme[16]: Optional type has no attribute `columns`.
             if col not in state_features_df.columns:
-                # pyre-fixme[16]: Optional type has no attribute `__setitem__`.
                 state_features_df[col] = missing_value
         values = torch.from_numpy(
-            # pyre-fixme[16]: Optional type has no attribute `__getitem__`.
             state_features_df[self.sorted_features].to_numpy()
         ).float()
         if self.set_missing_value_to_zero:
