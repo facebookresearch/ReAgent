@@ -261,5 +261,6 @@ class DQNTrainer(DQNTrainerBaseLightning):
         rewards = self.boost_rewards(batch.reward, batch.action)
         discount_tensor = self.compute_discount_tensor(batch, rewards)
         td_loss = self.compute_td_loss(batch, rewards, discount_tensor)
-        self.reporter.log(eval_td_loss=td_loss)
+        # Show eval_td_loss in a tensorboard graph
+        self.log("eval_td_loss", td_loss)
         return super().validation_step(batch, batch_idx)
