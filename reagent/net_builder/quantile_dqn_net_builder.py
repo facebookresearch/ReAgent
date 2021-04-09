@@ -28,7 +28,7 @@ class _Mean(torch.nn.Module):
         return torch.mean(input, dim=2)
 
 
-class QRDQNNetBuilder(metaclass=RegistryMeta):
+class QRDQNNetBuilder:
     """
     Base class for QRDQN net builder.
     """

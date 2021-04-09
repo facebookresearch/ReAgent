@@ -20,7 +20,7 @@ else:
     from reagent.prediction.predictor_wrapper import ActorPredictorWrapper
 
 
-class DiscreteActorNetBuilder(metaclass=RegistryMeta):
+class DiscreteActorNetBuilder:
     """
     Base class for discrete actor net builder.
     """

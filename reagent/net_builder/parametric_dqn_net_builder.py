@@ -19,7 +19,7 @@ else:
     from reagent.prediction.predictor_wrapper import ParametricDqnPredictorWrapper
 
 
-class ParametricDQNNetBuilder(metaclass=RegistryMeta):
+class ParametricDQNNetBuilder:
     """
     Base class for parametric DQN net builder.
     """

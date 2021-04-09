@@ -24,7 +24,7 @@ else:
     from reagent.prediction.predictor_wrapper import ActorPredictorWrapper
 
 
-class ContinuousActorNetBuilder(metaclass=RegistryMeta):
+class ContinuousActorNetBuilder:
     """
     Base class for continuous actor net builder.
     """

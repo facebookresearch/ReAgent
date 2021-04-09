@@ -3,11 +3,8 @@
 
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 
-
 if IS_FB_ENVIRONMENT:
     from fblearner.flow.core.types_lib.union import TaggedUnion as FlowTaggedUnion
-
-    INTERNAL_TAGGED_UNION = True
 
     class TaggedUnion(FlowTaggedUnion):
         @classmethod
@@ -31,8 +28,6 @@ if IS_FB_ENVIRONMENT:
 else:
 
     from dataclasses import fields
-
-    INTERNAL_TAGGED_UNION = False
 
     class TaggedUnion:
         """

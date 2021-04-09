@@ -6,7 +6,7 @@ import torch
 from reagent.core.registry_meta import RegistryMeta
 
 
-class SlateRankingNetBuilder(metaclass=RegistryMeta):
+class SlateRankingNetBuilder:
     """
     Base class for slate ranking network builder.
     """

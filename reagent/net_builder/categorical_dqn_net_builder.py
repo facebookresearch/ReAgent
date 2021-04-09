@@ -22,7 +22,7 @@ else:
     from reagent.prediction.predictor_wrapper import DiscreteDqnPredictorWrapper
 
 
-class CategoricalDQNNetBuilder(metaclass=RegistryMeta):
+class CategoricalDQNNetBuilder:
     """
     Base class for categorical DQN net builder.
     """
