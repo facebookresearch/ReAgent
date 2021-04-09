@@ -5,7 +5,7 @@ import logging
 from typing import Dict, Optional, Type
 
 from reagent.core.dataclasses import dataclass
-from reagent.core.tagged_union import INTERNAL_TAGGED_UNION, TaggedUnion
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class RegistryMeta(abc.ABCMeta):
 
             union.make_union_instance = make_union_instance
 
-            if not INTERNAL_TAGGED_UNION:
+            if not IS_FB_ENVIRONMENT:
                 # OSS TaggedUnion
                 union.__annotations__ = {
                     name: Optional[t] for name, t in cls.REGISTRY.items()
@@ -67,3 +67,12 @@ class RegistryMeta(abc.ABCMeta):
                 return union
 
         return wrapper
+
+
+def wrap_oss_with_dataclass(union):
+    if not IS_FB_ENVIRONMENT:
+        # OSS TaggedUnion
+        return dataclass(frozen=True)(union)
+    else:
+        # FBL TaggedUnion
+        return union

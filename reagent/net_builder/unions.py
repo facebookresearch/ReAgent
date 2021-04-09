@@ -1,53 +1,73 @@
 #!/usr/bin/env python3
 
+from typing import Optional
+
+from reagent.core.registry_meta import wrap_oss_with_dataclass
 from reagent.core.tagged_union import TaggedUnion
 
-from . import categorical_dqn  # noqa
-from . import continuous_actor  # noqa
-from . import discrete_actor  # noqa
-from . import discrete_dqn  # noqa
-from . import parametric_dqn  # noqa
-from . import quantile_dqn  # noqa
-from . import value  # noqa
-from .categorical_dqn_net_builder import CategoricalDQNNetBuilder
-from .continuous_actor_net_builder import ContinuousActorNetBuilder
-from .discrete_actor_net_builder import DiscreteActorNetBuilder
-from .discrete_dqn_net_builder import DiscreteDQNNetBuilder
-from .parametric_dqn_net_builder import ParametricDQNNetBuilder
-from .quantile_dqn_net_builder import QRDQNNetBuilder
-from .value_net_builder import ValueNetBuilder
+from .categorical_dqn.categorical import Categorical as CategoricalType
+from .continuous_actor.dirichlet_fully_connected import (
+    DirichletFullyConnected as DirichletFullyConnectedType,
+)
+from .continuous_actor.fully_connected import (
+    FullyConnected as FullyConnectedContinuousActorType,
+)
+from .continuous_actor.gaussian_fully_connected import (
+    GaussianFullyConnected as GaussianFullyConnectedType,
+)
+from .discrete_actor.fully_connected import (
+    FullyConnected as FullyConnectedDiscreteActorType,
+)
+from .discrete_dqn.dueling import Dueling as DuelingType
+from .discrete_dqn.fully_connected import FullyConnected as FullyConnectedType
+from .discrete_dqn.fully_connected_with_embedding import (
+    FullyConnectedWithEmbedding as FullyConnectedWithEmbeddingType,
+)
+from .parametric_dqn.fully_connected import (
+    FullyConnected as FullyConnectedParametricType,
+)
+from .quantile_dqn.dueling_quantile import DuelingQuantile as DuelingQuantileType
+from .quantile_dqn.quantile import Quantile as QuantileType
+from .value.fully_connected import FullyConnected as FullyConnectedValueType
+from .value.seq2reward_rnn import Seq2RewardNetBuilder as Seq2RewardNetBuilderType
 
 
-@DiscreteActorNetBuilder.fill_union()
+@wrap_oss_with_dataclass
 class DiscreteActorNetBuilder__Union(TaggedUnion):
-    pass
+    FullyConnected: Optional[FullyConnectedDiscreteActorType] = None
 
 
-@ContinuousActorNetBuilder.fill_union()
+@wrap_oss_with_dataclass
 class ContinuousActorNetBuilder__Union(TaggedUnion):
-    pass
+    FullyConnected: Optional[FullyConnectedContinuousActorType] = None
+    DirichletFullyConnected: Optional[DirichletFullyConnectedType] = None
+    GaussianFullyConnected: Optional[GaussianFullyConnectedType] = None
 
 
-@DiscreteDQNNetBuilder.fill_union()
+@wrap_oss_with_dataclass
 class DiscreteDQNNetBuilder__Union(TaggedUnion):
-    pass
+    Dueling: Optional[DuelingType] = None
+    FullyConnected: Optional[FullyConnectedType] = None
+    FullyConnectedWithEmbedding: Optional[FullyConnectedWithEmbeddingType] = None
 
 
-@CategoricalDQNNetBuilder.fill_union()
+@wrap_oss_with_dataclass
 class CategoricalDQNNetBuilder__Union(TaggedUnion):
-    pass
+    Categorical: Optional[CategoricalType] = None
 
 
-@QRDQNNetBuilder.fill_union()
+@wrap_oss_with_dataclass
 class QRDQNNetBuilder__Union(TaggedUnion):
-    pass
+    Quantile: Optional[QuantileType] = None
+    DuelingQuantile: Optional[DuelingQuantileType] = None
 
 
-@ParametricDQNNetBuilder.fill_union()
+@wrap_oss_with_dataclass
 class ParametricDQNNetBuilder__Union(TaggedUnion):
-    pass
+    FullyConnected: Optional[FullyConnectedParametricType] = None
 
 
-@ValueNetBuilder.fill_union()
+@wrap_oss_with_dataclass
 class ValueNetBuilder__Union(TaggedUnion):
-    pass
+    FullyConnected: Optional[FullyConnectedValueType] = None
+    Seq2RewardNetBuilder: Optional[Seq2RewardNetBuilderType] = None

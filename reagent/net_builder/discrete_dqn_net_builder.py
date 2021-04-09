@@ -7,7 +7,6 @@ import reagent.core.types as rlt
 import torch
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.parameters import NormalizationData
-from reagent.core.registry_meta import RegistryMeta
 from reagent.models.base import ModelBase
 from reagent.prediction.predictor_wrapper import DiscreteDqnWithPreprocessor
 from reagent.preprocessing.normalization import get_num_output_features
@@ -22,7 +21,7 @@ else:
     from reagent.prediction.predictor_wrapper import DiscreteDqnPredictorWrapper
 
 
-class DiscreteDQNNetBuilder(metaclass=RegistryMeta):
+class DiscreteDQNNetBuilder:
     """
     Base class for discrete DQN net builder.
     """
