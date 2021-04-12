@@ -48,6 +48,13 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
             self.q_network_loss = F.mse_loss
         elif rl.q_network_loss == "huber":
             self.q_network_loss = F.smooth_l1_loss
+        elif rl.q_network_loss == "bce_with_logits":
+            # The loss is only used when gamma = 0, reward is between 0 and 1
+            # and we need to calculate NE as metrics.
+            assert (
+                rl.gamma == 0
+            ), "bce_with_logits loss is only supported when gamma is 0."
+            self.q_network_loss = F.binary_cross_entropy_with_logits
         else:
             raise Exception(
                 "Q-Network loss type {} not valid loss.".format(rl.q_network_loss)
