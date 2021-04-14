@@ -287,7 +287,7 @@ class FixedLengthSequences:
             )
             assert all(
                 expected_offsets == offsets
-            ), f"Unexpected offsets for {key} {self.sequence_id}: {offsets}"
+            ), f"Unexpected offsets for {key} {self.sequence_id}: {offsets}. Expected {expected_offsets}"
 
             data[to_key] = value
         return data
