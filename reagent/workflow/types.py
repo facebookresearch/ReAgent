@@ -111,3 +111,8 @@ class RLTrainingOutput:
     validation_result: Optional[ValidationResult__Union] = None
     publishing_result: Optional[PublishingResult__Union] = None
     training_report: Optional[RLTrainingReport] = None
+
+
+@dataclass
+class TrainerConf:
+    pass
