@@ -3,15 +3,18 @@
 
 import logging
 import os
+import random
 import unittest
 from typing import Optional
 
+import numpy as np
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 from parameterized import parameterized
 from reagent.core import types as rlt
 from reagent.core.parameters import (
+    NormalizationData,
     NormalizationParameters,
     ProblemDomain,
     Seq2RewardTrainerParameters,
@@ -19,6 +22,7 @@ from reagent.core.parameters import (
 from reagent.gym.envs import Gym
 from reagent.gym.utils import create_df_from_replay_buffer
 from reagent.models.seq2reward_model import Seq2RewardNetwork
+from reagent.net_builder.value.fully_connected import FullyConnected
 from reagent.prediction.predictor_wrapper import (
     Seq2RewardWithPreprocessor,
     Seq2RewardPlanShortSeqWithPreprocessor,
@@ -28,11 +32,13 @@ from reagent.prediction.predictor_wrapper import (
 from reagent.preprocessing.identify_types import DO_NOT_PREPROCESS
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.training.utils import gen_permutations
+from reagent.training.world_model.compress_model_trainer import CompressModelTrainer
 from reagent.training.world_model.seq2reward_trainer import get_Q, Seq2RewardTrainer
 from torch.utils.data import DataLoader
 
 logger = logging.getLogger(__name__)
 
+SEED = 0
 STRING_GAME_TESTS = [(False,), (True,)]
 
 
@@ -187,9 +193,7 @@ def create_string_game_data(
     return training_data, eval_data
 
 
-def train_and_eval_seq2reward_model(
-    training_data, eval_data, learning_rate=0.01, num_epochs=5
-):
+def train_seq2reward_model(training_data, learning_rate=0.01, num_epochs=5):
     SEQ_LEN, batch_size, NUM_ACTION = next(iter(training_data)).action.shape
     assert SEQ_LEN == 6 and NUM_ACTION == 2
 
@@ -201,7 +205,7 @@ def train_and_eval_seq2reward_model(
     )
 
     trainer_param = Seq2RewardTrainerParameters(
-        learning_rate=0.01,
+        learning_rate=learning_rate,
         multi_steps=SEQ_LEN,
         action_names=["0", "1"],
         gamma=1.0,
@@ -212,24 +216,114 @@ def train_and_eval_seq2reward_model(
         seq2reward_network=seq2reward_network, params=trainer_param
     )
 
-    pl_trainer = pl.Trainer(max_epochs=num_epochs)
+    pl.seed_everything(SEED)
+    pl_trainer = pl.Trainer(max_epochs=num_epochs, deterministic=True)
     pl_trainer.fit(trainer, training_data)
 
-    total_eval_mse_loss = 0
-    for batch in eval_data:
-        mse_loss = trainer.get_mse_loss(batch)
-        total_eval_mse_loss += mse_loss.cpu().detach().item()
-    eval_mse_loss = total_eval_mse_loss / len(eval_data)
+    return trainer
+
+
+def eval_seq2reward_model(eval_data, seq2reward_trainer):
+    SEQ_LEN, batch_size, NUM_ACTION = next(iter(eval_data)).action.shape
 
     initial_state = torch.Tensor([[0, 0]])
-    q_values = torch.squeeze(
+    initial_state_q_values = torch.squeeze(
         get_Q(
-            trainer.seq2reward_network,
+            seq2reward_trainer.seq2reward_network,
             initial_state,
-            trainer.all_permut,
+            seq2reward_trainer.all_permut,
         )
     )
-    return eval_mse_loss, q_values
+
+    total_mse_loss = 0
+    total_q_values = torch.zeros(NUM_ACTION)
+    total_action_distribution = torch.zeros(NUM_ACTION)
+    for idx, batch in enumerate(eval_data):
+        (
+            mse_loss,
+            _,
+            q_values,
+            action_distribution,
+        ) = seq2reward_trainer.validation_step(batch, idx)
+        total_mse_loss += mse_loss
+        total_q_values += torch.tensor(q_values)
+        total_action_distribution += torch.tensor(action_distribution)
+
+    N_eval = len(eval_data)
+    eval_mse_loss = total_mse_loss / N_eval
+    eval_q_values = total_q_values / N_eval
+    eval_action_distribution = total_action_distribution / N_eval
+
+    return (
+        initial_state_q_values,
+        eval_mse_loss,
+        eval_q_values,
+        eval_action_distribution,
+    )
+
+
+def train_seq2reward_compress_model(
+    training_data, seq2reward_network, learning_rate=0.1, num_epochs=5
+):
+    SEQ_LEN, batch_size, NUM_ACTION = next(iter(training_data)).action.shape
+    assert SEQ_LEN == 6 and NUM_ACTION == 2
+
+    compress_net_builder = FullyConnected(sizes=[8, 8])
+    state_normalization_data = NormalizationData(
+        dense_normalization_parameters={
+            0: NormalizationParameters(feature_type=DO_NOT_PREPROCESS),
+            1: NormalizationParameters(feature_type=DO_NOT_PREPROCESS),
+        }
+    )
+    compress_model_network = compress_net_builder.build_value_network(
+        state_normalization_data,
+        output_dim=NUM_ACTION,
+    )
+
+    trainer_param = Seq2RewardTrainerParameters(
+        learning_rate=0.0,
+        multi_steps=SEQ_LEN,
+        action_names=["0", "1"],
+        compress_model_learning_rate=learning_rate,
+        gamma=1.0,
+        view_q_value=True,
+    )
+
+    trainer = CompressModelTrainer(
+        compress_model_network=compress_model_network,
+        seq2reward_network=seq2reward_network,
+        params=trainer_param,
+    )
+
+    pl.seed_everything(SEED)
+    pl_trainer = pl.Trainer(max_epochs=num_epochs, deterministic=True)
+    pl_trainer.fit(trainer, training_data)
+
+    return trainer
+
+
+def eval_seq2reward_compress_model(eval_data, compress_model_trainer):
+    SEQ_LEN, batch_size, NUM_ACTION = next(iter(eval_data)).action.shape
+    total_mse_loss = 0
+    total_q_values = torch.zeros(NUM_ACTION)
+    total_action_distribution = torch.zeros(NUM_ACTION)
+    for idx, batch in enumerate(eval_data):
+        (
+            mse_loss,
+            q_values,
+            action_distribution,
+            _,
+        ) = compress_model_trainer.validation_step(batch, idx)
+        total_mse_loss += mse_loss
+        total_q_values += torch.tensor(q_values)
+        total_action_distribution += torch.tensor(action_distribution)
+
+    N_eval = len(eval_data)
+    eval_mse_loss = total_mse_loss / N_eval
+    eval_q_values = total_q_values / N_eval
+    eval_action_distribution = total_action_distribution / N_eval
+
+    return eval_mse_loss, eval_q_values, eval_action_distribution
 
 
 class TestSeq2Reward(unittest.TestCase):
@@ -331,13 +425,23 @@ class TestSeq2Reward(unittest.TestCase):
     @parameterized.expand(STRING_GAME_TESTS)
     @unittest.skipIf("SANDCASTLE" in os.environ, "Skipping long test on sandcastle.")
     def test_seq2reward_on_string_game_v0(self, filter_short_sequence):
+        np.random.seed(SEED)
+        random.seed(SEED)
+        torch.manual_seed(SEED)
         training_data, eval_data = create_string_game_data(
             filter_short_sequence=filter_short_sequence
         )
-        eval_mse_loss, q_values = train_and_eval_seq2reward_model(
-            training_data,
-            eval_data,
-        )
+        seq2reward_trainer = train_seq2reward_model(training_data)
+        (
+            initial_state_q_values,
+            eval_mse_loss,
+            eval_q_values,
+            eval_action_distribution,
+        ) = eval_seq2reward_model(eval_data, seq2reward_trainer)
+
+        assert abs(initial_state_q_values[0].item() - 10) < 1.0
+        assert abs(initial_state_q_values[1].item() - 5) < 1.0
+
         if filter_short_sequence:
             assert eval_mse_loss < 0.1
         else:
@@ -345,5 +449,18 @@ class TestSeq2Reward(unittest.TestCase):
             # states and actions in previous steps, so the trained network is not able
             # to reduce the mse loss to values close to zero.
             assert eval_mse_loss < 10
-        assert abs(q_values[0].item() - 10) < 1.0
-        assert abs(q_values[1].item() - 5) < 1.0
+
+        compress_model_trainer = train_seq2reward_compress_model(
+            training_data, seq2reward_trainer.seq2reward_network
+        )
+        (
+            compress_eval_mse_loss,
+            compress_eval_q_values,
+            compress_eval_action_distribution,
+        ) = eval_seq2reward_compress_model(eval_data, compress_model_trainer)
+
+        assert compress_eval_mse_loss < 1e-5
+        assert torch.all(eval_q_values - compress_eval_q_values < 1e-5)
+        assert torch.all(
+            eval_action_distribution - compress_eval_action_distribution < 1e-5
+        )
