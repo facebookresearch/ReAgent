@@ -79,7 +79,6 @@ class Seq2RewardTrainer(ReAgentLightningModule):
         super().__init__()
         self.seq2reward_network = seq2reward_network
         self.params = params
-        self.minibatch_size = self.params.batch_size
 
         # Turning off Q value output during training:
         self.view_q_value = params.view_q_value
