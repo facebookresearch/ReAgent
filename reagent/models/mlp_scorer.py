@@ -22,16 +22,9 @@ class MLPScorer(ModelBase):
         self.has_user_feat = has_user_feat
 
     def forward(self, obs: rlt.FeatureData):
-        mlp_input = self._concat_features(obs)
+        mlp_input = obs.get_ranking_state(self.has_user_feat)
         scores = self.mlp(mlp_input)
         return scores.squeeze(-1)
-
-    def _concat_features(self, obs: rlt.FeatureData):
-        if self.has_user_feat:
-            return obs.concat_user_doc()
-        else:
-            # pyre-fixme[16]: `Optional` has no attribute `float_features`.
-            return obs.candidate_docs.float_features.float()
 
     def input_prototype(self):
         # Sample config for input

@@ -348,6 +348,12 @@ class FeatureData(TensorDataClass):
         )
         return torch.cat((state_tiled, self.candidate_docs.float_features), dim=2)
 
+    def get_ranking_state(self, has_user_feat: bool):
+        if has_user_feat:
+            return self.concat_user_doc()
+        else:
+            return self.candidate_docs.float_features.float()
+
 
 def _embed_states(x: FeatureData) -> FeatureData:
     """
