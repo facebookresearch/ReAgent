@@ -267,6 +267,9 @@ class DoublyRobustEstimator:
             )
 
         direct_method_score = float(torch.mean(direct_method_values))
+        logger.info(
+            f"Normalized Direct method score = {direct_method_score * normalizer}"
+        )
         direct_method_std_error = bootstrapped_std_error_of_mean(
             direct_method_values.squeeze(),
             sample_percent=hp.bootstrap_sample_percent,
@@ -289,6 +292,8 @@ class DoublyRobustEstimator:
         # policy
 
         ips_score = float(torch.mean(ips))
+        logger.info(f"Normalized IPS score = {ips_score * normalizer}")
+
         ips_score_std_error = bootstrapped_std_error_of_mean(
             ips.squeeze(),
             sample_percent=hp.bootstrap_sample_percent,
