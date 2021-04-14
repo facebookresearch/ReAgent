@@ -14,9 +14,8 @@ from reagent.models.base import ModelBase
 logger = logging.getLogger(__name__)
 
 
-def gaussian_fill_w_gain(tensor, activation, dim_in, min_std=0.0) -> None:
+def gaussian_fill_w_gain(tensor, gain, dim_in, min_std=0.0) -> None:
     """ Gaussian initialization with gain."""
-    gain = math.sqrt(2) if (activation == "relu" or activation == "leaky_relu") else 1
     init.normal_(tensor, mean=0, std=max(gain * math.sqrt(1 / dim_in), min_std))
 
 
@@ -29,17 +28,40 @@ ACTIVATION_MAP = {
 }
 
 
+class SlateBatchNorm1d(nn.Module):
+    """
+    Same as nn.BatchNorm1d is input has shape (batch_size, feat_dim).
+    But if input has shape (batch_size, num_candidates, item_feats), like in LearnedVM,
+    we transpose it, since that's what nn.BatchNorm1d computes Batch Normalization over
+    1st dimension, while we want to compute it over item_feats.
+
+    NOTE: this is different from nn.BatchNorm2d which is for CNNs, and expects 4D inputs
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.vanilla = nn.BatchNorm1d(*args, **kwargs)
+
+    def forward(self, x: torch.Tensor):
+        assert len(x.shape) in [2, 3], f"Invalid input shape {x.shape}"
+        if len(x.shape) == 2:
+            return self.vanilla(x)
+        if len(x.shape) == 3:
+            return self.vanilla(x.transpose(1, 2)).transpose(1, 2)
+
+
 class FullyConnectedNetwork(ModelBase):
     def __init__(
         self,
         layers,
         activations,
         *,
-        use_batch_norm=False,
-        min_std=0.0,
-        dropout_ratio=0.0,
-        use_layer_norm=False,
-        normalize_output=False,
+        use_batch_norm: bool = False,
+        min_std: float = 0.0,
+        dropout_ratio: float = 0.0,
+        use_layer_norm: bool = False,
+        normalize_output: bool = False,
+        orthogonal_init: bool = False,
     ) -> None:
         super().__init__()
 
@@ -54,10 +76,20 @@ class FullyConnectedNetwork(ModelBase):
         ):
             # Add BatchNorm1d
             if use_batch_norm:
-                modules.append(nn.BatchNorm1d(in_dim))
+                modules.append(SlateBatchNorm1d(in_dim))
             # Add Linear
             linear = nn.Linear(in_dim, out_dim)
-            gaussian_fill_w_gain(linear.weight, activation, in_dim, min_std=min_std)
+            # assuming activation is valid
+            gain = torch.nn.init.calculate_gain(activation)
+            if orthogonal_init:
+                # provably better https://openreview.net/forum?id=rkgqN1SYvr
+                nn.init.orthogonal_(linear.weight.data, gain=gain)
+            else:
+                # gaussian init
+                gaussian_fill_w_gain(
+                    linear.weight, gain=gain, dim_in=in_dim, min_std=min_std
+                )
+
             init.constant_(linear.bias, 0)  # type: ignore
             modules.append(linear)
             # Add LayerNorm

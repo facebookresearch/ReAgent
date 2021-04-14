@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+import logging
 import math
 from typing import Optional
 
@@ -9,6 +10,8 @@ import torch.nn.functional as F
 from reagent.core.configuration import resolve_defaults
 from reagent.gym.types import Sampler
 from torch.distributions import Gumbel
+
+logger = logging.getLogger(__name__)
 
 
 class FrechetSort(Sampler):
@@ -131,22 +134,28 @@ class FrechetSort(Sampler):
             ],
             dim=1,
         )
-        s = torch.gather(log_scores, 1, action) * self.shape
+        log_scores = torch.gather(log_scores, 1, action) * self.shape
 
         p = upto if upto is not None else n
         # We should unsqueeze here
         if isinstance(p, int):
-            probs = sum(
-                torch.nan_to_num(F.log_softmax(s[:, i:], dim=1)[:, 0], neginf=0.0)
+            log_prob = sum(
+                torch.nan_to_num(
+                    F.log_softmax(log_scores[:, i:], dim=1)[:, 0], neginf=0.0
+                )
                 for i in range(p)
             )
         elif isinstance(p, torch.Tensor):
             # do masked sum
-            probs = sum(
-                torch.nan_to_num(F.log_softmax(s[:, i:], dim=1)[:, 0], neginf=0.0)
+            log_prob = sum(
+                torch.nan_to_num(
+                    F.log_softmax(log_scores[:, i:], dim=1)[:, 0], neginf=0.0
+                )
                 * (i < p).float()
                 for i in range(n)
             )
         else:
             raise RuntimeError(f"p is {p}")
-        return probs
+
+        assert not torch.any(log_prob.isnan()), f"Nan in {log_prob}"
+        return log_prob
