@@ -131,8 +131,6 @@ def train_eval_lightning(
     datamodule = data_module or PetastormLightningDataModule(
         train_dataset, eval_dataset, batch_preprocessor, reader_options
     )
-    # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
-    # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
     trainer = pl.Trainer(
         logger=TensorBoardLogger(save_dir="pl_log_tensorboard", name=logger_name),
         max_epochs=num_epochs * 1000,
