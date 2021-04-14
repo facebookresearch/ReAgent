@@ -214,8 +214,6 @@ class ModelManager:
         # pyre-fixme[16]: `ModelManager` has no attribute `_trainer`.
         self._trainer = trainer
         if warmstart_path is not None:
-            # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
-            # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
             if isinstance(trainer, pl.LightningModule):
                 # Delayed until Trainer is initialized
                 self._lightning_checkpoint_path = warmstart_path

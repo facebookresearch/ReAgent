@@ -211,7 +211,6 @@ def run_test_replay_buffer(
     Each transition is added to the replay buffer immediately after it takes place.
     """
     env = env.value
-    # pyre-fixme[16]: Module `pl` has no attribute `seed_everything`.
     pl.seed_everything(SEED)
     env.seed(SEED)
     env.action_space.seed(SEED)
@@ -227,7 +226,6 @@ def run_test_replay_buffer(
     )
     training_policy = manager.create_policy(serving=False)
 
-    # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
     if not isinstance(trainer, pl.LightningModule):
         if minibatch_size is None:
             minibatch_size = trainer.minibatch_size
@@ -260,7 +258,6 @@ def run_test_replay_buffer(
         device=device,
     )
     data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
-    # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
     pl_trainer = pl.Trainer(max_epochs=1, gpus=int(use_gpu))
     # Note: the fit() function below also evaluates the agent along the way
     # and adds the new transitions to the replay buffer, so it is training
@@ -289,7 +286,6 @@ def run_test_online_episode(
     Run an online learning test. At the end of each episode training is run on the trajectory.
     """
     env = env.value
-    # pyre-fixme[16]: Module `pl` has no attribute `seed_everything`.
     pl.seed_everything(SEED)
     env.seed(SEED)
     env.action_space.seed(SEED)
@@ -309,9 +305,7 @@ def run_test_online_episode(
 
     agent = Agent.create_for_env(env, policy, device=device)
 
-    # pyre-fixme[16]: Module `pl` has no attribute `LightningModule`.
     if isinstance(trainer, pl.LightningModule):
-        # pyre-fixme[16]: Module `pl` has no attribute `Trainer`.
         pl_trainer = pl.Trainer(max_epochs=1, gpus=int(use_gpu), deterministic=True)
         dataset = EpisodicDataset(
             env=env, agent=agent, num_episodes=num_train_episodes, seed=SEED
@@ -349,7 +343,6 @@ def run_test_episode_buffer(
     num_eval_episodes: int,
     use_gpu: bool = False,
 ):
-    # pyre-fixme[16]: Module `pl` has no attribute `seed_everything`.
     pl.seed_everything(SEED)
     env.seed(SEED)
     env.action_space.seed(SEED)
