@@ -204,7 +204,6 @@ def train_and_eval_seq2reward_model(
         learning_rate=0.01,
         multi_steps=SEQ_LEN,
         action_names=["0", "1"],
-        batch_size=batch_size,
         gamma=1.0,
         view_q_value=True,
     )
