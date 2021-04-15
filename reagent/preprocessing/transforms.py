@@ -97,9 +97,10 @@ class DenseNormalization:
 
         for k in self.keys:
             value, presence = data[k]
-            data[k] = self._preprocessor(
-                value.to(self.device), presence.to(self.device)
-            )
+            value, presence = value.to(self.device), presence.to(self.device)
+            presence[torch.isnan(value)] = 0
+            value[torch.isnan(value)] = 0
+            data[k] = self._preprocessor(value, presence)
 
         return data
 
