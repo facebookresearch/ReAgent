@@ -92,3 +92,61 @@ class Seq2RewardReporter(ReporterBase):
     # TODO: write this for OSS
     def generate_training_report(self) -> Seq2RewardTrainingReport:
         return Seq2RewardTrainingReport()
+
+
+class Seq2RewardCompressReporter(Seq2RewardReporter):
+    @property
+    def aggregating_observers(self):
+        return {
+            name: IntervalAggregatingObserver(self.report_interval, aggregator)
+            for name, aggregator in itertools.chain(
+                [
+                    ("mse_loss_per_batch", agg.MeanAggregator("mse_loss")),
+                    ("accuracy_per_batch", agg.MeanAggregator("accuracy")),
+                    ("eval_mse_loss_per_batch", agg.MeanAggregator("eval_mse_loss")),
+                    ("eval_accuracy_per_batch", agg.MeanAggregator("eval_accuracy")),
+                    (
+                        "eval_q_values_per_batch",
+                        agg.FunctionsByActionAggregator(
+                            "eval_q_values", self.action_names, {"mean": torch.mean}
+                        ),
+                    ),
+                    (
+                        "eval_action_distribution_per_batch",
+                        agg.FunctionsByActionAggregator(
+                            "eval_action_distribution",
+                            self.action_names,
+                            {"mean": torch.mean},
+                        ),
+                    ),
+                ],
+                [
+                    (
+                        f"{key}_tb",
+                        agg.TensorBoardHistogramAndMeanAggregator(key, log_key),
+                    )
+                    for key, log_key in [
+                        ("mse_loss", "compress_mse_loss"),
+                        ("accuracy", "compress_accuracy"),
+                        ("eval_mse_loss", "compress_eval_mse_loss"),
+                        ("eval_accuracy", "compress_eval_accuracy"),
+                    ]
+                ],
+                [
+                    (
+                        f"{key}_tb",
+                        agg.TensorBoardActionHistogramAndMeanAggregator(
+                            key, category, title, self.action_names
+                        ),
+                    )
+                    for key, category, title in [
+                        ("eval_q_values", "q_values", "compress_eval"),
+                        (
+                            "eval_action_distribution",
+                            "action_distribution",
+                            "compress_eval",
+                        ),
+                    ]
+                ],
+            )
+        }

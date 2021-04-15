@@ -7,12 +7,9 @@ import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.parameters import Seq2RewardTrainerParameters
-from reagent.core.torch_utils import get_device
-from reagent.core.tracker import observable
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.models.seq2reward_model import Seq2RewardNetwork
-from reagent.training.loss_reporter import NoOpLossReporter
-from reagent.training.trainer import Trainer
+from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.utils import gen_permutations
 from reagent.training.world_model.seq2reward_trainer import get_Q
 
@@ -20,8 +17,7 @@ from reagent.training.world_model.seq2reward_trainer import get_Q
 logger = logging.getLogger(__name__)
 
 
-@observable(mse_loss=torch.Tensor, accuracy=torch.Tensor)
-class CompressModelTrainer(Trainer):
+class CompressModelTrainer(ReAgentLightningModule):
     """ Trainer for fitting Seq2Reward planning outcomes to a neural network-based policy """
 
     def __init__(
@@ -30,46 +26,74 @@ class CompressModelTrainer(Trainer):
         seq2reward_network: Seq2RewardNetwork,
         params: Seq2RewardTrainerParameters,
     ):
+        super().__init__()
         self.compress_model_network = compress_model_network
         self.seq2reward_network = seq2reward_network
         self.params = params
-        self.optimizer = torch.optim.Adam(
-            self.compress_model_network.parameters(),
-            lr=params.compress_model_learning_rate,
-        )
-        self.minibatch_size = self.params.compress_model_batch_size
-        self.loss_reporter = NoOpLossReporter()
 
-        # PageHandler must use this to activate evaluator:
-        self.calc_cpe_in_training = True
         # permutations used to do planning
-        device = get_device(self.compress_model_network)
         self.all_permut = gen_permutations(
             params.multi_steps, len(self.params.action_names)
-        ).to(device)
+        )
 
-    def train(self, training_batch: rlt.MemoryNetworkInput):
-        self.optimizer.zero_grad()
+    def configure_optimizers(self):
+        optimizers = []
+        optimizers.append(
+            torch.optim.Adam(
+                self.compress_model_network.parameters(),
+                lr=self.params.compress_model_learning_rate,
+            )
+        )
+        return optimizers
+
+    def train_step_gen(self, training_batch: rlt.MemoryNetworkInput, batch_idx: int):
         loss, accuracy = self.get_loss(training_batch)
-        loss.backward()
-        self.optimizer.step()
         detached_loss = loss.cpu().detach().item()
         accuracy = accuracy.item()
         logger.info(
             f"Seq2Reward Compress trainer MSE/Accuracy: {detached_loss}, {accuracy}"
         )
-        # pyre-fixme[16]: `CompressModelTrainer` has no attribute
-        #  `notify_observers`.
-        self.notify_observers(mse_loss=detached_loss, accuracy=accuracy)
-        return detached_loss, accuracy
+        self.reporter.log(mse_loss=detached_loss, accuracy=accuracy)
+        yield loss
 
-    def get_loss(self, training_batch: rlt.MemoryNetworkInput):
-        # shape: batch_size, num_action
-        compress_model_output = self.compress_model_network(
-            training_batch.state.float_features[0]
+    # pyre-ignore inconsistent override because lightning doesn't use types
+    def validation_step(self, batch: rlt.MemoryNetworkInput, batch_idx: int):
+        mse, acc = self.get_loss(batch)
+        detached_loss = mse.cpu().detach().item()
+        acc = acc.item()
+
+        state_first_step = batch.state.float_features[0]
+        # shape: batch_size, action_dim
+        q_values_all_action_all_data = (
+            self.compress_model_network(state_first_step).cpu().detach()
+        )
+        q_values = q_values_all_action_all_data.mean(0).tolist()
+
+        action_distribution = torch.bincount(
+            torch.argmax(q_values_all_action_all_data, dim=1),
+            minlength=len(self.params.action_names),
+        )
+        # normalize
+        action_distribution = (
+            action_distribution.float() / torch.sum(action_distribution)
+        ).tolist()
+
+        self.reporter.log(
+            eval_mse_loss=detached_loss,
+            eval_accuracy=acc,
+            eval_q_values=[q_values],
+            eval_action_distribution=[action_distribution],
         )
 
-        state_first_step = training_batch.state.float_features[0]
+        return (detached_loss, q_values, action_distribution, acc)
+
+    def get_loss(self, batch: rlt.MemoryNetworkInput):
+        # shape: batch_size, num_action
+        compress_model_output = self.compress_model_network(
+            batch.state.float_features[0]
+        )
+
+        state_first_step = batch.state.float_features[0]
         target = get_Q(
             self.seq2reward_network,
             state_first_step,

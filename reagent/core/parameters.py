@@ -79,7 +79,6 @@ class Seq2RewardTrainerParameters(BaseDataClass):
     learning_rate: float = 0.001
     multi_steps: int = 1
     action_names: List[str] = field(default_factory=lambda: [])
-    compress_model_batch_size: int = 32
     compress_model_learning_rate: float = 0.001
     gamma: float = 1.0
     view_q_value: bool = False
