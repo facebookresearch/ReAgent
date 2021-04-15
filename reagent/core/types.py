@@ -352,6 +352,7 @@ class FeatureData(TensorDataClass):
         if has_user_feat:
             return self.concat_user_doc()
         else:
+            # pyre-fixme[16]: `Optional` has no attribute `float_features`.
             return self.candidate_docs.float_features.float()
 
 
