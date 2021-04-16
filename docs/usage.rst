@@ -240,7 +240,7 @@ Now we are ready to train a model by running:
 .. code-block::
 
     # make preprocessor from the normalization parameters of Step 3
-    batch_preprocessor = manager.build_batch_preprocessor()
+    batch_preprocessor = manager.build_batch_preprocessor(use_gpu)
 
     # read preprocessed data
     data_reader = petastorm.make_batch_reader(train_dataset.parquet_url)

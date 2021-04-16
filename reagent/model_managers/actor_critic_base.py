@@ -215,19 +215,19 @@ class ActorCriticBase(ModelManager):
             sample_range=sample_range,
         )
 
-    def build_batch_preprocessor(self) -> BatchPreprocessor:
+    def build_batch_preprocessor(self, use_gpu: bool) -> BatchPreprocessor:
         state_preprocessor = Preprocessor(
             self.state_normalization_data.dense_normalization_parameters,
-            use_gpu=self.use_gpu,
+            use_gpu=use_gpu,
         )
         action_preprocessor = Preprocessor(
             self.action_normalization_data.dense_normalization_parameters,
-            use_gpu=self.use_gpu,
+            use_gpu=use_gpu,
         )
         return PolicyNetworkBatchPreprocessor(
             state_preprocessor=state_preprocessor,
             action_preprocessor=action_preprocessor,
-            use_gpu=self.use_gpu,
+            use_gpu=use_gpu,
         )
 
     def get_reporter(self):
@@ -244,8 +244,9 @@ class ActorCriticBase(ModelManager):
         reader_options: ReaderOptions,
         resource_options: Optional[ResourceOptions],
     ) -> RLTrainingOutput:
+        use_gpu = next(self.trainer.parameters()).is_cuda
 
-        batch_preprocessor = self.build_batch_preprocessor()
+        batch_preprocessor = self.build_batch_preprocessor(use_gpu)
         reporter = self.get_reporter()
         # pyre-fixme[16]: `Trainer` has no attribute `set_reporter`.
         # pyre-fixme[16]: `Trainer` has no attribute `set_reporter`.
@@ -261,7 +262,7 @@ class ActorCriticBase(ModelManager):
             trainer_module=self.trainer,
             data_module=data_module,
             num_epochs=num_epochs,
-            use_gpu=self.use_gpu,
+            use_gpu=use_gpu,
             logger_name="ActorCritic",
             batch_preprocessor=batch_preprocessor,
             reader_options=self.reader_options,

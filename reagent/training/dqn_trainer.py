@@ -86,16 +86,14 @@ class DQNTrainer(DQNTrainerBaseLightning):
             reward_network, q_network_cpe, q_network_cpe_target, optimizer=optimizer
         )
 
-        self.register_buffer("reward_boosts", None)
-        # pyre-fixme[6]: Expected `Sized` for 1st param but got `Optional[List[str]]`.
-        self.reward_boosts = torch.zeros([1, len(self._actions)])
+        reward_boosts = torch.zeros([1, len(self._actions)])
         if rl.reward_boost is not None:
             # pyre-fixme[16]: `Optional` has no attribute `keys`.
             for k in rl.reward_boost.keys():
-                # pyre-fixme[16]: `Optional` has no attribute `index`.
                 i = self._actions.index(k)
                 # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
-                self.reward_boosts[0, i] = rl.reward_boost[k]
+                reward_boosts[0, i] = rl.reward_boost[k]
+        self.register_buffer("reward_boosts", reward_boosts)
 
         # Batch constrained q-learning
         self.bcq = bcq is not None
@@ -243,6 +241,16 @@ class DQNTrainer(DQNTrainerBaseLightning):
             possible_actions_mask if self.maxq_learning else training_batch.action,
         )[1]
 
+        self._log_dqn(
+            td_loss, logged_action_idxs, training_batch, rewards, model_action_idxs
+        )
+
+        # Use the soft update rule to update target network
+        yield self.soft_update_result()
+
+    def _log_dqn(
+        self, td_loss, logged_action_idxs, training_batch, rewards, model_action_idxs
+    ):
         self.reporter.log(
             td_loss=td_loss,
             logged_actions=logged_action_idxs,
@@ -253,9 +261,41 @@ class DQNTrainer(DQNTrainerBaseLightning):
             model_values_on_logged_actions=None,  # Compute at end of each epoch for CPE
             model_action_idxs=model_action_idxs,
         )
+        model_values = self._dense_to_action_dict(self.all_action_scores.mean(dim=0))
+        action_histogram = self._dense_to_action_dict(
+            training_batch.action.float().mean(dim=0)
+        )
+        if training_batch.extras.action_probability is None:
+            logged_propensities = None
+        else:
+            logged_propensities = training_batch.extras.action_probability.mean(dim=0)
+        model_action_idxs = self._dense_to_action_dict(
+            torch.nn.functional.one_hot(
+                model_action_idxs.squeeze(1), num_classes=self.num_actions
+            )
+            .float()
+            .mean(dim=0)
+        )
+        self.logger.log_metrics(
+            {
+                "td_loss": td_loss,
+                "logged_actions": action_histogram,
+                "logged_propensities": logged_propensities,
+                "logged_rewards": rewards.mean(),
+                "model_values": model_values,
+                "model_action_idxs": model_action_idxs,
+            },
+            step=self.all_batches_processed,
+        )
 
-        # Use the soft update rule to update target network
-        yield self.soft_update_result()
+    def _dense_to_action_dict(self, dense: torch.Tensor):
+        assert dense.size() == (
+            self.num_actions,
+        ), f"Invalid dense size {dense.size()} != {(self.num_actions,)}"
+        retval = {}
+        for i, a in enumerate(self._actions):
+            retval[a] = dense[i]
+        return retval
 
     def validation_step(self, batch, batch_idx):
         rewards = self.boost_rewards(batch.reward, batch.action)

@@ -89,7 +89,8 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         self.calc_cpe_in_training = (
             evaluation_parameters and evaluation_parameters.calc_cpe_in_training
         )
-        self._actions = actions
+        assert actions is not None
+        self._actions: List[str] = actions
 
         if rl_parameters.q_network_loss == "mse":
             self.q_network_loss = F.mse_loss
@@ -110,7 +111,6 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
     @property
     def num_actions(self) -> int:
         assert self._actions is not None, "Not a discrete action DQN"
-        # pyre-fixme[6]: Expected `Sized` for 1st param but got `Optional[List[str]]`.
         return len(self._actions)
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
