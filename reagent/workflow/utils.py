@@ -13,7 +13,7 @@ from petastorm import make_batch_reader
 # pyre-fixme[21]: Could not find module `petastorm.pytorch`.
 # pyre-fixme[21]: Could not find module `petastorm.pytorch`.
 from petastorm.pytorch import DataLoader, decimal_friendly_collate
-from pytorch_lightning.loggers import TensorBoardLogger
+from reagent.core.oss_tensorboard_logger import OssTensorboardLogger
 from reagent.data.spark_utils import get_spark_session
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.training import StoppingEpochCallback
@@ -132,7 +132,7 @@ def train_eval_lightning(
         train_dataset, eval_dataset, batch_preprocessor, reader_options
     )
     trainer = pl.Trainer(
-        logger=TensorBoardLogger(save_dir="pl_log_tensorboard", name=logger_name),
+        logger=OssTensorboardLogger(save_dir="pl_log_tensorboard", name=logger_name),
         max_epochs=num_epochs * 1000,
         gpus=int(use_gpu),
         reload_dataloaders_every_epoch=True,

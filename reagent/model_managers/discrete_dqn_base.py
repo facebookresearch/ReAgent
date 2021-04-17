@@ -187,7 +187,11 @@ class DiscreteDQNBase(ModelManager):
             training_report = RLTrainingReport.make_union_instance(
                 reporter.generate_training_report()
             )
-            return RLTrainingOutput(training_report=training_report)
+            logger_data = self._lightning_trainer.logger.line_plot_aggregated
+            self._lightning_trainer.logger.clear_local_data()
+            return RLTrainingOutput(
+                training_report=training_report, logger_data=logger_data
+            )
         # Output from processes with non-0 rank is not used
         return RLTrainingOutput()
 

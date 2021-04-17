@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from datetime import datetime as RecurringPeriod  # noqa
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 # Triggering registration to registries
 import reagent.core.result_types  # noqa
@@ -111,6 +111,9 @@ class RLTrainingOutput:
     validation_result: Optional[ValidationResult__Union] = None
     publishing_result: Optional[PublishingResult__Union] = None
     training_report: Optional[RLTrainingReport] = None
+    logger_data: Dict[str, Dict[str, List[Tuple[float, float]]]] = field(
+        default_factory=dict
+    )
 
 
 @dataclass
