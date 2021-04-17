@@ -30,7 +30,8 @@ class ReAgentLightningModule(pl.LightningModule):
         self._next_stopping_epoch = torch.tensor([-1]).int()
         self._cleanly_stopped = torch.ones(1).bool()
         self._setup_input_type()
-        self.batches_processed = 0
+        self.batches_processed_this_epoch = 0
+        self.all_batches_processed = 0
 
     def _setup_input_type(self):
         self._training_batch_type = None
@@ -99,7 +100,9 @@ class ReAgentLightningModule(pl.LightningModule):
     def training_step(self, batch, batch_idx: int, optimizer_idx: int = 0):
         assert (optimizer_idx == 0) or (self._num_optimizing_steps > 1)
 
-        self.batches_processed += 1
+        if optimizer_idx == 0:
+            self.batches_processed_this_epoch += 1
+            self.all_batches_processed += 1
         if self._training_step_generator is None:
             if self._training_batch_type and isinstance(batch, dict):
                 batch = self._training_batch_type.from_dict(batch)
@@ -130,8 +133,10 @@ class ReAgentLightningModule(pl.LightningModule):
 
     @final
     def on_epoch_end(self):
-        logger.info(f"Finished epoch with {self.batches_processed} batches processed")
-        self.batches_processed = 0
+        logger.info(
+            f"Finished epoch with {self.batches_processed_this_epoch} batches processed"
+        )
+        self.batches_processed_this_epoch = 0
         # Flush the reporter which has accumulated data in
         # training and validation phase
         self.reporter.flush(self.current_epoch)
