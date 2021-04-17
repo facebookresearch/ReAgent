@@ -76,4 +76,4 @@ num_train_episodes: 30
 num_eval_episodes: 10
 passing_score_bar: 400
 use_gpu: false
-minibatch_size: 256
+minibatch_size: 512
