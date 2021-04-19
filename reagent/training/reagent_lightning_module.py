@@ -145,6 +145,17 @@ class ReAgentLightningModule(pl.LightningModule):
         if self.current_epoch == self._next_stopping_epoch.item():
             self.trainer.should_stop = True
 
+    def train(self, *args):
+        # trainer.train(batch) was the old, pre-Lightning ReAgent trainer API.
+        # make sure that nobody is trying to call trainer.train() this way.
+        # trainer.train() or trainer.train(True/False) is allowed - this puts the network into training/eval mode.
+        if (len(args) == 0) or ((len(args) == 1) and (isinstance(args[0], bool))):
+            super().train(*args)
+        else:
+            raise NotImplementedError(
+                "Method .train() is not used for ReAgent Lightning trainers. Please use .fit() method of the pl.Trainer instead"
+            )
+
 
 class StoppingEpochCallback(pl.Callback):
     """
