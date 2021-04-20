@@ -27,8 +27,8 @@ ReAgent/
     preprocessing/...
     reagent/...
 """
-SPARK_JAR = join(dirname(reagent.__file__), os.pardir, SPARK_JAR_FROM_ROOT_DIR)
 
+SPARK_JAR = join(dirname(dirname(reagent.__file__)), SPARK_JAR_FROM_ROOT_DIR)
 
 DEFAULT_SPARK_CONFIG = {
     "spark.app.name": "ReAgent",
