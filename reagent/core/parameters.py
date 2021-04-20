@@ -59,7 +59,6 @@ class MDNRNNTrainerParameters(BaseDataClass):
 
     hidden_size: int = 64
     num_hidden_layers: int = 2
-    minibatch_size: int = 16
     learning_rate: float = 0.001
     num_gaussians: int = 5
     # weight in calculating world-model loss

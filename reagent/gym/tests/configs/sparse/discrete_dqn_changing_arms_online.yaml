@@ -20,7 +20,7 @@ model:
       minibatches_per_step: 1
       optimizer:
         AdamW:
-          lr: 0.001
+          lr: 0.01
     net_builder:
       FullyConnectedWithEmbedding:
         sizes:
@@ -71,9 +71,9 @@ model:
               - 1500004
 replay_memory_size: 100000
 train_every_ts: 1
-train_after_ts: 30000
-num_train_episodes: 30
+train_after_ts: 20000
+num_train_episodes: 100
 num_eval_episodes: 10
 passing_score_bar: 400
 use_gpu: false
-minibatch_size: 512
+minibatch_size: 1024

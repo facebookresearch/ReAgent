@@ -132,7 +132,6 @@ class TestMDNRNN(unittest.TestCase):
         mdnrnn_params = MDNRNNTrainerParameters(
             hidden_size=mdnrnn_num_hiddens,
             num_hidden_layers=mdnrnn_num_hidden_layers,
-            minibatch_size=batch_size,
             learning_rate=adam_lr,
             num_gaussians=mdrnn_num_gaussians,
         )

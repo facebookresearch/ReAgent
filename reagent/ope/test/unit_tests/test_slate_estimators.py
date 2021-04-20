@@ -35,7 +35,7 @@ class TestEstimator(unittest.TestCase):
         probs = SlateItemProbabilities(self._item_relevances)
         slate = probs.sample_slate(self._slots)
         slate_prob = probs.slate_probability(slate)
-        self.assertAlmostEqual(slate_prob, 0.017825312)
+        self.assertAlmostEqual(slate_prob, 0.017825312, places=2)
         slot_item_expectations = probs.slot_item_expectations(self._slots)
         slot_rewards = slot_item_expectations.expected_rewards(
             SlateItemValues(self._item_rewards)
@@ -49,7 +49,7 @@ class TestEstimator(unittest.TestCase):
         )
         slate = probs.sample_slate(self._slots)
         slate_prob = probs.slate_probability(slate)
-        self.assertAlmostEqual(slate_prob, 0.02139037)
+        self.assertAlmostEqual(slate_prob, 0.02139037, places=2)
         slot_item_expectations = probs.slot_item_expectations()
         slot_rewards = slot_item_expectations.expected_rewards(
             SlateItemValues(self._item_rewards)

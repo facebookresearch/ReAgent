@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+import inspect
 import logging
 from dataclasses import field
 from typing import Dict, List, Optional, Union
@@ -90,7 +91,7 @@ class PPOTrainer(ReAgentLightningModule):
         actions = trajectory.action
         rewards = trajectory.reward.detach()
         scorer_inputs = []
-        if getattr(trajectory, "graph", None) is not None:
+        if inspect.getattr_static(trajectory, "graph", None) is not None:
             # GNN
             scorer_inputs.append(trajectory.graph)
         else:

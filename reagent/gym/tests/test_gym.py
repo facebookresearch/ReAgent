@@ -270,8 +270,8 @@ def run_test_replay_buffer(
 
     eval_rewards = eval_policy(env, serving_policy, num_eval_episodes, serving=True)
     assert (
-        eval_rewards.mean() >= passing_score_bar
-    ), f"Eval reward is {eval_rewards.mean()}, less than < {passing_score_bar}.\n"
+        eval_rewards[-5:].mean() >= passing_score_bar
+    ), f"Eval reward is {eval_rewards[-5:].mean()}, less than < {passing_score_bar}.\n"
 
 
 def run_test_online_episode(

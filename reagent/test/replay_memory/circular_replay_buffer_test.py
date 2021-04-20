@@ -175,7 +175,7 @@ class ReplayBufferTest(unittest.TestCase):
         # transitions are terminal when adding observation (i % 4).
         expected_terminal = np.expand_dims(
             np.array([min((x + num_adds - replay_capacity) % 4, 1) for x in indices]), 1
-        ).astype(np.bool)
+        ).astype(bool)
         batch = memory.sample_transition_batch(
             batch_size=len(indices), indices=torch.tensor(indices)
         )
@@ -230,7 +230,7 @@ class ReplayBufferTest(unittest.TestCase):
         # transitions are terminal when adding observation (i % 4).
         expected_terminal = np.expand_dims(
             np.array([min((x + num_adds - replay_capacity) % 4, 1) for x in indices]), 1
-        ).astype(np.bool)
+        ).astype(bool)
         expected_extra1 = np.expand_dims(
             np.array([(x + num_adds - replay_capacity) % 2 for x in indices]), 1
         )
@@ -301,7 +301,7 @@ class ReplayBufferTest(unittest.TestCase):
         # Since indices = [2, 3, 4], our expected reward are [5, 3, 15].
         expected_reward = np.array([[5], [3], [15]])
         # Because update_horizon = 3, both indices 2 and 3 include terminal.
-        expected_terminal = np.array([[1], [1], [0]]).astype(np.bool)
+        expected_terminal = np.array([[1], [1], [0]]).astype(bool)
         npt.assert_array_equal(batch.state, expected_states)
         npt.assert_array_equal(
             batch.action, np.expand_dims(np.array(indices) * 2, axis=1)

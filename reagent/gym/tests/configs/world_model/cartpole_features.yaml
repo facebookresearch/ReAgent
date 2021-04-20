@@ -4,7 +4,7 @@ model:
     trainer_param:
       hidden_size: 50
       num_hidden_layers: 2
-      learning_rate: 0.005
+      learning_rate: 0.001
       not_terminal_loss_weight: 1
       next_state_loss_weight: 1
       reward_loss_weight: 1
@@ -13,6 +13,6 @@ num_train_transitions: 100000 # approx. 500 episodes
 num_test_transitions: 6000 # approx. 30 episodes
 seq_len: 1
 batch_size: 1024
-num_train_epochs: 20
+num_train_epochs: 30
 use_gpu: false
 saved_mdnrnn_path: null
