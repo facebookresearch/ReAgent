@@ -106,7 +106,7 @@ class GreedyActionSampler(Sampler):
         action = F.one_hot(raw_action, num_actions)
         assert action.shape == (batch_size, num_actions)
         return rlt.ActorOutput(
-            action=action, log_prob=torch.ones_like(raw_action, dtype=torch.float)
+            action=action, log_prob=torch.zeros_like(raw_action, dtype=torch.float)
         )
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
@@ -155,7 +155,7 @@ class EpsilonGreedyActionSampler(Sampler):
         num_valid_actions = valid_actions_ind.float().sum(1, keepdim=True)
 
         rand_prob = self.epsilon / num_valid_actions
-        p = torch.ones_like(scores) * rand_prob
+        p = torch.full_like(scores, rand_prob)
 
         greedy_prob = 1 - self.epsilon + rand_prob
         p[argmax] = greedy_prob.squeeze()
