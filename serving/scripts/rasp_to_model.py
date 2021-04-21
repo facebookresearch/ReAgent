@@ -10,7 +10,7 @@ import pandas as pd
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.info)
+logger.setLevel(logging.INFO)
 
 
 def keys_to_int(d: Dict[str, Any]) -> Dict[int, Any]:
