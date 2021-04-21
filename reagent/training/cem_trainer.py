@@ -41,13 +41,15 @@ class CEMTrainer(RLTrainer):
         super().__init__(parameters.rl, use_gpu=use_gpu)
         self.cem_planner_network = cem_planner_network
         self.world_model_trainers = world_model_trainers
-        self.minibatch_size = parameters.mdnrnn.minibatch_size
+        self.optimizers = []
+        for trainer in self.world_model_trainers:
+            self.optimizers.append(trainer.configure_optimizers()[0])
 
     def train(self, training_batch: rlt.MemoryNetworkInput) -> None:
         # batch_idx is not used in MDNRNNTrainer
         batch_idx_placeholder = 0
         for i, trainer in enumerate(self.world_model_trainers):
-            optimizer = trainer.configure_optimizers()[0]
+            optimizer = self.optimizers[i]
             loss = next(trainer.train_step_gen(training_batch, batch_idx_placeholder))
             optimizer.zero_grad()
             loss.backward()

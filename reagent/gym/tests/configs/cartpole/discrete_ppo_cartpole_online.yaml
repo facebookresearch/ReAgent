@@ -11,7 +11,7 @@ model:
       ppo_epsilon: 0.2
       optimizer:
         Adam:
-          lr: 0.01
+          lr: 0.001
           weight_decay: 0.001
       update_freq: 2
       update_epochs: 1
@@ -22,10 +22,10 @@ model:
           - 32
           - 32
         activations:
-          - relu
-          - relu
+          - leaky_relu
+          - leaky_relu
     sampler_temperature: 1.0
-num_train_episodes: 400
+num_train_episodes: 1000
 num_eval_episodes: 100
 passing_score_bar: 180.0
 use_gpu: false

@@ -34,7 +34,7 @@ class PossibleActionsMaskTester(gym.Env):
 
     def _update_possible_actions_mask(self):
         self.legal_action = np.random.randint(self.action_num)
-        self.possible_actions_mask = np.zeros(self.action_num, dtype=np.bool)
+        self.possible_actions_mask = np.zeros(self.action_num, dtype=bool)
         self.possible_actions_mask[self.legal_action] = True
 
     def _get_state(self):

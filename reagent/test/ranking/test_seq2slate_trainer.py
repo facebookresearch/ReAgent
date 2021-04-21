@@ -157,10 +157,10 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             == torch.tensor([0.5, 0.3, 3.0, 3.0, 3.0])
         )
 
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     @parameterized.expand(
         itertools.product(policy_gradient_interval_list, output_arch_list)
     )
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_seq2slate_trainer_on_policy_gpu(
         self, policy_gradient_interval, output_arch
     ):
@@ -249,10 +249,10 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             learning_rate,
         )
 
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     @parameterized.expand(
         itertools.product(policy_gradient_interval_list, output_arch_list)
     )
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_seq2slate_trainer_off_policy_gpu(
         self, policy_gradient_interval, output_arch
     ):

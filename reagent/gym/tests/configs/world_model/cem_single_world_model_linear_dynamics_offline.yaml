@@ -11,7 +11,6 @@ model:
       mdnrnn:
         hidden_size: 100
         num_hidden_layers: 2
-        minibatch_size: 1024
         learning_rate: 0.001
         not_terminal_loss_weight: 0.0
         next_state_loss_weight: 1.0
@@ -20,6 +19,7 @@ model:
       rl:
         gamma: 1.0
         softmax_policy: 0
+minibatch_size: 1024
 replay_memory_size: 50000
 num_batches_per_epoch: 5000
 num_train_epochs: 1

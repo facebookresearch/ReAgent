@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+import inspect
 import logging
 import math
 from dataclasses import field
@@ -72,7 +73,7 @@ class ReinforceTrainer(ReAgentLightningModule):
         actions = training_batch.action
         rewards = training_batch.reward.detach()
         scorer_inputs = []
-        if getattr(training_batch, "graph", None) is not None:
+        if inspect.getattr_static(training_batch, "graph", None) is not None:
             # GNN
             scorer_inputs.append(training_batch.graph)
         else:

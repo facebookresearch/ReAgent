@@ -91,6 +91,7 @@ def run_test_offline(
     num_train_epochs: int,
     passing_score_bar: float,
     num_eval_episodes: int,
+    minibatch_size: int,
     use_gpu: bool,
 ):
     env = Gym(env_name=env_name)
@@ -108,7 +109,7 @@ def run_test_offline(
 
     # first fill the replay buffer to burn_in
     replay_buffer = ReplayBuffer(
-        replay_capacity=replay_memory_size, batch_size=trainer.minibatch_size
+        replay_capacity=replay_memory_size, batch_size=minibatch_size
     )
     # always fill full RB
     fill_replay_buffer(

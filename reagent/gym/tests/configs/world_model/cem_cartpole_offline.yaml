@@ -11,7 +11,6 @@ model:
       mdnrnn:
         hidden_size: 100
         num_hidden_layers: 2
-        minibatch_size: 512
         learning_rate: 0.001
         not_terminal_loss_weight: 200.0
         next_state_loss_weight: 1.0
@@ -25,4 +24,5 @@ num_batches_per_epoch: 1000
 num_train_epochs: 1
 num_eval_episodes: 1
 passing_score_bar: 100.0
+minibatch_size: 1024
 use_gpu: false

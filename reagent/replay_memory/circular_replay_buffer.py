@@ -121,7 +121,7 @@ class DenseMetadata(ElementMetadata):
     def create_storage(self, capacity: int):
         array_shape = [capacity, *self.shape]
         # not all bit representations are valid for bool
-        if self.dtype == np.bool:
+        if self.dtype == bool:
             return torch.zeros(array_shape, dtype=torch.bool)
         return torch.from_numpy(np.empty(array_shape, dtype=self.dtype))
 
