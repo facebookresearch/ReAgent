@@ -44,6 +44,7 @@ class WeightedSequentialDoublyRobustEstimator:
             edp.logged_rewards.cpu().numpy().flatten(),
             edp.logged_propensities.cpu().numpy().flatten(),
             edp.model_propensities.cpu().numpy(),
+            # pyre-ignore [16]: Optional type has no attribute `cpu`
             edp.model_values.cpu().numpy(),
         )
 
