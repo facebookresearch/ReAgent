@@ -9,10 +9,9 @@ model:
   SAC:
     trainer_param:
       rl:
-        gamma: 0.9
+        gamma: 0.99
         target_update_rate: 0.5
       entropy_temperature: 0.01
-      minibatch_size: 1024
       q_network_optimizer:
         Adam:
           lr: 0.001
@@ -64,3 +63,5 @@ publisher:
 num_eval_episodes: 30
 # TODO: raise this bar after training stabilize
 passing_score_bar: -900
+reader_options:
+  minibatch_size: 8192

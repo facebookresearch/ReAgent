@@ -67,7 +67,7 @@ class SAC(ActorCriticBase):
     #  inconsistently.
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self) -> SACTrainer:
+    def build_trainer(self, use_gpu: bool) -> SACTrainer:
         actor_net_builder = self.actor_net_builder.value
         # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.
         # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.

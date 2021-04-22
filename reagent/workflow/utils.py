@@ -120,13 +120,14 @@ def train_eval_lightning(
     trainer_module,
     data_module,
     num_epochs,
-    use_gpu,
     logger_name: str,
     batch_preprocessor=None,
     reader_options: Optional[ReaderOptions] = None,
     checkpoint_path: Optional[str] = None,
     resource_options: Optional[ResourceOptions] = None,
 ) -> pl.Trainer:
+    resource_options = resource_options or ResourceOptions()
+    use_gpu = resource_options.gpu > 0
     reader_options = reader_options or ReaderOptions()
     datamodule = data_module or PetastormLightningDataModule(
         train_dataset, eval_dataset, batch_preprocessor, reader_options

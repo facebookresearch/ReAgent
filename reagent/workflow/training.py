@@ -60,6 +60,7 @@ def identify_and_train_network(
         input_table_spec=input_table_spec,
         reward_options=reward_options,
         reader_options=reader_options,
+        resource_options=resource_options,
     )
     if data_module is not None:
         setup_data = data_module.prepare_data()
@@ -111,6 +112,8 @@ def query_and_train(
     resource_options = resource_options or ResourceOptions()
     manager = model.value
 
+    resource_options.gpu = int(use_gpu)
+
     if saved_setup_data is not None:
 
         def _maybe_get_bytes(v) -> bytes:
@@ -127,6 +130,7 @@ def query_and_train(
             input_table_spec=input_table_spec,
             reward_options=reward_options,
             reader_options=reader_options,
+            resource_options=resource_options,
             saved_setup_data=saved_setup_data,
         )
         if data_module is not None:
@@ -214,7 +218,9 @@ def train_workflow(
 
     if setup_data is not None:
         data_module = model_manager.get_data_module(
-            setup_data=setup_data, reader_options=reader_options
+            setup_data=setup_data,
+            reader_options=reader_options,
+            resource_options=resource_options,
         )
         assert data_module is not None
         data_module.setup()

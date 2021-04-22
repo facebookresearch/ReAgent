@@ -156,6 +156,6 @@ class SlateQBase(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
-        resource_options: Optional[ResourceOptions] = None,
+        resource_options: ResourceOptions,
     ) -> RLTrainingOutput:
         raise NotImplementedError("Write for OSS")

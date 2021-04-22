@@ -66,7 +66,7 @@ class Reinforce(ModelManager):
         ), f"REINFORCE needs at least 2 actions. Got {self.action_names}."
 
     # pyre-ignore
-    def build_trainer(self) -> ReinforceTrainer:
+    def build_trainer(self, use_gpu: bool) -> ReinforceTrainer:
         policy_net_builder = self.policy_net_builder.value
         # pyre-ignore
         self._policy_network = policy_net_builder.build_q_network(
@@ -137,7 +137,7 @@ class Reinforce(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
-        resource_options: Optional[ResourceOptions],
+        resource_options: ResourceOptions,
     ) -> RLTrainingOutput:
         raise NotImplementedError
 

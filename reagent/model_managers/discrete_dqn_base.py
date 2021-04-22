@@ -44,7 +44,6 @@ from reagent.workflow.types import (
 )
 from reagent.workflow.utils import train_eval_lightning, get_rank
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -118,7 +117,7 @@ class DiscreteDQNBase(ModelManager):
     def multi_steps(self) -> Optional[int]:
         return self.rl_parameters.multi_steps
 
-    def build_batch_preprocessor(self) -> BatchPreprocessor:
+    def build_batch_preprocessor(self, use_gpu: bool) -> BatchPreprocessor:
         raise RuntimeError
 
     def get_data_module(
@@ -129,6 +128,7 @@ class DiscreteDQNBase(ModelManager):
         reader_options: Optional[ReaderOptions] = None,
         setup_data: Optional[Dict[str, bytes]] = None,
         saved_setup_data: Optional[Dict[str, bytes]] = None,
+        resource_options: Optional[ResourceOptions] = None,
     ) -> Optional[ReAgentDataModule]:
         return DiscreteDqnDataModule(
             input_table_spec=input_table_spec,
@@ -136,6 +136,7 @@ class DiscreteDQNBase(ModelManager):
             setup_data=setup_data,
             saved_setup_data=saved_setup_data,
             reader_options=reader_options,
+            resource_options=resource_options,
             model_manager=self,
         )
 
@@ -175,7 +176,6 @@ class DiscreteDQNBase(ModelManager):
             trainer_module=self.trainer,
             data_module=data_module,
             num_epochs=num_epochs,
-            use_gpu=self.use_gpu,
             logger_name="DiscreteDqn",
             reader_options=reader_options,
             checkpoint_path=self._lightning_checkpoint_path,
@@ -248,10 +248,10 @@ class DiscreteDqnDataModule(ManualDataModule):
     def build_batch_preprocessor(self) -> BatchPreprocessor:
         state_preprocessor = Preprocessor(
             self.state_normalization_data.dense_normalization_parameters,
-            use_gpu=self.model_manager.use_gpu,
+            use_gpu=self.resource_options.gpu > 0,
         )
         return DiscreteDqnBatchPreprocessor(
             num_actions=len(self.model_manager.action_names),
             state_preprocessor=state_preprocessor,
-            use_gpu=self.model_manager.use_gpu,
+            use_gpu=self.resource_options.gpu > 0,
         )

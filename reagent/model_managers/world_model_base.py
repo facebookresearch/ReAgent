@@ -56,7 +56,7 @@ class WorldModelBase(ModelManager):
     ) -> Dataset:
         raise NotImplementedError()
 
-    def build_batch_preprocessor(self) -> BatchPreprocessor:
+    def build_batch_preprocessor(self, use_gpu: bool) -> BatchPreprocessor:
         raise NotImplementedError()
 
     def train(
@@ -67,7 +67,7 @@ class WorldModelBase(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
-        resource_options: Optional[ResourceOptions] = None,
+        resource_options: ResourceOptions,
     ) -> RLTrainingOutput:
         """
         Train the model
