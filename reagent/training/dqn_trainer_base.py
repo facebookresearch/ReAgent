@@ -270,8 +270,7 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         was_on_gpu = self.on_gpu
         self.cpu()
         eval_data = None
-        for batch in validation_step_outputs:
-            edp = EvaluationDataPage.create_from_training_batch(batch, self)
+        for edp in validation_step_outputs:
             if eval_data is None:
                 eval_data = edp
             else:
@@ -286,9 +285,9 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
 
     def validation_step(self, batch, batch_idx):
         # HACK: Move to cpu in order to hold more batches in memory
-        # This is only needed when trainers need to evaluate on
-        # the full evaluation dataset in memory
-        return batch.cpu()
+        # This is only needed when trainers need in-memory
+        # EvaluationDataPages of the full evaluation dataset
+        return EvaluationDataPage.create_from_training_batch(batch, self).cpu()
 
     def validation_epoch_end(self, valid_step_outputs):
         # As explained in the comments to the validation_step function in
@@ -299,10 +298,8 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         #     val_outs.append(out)
         # validation_epoch_end(val_outs)
 
-        # Note: the relevant validation_step() function is defined in discrete_crr_trainer.py.
-        # That function does some logging and then returns batch.cpu(). In other words,
-        # the arguments to the current function, valid_step_outputs, is just a list of
-        # validation batches, which matches the way it is used in gather_eval_data() above.
+        # The input arguments of validation_epoch_end() is a list of EvaluationDataPages,
+        # which matches the way it is used in gather_eval_data() above.
 
         eval_data = self.gather_eval_data(valid_step_outputs)
         if eval_data and eval_data.mdp_id is not None:

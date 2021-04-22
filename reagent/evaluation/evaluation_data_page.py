@@ -5,7 +5,8 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import TYPE_CHECKING, NamedTuple, Optional, cast
+from dataclasses import dataclass, fields
+from typing import TYPE_CHECKING, Optional, cast
 
 import numpy as np
 import torch
@@ -24,7 +25,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class EvaluationDataPage(NamedTuple):
+@dataclass
+class EvaluationDataPage(rlt.TensorDataClass):
     mdp_id: Optional[torch.Tensor]
     sequence_number: Optional[torch.Tensor]
     logged_propensities: torch.Tensor
@@ -456,22 +458,22 @@ class EvaluationDataPage(NamedTuple):
 
     def append(self, edp):
         new_edp = {}
-        for x in EvaluationDataPage._fields:
-            t = getattr(self, x)
-            other_t = getattr(edp, x)
+        for x in fields(EvaluationDataPage):
+            t = getattr(self, x.name)
+            other_t = getattr(edp, x.name)
             assert int(t is not None) + int(other_t is not None) != 1, (
                 "Tried to append when a tensor existed in one training page but not the other: "
-                + x
+                + x.name
             )
             if other_t is not None:
                 if isinstance(t, torch.Tensor):
-                    new_edp[x] = torch.cat((t, other_t), dim=0)
+                    new_edp[x.name] = torch.cat((t, other_t), dim=0)
                 elif isinstance(t, np.ndarray):
-                    new_edp[x] = np.concatenate((t, other_t), axis=0)
+                    new_edp[x.name] = np.concatenate((t, other_t), axis=0)
                 else:
                     raise Exception("Invalid type in training data page")
             else:
-                new_edp[x] = None
+                new_edp[x.name] = None
         return EvaluationDataPage(**new_edp)
 
     def sort(self):
@@ -480,22 +482,30 @@ class EvaluationDataPage(NamedTuple):
             idxs.append((mdp_id, int(seq_num), i))
         sorted_idxs = [i for _mdp_id, _seq_num, i in sorted(idxs)]
         new_edp = {}
-        for x in EvaluationDataPage._fields:
-            t = getattr(self, x)
-            new_edp[x] = t[sorted_idxs] if t is not None else None
+        for x in fields(EvaluationDataPage):
+            t = getattr(self, x.name)
+            new_edp[x.name] = t[sorted_idxs] if t is not None else None
 
         return EvaluationDataPage(**new_edp)
 
     def compute_values(self, gamma: float):
         assert self.mdp_id is not None and self.sequence_number is not None
         logged_values = EvaluationDataPage.compute_values_for_mdps(
-            self.logged_rewards, self.mdp_id, self.sequence_number, gamma
+            self.logged_rewards,
+            # pyre-ignore [6]: Expected `torch.Tensor` but got `Optional[torch.Tensor]`
+            self.mdp_id,
+            self.sequence_number,
+            gamma,
         )
         if self.logged_metrics is not None:
             logged_metrics_values: Optional[
                 torch.Tensor
             ] = EvaluationDataPage.compute_values_for_mdps(
-                self.logged_metrics, self.mdp_id, self.sequence_number, gamma
+                # pyre-ignore [6]: Expected `torch.Tensor` but got `Optional[torch.Tensor]`
+                self.logged_metrics,
+                self.mdp_id,
+                self.sequence_number,
+                gamma,
             )
         else:
             logged_metrics_values = None
@@ -615,6 +625,7 @@ class EvaluationDataPage(NamedTuple):
         assert self.model_metrics_values is not None, "metrics must not be none"
 
         return self._replace(
+            # pyre-ignore [16]: `Optional` has no attribute `__getitem__`
             logged_rewards=self.logged_metrics[:, i : i + 1],
             logged_values=self.logged_metrics_values[:, i : i + 1],
             model_rewards=self.model_metrics[
