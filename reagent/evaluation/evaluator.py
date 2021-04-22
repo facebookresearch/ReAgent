@@ -93,11 +93,13 @@ class Evaluator:
 
         if self.action_names is not None:
             if edp.optimal_q_values is not None:
+                # pyre-ignore [16]: `Optional` has no attribute `mean`
                 value_means = edp.optimal_q_values.mean(dim=0)
                 cpe_details.q_value_means = {
                     action: float(value_means[i])
                     for i, action in enumerate(self.action_names)
                 }
+                # pyre-ignore [16]: `Optional` has no attribute `std`
                 value_stds = edp.optimal_q_values.std(dim=0)
                 cpe_details.q_value_stds = {
                     action: float(value_stds[i])
@@ -105,10 +107,9 @@ class Evaluator:
                 }
             if edp.eval_action_idxs is not None:
                 cpe_details.action_distribution = {
-                    # pyre-fixme[6]: Expected `Union[_SupportsIndex, bytearray,
-                    #  bytes, str, typing.SupportsFloat]` for 1st param but got
-                    #  `ByteTensor`.
+                    # pyre-ignore [16]: `bool` has no attribute `sum`
                     action: float((edp.eval_action_idxs == i).sum())
+                    # pyre-ignore [16]: `Optional` has no attribute `shape`
                     / edp.eval_action_idxs.shape[0]
                     for i, action in enumerate(self.action_names)
                 }

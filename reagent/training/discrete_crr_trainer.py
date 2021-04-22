@@ -344,8 +344,9 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
 
         # RETURN ARGS:
         # The super() call at the end of this function calls the function with the same name
-        # in dqn_trainer_base.py, which simply returns the batch.cpu(). In other words,
-        # the validation_epoch_end() function will be called on a list of validation batches.
+        # in dqn_trainer_base.py, which returns a EvaluationDataPage for data in that batch.
+        # In other words, the validation_epoch_end() function will take a list of validation
+        # EvaluationDataPages.
 
         # validation data
         state = batch.state

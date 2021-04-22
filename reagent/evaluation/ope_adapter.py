@@ -69,6 +69,7 @@ class OPEstimatorAdapter:
                 logged_propensities[action] = edp.logged_propensities[idx]
             log.append(
                 LogSample(
+                    # pyre-ignore [16]: Optional type has no attribute `__getitem__`
                     context=None if edp.contexts is None else edp.contexts[idx],
                     log_action=Action(action),
                     log_reward=edp.logged_rewards[idx],
@@ -156,6 +157,7 @@ class SequentialOPEstimatorAdapter:
             edp.logged_rewards.cpu().numpy().flatten(),
             edp.logged_propensities.cpu().numpy().flatten(),
             edp.model_propensities.cpu().numpy(),
+            # pyre-ignore [16]: Optional type has no attribute `cpu`
             edp.model_values.cpu().numpy(),
         )
 
