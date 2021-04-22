@@ -489,7 +489,6 @@ class Seq2SlateWithPreprocessor(nn.Module):
         greedy: bool,
     ):
         super().__init__()
-        # pyre-fixme[16]: `Seq2SlateTransformerNet` has no attribute `seq2slate`.
         self.model = model.seq2slate
         self.greedy = greedy
         preprocessor = SlateRankingPreprocessor(

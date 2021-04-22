@@ -121,7 +121,6 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
     ) -> torch.Tensor:
         # Apply reward boost if specified
         reward_boosts = torch.sum(
-            # pyre-fixme[16]: `DQNTrainerBase` has no attribute `reward_boosts`.
             actions.float() * self.reward_boosts,
             dim=1,
             keepdim=True,
