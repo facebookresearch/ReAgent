@@ -11,7 +11,7 @@ def sac_scorer(actor_network: ModelBase) -> Scorer:
     @torch.no_grad()
     def score(preprocessed_obs: rlt.FeatureData) -> GaussianSamplerScore:
         actor_network.eval()
-        # pyre-fixme[16]: `ModelBase` has no attribute `_get_loc_and_scale_log`.
+        # pyre-fixme[29]: `Union[torch.Tensor, torch.nn.Module]` is not a function.
         loc, scale_log = actor_network._get_loc_and_scale_log(preprocessed_obs)
         actor_network.train()
         return GaussianSamplerScore(loc=loc, scale_log=scale_log)

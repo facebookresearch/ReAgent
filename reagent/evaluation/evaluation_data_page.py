@@ -326,9 +326,9 @@ class EvaluationDataPage(rlt.TensorDataClass):
         old_q_train_state = trainer.q_network.training
         # pyre-fixme[16]: `DQNTrainer` has no attribute `reward_network`.
         old_reward_train_state = trainer.reward_network.training
-        # pyre-fixme[16]: `DQNTrainer` has no attribute `q_network_cpe`.
         old_q_cpe_train_state = trainer.q_network_cpe.training
         trainer.q_network.train(False)
+        # pyre-fixme[16]: `Tensor` has no attribute `train`.
         trainer.reward_network.train(False)
         trainer.q_network_cpe.train(False)
 
@@ -336,6 +336,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
         action_mask = actions.float()
 
         rewards = trainer.boost_rewards(rewards, actions)
+        # pyre-fixme[29]: `Union[nn.Module, torch.Tensor]` is not a function.
         model_values = trainer.q_network_cpe(states)[:, 0:num_actions]
         # Note: model_outputs are obtained from the q_network for DQN algorithms
         # and from the actor_network for CRR.
@@ -360,6 +361,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
             model_values * action_mask, dim=1, keepdim=True
         )
 
+        # pyre-fixme[29]: `Union[nn.Module, torch.Tensor]` is not a function.
         rewards_and_metric_rewards = trainer.reward_network(states)
 
         # In case we reuse the modular for Q-network
@@ -389,6 +391,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
             model_metrics_for_logged_action = None
             model_metrics_values_for_logged_action = None
         else:
+            # pyre-fixme[29]: `Union[nn.Module, torch.Tensor]` is not a function.
             model_metrics_values = trainer.q_network_cpe(states)
             # Backward compatility
             if hasattr(model_metrics_values, "q_values"):

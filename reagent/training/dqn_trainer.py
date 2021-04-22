@@ -218,7 +218,6 @@ class DQNTrainer(DQNTrainerBaseLightning):
             training_batch,
             training_batch.state,
             training_batch.next_state,
-            # pyre-fixme[16]: `DQNTrainer` has no attribute `all_action_scores`.
             self.all_action_scores,
             all_next_action_scores,
             logged_action_idxs,

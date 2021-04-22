@@ -880,7 +880,7 @@ class Seq2SlateNet(ModelBase):
         greedy: Optional[bool] = None,
     ):
         if mode == Seq2SlateMode.RANK_MODE:
-            # pyre-fixme[16]: `Seq2SlateNet` has no attribute `seq2slate`.
+            # pyre-fixme[29]: `Union[nn.Module, torch.Tensor]` is not a function.
             res = self.seq2slate(
                 mode=mode.value,
                 state=input.state.float_features,
@@ -900,6 +900,7 @@ class Seq2SlateNet(ModelBase):
             assert input.tgt_in_seq is not None
             assert input.tgt_in_idx is not None
             assert input.tgt_out_idx is not None
+            # pyre-fixme[29]: `Union[nn.Module, torch.Tensor]` is not a function.
             res = self.seq2slate(
                 mode=mode.value,
                 state=input.state.float_features,
@@ -916,6 +917,7 @@ class Seq2SlateNet(ModelBase):
             return rlt.RankingOutput(log_probs=log_probs)
         elif mode == Seq2SlateMode.ENCODER_SCORE_MODE:
             assert input.tgt_out_idx is not None
+            # pyre-fixme[29]: `Union[nn.Module, torch.Tensor]` is not a function.
             res = self.seq2slate(
                 mode=mode.value,
                 state=input.state.float_features,
@@ -960,7 +962,6 @@ class _DistributedSeq2SlateNet(ModelBase):
 
         current_device = torch.cuda.current_device()
         self.data_parallel = DistributedDataParallel(
-            # pyre-fixme[16]: `Seq2SlateNet` has no attribute `seq2slate`.
             seq2slate_net.seq2slate,
             device_ids=[current_device],
             output_device=current_device,
