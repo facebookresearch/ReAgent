@@ -63,7 +63,6 @@ class RewardNetTrainer(Trainer):
         self,
         reward_net: ModelBase,
         use_gpu: bool = False,
-        minibatch_size: int = 1024,
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
@@ -73,7 +72,6 @@ class RewardNetTrainer(Trainer):
     ) -> None:
         self.reward_net = reward_net
         self.use_gpu = use_gpu
-        self.minibatch_size = minibatch_size
         self.minibatch = 0
         self.opt = optimizer.make_optimizer(self.reward_net.parameters())
         self.loss_type = loss_type
