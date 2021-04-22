@@ -16,8 +16,6 @@ from reagent.workflow.types import (
 
 
 try:
-    # pyre-fixme[21]: Could not find `tinydb`.
-    # pyre-fixme[21]: Could not find `tinydb`.
     from tinydb import Query, TinyDB
 
     HAS_TINYDB = True
