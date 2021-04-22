@@ -3,7 +3,6 @@
 import abc
 
 import torch
-from reagent.core.registry_meta import RegistryMeta
 
 
 class SlateRewardNetBuilder:
