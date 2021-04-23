@@ -34,7 +34,7 @@ class ParametricDQN(ParametricDQNBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self) -> ParametricDQNTrainer:
+    def build_trainer(self, use_gpu: bool) -> ParametricDQNTrainer:
         net_builder = self.net_builder.value
         # pyre-fixme[16]: `ParametricDQN` has no attribute `_q_network`.
         self._q_network = net_builder.build_q_network(

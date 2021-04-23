@@ -57,7 +57,7 @@ class TD3(ActorCriticBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self) -> TD3Trainer:
+    def build_trainer(self, use_gpu: bool) -> TD3Trainer:
         actor_net_builder = self.actor_net_builder.value
         # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
         # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.

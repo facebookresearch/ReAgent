@@ -93,7 +93,7 @@ class DiscreteCRR(DiscreteDQNBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self) -> DiscreteCRRTrainer:
+    def build_trainer(self, use_gpu: bool) -> DiscreteCRRTrainer:
         actor_net_builder = self.actor_net_builder.value
         # pyre-fixme[16]: `DiscreteCRR` has no attribute `_actor_network`.
         self._actor_network = actor_net_builder.build_actor(

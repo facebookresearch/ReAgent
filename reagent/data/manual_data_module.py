@@ -30,6 +30,7 @@ from reagent.workflow.types import (
     ReaderOptions,
     RewardOptions,
     TableSpec,
+    ResourceOptions,
 )
 
 from .reagent_data_module import ReAgentDataModule
@@ -92,12 +93,14 @@ class ManualDataModule(ReAgentDataModule):
         setup_data: Optional[Dict[str, bytes]] = None,
         saved_setup_data: Optional[Dict[str, bytes]] = None,
         reader_options: Optional[ReaderOptions] = None,
+        resource_options: Optional[ResourceOptions] = None,
         model_manager=None,
     ):
         super().__init__()
         self.input_table_spec = input_table_spec
         self.reward_options = reward_options or RewardOptions()
         self.reader_options = reader_options or ReaderOptions()
+        self.resource_options = resource_options or ResourceOptions(gpu=0)
         self._model_manager = model_manager
         self.setup_data = setup_data
         self.saved_setup_data = saved_setup_data or {}

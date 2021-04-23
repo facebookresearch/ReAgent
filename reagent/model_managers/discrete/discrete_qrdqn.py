@@ -49,7 +49,7 @@ class DiscreteQRDQN(DiscreteDQNBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self) -> QRDQNTrainer:
+    def build_trainer(self, use_gpu: bool) -> QRDQNTrainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
             self.state_normalization_data,

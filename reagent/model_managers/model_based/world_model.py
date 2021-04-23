@@ -27,7 +27,7 @@ class WorldModel(WorldModelBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self) -> MDNRNNTrainer:
+    def build_trainer(self, use_gpu: bool) -> MDNRNNTrainer:
         memory_network = MemoryNetwork(
             state_dim=get_num_output_features(
                 self.state_normalization_data.dense_normalization_parameters
@@ -37,7 +37,7 @@ class WorldModel(WorldModelBase):
             num_hidden_layers=self.trainer_param.num_hidden_layers,
             num_gaussians=self.trainer_param.num_gaussians,
         )
-        if self.use_gpu:
+        if use_gpu:
             memory_network = memory_network.cuda()
 
         return MDNRNNTrainer(memory_network=memory_network, params=self.trainer_param)

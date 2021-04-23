@@ -43,7 +43,7 @@ class Seq2RewardModel(WorldModelBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self) -> Seq2RewardTrainer:
+    def build_trainer(self, use_gpu: bool) -> Seq2RewardTrainer:
         seq2reward_network = self.net_builder.value.build_value_network(
             self.state_normalization_data
         )
