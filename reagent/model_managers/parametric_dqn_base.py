@@ -11,6 +11,7 @@ from reagent.core.parameters import (
     NormalizationKey,
 )
 from reagent.data.data_fetcher import DataFetcher
+from reagent.data.reagent_data_module import ReAgentDataModule
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
@@ -24,7 +25,6 @@ from reagent.preprocessing.normalization import (
     get_num_output_features,
 )
 from reagent.preprocessing.types import InputColumn
-from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import (
     Dataset,

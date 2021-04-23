@@ -39,7 +39,7 @@ def offline_gym(
     pkl_path: str,
     num_train_transitions: int,
     max_steps: Optional[int],
-    seed: Optional[int] = None,
+    seed: int = 1,
 ):
     """
     Generate samples from a DiscreteRandomPolicy on the Gym environment and
@@ -99,6 +99,7 @@ def evaluate_gym(
     module_name: str = "default_model",
     max_steps: Optional[int] = None,
 ):
+    initialize_seed(1)
     publisher_manager = publisher.value
     assert isinstance(
         publisher_manager, FileSystemPublisher

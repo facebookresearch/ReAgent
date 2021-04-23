@@ -10,6 +10,7 @@ from reagent.core.parameters import NormalizationData
 from reagent.core.parameters import NormalizationKey
 from reagent.core.parameters import param_hash
 from reagent.data.data_fetcher import DataFetcher
+from reagent.data.reagent_data_module import ReAgentDataModule
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
@@ -21,7 +22,6 @@ from reagent.net_builder.unions import (
     ValueNetBuilder__Union,
 )
 from reagent.training import ReinforceTrainer, ReinforceTrainerParameters
-from reagent.workflow.data import ReAgentDataModule
 from reagent.workflow.types import (
     Dataset,
     ModelFeatureConfigProvider__Union,
