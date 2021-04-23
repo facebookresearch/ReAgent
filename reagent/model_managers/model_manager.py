@@ -59,16 +59,8 @@ class ModelManager:
         self._normalization_data_map: Optional[Dict[str, NormalizationData]] = None
         self._reward_options: Optional[RewardOptions] = None
         self._trainer: Optional[Trainer] = None
-        self._use_gpu: Optional[bool] = None
         self._lightning_trainer: Optional[pl.Trainer] = None
         self._lightning_checkpoint_path: Optional[str] = None
-
-    @property
-    def use_gpu(self) -> bool:
-        assert (
-            self._use_gpu is not None
-        ), "Call initialize_trainer() to set the value first"
-        return self._use_gpu
 
     @property
     def reward_options(self) -> RewardOptions:
@@ -89,6 +81,7 @@ class ModelManager:
         setup_data: Optional[Dict[str, bytes]] = None,
         saved_setup_data: Optional[Dict[str, bytes]] = None,
         reader_options: Optional[ReaderOptions] = None,
+        resource_options: Optional[ResourceOptions] = None,
     ) -> Optional[ReAgentDataModule]:
         """
         Return the data module. If this is not None, then `run_feature_identification` &
@@ -190,8 +183,6 @@ class ModelManager:
         `build_trainer()`.
         """
         assert self._trainer is None, "Trainer was intialized"
-        # pyre-fixme[16]: `ModelManager` has no attribute `_use_gpu`.
-        self._use_gpu = use_gpu
         self.reward_options = reward_options
         # validate that we have all the required keys
         for normalization_key in self.required_normalization_keys:
@@ -210,7 +201,7 @@ class ModelManager:
         ), "Cannot reset self._normalization_data_map"
         # pyre-fixme[16]: `ModelManager` has no attribute `_normalization_data_map`.
         self._normalization_data_map = normalization_data_map
-        trainer = self.build_trainer()
+        trainer = self.build_trainer(use_gpu=use_gpu)
         # pyre-fixme[16]: `ModelManager` has no attribute `_trainer`.
         self._trainer = trainer
         if warmstart_path is not None:
@@ -223,7 +214,7 @@ class ModelManager:
         return trainer
 
     @abc.abstractmethod
-    def build_trainer(self) -> Trainer:
+    def build_trainer(self, use_gpu: bool) -> Trainer:
         """
         Implement this to build the trainer, given the config
 
@@ -244,7 +235,7 @@ class ModelManager:
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
-        resource_options: Optional[ResourceOptions],
+        resource_options: ResourceOptions,
     ) -> RLTrainingOutput:
         """
         DEPRECATED: Delete this once every trainer is built on PyTorch Lightning &

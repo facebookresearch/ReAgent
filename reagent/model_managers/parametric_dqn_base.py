@@ -36,7 +36,6 @@ from reagent.workflow.types import (
     TableSpec,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -165,7 +164,7 @@ class ParametricDQNBase(ModelManager):
             )
         return self._metrics_to_score
 
-    def build_batch_preprocessor(self) -> BatchPreprocessor:
+    def build_batch_preprocessor(self, use_gpu: bool) -> BatchPreprocessor:
         raise NotImplementedError()
 
     def train(
@@ -176,6 +175,6 @@ class ParametricDQNBase(ModelManager):
         data_module: Optional[ReAgentDataModule],
         num_epochs: int,
         reader_options: ReaderOptions,
-        resource_options: Optional[ResourceOptions] = None,
+        resource_options: ResourceOptions,
     ) -> RLTrainingOutput:
         raise NotImplementedError()

@@ -67,7 +67,18 @@ class ReaderOptions:
 
 @dataclass
 class ResourceOptions:
-    pass
+    gpu: int = 1
+
+    @property
+    def use_gpu(self):
+        return self.gpu > 0
+
+    ## Below is for internal use
+    cpu: Optional[int] = None
+    # "-1" or "xxG" where "xx" is a positive integer
+    memory: Optional[str] = "40g"
+    min_nodes: Optional[int] = 1
+    max_nodes: Optional[int] = 1
 
 
 @dataclass

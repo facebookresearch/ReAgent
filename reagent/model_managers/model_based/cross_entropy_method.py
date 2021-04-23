@@ -54,17 +54,17 @@ class CrossEntropyMethod(WorldModelBase):
     def create_policy(self, serving: bool = False) -> Policy:
         return CEMPolicy(self.cem_planner_network, self.discrete_action)
 
-    def build_trainer(self) -> CEMTrainer:
+    def build_trainer(self, use_gpu: bool) -> CEMTrainer:
         world_model_manager: WorldModel = WorldModel(
             trainer_param=self.trainer_param.mdnrnn
         )
         world_model_manager.initialize_trainer(
-            self.use_gpu,
+            use_gpu,
             self.reward_options,
             self._normalization_data_map,
         )
         world_model_trainers = [
-            world_model_manager.build_trainer()
+            world_model_manager.build_trainer(use_gpu)
             for _ in range(self.trainer_param.num_world_models)
         ]
         world_model_nets = [trainer.memory_network for trainer in world_model_trainers]
@@ -119,7 +119,7 @@ class CrossEntropyMethod(WorldModelBase):
             cem_planner_network=cem_planner_network,
             world_model_trainers=world_model_trainers,
             parameters=self.trainer_param,
-            use_gpu=self.use_gpu,
+            use_gpu=use_gpu,
         )
 
     def build_serving_module(self) -> torch.nn.Module:
