@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Optional
+from typing import Optional, Union
 
+import numpy as np
 import torch
 from reagent.core import types as rlt
 from reagent.models.base import ModelBase
@@ -50,13 +51,15 @@ class FullyConnectedDQN(ModelBase):
     def forward(
         self,
         state: rlt.FeatureData,
-        possible_actions_mask: Optional[torch.Tensor] = None,
+        possible_actions_mask: Optional[Union[torch.Tensor, np.ndarray]] = None,
     ) -> torch.Tensor:
         float_features = state.float_features
         x = self.fc(float_features)
         if self.num_atoms is not None:
             x = x.view(float_features.shape[0], self.action_dim, self.num_atoms)
         if possible_actions_mask is not None:
+            if isinstance(possible_actions_mask, np.ndarray):
+                possible_actions_mask = torch.tensor(possible_actions_mask)
             # subtract huge value from impossible actions to force their probabilities to 0
             x = x + (1 - possible_actions_mask.float()) * INVALID_ACTION_CONSTANT
         return x

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Optional
+from typing import Optional, Callable
 
 import torch
 from reagent.gym.agents.agent import Agent
@@ -9,7 +9,7 @@ from reagent.gym.preprocessors import (
     make_replay_buffer_inserter,
     make_replay_buffer_trainer_preprocessor,
 )
-from reagent.gym.types import Transition
+from reagent.gym.types import Transition, Trajectory
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 
 
@@ -23,6 +23,7 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
         training_frequency: int = 1,
         num_episodes: Optional[int] = None,
         max_steps: Optional[int] = None,
+        post_episode_callback: Optional[Callable] = None,
         trainer_preprocessor=None,
         replay_buffer_inserter=None,
     ):
@@ -34,6 +35,7 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
         self._training_frequency = training_frequency
         self._num_episodes = num_episodes
         self._max_steps = max_steps
+        self._post_episode_callback = post_episode_callback
         self._trainer_preprocessor = trainer_preprocessor
         assert replay_buffer_inserter is not None
         self._replay_buffer_inserter = replay_buffer_inserter
@@ -50,6 +52,7 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
         training_frequency: int = 1,
         num_episodes: Optional[int] = None,
         max_steps: Optional[int] = None,
+        post_episode_callback: Optional[Callable] = None,
         trainer_preprocessor=None,
         replay_buffer_inserter=None,
         device=None,
@@ -71,6 +74,7 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
             training_frequency=training_frequency,
             num_episodes=num_episodes,
             max_steps=max_steps,
+            post_episode_callback=post_episode_callback,
             trainer_preprocessor=trainer_preprocessor,
             replay_buffer_inserter=replay_buffer_inserter,
         )
@@ -89,9 +93,10 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
             terminal = False
             num_steps = 0
             episode_reward_sum = 0
+            trajectory = Trajectory()
             while not terminal:
                 action, log_prob = self._agent.act(obs, possible_actions_mask)
-                next_obs, reward, terminal, _ = self._env.step(action)
+                next_obs, reward, terminal, info = self._env.step(action)
                 next_possible_actions_mask = self._env.possible_actions_mask
                 if self._max_steps is not None and num_steps >= self._max_steps:
                     terminal = True
@@ -107,6 +112,7 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
                     log_prob=log_prob,
                     possible_actions_mask=possible_actions_mask,
                 )
+                trajectory.add_transition(transition)
                 self._replay_buffer_inserter(self._replay_buffer, transition)
                 episode_reward_sum += reward
                 if (
@@ -124,6 +130,8 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
                 possible_actions_mask = next_possible_actions_mask
                 num_steps += 1
                 global_num_steps += 1
+            if self._post_episode_callback:
+                self._post_episode_callback(trajectory, info)
 
             rewards.append(episode_reward_sum)
             mdp_id += 1
