@@ -151,7 +151,6 @@ class CpeDetails:
     def __init__(self):
         self.reward_estimates: CpeEstimateSet = CpeEstimateSet()
         self.metric_estimates: Dict[str, CpeEstimateSet] = {}
-        self.mc_loss: float = None
         self.q_value_means: Optional[Dict[str, float]] = None
         self.q_value_stds: Optional[Dict[str, float]] = None
         self.action_distribution: Optional[Dict[str, float]] = None
