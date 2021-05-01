@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple
 
 # Triggering registration to registries
 import reagent.core.result_types  # noqa
+import reagent.reporting.training_reports  # noqa
 import reagent.workflow.training_reports  # noqa
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.result_registries import (
