@@ -12,7 +12,6 @@ class DQNTrainingReport(TrainingReport):
     __registry_name__ = "dqn_report"
 
     td_loss: Optional[float] = None
-    mc_loss: Optional[float] = None
     reward_ips: Optional[CpeEstimate] = None
     reward_dm: Optional[CpeEstimate] = None
     reward_dr: Optional[CpeEstimate] = None

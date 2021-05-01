@@ -36,7 +36,6 @@ class EvaluationDataPage(rlt.TensorDataClass):
     model_rewards: torch.Tensor
     model_rewards_for_logged_action: torch.Tensor
     model_values: Optional[torch.Tensor] = None
-    model_values_for_logged_action: Optional[torch.Tensor] = None
     possible_actions_mask: Optional[torch.Tensor] = None
     optimal_q_values: Optional[torch.Tensor] = None
     eval_action_idxs: Optional[torch.Tensor] = None
@@ -212,8 +211,8 @@ class EvaluationDataPage(rlt.TensorDataClass):
         # Get Q-value of action taken
         possible_actions_state_concat = (rlt.FeatureData(tiled_state), possible_actions)
 
-        # FIXME: model_values, model_values_for_logged_action, and model_metrics_values
-        # should be calculated using q_network_cpe (as in discrete dqn).
+        # FIXME: model_values and model_metrics_values should be
+        # calculated using q_network_cpe (as in discrete dqn).
         # q_network_cpe has not been added in parametric dqn yet.
         model_values = trainer.q_network(*possible_actions_state_concat)
         optimal_q_values, _ = trainer.get_detached_model_outputs(
@@ -255,7 +254,6 @@ class EvaluationDataPage(rlt.TensorDataClass):
         model_metrics = rewards_and_metric_rewards[:, 1:]
         model_metrics = model_metrics.reshape(possible_actions_mask.shape[0], -1)
 
-        model_values_for_logged_action = trainer.q_network(states, actions)
         model_rewards_and_metrics_for_logged_action = trainer.reward_network(
             states, actions
         )
@@ -292,7 +290,6 @@ class EvaluationDataPage(rlt.TensorDataClass):
             model_rewards=model_rewards,
             model_rewards_for_logged_action=model_rewards_for_logged_action,
             model_values=model_values,
-            model_values_for_logged_action=model_values_for_logged_action,
             model_metrics_values=model_metrics_values,
             model_metrics_values_for_logged_action=model_metrics_values_for_logged_action,
             model_propensities=model_propensities,
@@ -356,9 +353,6 @@ class EvaluationDataPage(rlt.TensorDataClass):
             + str(model_values.shape)
             + " != "
             + str(possible_actions_mask.shape)
-        )
-        model_values_for_logged_action = torch.sum(
-            model_values * action_mask, dim=1, keepdim=True
         )
 
         # pyre-fixme[29]: `Union[nn.Module, torch.Tensor]` is not a function.
@@ -444,7 +438,6 @@ class EvaluationDataPage(rlt.TensorDataClass):
             model_rewards=model_rewards,
             model_rewards_for_logged_action=model_rewards_for_logged_action,
             model_values=model_values,
-            model_values_for_logged_action=model_values_for_logged_action,
             model_metrics_values=model_metrics_values,
             model_metrics_values_for_logged_action=model_metrics_values_for_logged_action,
             model_propensities=model_propensities,

@@ -113,10 +113,6 @@ class Evaluator:
                     / edp.eval_action_idxs.shape[0]
                     for i, action in enumerate(self.action_names)
                 }
-        # Compute MC Loss on Aggregate Reward
-        cpe_details.mc_loss = float(
-            F.mse_loss(edp.logged_values, edp.model_values_for_logged_action)
-        )
         # pyre-fixme[16]: `Evaluator` has no attribute `notify_observers`.
         self.notify_observers(cpe_details=cpe_details)
         return cpe_details
