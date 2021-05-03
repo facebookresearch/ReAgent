@@ -31,6 +31,7 @@ ml.rl.models.bcq module
 ml.rl.models.categorical\_dqn module
 ------------------------------------
 
+
 .. automodule:: ml.rl.models.categorical_dqn
    :members:
    :undoc-members:
@@ -131,6 +132,7 @@ ml.rl.models.seq2slate module
    :members:
    :undoc-members:
    :show-inheritance:
+   
 
 ml.rl.models.world\_model module
 --------------------------------
