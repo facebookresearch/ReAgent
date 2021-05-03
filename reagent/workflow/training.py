@@ -102,6 +102,7 @@ def query_and_train(
 ) -> RLTrainingOutput:
     child_workflow_id = get_workflow_id()
     if named_model_ids is None:
+        # pyre-fixme[20]: Argument `model_type_id` expected.
         named_model_ids = get_new_named_entity_ids(model.value.serving_module_names())
 
     logger.info("Starting query")
