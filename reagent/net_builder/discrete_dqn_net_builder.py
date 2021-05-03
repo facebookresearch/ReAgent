@@ -8,7 +8,10 @@ import torch
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.parameters import NormalizationData
 from reagent.models.base import ModelBase
-from reagent.prediction.predictor_wrapper import DiscreteDqnWithPreprocessor
+from reagent.prediction.predictor_wrapper import (
+    DiscreteDqnWithPreprocessor,
+    BinaryDifferenceScorerWithPreprocessor,
+)
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.preprocessing.preprocessor import Preprocessor
 
@@ -16,9 +19,13 @@ from reagent.preprocessing.preprocessor import Preprocessor
 if IS_FB_ENVIRONMENT:
     from reagent.fb.prediction.fb_predictor_wrapper import (
         FbDiscreteDqnPredictorWrapper as DiscreteDqnPredictorWrapper,
+        FbBinaryDifferenceScorerPredictorWrapper as BinaryDifferenceScorerPredictorWrapper,
     )
 else:
-    from reagent.prediction.predictor_wrapper import DiscreteDqnPredictorWrapper
+    from reagent.prediction.predictor_wrapper import (
+        DiscreteDqnPredictorWrapper,
+        BinaryDifferenceScorerPredictorWrapper,
+    )
 
 
 class DiscreteDQNNetBuilder:
@@ -58,4 +65,27 @@ class DiscreteDQNNetBuilder:
         )
         return DiscreteDqnPredictorWrapper(
             dqn_with_preprocessor, action_names, state_feature_config
+        )
+
+    def build_binary_difference_scorer(
+        self,
+        q_network: ModelBase,
+        state_normalization_data: NormalizationData,
+        action_names: List[str],
+        state_feature_config: rlt.ModelFeatureConfig,
+    ) -> torch.nn.Module:
+        """
+        Returns softmax(1) - softmax(0)
+        """
+        assert len(action_names) == 2
+        state_preprocessor = Preprocessor(
+            state_normalization_data.dense_normalization_parameters, False
+        )
+        binary_difference_scorer_with_preprocessor = (
+            BinaryDifferenceScorerWithPreprocessor(
+                q_network.cpu_model().eval(), state_preprocessor, state_feature_config
+            )
+        )
+        return BinaryDifferenceScorerPredictorWrapper(
+            binary_difference_scorer_with_preprocessor, state_feature_config
         )

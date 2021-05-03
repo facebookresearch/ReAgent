@@ -178,7 +178,10 @@ class DiscreteCRR(DiscreteDQNBase):
     # in utils.py
 
     def serving_module_names(self):
-        return ["default_model", "dqn", "actor_dqn"]
+        module_names = ["default_model", "dqn", "actor_dqn"]
+        if len(self.action_names) == 2:
+            module_names.append("binary_difference_scorer")
+        return module_names
 
     def build_serving_modules(self):
         """
@@ -186,16 +189,35 @@ class DiscreteCRR(DiscreteDQNBase):
         This helps putting the actor in places where DQN predictor wrapper is expected.
         If the policy is greedy, then this wrapper would work.
         """
-        return {
+        serving_modules = {
             "default_model": self.build_actor_module(),
             "dqn": self._build_dqn_module(self._q1_network),
             "actor_dqn": self._build_dqn_module(ActorDQN(self._actor_network)),
         }
+        if len(self.action_names) == 2:
+            serving_modules.update(
+                {
+                    "binary_difference_scorer": self._build_binary_difference_scorer(
+                        ActorDQN(self._actor_network)
+                    ),
+                }
+            )
+        return serving_modules
 
     def _build_dqn_module(self, network):
         critic_net_builder = self.critic_net_builder.value
         assert network is not None
         return critic_net_builder.build_serving_module(
+            network,
+            self.state_normalization_data,
+            action_names=self.action_names,
+            state_feature_config=self.state_feature_config,
+        )
+
+    def _build_binary_difference_scorer(self, network):
+        critic_net_builder = self.critic_net_builder.value
+        assert network is not None
+        return critic_net_builder.build_binary_difference_scorer(
             network,
             self.state_normalization_data,
             action_names=self.action_names,

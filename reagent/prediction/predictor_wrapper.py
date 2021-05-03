@@ -165,6 +165,64 @@ class OSSSparsePredictorUnwrapper(nn.Module):
         )
 
 
+class BinaryDifferenceScorerWithPreprocessor(ModelBase):
+    """
+    This is separated from DiscreteDqnPredictorWrapper so that we can pass typed inputs
+    into the model. This is possible because JIT only traces tensor operation.
+    In contrast, JIT scripting needs to compile the code, therefore, it won't recognize
+    any custom Python type.
+    """
+
+    def __init__(
+        self,
+        model: ModelBase,
+        state_preprocessor: Preprocessor,
+        state_feature_config: rlt.ModelFeatureConfig,
+    ):
+        super().__init__()
+        self.model = model
+        self.state_preprocessor = state_preprocessor
+        self.state_feature_config = state_feature_config
+        self.sparse_preprocessor = make_sparse_preprocessor(
+            self.state_feature_config, device=torch.device("cpu")
+        )
+
+    def forward(self, state: rlt.ServingFeatureData):
+        state_feature_data = serving_to_feature_data(
+            state, self.state_preprocessor, self.sparse_preprocessor
+        )
+        q_values = self.model(state_feature_data)
+        assert q_values.shape[1] == 2, f"{q_values.shape}"
+        softmax_vals = F.softmax(q_values, dim=1)
+        return softmax_vals[:, 1] - softmax_vals[:, 0]
+
+    def input_prototype(self):
+        return sparse_input_prototype(
+            model=self.model,
+            state_preprocessor=self.state_preprocessor,
+            state_feature_config=self.state_feature_config,
+        )
+
+
+class BinaryDifferenceScorerPredictorWrapper(torch.jit.ScriptModule):
+    def __init__(
+        self,
+        binary_difference_scorer_with_preprocessor: BinaryDifferenceScorerWithPreprocessor,
+        state_feature_config: rlt.ModelFeatureConfig,
+    ) -> None:
+        super().__init__()
+        self.binary_difference_scorer_with_preprocessor = torch.jit.trace(
+            binary_difference_scorer_with_preprocessor,
+            binary_difference_scorer_with_preprocessor.input_prototype(),
+        )
+
+    # pyre-fixme[56]: Decorator `torch.jit.script_method` could not be resolved in a
+    #  global scope.
+    @torch.jit.script_method
+    def forward(self, state: rlt.ServingFeatureData) -> torch.Tensor:
+        return self.binary_difference_scorer_with_preprocessor(state)
+
+
 # Pass through serving module's output
 class OSSPredictorUnwrapper(nn.Module):
     def __init__(self, model: nn.Module) -> None:

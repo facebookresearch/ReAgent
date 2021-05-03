@@ -7,7 +7,6 @@ from reagent.core.parameters import NormalizationData, NormalizationKey
 from reagent.data.data_fetcher import DataFetcher
 from reagent.data.reagent_data_module import ReAgentDataModule
 from reagent.gym.policies.policy import Policy
-from reagent.model_managers.model_manager import ModelManager
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.workflow.types import (
     Dataset,
@@ -17,6 +16,11 @@ from reagent.workflow.types import (
     RLTrainingOutput,
     TableSpec,
 )
+
+try:
+    from reagent.model_managers.fb.model_manager import ModelManager
+except ImportError:
+    from reagent.model_managers.model_manager import ModelManager
 
 
 logger = logging.getLogger(__name__)
