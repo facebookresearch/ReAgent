@@ -62,7 +62,6 @@ class RewardNetTrainer(Trainer):
     def __init__(
         self,
         reward_net: ModelBase,
-        use_gpu: bool = False,
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
@@ -71,7 +70,6 @@ class RewardNetTrainer(Trainer):
         weighted_by_inverse_propensity: bool = False,
     ) -> None:
         self.reward_net = reward_net
-        self.use_gpu = use_gpu
         self.minibatch = 0
         self.opt = optimizer.make_optimizer(self.reward_net.parameters())
         self.loss_type = loss_type
@@ -81,17 +79,28 @@ class RewardNetTrainer(Trainer):
             loss_type, reward_ignore_threshold, weighted_by_inverse_propensity
         )
 
-    def train(self, training_batch: rlt.PreprocessedRankingInput):
+    def train(self, training_batch: rlt.TensorDataClass):
+        weight = None
         if isinstance(training_batch, rlt.PreprocessedRankingInput):
             target_reward = training_batch.slate_reward
+            if self.weighted_by_inverse_propensity:
+                assert training_batch.tgt_out_probs is not None
+                # pyre-fixme[58]: `/` is not supported for operand types `float` and
+                #  `Optional[torch.Tensor]`.
+                weight = 1.0 / training_batch.tgt_out_probs
         else:
             target_reward = training_batch.reward
+            assert (
+                not self.weighted_by_inverse_propensity
+            ), f"Sampling Weighting not implemented for {type(training_batch)}"
 
         predicted_reward = self.reward_net(training_batch).predicted_reward
-        # pyre-fixme[58]: `/` is not supported for operand types `float` and
-        #  `Optional[torch.Tensor]`.
-        weight = 1.0 / training_batch.tgt_out_probs
 
+        assert (
+            predicted_reward.shape == target_reward.shape
+            and len(target_reward.shape) == 2
+            and target_reward.shape[1] == 1
+        )
         loss = self.loss_fn(predicted_reward, target_reward, weight)
         self.opt.zero_grad()
         loss.backward()

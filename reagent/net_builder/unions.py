@@ -28,6 +28,9 @@ from .parametric_dqn.fully_connected import (
 )
 from .quantile_dqn.dueling_quantile import DuelingQuantile as DuelingQuantileType
 from .quantile_dqn.quantile import Quantile as QuantileType
+from .synthetic_reward.single_step_synthetic_reward import (
+    SingleStepSyntheticReward as SingleStepSyntheticRewardType,
+)
 from .value.fully_connected import FullyConnected as FullyConnectedValueType
 from .value.seq2reward_rnn import Seq2RewardNetBuilder as Seq2RewardNetBuilderType
 
@@ -71,3 +74,8 @@ class ParametricDQNNetBuilder__Union(TaggedUnion):
 class ValueNetBuilder__Union(TaggedUnion):
     FullyConnected: Optional[FullyConnectedValueType] = None
     Seq2RewardNetBuilder: Optional[Seq2RewardNetBuilderType] = None
+
+
+@wrap_oss_with_dataclass
+class SyntheticRewardNetBuilder__Union(TaggedUnion):
+    SingleStepSyntheticReward: Optional[SingleStepSyntheticRewardType] = None
