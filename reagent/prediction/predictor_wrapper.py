@@ -134,8 +134,6 @@ class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
         )
         self.action_names = torch.jit.Attribute(action_names, List[str])
 
-    # pyre-fixme[56]: Decorator `torch.jit.script_method` could not be resolved in a
-    #  global scope.
     @torch.jit.script_method
     def forward(self, state: rlt.ServingFeatureData) -> Tuple[List[str], torch.Tensor]:
         q_values = self.dqn_with_preprocessor(state)
@@ -216,8 +214,6 @@ class BinaryDifferenceScorerPredictorWrapper(torch.jit.ScriptModule):
             binary_difference_scorer_with_preprocessor.input_prototype(),
         )
 
-    # pyre-fixme[56]: Decorator `torch.jit.script_method` could not be resolved in a
-    #  global scope.
     @torch.jit.script_method
     def forward(self, state: rlt.ServingFeatureData) -> torch.Tensor:
         return self.binary_difference_scorer_with_preprocessor(state)
@@ -281,8 +277,6 @@ class ParametricDqnPredictorWrapper(torch.jit.ScriptModule):
             dqn_with_preprocessor, dqn_with_preprocessor.input_prototype()
         )
 
-    # pyre-fixme[56]: Decorator `torch.jit.script_method` could not be resolved in a
-    #  global scope.
     @torch.jit.script_method
     def forward(
         self,
@@ -354,8 +348,6 @@ class ActorPredictorWrapper(torch.jit.ScriptModule):
             actor_with_preprocessor, actor_with_preprocessor.input_prototype()
         )
 
-    # pyre-fixme[56]: Decorator `torch.jit.script_method` could not be resolved in a
-    #  global scope.
     @torch.jit.script_method
     def forward(
         self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]
@@ -429,8 +421,6 @@ class RankingActorPredictorWrapper(torch.jit.ScriptModule):
             check_trace=False,
         )
 
-    # pyre-fixme[56]: Pyre was not able to infer the type of the decorator
-    #  `torch.jit.script_method`.
     @torch.jit.script_method
     def forward(
         self,
@@ -616,8 +606,6 @@ class Seq2SlatePredictorWrapper(torch.jit.ScriptModule):
                 seq2slate_with_preprocessor
             )
 
-    # pyre-fixme[56]: Decorator `torch.jit.script_method` could not be resolved in a
-    #  global scope.
     @torch.jit.script_method
     def forward(
         self,

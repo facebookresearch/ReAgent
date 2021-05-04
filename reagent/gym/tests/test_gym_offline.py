@@ -62,8 +62,6 @@ class TestGymOffline(HorizonTestBase):
     # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(GYM_TESTS)
     @pytest.mark.serial
-    # pyre-fixme[56]: Argument `not torch.cuda.is_available()` to decorator factory
-    #  `unittest.skipIf` could not be resolved in a global scope.
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_gym_offline_gpu(self, name: str, config_path: str):
         self.run_from_config(

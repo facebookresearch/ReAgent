@@ -18,8 +18,6 @@ class ParametricSingleStepSyntheticRewardPredictorWrapper(
     ) -> None:
         super().__init__(synthetic_reward_with_preprocessor)
 
-    # pyre-fixme[56]: Decorator `torch.jit.script_method` could not be resolved in a
-    #  global scope.
     @torch.jit.script_method
     def forward(
         self,
