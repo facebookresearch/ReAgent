@@ -102,8 +102,6 @@ class TestGym(HorizonTestBase):
     # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(REPLAY_BUFFER_GYM_TESTS)
     @pytest.mark.serial
-    # pyre-fixme[56]: Argument `not torch.cuda.is_available()` to decorator factory
-    #  `unittest.skipIf` could not be resolved in a global scope.
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_replay_buffer_gym_gpu(self, name: str, config_path: str):
         logger.info(f"Starting {name} on GPU")

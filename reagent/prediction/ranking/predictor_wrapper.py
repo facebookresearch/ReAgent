@@ -32,8 +32,6 @@ class DeterminantalPointProcessPredictorWrapper(torch.jit.ScriptModule):
             chosen.append(torch.argmax(unchosen_dets).item())
         return torch.tensor(chosen), dets
 
-    # pyre-fixme[56]: Decorator `torch.jit.script_method` could not be resolved in a
-    #  global scope.
     @torch.jit.script_method
     def forward(
         self,
