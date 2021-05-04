@@ -19,6 +19,7 @@ from .model_based import (
     CrossEntropyMethod as CrossEntropyMethodType,
     Seq2RewardModel as Seq2RewardModelType,
     WorldModel as WorldModelType,
+    SyntheticReward as SyntheticRewardType,
 )
 from .parametric import ParametricDQN as ParametricDQNType
 from .policy_gradient import PPO as PPOType, Reinforce as ReinforceType
@@ -38,6 +39,7 @@ class ModelManager__Union(TaggedUnion):
     CrossEntropyMethod: Optional[CrossEntropyMethodType] = None
     Seq2RewardModel: Optional[Seq2RewardModelType] = None
     WorldModel: Optional[WorldModelType] = None
+    SyntheticReward: Optional[SyntheticRewardType] = None
 
     ParametricDQN: Optional[ParametricDQNType] = None
 

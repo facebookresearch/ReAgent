@@ -21,3 +21,12 @@ class DataFetcher:
         gamma: Optional[float] = None,
     ) -> Dataset:
         raise NotImplementedError()
+
+    def query_data_synthetic_reward(
+        self,
+        input_table_spec: TableSpec,
+        discrete_action_names: Optional[List[str]] = None,
+        sample_range: Optional[Tuple[float, float]] = None,
+        max_seq_len: Optional[int] = None,
+    ) -> Dataset:
+        raise NotImplementedError()
