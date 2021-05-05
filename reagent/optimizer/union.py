@@ -51,7 +51,7 @@ for name in get_torch_optimizers():
 class Optimizer__Union(TaggedUnion):
     @classmethod
     def default(cls, **kwargs):
-        """ Return default factory for Optimizer (defaulting to Adam). """
+        """Return default factory for Optimizer (defaulting to Adam)."""
         return (
             cls(Adam=classes["Adam"]())
             if kwargs == {}

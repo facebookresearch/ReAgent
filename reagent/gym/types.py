@@ -32,7 +32,7 @@ class Transition(rlt.BaseDataClass):
 
 
 def get_optional_fields(cls) -> List[str]:
-    """ return list of optional annotated fields """
+    """return list of optional annotated fields"""
     ret: List[str] = []
     for f in fields(cls):
         # Check if exactly two arguments exists and one of them are None type
@@ -78,7 +78,7 @@ class Trajectory(rlt.BaseDataClass):
         return ret
 
     def calculate_cumulative_reward(self, gamma: float = 1.0):
-        """ Return (discounted) sum of rewards. """
+        """Return (discounted) sum of rewards."""
         num_transitions = len(self)
         assert num_transitions > 0, "called on empty trajectory"
         rewards = self.reward
@@ -117,7 +117,7 @@ class Sampler(ABC):
         raise NotImplementedError()
 
     def update(self) -> None:
-        """ Call to update internal parameters (e.g. decay epsilon) """
+        """Call to update internal parameters (e.g. decay epsilon)"""
         pass
 
 

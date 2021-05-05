@@ -50,7 +50,7 @@ class ValuePresence:
 
 
 class Lambda:
-    """ For simple transforms """
+    """For simple transforms"""
 
     def __init__(self, keys: List[str], fn: Callable):
         self.keys = keys

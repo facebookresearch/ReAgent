@@ -16,7 +16,7 @@ def rescale_actions(
     prev_min: torch.Tensor,
     prev_max: torch.Tensor,
 ) -> torch.Tensor:
-    """ Scale from [prev_min, prev_max] to [new_min, new_max] """
+    """Scale from [prev_min, prev_max] to [new_min, new_max]"""
     assert torch.all(prev_min <= actions) and torch.all(
         actions <= prev_max
     ), f"{actions} has values outside of [{prev_min}, {prev_max}]."

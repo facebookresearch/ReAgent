@@ -52,7 +52,7 @@ def get_petastorm_dataloader(
     use_gpu: bool,
     reader_options: ReaderOptions,
 ):
-    """ get petastorm loader for dataset (with preprocessor) """
+    """get petastorm loader for dataset (with preprocessor)"""
     data_reader = make_batch_reader(
         dataset.parquet_url,
         num_epochs=1,

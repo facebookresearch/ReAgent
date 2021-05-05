@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class CompressModelTrainer(ReAgentLightningModule):
-    """ Trainer for fitting Seq2Reward planning outcomes to a neural network-based policy """
+    """Trainer for fitting Seq2Reward planning outcomes to a neural network-based policy"""
 
     def __init__(
         self,

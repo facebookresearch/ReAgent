@@ -160,7 +160,7 @@ def train_mdnrnn_and_compute_feature_stats(
     use_gpu: bool,
     saved_mdnrnn_path: Optional[str] = None,
 ):
-    """ Train MDNRNN Memory Network and compute feature importance/sensitivity. """
+    """Train MDNRNN Memory Network and compute feature importance/sensitivity."""
     env: gym.Env = Gym(env_name=env_name)
     env.seed(SEED)
 
@@ -277,7 +277,7 @@ def train_mdnrnn_and_train_on_embedded_env(
     # pyre-fixme[9]: saved_mdnrnn_path has type `str`; used as `None`.
     saved_mdnrnn_path: str = None,
 ):
-    """ Train an agent on embedded states by the MDNRNN. """
+    """Train an agent on embedded states by the MDNRNN."""
     env = Gym(env_name=env_name)
     env.seed(SEED)
 
@@ -383,7 +383,7 @@ class TestWorldModel(HorizonTestBase):
         ), f"top_feature: {top_feature}, expected_top_features: {expected_top_features}"
 
     def test_mdnrnn(self):
-        """ Test MDNRNN feature importance and feature sensitivity. """
+        """Test MDNRNN feature importance and feature sensitivity."""
         config_path = "configs/world_model/cartpole_features.yaml"
         feature_importance, feature_sensitivity = self.run_from_config(
             run_test=train_mdnrnn_and_compute_feature_stats,
@@ -396,7 +396,7 @@ class TestWorldModel(HorizonTestBase):
 
     @unittest.skip("This test has to be migrated to Lightning")
     def test_world_model(self):
-        """ Train DQN on POMDP given features from world model. """
+        """Train DQN on POMDP given features from world model."""
         config_path = "configs/world_model/discrete_dqn_string.yaml"
         HorizonTestBase.run_from_config(
             run_test=train_mdnrnn_and_train_on_embedded_env,

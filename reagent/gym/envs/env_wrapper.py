@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
-    """ Wrapper around it's environment, to simplify configuration. """
+    """Wrapper around it's environment, to simplify configuration."""
 
     def __post_init_post_parse__(self):
         super().__init__(self.make())

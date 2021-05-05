@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class MDNRNNTrainer(ReAgentLightningModule):
-    """ Trainer for MDN-RNN """
+    """Trainer for MDN-RNN"""
 
     def __init__(
         self,

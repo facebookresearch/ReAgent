@@ -93,7 +93,7 @@ def subsequent_mask(size: int, device: torch.device):
 
 # TODO (@czxttkl): use when we introduce padding
 def subsequent_and_padding_mask(tgt_in_idx):
-    """ Create a mask to hide padding and future items """
+    """Create a mask to hide padding and future items"""
     # tgt_in_idx shape: batch_size, seq_len
 
     # tgt_tgt_mask shape: batch_size, 1, seq_len
@@ -116,7 +116,7 @@ def clones(module, N):
 
 
 def attention(query, key, value, mask, d_k):
-    """ Scaled Dot Product Attention """
+    """Scaled Dot Product Attention"""
     # mask shape: batch_size x 1 x seq_len x seq_len
 
     # scores shape: batch_size x num_heads x seq_len x seq_len
@@ -130,7 +130,7 @@ def attention(query, key, value, mask, d_k):
 
 
 def per_symbol_to_per_seq_log_probs(per_symbol_log_probs, tgt_out_idx):
-    """ Gather per-symbol log probabilities into per-seq log probabilities """
+    """Gather per-symbol log probabilities into per-seq log probabilities"""
     # per_symbol_log_probs shape: batch_size, seq_len, candidate_size
     # tgt_out_idx shape: batch_size, seq_len
     # per_symbol_log_probs is log probability of each symbol in the tgt_out_idx
@@ -143,7 +143,7 @@ def per_symbol_to_per_seq_log_probs(per_symbol_log_probs, tgt_out_idx):
 
 
 def per_symbol_to_per_seq_probs(per_symbol_probs, tgt_out_idx):
-    """ Gather per-symbol probabilities into per-seq probabilities """
+    """Gather per-symbol probabilities into per-seq probabilities"""
     # per_symbol_probs shape: batch_size, seq_len, candidate_size
     # tgt_out_idx shape: batch_size, seq_len
     # output shape: batch_size, 1

@@ -71,7 +71,7 @@ class StateEmbedEnvironment(gym.Env):
 
     @torch.no_grad()
     def embed_state(self, state):
-        """ Embed state after either reset() or step() """
+        """Embed state after either reset() or step()"""
         assert len(self.recent_states) == len(self.recent_actions)
         old_mdnrnn_mode = self.mdnrnn.mdnrnn.training
         self.mdnrnn.mdnrnn.eval()

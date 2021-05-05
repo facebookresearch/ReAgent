@@ -71,7 +71,7 @@ def get_Q(
 
 
 class Seq2RewardTrainer(ReAgentLightningModule):
-    """ Trainer for Seq2Reward """
+    """Trainer for Seq2Reward"""
 
     def __init__(
         self, seq2reward_network: Seq2RewardNetwork, params: Seq2RewardTrainerParameters

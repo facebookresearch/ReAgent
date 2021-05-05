@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class RewardNetEvaluator:
-    """ Evaluate reward networks """
+    """Evaluate reward networks"""
 
     def __init__(self, trainer: RewardNetTrainer) -> None:
         self.trainer = trainer

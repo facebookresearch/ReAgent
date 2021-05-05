@@ -162,7 +162,7 @@ class PPOTrainer(ReAgentLightningModule):
         return None, opts[0]
 
     def placeholder_loss(self):
-        """ PPO Trainer performs manual updates. Return placeholder losses to Pytorch Lightning. """
+        """PPO Trainer performs manual updates. Return placeholder losses to Pytorch Lightning."""
         return [None] * len(self.optimizers())
 
     def train_step_gen(self, training_batch: rlt.PolicyGradientInput, batch_idx: int):

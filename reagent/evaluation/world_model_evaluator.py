@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class LossEvaluator(object):
-    """ Evaluate losses on data pages """
+    """Evaluate losses on data pages"""
 
     def __init__(self, trainer: MDNRNNTrainer, state_dim: int) -> None:
         self.trainer = trainer
@@ -33,7 +33,7 @@ class LossEvaluator(object):
 
 
 class FeatureImportanceEvaluator(object):
-    """ Evaluate feature importance weights on data pages """
+    """Evaluate feature importance weights on data pages"""
 
     def __init__(
         self,
@@ -172,7 +172,7 @@ class FeatureImportanceEvaluator(object):
 
 
 class FeatureSensitivityEvaluator(object):
-    """ Evaluate state feature sensitivity caused by varying actions """
+    """Evaluate state feature sensitivity caused by varying actions"""
 
     def __init__(
         self,

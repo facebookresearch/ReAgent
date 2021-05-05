@@ -100,7 +100,7 @@ class Agent:
     def act(
         self, obs: Any, possible_actions_mask: Optional[np.ndarray] = None
     ) -> Tuple[Any, Optional[float]]:
-        """ Act on a single observation """
+        """Act on a single observation"""
         # preprocess and convert to batch data
         preprocessed_obs = self.obs_preprocessor(obs)
 
@@ -112,14 +112,14 @@ class Agent:
         return self.action_extractor(actor_output), log_prob
 
     def post_step(self, transition: Transition):
-        """ to be called after step(action) """
+        """to be called after step(action)"""
         if self.post_transition_callback is not None:
             # pyre-fixme[29]: `Optional[typing.Callable[[Transition], None]]` is not
             #  a function.
             self.post_transition_callback(transition)
 
     def post_episode(self, trajectory: Trajectory):
-        """ to be called after step(action) """
+        """to be called after step(action)"""
         if self.post_episode_callback is not None:
             # pyre-fixme[29]: `Optional[typing.Callable[[Trajectory], None]]` is not
             #  a function.

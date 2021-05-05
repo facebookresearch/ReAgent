@@ -134,7 +134,7 @@ class DQNTrainer(DQNTrainerBaseLightning):
     def get_detached_model_outputs(
         self, state
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
-        """ Gets the q values from the model and target networks """
+        """Gets the q values from the model and target networks"""
         q_values = self.q_network(state)
         q_values_target = self.q_network_target(state)
         return q_values, q_values_target

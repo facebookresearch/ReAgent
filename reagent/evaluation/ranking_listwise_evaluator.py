@@ -41,7 +41,7 @@ class ListwiseRankingMetrics:
     base_auc=torch.Tensor,
 )
 class RankingListwiseEvaluator:
-    """ Evaluate listwise ranking models on common ranking metrics """
+    """Evaluate listwise ranking models on common ranking metrics"""
 
     def __init__(self, seq2slate_net, slate_size: int, calc_cpe: bool) -> None:
         self.seq2slate_net = seq2slate_net

@@ -15,7 +15,7 @@ from gym.spaces import Box, Discrete
 
 
 def _get_state(step_idx, max_steps):
-    """ One-hot encoding of which state we're on """
+    """One-hot encoding of which state we're on"""
     zeros = np.zeros(max_steps, dtype=np.float32)
     if step_idx == max_steps:
         return zeros

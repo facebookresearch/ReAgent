@@ -20,7 +20,7 @@ class Concat(nn.Module):
 
 # pyre-fixme[11]: Annotation `Sequential` is not defined as a type.
 class SequentialMultiArguments(nn.Sequential):
-    """ Sequential which can take more than 1 argument in forward function """
+    """Sequential which can take more than 1 argument in forward function"""
 
     def forward(self, *inputs):
         for module in self._modules.values():

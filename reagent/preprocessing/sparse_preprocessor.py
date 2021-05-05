@@ -33,7 +33,7 @@ def map_id_score_list(
 def make_sparse_preprocessor(
     feature_config: rlt.ModelFeatureConfig, device: torch.device
 ):
-    """ Helper to initialize, for scripting SparsePreprocessor """
+    """Helper to initialize, for scripting SparsePreprocessor"""
     id2name: Dict[int, str] = feature_config.id2name
     id2mapping: Dict[int, Dict[int, int]] = {
         fid: feature_config.id_mapping_config[

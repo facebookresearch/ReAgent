@@ -39,7 +39,7 @@ except ImportError:
 
 
 def fill_replay_buffer(env, replay_buffer: ReplayBuffer, desired_size: int):
-    """ Fill replay buffer with random transitions until size reaches desired_size. """
+    """Fill replay buffer with random transitions until size reaches desired_size."""
     assert (
         0 < desired_size and desired_size <= replay_buffer._replay_capacity
     ), f"It's not true that 0 < {desired_size} <= {replay_buffer._replay_capacity}."
@@ -184,17 +184,17 @@ def create_df_from_replay_buffer(
     logger.info(f"Creating df of size {n}.")
 
     def discrete_feat_transform(elem) -> str:
-        """ query data expects str format """
+        """query data expects str format"""
         return str(elem.item())
 
     def continuous_feat_transform(elem: List[float]) -> Dict[int, float]:
-        """ query data expects sparse format """
+        """query data expects sparse format"""
         assert isinstance(elem, torch.Tensor), f"{type(elem)} isn't tensor"
         assert len(elem.shape) == 1, f"{elem.shape} isn't 1-dimensional"
         return {i: s.item() for i, s in enumerate(elem)}
 
     def make_parametric_feat_transform(one_hot_dim: int):
-        """ one-hot and then continuous_feat_transform """
+        """one-hot and then continuous_feat_transform"""
 
         def transform(elem) -> Dict[int, float]:
             elem_tensor = torch.tensor(elem.item())

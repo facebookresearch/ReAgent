@@ -55,12 +55,12 @@ class ElementMetadata:
 
     @abc.abstractmethod
     def zero_example(self):
-        """ What would an empty `input` example look like? """
+        """What would an empty `input` example look like?"""
         raise NotImplementedError()
 
     @abc.abstractmethod
     def validate(self, name: str, input):
-        """ Does the input look correct? """
+        """Does the input look correct?"""
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -72,7 +72,7 @@ class ElementMetadata:
 
     @abc.abstractmethod
     def input_to_storage(self, input):
-        """ Convert `input` to the "internal representation" of the replay buffer. """
+        """Convert `input` to the "internal representation" of the replay buffer."""
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -388,7 +388,7 @@ class ReplayBuffer(object):
         self._transition_elements = {}
 
     def initialize_buffer(self, **kwargs):
-        """ Initialize replay buffer based on first input """
+        """Initialize replay buffer based on first input"""
         kwarg_keys = set(kwargs.keys())
         assert set(REQUIRED_KEYS).issubset(
             kwarg_keys
@@ -746,7 +746,7 @@ class ReplayBuffer(object):
         return rewards.sum(dim=1)
 
     def _get_stack_for_indices(self, key: str, indices: torch.Tensor) -> torch.Tensor:
-        """ Get stack of transition data. """
+        """Get stack of transition data."""
         assert len(indices.shape) == 1, f"{indices.shape} not 1-dimensional"
         # calculate 2d array of indices of shape (batch_size, stack_size)
         # ith row contain indices in the stack of obs at indices[i]

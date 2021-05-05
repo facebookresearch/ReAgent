@@ -85,7 +85,7 @@ def identify_normalization_parameters(
     preprocessing_options: PreprocessingOptions,
     seed: Optional[int] = None,
 ) -> Dict[int, NormalizationParameters]:
-    """ Get normalization parameters """
+    """Get normalization parameters"""
     sqlCtx = get_spark_session()
     df = sqlCtx.sql(f"SELECT * FROM {table_spec.table_name}")
     df = create_normalization_spec_spark(

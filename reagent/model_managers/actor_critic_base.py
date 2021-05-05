@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 
 
 class ActorPolicyWrapper(Policy):
-    """ Actor's forward function is our act """
+    """Actor's forward function is our act"""
 
     def __init__(self, actor_network):
         self.actor_network = actor_network
@@ -107,7 +107,7 @@ class ActorCriticBase(ModelManager):
         return self.eval_parameters.calc_cpe_in_training
 
     def create_policy(self, serving: bool) -> Policy:
-        """ Create online actor critic policy. """
+        """Create online actor critic policy."""
 
         if serving:
             return create_predictor_policy_from_model(self.build_serving_module())
