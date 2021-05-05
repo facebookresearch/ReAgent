@@ -52,7 +52,7 @@ from .scheduler import LearningRateSchedulerConfig
 from .utils import is_torch_optimizer
 
 
-@dataclass(frozen=True)
+@dataclass
 class Optimizer:
     # This is the wrapper for optimizer + scheduler
     optimizer: torch.optim.Optimizer
@@ -63,8 +63,25 @@ class Optimizer:
         for lr_scheduler in self.lr_schedulers:
             lr_scheduler.step()
 
-    def __getattr__(self, attr):
-        return getattr(self.optimizer, attr)
+    @property
+    def param_groups(self):
+        return self.optimizer.param_groups
+
+    @property
+    def state(self):
+        return self.optimizer.state
+
+    @state.setter
+    def state(self, new_state):
+        self.optimizer.state = new_state
+
+    @property
+    def state_dict(self):
+        return self.optimizer.state_dict
+
+    @property
+    def zero_grad(self):
+        return self.optimizer.zero_grad
 
 
 @dataclass(frozen=True)
