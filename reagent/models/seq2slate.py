@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 class Generator(nn.Module):
-    """ Candidate generation """
+    """Candidate generation"""
 
     def forward(self, probs: torch.Tensor, greedy: bool):
         """
@@ -86,7 +86,7 @@ class Encoder(nn.Module):
 
 
 class EncoderLayer(nn.Module):
-    """ Encoder is made up of self-attn and feed forward """
+    """Encoder is made up of self-attn and feed forward"""
 
     def __init__(self, dim_model, self_attn, feed_forward):
         super().__init__()
@@ -109,7 +109,7 @@ class EncoderLayer(nn.Module):
 
 
 class Decoder(nn.Module):
-    """ Generic num_layers layer decoder with masking."""
+    """Generic num_layers layer decoder with masking."""
 
     def __init__(self, layer, num_layers):
         super().__init__()
@@ -124,7 +124,7 @@ class Decoder(nn.Module):
 
 
 class DecoderLayer(nn.Module):
-    """ Decoder is made of self-attn, src-attn, and feed forward """
+    """Decoder is made of self-attn, src-attn, and feed forward"""
 
     def __init__(self, size, self_attn, src_attn, feed_forward):
         super().__init__()
@@ -154,7 +154,7 @@ class DecoderLayer(nn.Module):
 
 
 class EncoderPyTorch(nn.Module):
-    """ Transformer-based encoder based on PyTorch official implementation """
+    """Transformer-based encoder based on PyTorch official implementation"""
 
     def __init__(self, dim_model, num_heads, dim_feedforward, num_layers):
         super().__init__()
@@ -204,7 +204,7 @@ class DecoderLastLayerPytorch(transformer.TransformerDecoderLayer):
 
 
 class DecoderPyTorch(nn.Module):
-    """ Transformer-based decoder based on PyTorch official implementation """
+    """Transformer-based decoder based on PyTorch official implementation"""
 
     def __init__(self, dim_model, num_heads, dim_feedforward, num_layers):
         super().__init__()
@@ -260,7 +260,7 @@ class DecoderPyTorch(nn.Module):
 
 class MultiHeadedAttention(nn.Module):
     def __init__(self, num_heads, dim_model):
-        """ Take in model size and number of heads """
+        """Take in model size and number of heads"""
         super().__init__()
         assert dim_model % num_heads == 0
         # We assume d_v always equals d_k
@@ -553,7 +553,7 @@ class Seq2SlateTransformerModel(nn.Module):
     def _rank(
         self, state: torch.Tensor, src_seq: torch.Tensor, tgt_seq_len: int, greedy: bool
     ) -> Seq2SlateTransformerOutput:
-        """ Decode sequences based on given inputs """
+        """Decode sequences based on given inputs"""
         device = src_seq.device
         batch_size, src_seq_len, candidate_dim = src_seq.shape
         candidate_size = src_seq_len + 2
@@ -609,7 +609,7 @@ class Seq2SlateTransformerModel(nn.Module):
         candidate_features: torch.Tensor,
         tgt_seq_len: int,
     ):
-        """ Using the first step decoder scores to greedily sort items """
+        """Using the first step decoder scores to greedily sort items"""
         # candidate_features shape: batch_size, src_seq_len + 2, candidate_dim
 
         batch_size, candidate_size, _ = candidate_features.shape

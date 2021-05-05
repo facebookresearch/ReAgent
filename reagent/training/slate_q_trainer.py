@@ -86,7 +86,7 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
     def _get_unmasked_q_values(
         self, q_network, state: rlt.FeatureData, slate: rlt.DocList
     ) -> torch.Tensor:
-        """ Gets the q values from the model and target networks """
+        """Gets the q values from the model and target networks"""
         batch_size, slate_size, _ = slate.float_features.shape
         # TODO: Probably should create a new model type
         return q_network(

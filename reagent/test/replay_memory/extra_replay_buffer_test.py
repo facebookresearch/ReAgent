@@ -23,7 +23,7 @@ Terminal states are derived from Trajectory lengths array.
 
 
 def get_add_transition(i):
-    """ For adding into RB """
+    """For adding into RB"""
     return {
         "state": np.ones(OBS_SHAPE) * i,
         "action": int(i),
@@ -41,7 +41,7 @@ ZERO_FEATURES = {
 
 
 def get_stacked_transition(i, stack_size, traj_start_idx):
-    """ For getting expected stacked state of i """
+    """For getting expected stacked state of i"""
     res = {k: [] for k in ["state", "action", "reward", "extra1"]}
     # must pad with some zero states
     for idx in range(i - stack_size + 1, i + 1):
@@ -53,7 +53,7 @@ def get_stacked_transition(i, stack_size, traj_start_idx):
 
 
 def setup_buffer(buffer_size, trajectory_lengths, stack_size=None, multi_steps=None):
-    """ We will insert one trajectory into the RB. """
+    """We will insert one trajectory into the RB."""
     stack_size = stack_size if stack_size is not None else 1
     update_horizon = multi_steps if multi_steps is not None else 1
     memory = ReplayBuffer(
@@ -223,7 +223,7 @@ NUM_TRAJ_LIMIT = 10
 
 
 class ExtraReplayBufferTest(HorizonTestBase):
-    """ Stress tests for the replay buffer, especially for new flags. """
+    """Stress tests for the replay buffer, especially for new flags."""
 
     def test_stack_slaughter(self):
         stack_size = 7

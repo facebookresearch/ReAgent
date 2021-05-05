@@ -198,7 +198,7 @@ class CEMPlannerNetwork(nn.Module):
     def sample_reward_next_state_terminal(
         self, state: rlt.FeatureData, action: rlt.FeatureData, mem_net: MemoryNetwork
     ):
-        """ Sample one-step dynamics based on the provided world model """
+        """Sample one-step dynamics based on the provided world model"""
         wm_output = mem_net(state, action)
         num_mixtures = wm_output.logpi.shape[2]
         mixture_idx = (

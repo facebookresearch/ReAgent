@@ -35,7 +35,7 @@ class WorldModelBase(ModelManager):
         raise NotImplementedError()
 
     def create_policy(self) -> Policy:
-        """ Create a WorldModel Policy from env. """
+        """Create a WorldModel Policy from env."""
         raise NotImplementedError()
 
     @property

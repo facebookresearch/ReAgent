@@ -79,7 +79,7 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
     def get_detached_model_outputs(
         self, state, action
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """ Gets the q values from the model and target networks """
+        """Gets the q values from the model and target networks"""
         q_values = self.q_network(state, action)
         q_values_target = self.q_network_target(state, action)
         return q_values, q_values_target

@@ -70,7 +70,7 @@ class ParametricDQNBase(ModelManager):
         self._metrics_to_score: Optional[List[str]] = None
 
     def create_policy(self, serving: bool) -> Policy:
-        """ Create an online DiscreteDQN Policy from env. """
+        """Create an online DiscreteDQN Policy from env."""
 
         # FIXME: this only works for one-hot encoded actions
         action_dim = get_num_output_features(

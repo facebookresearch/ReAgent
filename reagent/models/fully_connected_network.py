@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def gaussian_fill_w_gain(tensor, gain, dim_in, min_std=0.0) -> None:
-    """ Gaussian initialization with gain."""
+    """Gaussian initialization with gain."""
     init.normal_(tensor, mean=0, std=max(gain * math.sqrt(1 / dim_in), min_std))
 
 

@@ -66,7 +66,7 @@ class DiscreteDQNBase(ModelManager):
         self._q_network: Optional[ModelBase] = None
 
     def create_policy(self, serving: bool) -> Policy:
-        """ Create an online DiscreteDQN Policy from env. """
+        """Create an online DiscreteDQN Policy from env."""
         if serving:
             return create_predictor_policy_from_model(
                 self.build_serving_module(), rl_parameters=self.rl_parameters

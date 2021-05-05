@@ -98,7 +98,7 @@ class TestQueryDataParametric(ReagentSQLTestBase):
         logger.info("parametric multi-step seems fine.")
 
     def verify_parametric_single_step_except_rewards(self, df):
-        """ expects a pandas dataframe """
+        """expects a pandas dataframe"""
         self.assertEq(df["sequence_number"], np.array([1, 2, 3, 4], dtype="int32"))
 
         state_features_presence = np.array(

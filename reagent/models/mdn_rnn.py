@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class MDNRNN(nn.Module):
-    """ Mixture Density Network - Recurrent Neural Network """
+    """Mixture Density Network - Recurrent Neural Network"""
 
     def __init__(
         self, state_dim, action_dim, num_hiddens, num_hidden_layers, num_gaussians

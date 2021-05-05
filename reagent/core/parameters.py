@@ -139,7 +139,7 @@ class NormalizationParameters(BaseDataClass):
 
 
 class NormalizationKey(object):
-    """ Keys for dictionaries of NormalizationData """
+    """Keys for dictionaries of NormalizationData"""
 
     STATE = "state"
     ACTION = "action"

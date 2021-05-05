@@ -28,7 +28,7 @@ def make_random_policy_for_env(env: gym.Env):
 
 class DiscreteRandomPolicy(Policy):
     def __init__(self, num_actions: int):
-        """ Random actor for accumulating random offline data. """
+        """Random actor for accumulating random offline data."""
         self.num_actions = num_actions
 
     @classmethod
@@ -44,7 +44,7 @@ class DiscreteRandomPolicy(Policy):
     def act(
         self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
     ) -> rlt.ActorOutput:
-        """ Act randomly regardless of the observation. """
+        """Act randomly regardless of the observation."""
         # pyre-fixme[35]: Target cannot be annotated.
         obs: torch.Tensor = obs.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
@@ -131,7 +131,7 @@ class ContinuousRandomPolicy(Policy):
     def act(
         self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
     ) -> rlt.ActorOutput:
-        """ Act randomly regardless of the observation. """
+        """Act randomly regardless of the observation."""
         # pyre-fixme[35]: Target cannot be annotated.
         obs: torch.Tensor = obs.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"

@@ -104,11 +104,11 @@ class ModelManager:
     @property
     @abc.abstractmethod
     def required_normalization_keys(self) -> List[str]:
-        """ Get the normalization keys required for current instance """
+        """Get the normalization keys required for current instance"""
         pass
 
     def __getattr__(self, attr):
-        """ Get X_normalization_data by attribute """
+        """Get X_normalization_data by attribute"""
         normalization_data_suffix = "_normalization_data"
         if attr.endswith(normalization_data_suffix):
             assert self._normalization_data_map is not None, (

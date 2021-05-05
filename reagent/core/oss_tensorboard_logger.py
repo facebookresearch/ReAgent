@@ -35,7 +35,7 @@ class LocalCacheLogger:
         plot_value: Union[float, torch.Tensor],
         step: Optional[int],
     ):
-        """ Adds a point to a multi-line plot given the plot name, the line name, and optionally the step (x coordinate). """
+        """Adds a point to a multi-line plot given the plot name, the line name, and optionally the step (x coordinate)."""
         if isinstance(plot_value, torch.Tensor):
             plot_value = plot_value.item()
 
@@ -87,7 +87,7 @@ class LocalCacheLogger:
 
 
 class OssTensorboardLogger(TensorBoardLogger):
-    """ Wrapper around ManifoldTensorBoardLogger that collects the plot data in memory and can flush to create fblearner plot objects. """
+    """Wrapper around ManifoldTensorBoardLogger that collects the plot data in memory and can flush to create fblearner plot objects."""
 
     def __init__(
         self,
@@ -119,7 +119,7 @@ class OssTensorboardLogger(TensorBoardLogger):
         ],
         step: Optional[int] = None,
     ) -> None:
-        """ Log a set of metrics. A metric is either a scalar or a set of scalars that will be plotted together """
+        """Log a set of metrics. A metric is either a scalar or a set of scalars that will be plotted together"""
         super().log_metrics(metrics, step)
         LocalCacheLogger.store_metrics(self, metrics, step)
 

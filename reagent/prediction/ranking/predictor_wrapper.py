@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 
 class DeterminantalPointProcessPredictorWrapper(torch.jit.ScriptModule):
-    """ http://jgillenw.com/cikm2018.pdf Algorithm 1"""
+    """http://jgillenw.com/cikm2018.pdf Algorithm 1"""
 
     def __init__(self, alpha) -> None:
         super().__init__()

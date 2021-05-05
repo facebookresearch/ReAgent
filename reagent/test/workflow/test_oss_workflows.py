@@ -42,7 +42,7 @@ DISCRETE_DQN_BASE = "reagent.model_managers.discrete_dqn_base"
 
 
 def get_test_workflow_config(path_to_config: str, use_gpu: bool):
-    """ Loads and modifies config to fun fast. """
+    """Loads and modifies config to fun fast."""
     yaml = YAML(typ="safe")
     with open(path_to_config, "r") as f:
         config = yaml.load(f)
@@ -58,7 +58,7 @@ def get_test_workflow_config(path_to_config: str, use_gpu: bool):
 
 
 def mock_cartpole_normalization() -> Dict[int, NormalizationParameters]:
-    """ Get mock normalization from our local file. """
+    """Get mock normalization from our local file."""
     with open(CARTPOLE_NORMALIZATION_JSON, "r") as f:
         norm = json.load(f)
 
@@ -69,7 +69,7 @@ def mock_cartpole_normalization() -> Dict[int, NormalizationParameters]:
 
 
 class TestOSSWorkflows(HorizonTestBase):
-    """ Run workflow to ensure no crashes, correctness/performance not tested. """
+    """Run workflow to ensure no crashes, correctness/performance not tested."""
 
     def _test_dqn_workflow(self, use_gpu=False, use_all_avail_gpus=False):
         runner = CliRunner()

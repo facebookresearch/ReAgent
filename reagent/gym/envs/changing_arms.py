@@ -126,7 +126,7 @@ class ChangingArms(EnvWrapper):
         )
 
     def split_state_transform(self, elem: torch.Tensor):
-        """ For generate data """
+        """For generate data"""
         dense_val, id_list_val, id_score_list_val = self._split_state(elem.numpy())
         return (
             {i: s.item() for i, s in enumerate(dense_val.view(-1))},
@@ -192,7 +192,7 @@ class ChangingArms(EnvWrapper):
 
 
 class ChangingArmsEnv(gym.Env):
-    """ This is just the gym environment, without extra functionality """
+    """This is just the gym environment, without extra functionality"""
 
     def __init__(self, num_arms):
         self.seed(0)

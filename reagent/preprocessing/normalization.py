@@ -187,7 +187,7 @@ def get_feature_start_indices(
     sorted_features: List[int],
     normalization_parameters: Dict[int, NormalizationParameters],
 ):
-    """ Returns the starting index for each feature in the output feature vector """
+    """Returns the starting index for each feature in the output feature vector"""
     start_indices = []
     cur_idx = 0
     for feature in sorted_features:

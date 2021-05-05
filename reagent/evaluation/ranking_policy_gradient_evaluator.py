@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
     eval_data_pages_ng=EvaluationDataPage,
 )
 class RankingPolicyGradientEvaluator:
-    """ Evaluate ranking models that are learned through policy gradient """
+    """Evaluate ranking models that are learned through policy gradient"""
 
     def __init__(
         self,

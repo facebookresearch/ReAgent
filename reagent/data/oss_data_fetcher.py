@@ -133,7 +133,7 @@ def make_sparse2dense(df, col_name: str, possible_keys: List):
 
 
 def make_get_step_udf(multi_steps: Optional[int]):
-    """ Get step count by taking length of next_states_features array. """
+    """Get step count by taking length of next_states_features array."""
 
     def get_step(col: List):
         return 1 if multi_steps is None else min(len(col), multi_steps)
@@ -142,7 +142,7 @@ def make_get_step_udf(multi_steps: Optional[int]):
 
 
 def make_next_udf(multi_steps: Optional[int], return_type):
-    """ Generic udf to get next (after multi_steps) item, provided item type. """
+    """Generic udf to get next (after multi_steps) item, provided item type."""
 
     def get_next(next_col):
         return (
@@ -155,7 +155,7 @@ def make_next_udf(multi_steps: Optional[int], return_type):
 
 
 def make_where_udf(arr: List[str]):
-    """ Return index of item in arr, and len(arr) if not found. """
+    """Return index of item in arr, and len(arr) if not found."""
 
     def find(item: str):
         for i, arr_item in enumerate(arr):
@@ -167,7 +167,7 @@ def make_where_udf(arr: List[str]):
 
 
 def make_existence_bitvector_udf(arr: List[str]):
-    """ one-hot encode elements of target depending on their existence in arr. """
+    """one-hot encode elements of target depending on their existence in arr."""
 
     default = [0] * len(arr)
 
@@ -182,7 +182,7 @@ def make_existence_bitvector_udf(arr: List[str]):
 
 
 def misc_column_preprocessing(df, multi_steps: Optional[int]):
-    """ Miscellaneous columns are step, time_diff, sequence_number, not_terminal. """
+    """Miscellaneous columns are step, time_diff, sequence_number, not_terminal."""
 
     # step refers to n in n-step RL; special case when approaching terminal
     df = df.withColumn("step", make_get_step_udf(multi_steps)("next_state_features"))
@@ -241,7 +241,7 @@ def discrete_action_preprocessing(
     df = df.withColumn("next_action", where_udf(next_long_udf("next_action")))
 
     def make_not_terminal_udf(actions: List[str]):
-        """ Return true iff next_action is terminal (i.e. idx = len(actions)). """
+        """Return true iff next_action is terminal (i.e. idx = len(actions))."""
 
         def get_not_terminal(next_action):
             return next_action < len(actions)
@@ -278,7 +278,7 @@ def parametric_action_preprocessing(
     df = df.withColumn("next_action", next_map_udf("next_action"))
 
     def make_not_terminal_udf():
-        """ Return true iff next_action is an empty map """
+        """Return true iff next_action is an empty map"""
 
         def get_not_terminal(next_action):
             return len(next_action) > 0
@@ -296,7 +296,7 @@ def parametric_action_preprocessing(
 def select_relevant_columns(
     df, discrete_action: bool = True, include_possible_actions: bool = True
 ):
-    """ Select all the relevant columns and perform type conversions. """
+    """Select all the relevant columns and perform type conversions."""
     if not discrete_action and include_possible_actions:
         raise NotImplementedError("currently we don't support include_possible_actions")
 
@@ -371,7 +371,7 @@ def get_distinct_keys(df, col_name, is_col_arr_map=False):
 
 
 def infer_states_names(df, multi_steps: Optional[int]):
-    """ Infer possible state names from states and next state features. """
+    """Infer possible state names from states and next state features."""
     state_keys = get_distinct_keys(df, "state_features")
     next_states_is_col_arr_map = not (multi_steps is None)
     next_state_keys = get_distinct_keys(
@@ -407,7 +407,7 @@ def rand_string(length):
 
 
 def upload_as_parquet(df) -> Dataset:
-    """ Generate a random parquet. Fails if cannot generate a non-existent name. """
+    """Generate a random parquet. Fails if cannot generate a non-existent name."""
 
     # get a random tmp name and check if it exists
     sqlCtx = get_spark_session()
