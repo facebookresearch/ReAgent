@@ -157,13 +157,18 @@ class PPOTrainer(ReAgentLightningModule):
 
     def get_optimizers(self):
         opts = self.optimizers()
+        if not isinstance(opts, list):
+            opts = [opts]  # if single optimizer, wrap it in a list
         if self.value_net is not None:
             return opts[0], opts[1]
         return None, opts[0]
 
     def placeholder_loss(self):
         """PPO Trainer performs manual updates. Return placeholder losses to Pytorch Lightning."""
-        return [None] * len(self.optimizers())
+        opts = self.optimizers()
+        if not isinstance(opts, list):
+            opts = [opts]  # if single optimizer, wrap it in a list
+        return [None] * len(opts)
 
     def train_step_gen(self, training_batch: rlt.PolicyGradientInput, batch_idx: int):
         self.traj_buffer.append(training_batch)
