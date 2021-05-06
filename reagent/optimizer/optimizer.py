@@ -53,7 +53,7 @@ from .utils import is_torch_optimizer
 
 
 @dataclass
-class Optimizer:
+class Optimizer(torch.optim.Optimizer):
     # This is the wrapper for optimizer + scheduler
     optimizer: torch.optim.Optimizer
     lr_schedulers: List[torch.optim.lr_scheduler._LRScheduler]
