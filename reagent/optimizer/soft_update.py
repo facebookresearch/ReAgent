@@ -26,13 +26,20 @@ class SoftUpdate(torch.optim.Optimizer):
                 )
 
         params = target_params + source_params
-        defaults = dict(tau=tau)
+        defaults = dict(
+            tau=tau, lr=1.0
+        )  # set a dummy learning rate because optimizers are expected to have one
         super().__init__(params, defaults)
 
         for group in self.param_groups:
             tau = group["tau"]
             if tau > 1.0 or tau < 0.0:
                 raise ValueError(f"tau should be in [0.0, 1.0]; got {tau}")
+
+    @classmethod
+    def make_optimizer_scheduler(cls, target_params, source_params, tau):
+        su = cls(target_params, source_params, tau)
+        return {"optimizer": su}
 
     @torch.no_grad()
     def step(self, closure=None):

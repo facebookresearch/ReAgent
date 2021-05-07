@@ -81,12 +81,18 @@ class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
 
     def configure_optimizers(self):
         optimizers = [
-            self.q_network_optimizer.make_optimizer(self.q_network.parameters())
+            self.q_network_optimizer.make_optimizer_scheduler(
+                self.q_network.parameters()
+            )
         ]
         # soft-update
         target_params = list(self.q_network_target.parameters())
         source_params = list(self.q_network.parameters())
-        optimizers.append(SoftUpdate(target_params, source_params, tau=self.tau))
+        optimizers.append(
+            SoftUpdate.make_optimizer_scheduler(
+                target_params, source_params, tau=self.tau
+            )
+        )
         return optimizers
 
     def train_step_gen(self, training_batch: rlt.DiscreteDqnInput, batch_idx: int):

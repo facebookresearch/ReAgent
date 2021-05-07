@@ -148,7 +148,7 @@ class RLTrainer(RLTrainerMixin, Trainer):
             # pyre-fixme[16]: `RLTrainer` has no attribute `reward_network`.
             self.reward_network = reward_network
             # pyre-fixme[16]: `RLTrainer` has no attribute `reward_network_optimizer`.
-            self.reward_network_optimizer = optimizer.make_optimizer(
+            self.reward_network_optimizer = optimizer.make_optimizer_scheduler(
                 self.reward_network.parameters()
             )
             assert (
@@ -159,7 +159,7 @@ class RLTrainer(RLTrainerMixin, Trainer):
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network_cpe_target`.
             self.q_network_cpe_target = q_network_cpe_target
             # pyre-fixme[16]: `RLTrainer` has no attribute `q_network_cpe_optimizer`.
-            self.q_network_cpe_optimizer = optimizer.make_optimizer(
+            self.q_network_cpe_optimizer = optimizer.make_optimizer_scheduler(
                 self.q_network_cpe.parameters()
             )
             num_output_nodes = len(self.metrics_to_score) * self.num_actions

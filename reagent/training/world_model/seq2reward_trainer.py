@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from reagent.core.parameters import Seq2RewardTrainerParameters
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.models.seq2reward_model import Seq2RewardNetwork
+
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.utils import gen_permutations
 
@@ -104,14 +105,18 @@ class Seq2RewardTrainer(ReAgentLightningModule):
     def configure_optimizers(self):
         optimizers = []
         optimizers.append(
-            torch.optim.Adam(
-                self.seq2reward_network.parameters(), lr=self.params.learning_rate
-            )
+            {
+                "optimizer": torch.optim.Adam(
+                    self.seq2reward_network.parameters(), lr=self.params.learning_rate
+                ),
+            }
         )
         optimizers.append(
-            torch.optim.Adam(
-                self.step_predict_network.parameters(), lr=self.params.learning_rate
-            )
+            {
+                "optimizer": torch.optim.Adam(
+                    self.step_predict_network.parameters(), lr=self.params.learning_rate
+                )
+            },
         )
         return optimizers
 

@@ -58,12 +58,18 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         optimizers = []
 
         optimizers.append(
-            self.q_network_optimizer.make_optimizer(self.q_network.parameters())
+            self.q_network_optimizer.make_optimizer_scheduler(
+                self.q_network.parameters()
+            )
         )
 
         target_params = list(self.q_network_target.parameters())
         source_params = list(self.q_network.parameters())
-        optimizers.append(SoftUpdate(target_params, source_params, tau=self.tau))
+        optimizers.append(
+            SoftUpdate.make_optimizer_scheduler(
+                target_params, source_params, tau=self.tau
+            )
+        )
 
         return optimizers
 

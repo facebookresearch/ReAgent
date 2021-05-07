@@ -59,13 +59,15 @@ class Seq2SlateTrainer(Trainer):
         self.baseline_net = baseline_net
         self.baseline_warmup_num_batches = baseline_warmup_num_batches
 
-        self.rl_opt = policy_optimizer.make_optimizer(self.seq2slate_net.parameters())
+        self.rl_opt = policy_optimizer.make_optimizer_scheduler(
+            self.seq2slate_net.parameters()
+        )["optimizer"]
         self.rl_opt.zero_grad()
         if self.baseline_net:
-            self.baseline_opt = baseline_optimizer.make_optimizer(
+            self.baseline_opt = baseline_optimizer.make_optimizer_scheduler(
                 # pyre-fixme[16]: `Optional` has no attribute `parameters`.
                 self.baseline_net.parameters()
-            )
+            )["optimizer"]
 
     def warm_start_components(self):
         components = ["seq2slate_net"]

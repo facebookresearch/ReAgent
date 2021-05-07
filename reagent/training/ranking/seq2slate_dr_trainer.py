@@ -44,7 +44,7 @@ class Seq2SlateDifferentiableRewardTrainer(Trainer):
         self.seq2slate_net = seq2slate_net
         self.minibatch_size = minibatch_size
         self.minibatch = 0
-        self.optimizer = policy_optimizer.make_optimizer(
+        self.optimizer = policy_optimizer.make_optimizer_scheduler(
             self.seq2slate_net.parameters()
         )
         # TODO: T62269969 add baseline_net in training

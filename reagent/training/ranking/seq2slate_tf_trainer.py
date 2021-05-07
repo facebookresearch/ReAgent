@@ -42,9 +42,9 @@ class Seq2SlateTeacherForcingTrainer(Trainer):
         self.seq2slate_net = seq2slate_net
         self.minibatch_size = minibatch_size
         self.minibatch = 0
-        self.optimizer = policy_optimizer.make_optimizer(
+        self.optimizer = policy_optimizer.make_optimizer_scheduler(
             self.seq2slate_net.parameters()
-        )
+        )[0]
         self.optimizer.zero_grad()
         self.kl_div_loss = nn.KLDivLoss(reduction="batchmean")
 
