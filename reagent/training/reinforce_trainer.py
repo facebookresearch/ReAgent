@@ -11,7 +11,6 @@ import torch
 import torch.optim
 from reagent.gym.policies.policy import Policy
 from reagent.models.base import ModelBase
-from reagent.optimizer.optimizer import Optimizer
 from reagent.optimizer.union import Optimizer__Union
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.utils import discounted_returns, whiten
@@ -58,15 +57,20 @@ class ReinforceTrainer(ReAgentLightningModule):
         else:
             self.value_net = None
 
-    def configure_optimizers(self) -> List[Optimizer]:
+    def configure_optimizers(self):
         optimizers = []
         # value net optimizer
         if self.value_net is not None:
             optimizers.append(
-                self.optimizer_value_net.make_optimizer(self.value_net.parameters())
+                self.optimizer_value_net.make_optimizer_scheduler(
+                    self.value_net.parameters()
+                )
             )
         # policy optimizer
-        optimizers.append(self.optimizer.make_optimizer(self.scorer.parameters()))
+        optimizers.append(
+            self.optimizer.make_optimizer_scheduler(self.scorer.parameters())
+        )
+
         return optimizers
 
     def train_step_gen(self, training_batch: rlt.PolicyGradientInput, batch_idx: int):

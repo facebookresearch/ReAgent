@@ -58,5 +58,5 @@ class Optimizer__Union(TaggedUnion):
             else cls(Adam=classes["Adam"](**kwargs))
         )
 
-    def make_optimizer(self, params):
-        return self.value.make_optimizer(params)
+    def make_optimizer_scheduler(self, params):
+        return self.value.make_optimizer_scheduler(params)

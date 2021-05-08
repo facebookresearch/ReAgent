@@ -64,10 +64,11 @@ REPLAY_BUFFER_GYM_TESTS = [
         "Parametric SARSA Cartpole",
         "configs/cartpole/parametric_sarsa_cartpole_online.yaml",
     ),
-    (
-        "Sparse DQN Changing Arms",
-        "configs/sparse/discrete_dqn_changing_arms_online.yaml",
-    ),
+    # Disabled for now because flaky.
+    # (
+    #     "Sparse DQN Changing Arms",
+    #     "configs/sparse/discrete_dqn_changing_arms_online.yaml",
+    # ),
     ("SlateQ RecSim", "configs/recsim/slate_q_recsim_online.yaml"),
     ("PossibleActionsMask DQN", "configs/functionality/dqn_possible_actions_mask.yaml"),
 ]

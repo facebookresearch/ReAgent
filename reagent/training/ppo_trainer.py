@@ -11,7 +11,6 @@ import torch.optim
 from reagent.core.configuration import resolve_defaults
 from reagent.gym.policies.policy import Policy
 from reagent.models.base import ModelBase
-from reagent.optimizer.optimizer import Optimizer
 from reagent.optimizer.union import Optimizer__Union
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.utils import discounted_returns, whiten
@@ -142,17 +141,20 @@ class PPOTrainer(ReAgentLightningModule):
             losses["ppo_loss"] = losses["ppo_loss"] - self.entropy_weight * entropy
         return losses
 
-    def configure_optimizers(self) -> List[Optimizer]:
+    def configure_optimizers(self):
         optimizers = []
         # value net optimizer
         if self.value_net is not None:
             optimizers.append(
-                self.optimizer_value_net.make_optimizer(
-                    self.value_net.parameters()  # pyre-ignore
+                self.optimizer_value_net.make_optimizer_scheduler(
+                    self.value_net.parameters()
                 )
             )
         # policy optimizer
-        optimizers.append(self.optimizer.make_optimizer(self.scorer.parameters()))
+        optimizers.append(
+            self.optimizer.make_optimizer_scheduler(self.scorer.parameters())
+        )
+
         return optimizers
 
     def get_optimizers(self):

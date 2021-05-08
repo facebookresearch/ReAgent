@@ -149,20 +149,28 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
         optimizers = []
 
         optimizers.append(
-            self.q_network_optimizer.make_optimizer(self.q1_network.parameters())
+            self.q_network_optimizer.make_optimizer_scheduler(
+                self.q1_network.parameters()
+            )
         )
         if self.q2_network:
             optimizers.append(
-                self.q_network_optimizer.make_optimizer(self.q2_network.parameters())
+                self.q_network_optimizer.make_optimizer_scheduler(
+                    self.q2_network.parameters()
+                )
             )
         optimizers.append(
-            self.actor_network_optimizer.make_optimizer(self.actor_network.parameters())
+            self.actor_network_optimizer.make_optimizer_scheduler(
+                self.actor_network.parameters()
+            )
         )
         if self.alpha_optimizer is not None:
-            optimizers.append(self.alpha_optimizer.make_optimizer([self.log_alpha]))
+            optimizers.append(
+                self.alpha_optimizer.make_optimizer_scheduler([self.log_alpha])
+            )
         if self.value_network:
             optimizers.append(
-                self.value_network_optimizer.make_optimizer(
+                self.value_network_optimizer.make_optimizer_scheduler(
                     self.value_network.parameters()
                 )
             )
@@ -176,7 +184,12 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
             if self.q2_network:
                 target_params += list(self.q2_network_target.parameters())
                 source_params += list(self.q2_network.parameters())
-        optimizers.append(SoftUpdate(target_params, source_params, tau=self.tau))
+        optimizers.append(
+            SoftUpdate.make_optimizer_scheduler(
+                target_params, source_params, tau=self.tau
+            )
+        )
+
         return optimizers
 
     def train_step_gen(self, training_batch: rlt.PolicyNetworkInput, batch_idx: int):

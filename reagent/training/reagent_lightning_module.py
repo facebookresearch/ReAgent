@@ -127,6 +127,12 @@ class ReAgentLightningModule(pl.LightningModule):
 
         return ret
 
+    def optimizers(self, use_pl_optimizer: bool = True):
+        o = super().optimizers(use_pl_optimizer)
+        if isinstance(o, list):
+            return o
+        return [o]
+
     @lazy_property
     def _num_optimizing_steps(self) -> int:
         return len(self.configure_optimizers())

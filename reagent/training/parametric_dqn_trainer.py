@@ -62,14 +62,20 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
 
     def configure_optimizers(self):
         optimizers = []
-        optimizers.append(self.optimizer.make_optimizer(self.q_network.parameters()))
         optimizers.append(
-            self.optimizer.make_optimizer(self.reward_network.parameters())
+            self.optimizer.make_optimizer_scheduler(self.q_network.parameters())
+        )
+        optimizers.append(
+            self.optimizer.make_optimizer_scheduler(self.reward_network.parameters())
         )
         # soft-update
         target_params = list(self.q_network_target.parameters())
         source_params = list(self.q_network.parameters())
-        optimizers.append(SoftUpdate(target_params, source_params, tau=self.tau))
+        optimizers.append(
+            SoftUpdate.make_optimizer_scheduler(
+                target_params, source_params, tau=self.tau
+            )
+        )
 
         return optimizers
 

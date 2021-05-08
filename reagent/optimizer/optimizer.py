@@ -33,7 +33,7 @@ Following the above example, we create an optimizer as follows:
 
 class Trainer:
     def __init__(self, network, params):
-        self.optimizer = params.optimizer.make_optimizer(network.parameters())
+        self.optimizer = params.optimizer.make_optimizer_scheduler(network.parameters())["optimizer"]
 
     def train(self, data):
         ...
@@ -42,7 +42,7 @@ class Trainer:
         self.optimizer.step()
 """
 import inspect
-from typing import List
+from typing import List, Dict, Union
 
 import torch
 from reagent.core.dataclasses import dataclass, field
@@ -52,44 +52,17 @@ from .scheduler import LearningRateSchedulerConfig
 from .utils import is_torch_optimizer
 
 
-@dataclass
-class Optimizer(torch.optim.Optimizer):
-    # This is the wrapper for optimizer + scheduler
-    optimizer: torch.optim.Optimizer
-    lr_schedulers: List[torch.optim.lr_scheduler._LRScheduler]
-
-    def step(self, closure=None):
-        self.optimizer.step(closure=closure)
-        for lr_scheduler in self.lr_schedulers:
-            lr_scheduler.step()
-
-    @property
-    def param_groups(self):
-        return self.optimizer.param_groups
-
-    @property
-    def state(self):
-        return self.optimizer.state
-
-    @state.setter
-    def state(self, new_state):
-        self.optimizer.state = new_state
-
-    @property
-    def state_dict(self):
-        return self.optimizer.state_dict
-
-    @property
-    def zero_grad(self):
-        return self.optimizer.zero_grad
-
-
 @dataclass(frozen=True)
 class OptimizerConfig(metaclass=RegistryMeta):
     # optional config if you want to use (potentially chained) lr scheduler
     lr_schedulers: List[LearningRateSchedulerConfig] = field(default_factory=list)
 
-    def make_optimizer(self, params) -> Optimizer:
+    def make_optimizer_scheduler(
+        self, params
+    ) -> Dict[str, Union[torch.optim.Optimizer, torch.optim.lr_scheduler._LRScheduler]]:
+        assert (
+            len(self.lr_schedulers) <= 1
+        ), "Multiple schedulers for one optimizer is no longer supported"
         # Assuming the classname is the same as the torch class name
         torch_optimizer_class = getattr(torch.optim, type(self).__name__)
         assert is_torch_optimizer(
@@ -101,8 +74,8 @@ class OptimizerConfig(metaclass=RegistryMeta):
             if k != "params"
         }
         optimizer = torch_optimizer_class(params=params, **filtered_args)
-        lr_schedulers = [
-            lr_scheduler.make_from_optimizer(optimizer)
-            for lr_scheduler in self.lr_schedulers
-        ]
-        return Optimizer(optimizer=optimizer, lr_schedulers=lr_schedulers)
+        if len(self.lr_schedulers) == 0:
+            return {"optimizer": optimizer}
+        else:
+            lr_scheduler = self.lr_schedulers[0].make_from_optimizer(optimizer)
+            return {"optimizer": optimizer, "lr_scheduler": lr_scheduler}

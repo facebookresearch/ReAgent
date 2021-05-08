@@ -40,9 +40,9 @@ class Seq2SlatePairwiseAttnTrainer(Trainer):
         self.seq2slate_net = seq2slate_net
         self.minibatch_size = minibatch_size
         self.minibatch = 0
-        self.optimizer = policy_optimizer.make_optimizer(
+        self.optimizer = policy_optimizer.make_optimizer_scheduler(
             self.seq2slate_net.parameters()
-        )
+        )["optimizer"]
         self.log_softmax = nn.LogSoftmax(dim=1)
         self.kl_loss = nn.KLDivLoss(reduction="batchmean")
         if self.loss_reporter is None:

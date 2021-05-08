@@ -62,6 +62,6 @@ publisher:
   FileSystemPublisher: {}
 num_eval_episodes: 30
 # TODO: raise this bar after training stabilize
-passing_score_bar: -900
+passing_score_bar: -1000
 reader_options:
   minibatch_size: 1024

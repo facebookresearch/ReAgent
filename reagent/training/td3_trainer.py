@@ -89,14 +89,20 @@ class TD3Trainer(RLTrainerMixin, ReAgentLightningModule):
         optimizers = []
 
         optimizers.append(
-            self.q_network_optimizer.make_optimizer(self.q1_network.parameters())
+            self.q_network_optimizer.make_optimizer_scheduler(
+                self.q1_network.parameters()
+            )
         )
         if self.q2_network:
             optimizers.append(
-                self.q_network_optimizer.make_optimizer(self.q2_network.parameters())
+                self.q_network_optimizer.make_optimizer_scheduler(
+                    self.q2_network.parameters()
+                )
             )
         optimizers.append(
-            self.actor_network_optimizer.make_optimizer(self.actor_network.parameters())
+            self.actor_network_optimizer.make_optimizer_scheduler(
+                self.actor_network.parameters()
+            )
         )
 
         # soft-update
@@ -107,7 +113,12 @@ class TD3Trainer(RLTrainerMixin, ReAgentLightningModule):
             source_params += list(self.q2_network.parameters())
         target_params += list(self.actor_network_target.parameters())
         source_params += list(self.actor_network.parameters())
-        optimizers.append(SoftUpdate(target_params, source_params, tau=self.tau))
+        optimizers.append(
+            SoftUpdate.make_optimizer_scheduler(
+                target_params, source_params, tau=self.tau
+            )
+        )
+
         return optimizers
 
     def train_step_gen(self, training_batch: rlt.PolicyNetworkInput, batch_idx: int):
