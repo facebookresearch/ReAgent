@@ -39,10 +39,12 @@ class CompressModelTrainer(ReAgentLightningModule):
     def configure_optimizers(self):
         optimizers = []
         optimizers.append(
-            torch.optim.Adam(
-                self.compress_model_network.parameters(),
-                lr=self.params.compress_model_learning_rate,
-            )
+            {
+                "optimizer": torch.optim.Adam(
+                    self.compress_model_network.parameters(),
+                    lr=self.params.compress_model_learning_rate,
+                )
+            }
         )
         return optimizers
 

@@ -90,7 +90,9 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
         source_params = list(self.q_network.parameters())
 
         optimizers.append(
-            self.q_network_optimizer.make_optimizer(self.q_network.parameters())
+            self.q_network_optimizer.make_optimizer_scheduler(
+                self.q_network.parameters()
+            )
         )
 
         if self.calc_cpe_in_training:
@@ -98,17 +100,22 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
             source_params += list(self.q_network_cpe.parameters())
             # source_params += list(self.reward_network.parameters())
             optimizers.append(
-                self.q_network_cpe_optimizer.make_optimizer(
+                self.q_network_cpe_optimizer.make_optimizer_scheduler(
                     self.q_network_cpe.parameters()
                 )
             )
             optimizers.append(
-                self.reward_network_optimizer.make_optimizer(
+                self.reward_network_optimizer.make_optimizer_scheduler(
                     self.reward_network.parameters()
                 )
             )
 
-        optimizers.append(SoftUpdate(target_params, source_params, tau=self.tau))
+        optimizers.append(
+            SoftUpdate.make_optimizer_scheduler(
+                target_params, source_params, tau=self.tau
+            )
+        )
+
         return optimizers
 
     def train_step_gen(self, training_batch: rlt.DiscreteDqnInput, batch_idx: int):

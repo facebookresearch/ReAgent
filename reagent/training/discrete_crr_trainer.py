@@ -134,24 +134,30 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         optimizers = []
 
         optimizers.append(
-            self.q_network_optimizer.make_optimizer(self.q1_network.parameters())
+            self.q_network_optimizer.make_optimizer_scheduler(
+                self.q1_network.parameters()
+            )
         )
         if self.q2_network:
             optimizers.append(
-                self.q_network_optimizer.make_optimizer(self.q2_network.parameters())
+                self.q_network_optimizer.make_optimizer_scheduler(
+                    self.q2_network.parameters()
+                )
             )
         optimizers.append(
-            self.actor_network_optimizer.make_optimizer(self.actor_network.parameters())
+            self.actor_network_optimizer.make_optimizer_scheduler(
+                self.actor_network.parameters()
+            )
         )
 
         if self.calc_cpe_in_training:
             optimizers.append(
-                self.reward_network_optimizer.make_optimizer(
+                self.reward_network_optimizer.make_optimizer_scheduler(
                     self.reward_network.parameters()
                 )
             )
             optimizers.append(
-                self.q_network_cpe_optimizer.make_optimizer(
+                self.q_network_cpe_optimizer.make_optimizer_scheduler(
                     self.q_network_cpe.parameters()
                 )
             )
@@ -167,7 +173,12 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         if self.calc_cpe_in_training:
             target_params += list(self.q_network_cpe_target.parameters())
             source_params += list(self.q_network_cpe.parameters())
-        optimizers.append(SoftUpdate(target_params, source_params, tau=self.tau))
+        optimizers.append(
+            SoftUpdate.make_optimizer_scheduler(
+                target_params, source_params, tau=self.tau
+            )
+        )
+
         return optimizers
 
     def compute_target_q_values(self, next_state, rewards, not_terminal, next_q_values):

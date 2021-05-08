@@ -104,14 +104,18 @@ class Seq2RewardTrainer(ReAgentLightningModule):
     def configure_optimizers(self):
         optimizers = []
         optimizers.append(
-            torch.optim.Adam(
-                self.seq2reward_network.parameters(), lr=self.params.learning_rate
-            )
+            {
+                "optimizer": torch.optim.Adam(
+                    self.seq2reward_network.parameters(), lr=self.params.learning_rate
+                ),
+            }
         )
         optimizers.append(
-            torch.optim.Adam(
-                self.step_predict_network.parameters(), lr=self.params.learning_rate
-            )
+            {
+                "optimizer": torch.optim.Adam(
+                    self.step_predict_network.parameters(), lr=self.params.learning_rate
+                )
+            },
         )
         return optimizers
 

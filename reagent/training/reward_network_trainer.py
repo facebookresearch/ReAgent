@@ -71,7 +71,9 @@ class RewardNetTrainer(Trainer):
     ) -> None:
         self.reward_net = reward_net
         self.minibatch = 0
-        self.opt = optimizer.make_optimizer(self.reward_net.parameters())
+        self.opt = optimizer.make_optimizer_scheduler(self.reward_net.parameters())[
+            "optimizer"
+        ]
         self.loss_type = loss_type
         self.reward_ignore_threshold = reward_ignore_threshold
         self.weighted_by_inverse_propensity = weighted_by_inverse_propensity

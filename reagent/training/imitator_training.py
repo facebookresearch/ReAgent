@@ -31,7 +31,9 @@ class ImitatorTrainer(RLTrainer):
         self.minibatch_size = minibatch_size
         self.minibatches_per_step = minibatches_per_step or 1
         self.imitator = imitator
-        self.imitator_optimizer = optimizer.make_optimizer(imitator.parameters())
+        self.imitator_optimizer = optimizer.make_optimizer_scheduler(
+            imitator.parameters()
+        )
 
     def _imitator_accuracy(self, predictions, true_labels):
         match_tensor = predictions == true_labels
