@@ -9,20 +9,19 @@ from reagent.prediction.predictor_wrapper import (
 )
 
 
-class ParametricSingleStepSyntheticRewardPredictorWrapper(
-    ParametricDqnPredictorWrapper
-):
+class ParametricSingleStepSyntheticRewardPredictorWrapper(torch.jit.ScriptModule):
     def __init__(
         self,
         synthetic_reward_with_preprocessor: ParametricDqnWithPreprocessor,
     ) -> None:
-        super().__init__(synthetic_reward_with_preprocessor)
+        super().__init__()
+        self.wrapper = ParametricDqnPredictorWrapper(synthetic_reward_with_preprocessor)
 
     @torch.jit.script_method
     def forward(
         self,
         state_with_presence: Tuple[torch.Tensor, torch.Tensor],
         action_with_presence: Tuple[torch.Tensor, torch.Tensor],
-    ) -> Tuple[List[str], torch.Tensor]:
-        reward = super().forward(state_with_presence, action_with_presence)[1]
+    ) -> torch.Tensor:
+        reward = self.wrapper(state_with_presence, action_with_presence)[1]
         return reward
