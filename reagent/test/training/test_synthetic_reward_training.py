@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import logging
 import unittest
 
+import pytorch_lightning as pl
 import torch
 from reagent.core import types as rlt
 from reagent.models.synthetic_reward import SingleStepSyntheticRewardNet
 from reagent.optimizer.union import Optimizer__Union
 from reagent.optimizer.union import classes
 from reagent.training import RewardNetTrainer
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_data(state_dim, action_dim, seq_len, batch_size, num_batches):
@@ -46,6 +51,9 @@ def create_data(state_dim, action_dim, seq_len, batch_size, num_batches):
 
 
 class TestSyntheticRewardTraining(unittest.TestCase):
+    def setUp(self):
+        pl.seed_everything(123)
+
     def test_linear_reward_parametric_reward(self):
         """
         Reward at each step is a linear function of state and action.
@@ -80,4 +88,4 @@ class TestSyntheticRewardTraining(unittest.TestCase):
                 reach_threshold = True
                 break
 
-        assert reach_threshold
+        assert reach_threshold, f"last loss={loss}"
