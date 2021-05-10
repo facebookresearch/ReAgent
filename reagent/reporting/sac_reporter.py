@@ -7,7 +7,7 @@ from reagent.core.observers import (
     IntervalAggregatingObserver,
     TensorBoardScalarObserver,
 )
-from reagent.workflow.reporters.actor_critic_reporter import ActorCriticReporter
+from reagent.reporting.actor_critic_reporter import ActorCriticReporter
 
 
 logger = logging.getLogger(__name__)

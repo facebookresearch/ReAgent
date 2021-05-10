@@ -22,8 +22,8 @@ from reagent.net_builder.unions import (
 from reagent.net_builder.value.fully_connected import (
     FullyConnected as ValueFullyConnected,
 )
+from reagent.reporting.sac_reporter import SACReporter
 from reagent.training import SACTrainer, SACTrainerParameters
-from reagent.workflow.reporters.sac_reporter import SACReporter
 
 
 logger = logging.getLogger(__name__)

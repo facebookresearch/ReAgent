@@ -29,8 +29,8 @@ from reagent.preprocessing.batch_preprocessor import (
 )
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.preprocessing.types import InputColumn
+from reagent.reporting.discrete_dqn_reporter import DiscreteDQNReporter
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
-from reagent.workflow.reporters.discrete_dqn_reporter import DiscreteDQNReporter
 from reagent.workflow.types import (
     Dataset,
     ModelFeatureConfigProvider__Union,
