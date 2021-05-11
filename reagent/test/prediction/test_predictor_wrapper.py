@@ -325,3 +325,18 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         npt.assert_array_almost_equal(L, [[16, 0, 0], [0, 25, 40], [0, 40, 64]])
         npt.assert_array_almost_equal(B, [[4, 0, 0, 0], [0, 0, 0, 5], [0, 0, 0, 8]])
+
+        # Test shorter rerank positions
+        # All three items have different categories, so the final order is 1, 2, 0 if
+        # rerank the full slate. If rerank_topk=1, then the expected order is 1, 0, 2
+        quality_scores = torch.tensor(
+            [
+                [4],
+                [6],
+                [5],
+            ]
+        )
+        feature_vectors = torch.tensor([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]])
+        wrapper = DeterminantalPointProcessPredictorWrapper(alpha=1.0, rerank_topk=1)
+        ranked_idx, _, _, _ = wrapper(quality_scores, feature_vectors)
+        npt.assert_array_almost_equal(ranked_idx, [1, 0, 2])
