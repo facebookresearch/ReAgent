@@ -7,7 +7,7 @@ from typing import List
 import torch
 from reagent.core import aggregators as agg
 from reagent.core.observers import IntervalAggregatingObserver
-from reagent.workflow.reporters.reporter_base import ReporterBase
+from reagent.reporting.reporter_base import ReporterBase
 from reagent.workflow.training_reports import Seq2RewardTrainingReport
 
 

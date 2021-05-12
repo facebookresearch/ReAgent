@@ -27,8 +27,8 @@ from reagent.preprocessing.batch_preprocessor import (
 )
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
+from reagent.reporting.actor_critic_reporter import ActorCriticReporter
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
-from reagent.workflow.reporters.actor_critic_reporter import ActorCriticReporter
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,

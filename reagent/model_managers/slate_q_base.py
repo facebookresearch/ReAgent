@@ -15,8 +15,8 @@ from reagent.model_managers.model_manager import ModelManager
 from reagent.models.base import ModelBase
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
+from reagent.reporting.slate_q_reporter import SlateQReporter
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
-from reagent.workflow.reporters.slate_q_reporter import SlateQReporter
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,

@@ -26,8 +26,8 @@ from reagent.net_builder.unions import (
     DiscreteActorNetBuilder__Union,
     DiscreteDQNNetBuilder__Union,
 )
+from reagent.reporting.discrete_crr_reporter import DiscreteCRRReporter
 from reagent.training import DiscreteCRRTrainer, CRRTrainerParameters
-from reagent.workflow.reporters.discrete_crr_reporter import DiscreteCRRReporter
 
 logger = logging.getLogger(__name__)
 

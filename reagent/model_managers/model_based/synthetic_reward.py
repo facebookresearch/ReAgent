@@ -24,9 +24,9 @@ from reagent.preprocessing.normalization import (
     get_feature_config,
 )
 from reagent.preprocessing.types import InputColumn
+from reagent.reporting.discrete_dqn_reporter import DiscreteDQNReporter
 from reagent.training import RewardNetTrainer, RewardNetworkTrainerParameters
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
-from reagent.workflow.reporters.discrete_dqn_reporter import DiscreteDQNReporter
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
