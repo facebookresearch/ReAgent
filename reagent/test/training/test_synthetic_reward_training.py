@@ -7,6 +7,7 @@ import unittest
 import pytorch_lightning as pl
 import torch
 from reagent.core import types as rlt
+from reagent.models import synthetic_reward
 from reagent.models.synthetic_reward import SingleStepSyntheticRewardNet
 from reagent.optimizer.union import Optimizer__Union
 from reagent.optimizer.union import classes
@@ -81,6 +82,45 @@ class TestSyntheticRewardTraining(unittest.TestCase):
             state_dim, action_dim, seq_len, batch_size, num_batches
         )
         threshold = 0.1
+        reach_threshold = False
+        for batch in data_generator():
+            loss = trainer.train(batch)
+            if loss < threshold:
+                reach_threshold = True
+                break
+
+        assert reach_threshold, f"last loss={loss}"
+
+    def test_ngram_fc_parametric_reward(self):
+        """
+        Reward at each step is a linear function of states and actions in a
+        context window around the step.
+
+        However, we can only observe aggregated reward at the last step
+        """
+        state_dim = 10
+        action_dim = 2
+        seq_len = 5
+        batch_size = 512
+        num_batches = 20000
+        sizes = [256, 128]
+        activations = ["relu", "relu"]
+        last_layer_activation = "linear"
+        reward_net = synthetic_reward.NGramSyntheticRewardNet(
+            state_dim=state_dim,
+            action_dim=action_dim,
+            sizes=sizes,
+            activations=activations,
+            last_layer_activation=last_layer_activation,
+            context_size=3,
+        )
+        optimizer = Optimizer__Union(SGD=classes["SGD"]())
+        trainer = RewardNetTrainer(reward_net, optimizer)
+
+        weight, data_generator = create_data(
+            state_dim, action_dim, seq_len, batch_size, num_batches
+        )
+        threshold = 1
         reach_threshold = False
         for batch in data_generator():
             loss = trainer.train(batch)
