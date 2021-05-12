@@ -10,8 +10,8 @@ from reagent.model_managers.world_model_base import WorldModelBase
 from reagent.net_builder.unions import ValueNetBuilder__Union
 from reagent.net_builder.value.fully_connected import FullyConnected
 from reagent.net_builder.value.seq2reward_rnn import Seq2RewardNetBuilder
+from reagent.reporting.seq2reward_reporter import Seq2RewardReporter
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer
-from reagent.workflow.reporters.seq2reward_reporter import Seq2RewardReporter
 from reagent.workflow.types import PreprocessingOptions
 
 

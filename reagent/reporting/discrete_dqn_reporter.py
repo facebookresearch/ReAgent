@@ -8,7 +8,7 @@ from typing import List, Optional
 import torch
 from reagent.core import aggregators as agg
 from reagent.core.observers import IntervalAggregatingObserver, ValueListObserver
-from reagent.workflow.reporters.reporter_base import (
+from reagent.reporting.reporter_base import (
     ReporterBase,
 )
 from reagent.workflow.training_reports import DQNTrainingReport

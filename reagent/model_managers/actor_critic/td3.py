@@ -20,8 +20,8 @@ from reagent.net_builder.unions import (
     ContinuousActorNetBuilder__Union,
     ParametricDQNNetBuilder__Union,
 )
+from reagent.reporting.td3_reporter import TD3Reporter
 from reagent.training import TD3Trainer, TD3TrainerParameters
-from reagent.workflow.reporters.td3_reporter import TD3Reporter
 
 
 logger = logging.getLogger(__name__)
