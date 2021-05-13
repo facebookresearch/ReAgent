@@ -447,6 +447,9 @@ class PreprocessedRankingInput(TensorDataClass):
     def batch_size(self) -> int:
         return self.state.float_features.size()[0]
 
+    def __len__(self) -> int:
+        return self.batch_size()
+
     @classmethod
     def from_input(
         cls,
