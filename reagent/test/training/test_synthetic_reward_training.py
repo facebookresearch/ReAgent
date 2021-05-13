@@ -6,6 +6,7 @@ import unittest
 
 import pytorch_lightning as pl
 import torch
+from reagent.core import parameters as rlp
 from reagent.core import types as rlt
 from reagent.models import synthetic_reward
 from reagent.models.synthetic_reward import SingleStepSyntheticRewardNet
@@ -113,6 +114,52 @@ class TestSyntheticRewardTraining(unittest.TestCase):
             activations=activations,
             last_layer_activation=last_layer_activation,
             context_size=3,
+        )
+        optimizer = Optimizer__Union(Adam=classes["Adam"]())
+        trainer = RewardNetTrainer(reward_net, optimizer)
+
+        weight, data_generator = create_data(
+            state_dim, action_dim, seq_len, batch_size, num_batches
+        )
+        threshold = 0.6
+        reach_threshold = False
+        for batch in data_generator():
+            loss = trainer.train(batch)
+            if loss < threshold:
+                reach_threshold = True
+                break
+
+        assert reach_threshold, f"last loss={loss}"
+
+    def test_ngram_conv_net_parametric_reward(self):
+        """
+        Reward at each step is a linear function of states and actions in a
+        context window around the step.
+
+        However, we can only observe aggregated reward at the last step
+        """
+        state_dim = 10
+        action_dim = 2
+        seq_len = 5
+        batch_size = 512
+        num_batches = 10000
+        sizes = [64]
+        activations = ["relu"]
+        last_layer_activation = "linear"
+        conv_net_params = rlp.ConvNetParameters(
+            conv_dims=[256, 128],
+            conv_height_kernels=[1, 1],
+            pool_types=["max", "max"],
+            pool_kernel_sizes=[1, 1],
+        )
+        reward_net = synthetic_reward.NGramSyntheticRewardNet(
+            state_dim=state_dim,
+            action_dim=action_dim,
+            sizes=sizes,
+            activations=activations,
+            last_layer_activation=last_layer_activation,
+            context_size=3,
+            conv_net_params=conv_net_params,
         )
         optimizer = Optimizer__Union(Adam=classes["Adam"]())
         trainer = RewardNetTrainer(reward_net, optimizer)

@@ -4,7 +4,7 @@ from typing import List, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import NormalizationData, param_hash
+from reagent.core.parameters import NormalizationData, param_hash, ConvNetParameters
 from reagent.models.base import ModelBase
 from reagent.models.synthetic_reward import NGramSyntheticRewardNet
 from reagent.net_builder.synthetic_reward_net_builder import SyntheticRewardNetBuilder
@@ -19,6 +19,7 @@ class NGramSyntheticReward(SyntheticRewardNetBuilder):
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     last_layer_activation: str = "sigmoid"
     context_size: int = 3
+    conv_net_params: Optional[ConvNetParameters] = None
 
     def build_synthetic_reward_network(
         self,
@@ -43,6 +44,7 @@ class NGramSyntheticReward(SyntheticRewardNetBuilder):
             activations=self.activations,
             last_layer_activation=self.last_layer_activation,
             context_size=self.context_size,
+            conv_net_params=self.conv_net_params,
         )
 
     def build_serving_module(
