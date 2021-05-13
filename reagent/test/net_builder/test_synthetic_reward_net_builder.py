@@ -7,6 +7,9 @@ import torch
 from reagent.core import types as rlt
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.parameters import NormalizationData, NormalizationParameters
+from reagent.net_builder.synthetic_reward.ngram_synthetic_reward import (
+    NGramSyntheticReward,
+)
 from reagent.net_builder.synthetic_reward.single_step_synthetic_reward import (
     SingleStepSyntheticReward,
 )
@@ -114,3 +117,29 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
         self.assertIsInstance(
             predictor_wrapper, ParametricSingleStepSyntheticRewardPredictorWrapper
         )
+
+    def test_ngram_synthetic_reward_net_builder_continuous_actions(
+        self,
+    ):
+        builder = SyntheticRewardNetBuilder__Union(
+            NGramSyntheticReward=NGramSyntheticReward()
+        ).value
+        state_normalization_data = _create_norm(STATE_DIM)
+        action_normalization_data = _create_norm(ACTION_DIM, offset=STATE_DIM)
+        reward_net = builder.build_synthetic_reward_network(
+            state_normalization_data,
+            action_normalization_data=action_normalization_data,
+        )
+        input = _create_input()
+        output = reward_net(input).predicted_reward
+        assert output.shape == (BATCH_SIZE, 1)
+
+        # TO IMPLEMENT
+        # predictor_wrapper = builder.build_serving_module(
+        #     reward_net,
+        #     state_normalization_data,
+        #     action_normalization_data=action_normalization_data,
+        # )
+        # self.assertIsInstance(
+        #     predictor_wrapper, ParametricSingleStepSyntheticRewardPredictorWrapper
+        # )
