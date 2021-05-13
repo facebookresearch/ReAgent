@@ -114,3 +114,4 @@ class IntervalAggregatingObserver(Observer):
         if self.intermediate_values:
             self.aggregator(self.key, self.intermediate_values)
         self.intermediate_values = []
+        self.aggregator.flush()
