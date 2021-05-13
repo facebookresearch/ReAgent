@@ -100,7 +100,7 @@ commands:
           name: Run script
           command: |
             # gather data and store as pickle
-            coverage run ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym "$CONFIG"
+            coverage run ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym_random "$CONFIG"
             # run through timeline operator
             coverage run --append ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator "$CONFIG"
             # train on logged data

@@ -37,7 +37,7 @@ To train a batch RL model, run the following commands:
     # set the config
     export CONFIG=reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
     # gather some random transitions (can replace with your own)
-    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym $CONFIG
+    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym_random $CONFIG
     # convert data to timeline format
     ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.timeline_operator $CONFIG
     # train model based on timeline data
@@ -92,7 +92,7 @@ In particular, the following Click command runs 150 episodes of ``CartPole-v0`` 
 
 .. code-block::
 
-    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym $CONFIG
+    ./reagent/workflow/cli.py run reagent.workflow.gym_batch_rl.offline_gym_random $CONFIG
 
 The command essentially performs the following pseudo-code:
 

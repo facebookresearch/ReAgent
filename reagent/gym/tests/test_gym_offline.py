@@ -12,6 +12,7 @@ from parameterized import parameterized
 from reagent.core.tensorboardX import summary_writer_context
 from reagent.gym.agents.agent import Agent
 from reagent.gym.envs import Gym
+from reagent.gym.policies.random_policies import make_random_policy_for_env
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
@@ -110,8 +111,13 @@ def run_test_offline(
         replay_capacity=replay_memory_size, batch_size=minibatch_size
     )
     # always fill full RB
+    random_policy = make_random_policy_for_env(env)
+    agent = Agent.create_for_env(env, policy=random_policy)
     fill_replay_buffer(
-        env=env, replay_buffer=replay_buffer, desired_size=replay_memory_size
+        env=env,
+        replay_buffer=replay_buffer,
+        desired_size=replay_memory_size,
+        agent=agent,
     )
 
     device = torch.device("cuda") if use_gpu else None

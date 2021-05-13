@@ -94,22 +94,22 @@ class IntervalAggregatingObserver(Observer):
         # pyre-fixme[58]: `%` is not supported for operand types `int` and
         #  `Optional[int]`.
         if self.interval and self.iteration % self.interval == 0:
-            logger.info(
-                "Aggregating values over the recent interval for %s at iteration %s; aggregator: %s",
-                self.key,
-                self.iteration,
-                self.aggregator.__class__.__name__,
-            )
+            # logger.info(
+            #     "Aggregating values over the recent interval for %s at iteration %s; aggregator: %s",
+            #     self.key,
+            #     self.iteration,
+            #     self.aggregator.__class__.__name__,
+            # )
             self.aggregator(self.key, self.intermediate_values)
             self.intermediate_values = []
 
     def flush(self):
         # We need to reset iteration here to avoid aggregating on the same data multiple
         # times
-        logger.info(
-            f"Interval Agg. Flushing: {self.key}; iteration: {self.iteration}; "
-            f"aggregator: {self.aggregator.__class__.__name__}; points: {len(self.intermediate_values)}"
-        )
+        # logger.info(
+        #     f"Interval Agg. Flushing: {self.key}; iteration: {self.iteration}; "
+        #     f"aggregator: {self.aggregator.__class__.__name__}; points: {len(self.intermediate_values)}"
+        # )
         self.iteration = 0
         if self.intermediate_values:
             self.aggregator(self.key, self.intermediate_values)

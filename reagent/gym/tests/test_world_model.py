@@ -16,6 +16,7 @@ from reagent.evaluation.world_model_evaluator import (
 from reagent.gym.agents.agent import Agent
 from reagent.gym.envs import EnvWrapper, Gym
 from reagent.gym.envs.pomdp.state_embed_env import StateEmbedEnvironment
+from reagent.gym.policies.random_policies import make_random_policy_for_env
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
@@ -122,7 +123,9 @@ def train_mdnrnn(
         stack_size=seq_len,
         return_everything_as_stack=True,
     )
-    fill_replay_buffer(env, train_replay_buffer, num_train_transitions)
+    random_policy = make_random_policy_for_env(env)
+    agent = Agent.create_for_env(env, policy=random_policy)
+    fill_replay_buffer(env, train_replay_buffer, num_train_transitions, agent)
     num_batch_per_epoch = train_replay_buffer.size // batch_size
 
     logger.info("Made RBs, starting to train now!")
@@ -180,7 +183,9 @@ def train_mdnrnn_and_compute_feature_stats(
         stack_size=seq_len,
         return_everything_as_stack=True,
     )
-    fill_replay_buffer(env, test_replay_buffer, num_test_transitions)
+    random_policy = make_random_policy_for_env(env)
+    agent = Agent.create_for_env(env, policy=random_policy)
+    fill_replay_buffer(env, test_replay_buffer, num_test_transitions, agent)
 
     if saved_mdnrnn_path is None:
         # train from scratch
@@ -248,8 +253,13 @@ def create_embed_rl_dataset(
     embed_rb = ReplayBuffer(
         replay_capacity=num_state_embed_transitions, batch_size=batch_size, stack_size=1
     )
+    random_policy = make_random_policy_for_env(env)
+    agent = Agent.create_for_env(env, policy=random_policy)
     fill_replay_buffer(
-        env=embed_env, replay_buffer=embed_rb, desired_size=num_state_embed_transitions
+        env=embed_env,
+        replay_buffer=embed_rb,
+        desired_size=num_state_embed_transitions,
+        agent=agent,
     )
     batch = embed_rb.sample_transition_batch(batch_size=num_state_embed_transitions)
     state_min = min(batch.state.min(), batch.next_state.min()).item()

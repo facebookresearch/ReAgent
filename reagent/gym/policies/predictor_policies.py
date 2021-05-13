@@ -116,6 +116,10 @@ class ActorPredictorPolicy(Policy):
     def act(
         self, obs: Any, possible_actions_mask: Optional[np.ndarray] = None
     ) -> rlt.ActorOutput:
-        action = self.predictor(obs).cpu()
-        # TODO: return log_probs as well
-        return rlt.ActorOutput(action=action)
+        output = self.predictor(obs)
+        if isinstance(output, tuple):
+            action, log_prob = output
+            log_prob = log_prob.clamp(-20, 20)
+            return rlt.ActorOutput(action=action.cpu(), log_prob=log_prob.cpu())
+        else:
+            return rlt.ActorOutput(action=output.cpu())

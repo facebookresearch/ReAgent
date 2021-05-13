@@ -14,6 +14,7 @@ from reagent.data.spark_utils import call_spark_class, get_spark_session
 from reagent.gym.agents.agent import Agent
 from reagent.gym.envs import Gym
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
+from reagent.gym.policies.random_policies import make_random_policy_for_env
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import fill_replay_buffer
 from reagent.model_managers.union import ModelManager__Union
@@ -34,7 +35,7 @@ def initialize_seed(seed: Optional[int] = None):
         torch.manual_seed(seed)
 
 
-def offline_gym(
+def offline_gym_random(
     env_name: str,
     pkl_path: str,
     num_train_transitions: int,
@@ -42,14 +43,46 @@ def offline_gym(
     seed: int = 1,
 ):
     """
-    Generate samples from a DiscreteRandomPolicy on the Gym environment and
+    Generate samples from a random Policy on the Gym environment and
     saves results in a pandas df parquet.
     """
-    initialize_seed(seed)
     env = Gym(env_name=env_name)
+    random_policy = make_random_policy_for_env(env)
+    agent = Agent.create_for_env(env, policy=random_policy)
+    return _offline_gym(env, agent, pkl_path, num_train_transitions, max_steps, seed)
+
+
+def offline_gym_predictor(
+    env_name: str,
+    model: ModelManager__Union,
+    publisher: ModelPublisher__Union,
+    pkl_path: str,
+    num_train_transitions: int,
+    max_steps: Optional[int],
+    module_name: str = "default_model",
+    seed: int = 1,
+):
+    """
+    Generate samples from a trained Policy on the Gym environment and
+    saves results in a pandas df parquet.
+    """
+    env = Gym(env_name=env_name)
+    agent = make_agent_from_model(env, model, publisher, module_name)
+    return _offline_gym(env, agent, pkl_path, num_train_transitions, max_steps, seed)
+
+
+def _offline_gym(
+    env: Gym,
+    agent: Agent,
+    pkl_path: str,
+    num_train_transitions: int,
+    max_steps: Optional[int],
+    seed: int = 1,
+):
+    initialize_seed(seed)
 
     replay_buffer = ReplayBuffer(replay_capacity=num_train_transitions, batch_size=1)
-    fill_replay_buffer(env, replay_buffer, num_train_transitions)
+    fill_replay_buffer(env, replay_buffer, num_train_transitions, agent)
     if isinstance(env.action_space, gym.spaces.Discrete):
         is_discrete_action = True
     else:
@@ -90,6 +123,27 @@ def timeline_operator(pkl_path: str, input_table_spec: TableSpec):
     call_spark_class(spark, class_name="Timeline", args=json.dumps(arg))
 
 
+def make_agent_from_model(
+    env: Gym,
+    model: ModelManager__Union,
+    publisher: ModelPublisher__Union,
+    module_name: str,
+):
+    publisher_manager = publisher.value
+    assert isinstance(
+        publisher_manager, FileSystemPublisher
+    ), f"publishing manager is type {type(publisher_manager)}, not FileSystemPublisher"
+    module_names = model.value.serving_module_names()
+    assert module_name in module_names, f"{module_name} not in {module_names}"
+    torchscript_path = publisher_manager.get_latest_published_model(
+        model.value, module_name
+    )
+    jit_model = torch.jit.load(torchscript_path)
+    policy = create_predictor_policy_from_model(jit_model)
+    agent = Agent.create_for_env_with_serving_policy(env, policy)
+    return agent
+
+
 def evaluate_gym(
     env_name: str,
     model: ModelManager__Union,
@@ -100,26 +154,17 @@ def evaluate_gym(
     max_steps: Optional[int] = None,
 ):
     initialize_seed(1)
-    publisher_manager = publisher.value
-    assert isinstance(
-        publisher_manager, FileSystemPublisher
-    ), f"publishing manager is type {type(publisher_manager)}, not FileSystemPublisher"
     env = Gym(env_name=env_name)
-    module_names = model.value.serving_module_names()
-    assert module_name in module_names, f"{module_name} not in {module_names}"
-    torchscript_path = publisher_manager.get_latest_published_model(
-        model.value, module_name
-    )
-    jit_model = torch.jit.load(torchscript_path)
-    policy = create_predictor_policy_from_model(jit_model)
-    agent = Agent.create_for_env_with_serving_policy(env, policy)
+    agent = make_agent_from_model(env, model, publisher, module_name)
+
     rewards = evaluate_for_n_episodes(
         n=num_eval_episodes, env=env, agent=agent, max_steps=max_steps
     )
     avg_reward = np.mean(rewards)
     logger.info(
         f"Average reward over {num_eval_episodes} is {avg_reward}.\n"
-        f"List of rewards: {rewards}"
+        f"List of rewards: {rewards}\n"
+        f"Passing score bar: {passing_score_bar}"
     )
     assert (
         avg_reward >= passing_score_bar

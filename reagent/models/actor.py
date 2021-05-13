@@ -136,7 +136,7 @@ class GaussianFullyConnectedActor(ModelBase):
         # used to calculate log-prob
         self.const = math.log(math.sqrt(2 * math.pi))
         self.eps = 1e-6
-        self._log_min_max = (-20.0, 2.0)
+        self._log_min_max = (-2.0, 2.0)
 
     def input_prototype(self):
         return rlt.FeatureData(torch.randn(1, self.state_dim))
@@ -288,10 +288,6 @@ class DirichletFullyConnectedActor(ModelBase):
         else:
             # ONNX can't export Dirichlet()
             action = torch._sample_dirichlet(concentration)
-
-        if not self.training:
-            # ONNX doesn't like reshape either..
-            return rlt.ActorOutput(action=action)
 
         log_prob = Dirichlet(concentration).log_prob(action)
         return rlt.ActorOutput(action=action, log_prob=log_prob.unsqueeze(dim=1))
