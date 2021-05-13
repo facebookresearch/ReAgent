@@ -40,6 +40,9 @@ class Aggregator:
     def aggregate(self, values):
         pass
 
+    def flush(self):
+        pass
+
 
 class ObservableMixin:
     def __init__(self):

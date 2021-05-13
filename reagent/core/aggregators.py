@@ -114,6 +114,22 @@ class ListAggregator(Aggregator):
         self.values.extend(values)
 
 
+class EpochListAggregator(TensorAggregator):
+    def __init__(self, key: str):
+        super().__init__(key)
+        self.values: List = []
+        self.epoch_values: List = []
+
+    def aggregate(self, values):
+        flattened = torch.flatten(values).tolist()
+        self.values.extend(flattened)
+
+    def flush(self):
+        if self.values:
+            self.epoch_values = self.values
+            self.values = []
+
+
 class FunctionsByActionAggregator(TensorAggregator):
     """
     Aggregating the input by action, using the given functions. The input is

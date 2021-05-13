@@ -4,12 +4,13 @@ import logging
 from enum import Enum
 from typing import Optional
 
+import numpy as np
 import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import field
 from reagent.models.base import ModelBase
 from reagent.optimizer.union import Optimizer__Union
-from reagent.training.trainer import Trainer
+from reagent.training.reagent_lightning_module import ReAgentLightningModule
 
 
 logger = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ def _get_loss_function(
     return wrapper_loss_fn
 
 
-class RewardNetTrainer(Trainer):
+class RewardNetTrainer(ReAgentLightningModule):
     def __init__(
         self,
         reward_net: ModelBase,
@@ -69,11 +70,9 @@ class RewardNetTrainer(Trainer):
         reward_ignore_threshold: Optional[float] = None,
         weighted_by_inverse_propensity: bool = False,
     ) -> None:
+        super().__init__()
         self.reward_net = reward_net
-        self.minibatch = 0
-        self.opt = optimizer.make_optimizer_scheduler(self.reward_net.parameters())[
-            "optimizer"
-        ]
+        self.optimizer = optimizer
         self.loss_type = loss_type
         self.reward_ignore_threshold = reward_ignore_threshold
         self.weighted_by_inverse_propensity = weighted_by_inverse_propensity
@@ -81,21 +80,48 @@ class RewardNetTrainer(Trainer):
             loss_type, reward_ignore_threshold, weighted_by_inverse_propensity
         )
 
-    def train(self, training_batch: rlt.TensorDataClass):
+    def configure_optimizers(self):
+        optimizers = []
+        optimizers.append(
+            self.optimizer.make_optimizer_scheduler(self.reward_net.parameters())
+        )
+        return optimizers
+
+    def _get_sample_weight(self, batch: rlt.PreprocessedRankingInput):
         weight = None
-        if isinstance(training_batch, rlt.PreprocessedRankingInput):
-            target_reward = training_batch.slate_reward
-            if self.weighted_by_inverse_propensity:
-                assert training_batch.tgt_out_probs is not None
+        if self.weighted_by_inverse_propensity:
+            if isinstance(batch, rlt.PreprocessedRankingInput):
+                assert batch.tgt_out_probs is not None
                 # pyre-fixme[58]: `/` is not supported for operand types `float` and
                 #  `Optional[torch.Tensor]`.
-                weight = 1.0 / training_batch.tgt_out_probs
-        else:
-            target_reward = training_batch.reward
-            assert (
-                not self.weighted_by_inverse_propensity
-            ), f"Sampling Weighting not implemented for {type(training_batch)}"
+                weight = 1.0 / batch.tgt_out_probs
+            else:
+                raise NotImplementedError(
+                    f"Sampling weighting not implemented for {type(batch)}"
+                )
+        return weight
 
+    def _get_target_reward(self, batch: rlt.PreprocessedRankingInput):
+        if isinstance(batch, rlt.PreprocessedRankingInput):
+            target_reward = batch.slate_reward
+        else:
+            target_reward = batch.reward
+        assert target_reward is not None
+        return target_reward
+
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
+    @torch.no_grad()
+    def _compute_unweighted_loss(
+        self, predicted_reward: torch.Tensor, target_reward: torch.Tensor
+    ):
+        return self.loss_fn(predicted_reward, target_reward, weight=None)
+
+    def train_step_gen(
+        self, training_batch: rlt.PreprocessedRankingInput, batch_idx: int
+    ):
+        weight = self._get_sample_weight(training_batch)
+        target_reward = self._get_target_reward(training_batch)
         predicted_reward = self.reward_net(training_batch).predicted_reward
 
         assert (
@@ -104,16 +130,46 @@ class RewardNetTrainer(Trainer):
             and target_reward.shape[1] == 1
         )
         loss = self.loss_fn(predicted_reward, target_reward, weight)
-        self.opt.zero_grad()
-        loss.backward()
-        self.opt.step()
-        loss = loss.detach()
 
-        self.minibatch += 1
-        if self.minibatch % 10 == 0:
-            logger.info(f"{self.minibatch}-th batch: {self.loss_type}={loss}")
+        detached_loss = loss.detach().cpu()
+        self.reporter.log(loss=detached_loss)
 
-        return loss
+        if weight is not None:
+            unweighted_loss = self._compute_unweighted_loss(
+                predicted_reward, target_reward
+            )
+            self.reporter.log(unweighted_loss=unweighted_loss)
+
+        if self.all_batches_processed % 10 == 0:
+            logger.info(
+                f"{self.all_batches_processed}-th batch: "
+                f"{self.loss_type}={detached_loss.item()}"
+            )
+
+        yield loss
+
+    # pyre-ignore inconsistent override because lightning doesn't use types
+    def validation_step(self, batch: rlt.PreprocessedRankingInput, batch_idx: int):
+        reward = self._get_target_reward(batch)
+        self.reporter.log(eval_rewards=reward.flatten().detach().cpu())
+
+        pred_reward = self.reward_net(batch).predicted_reward
+        self.reporter.log(eval_pred_rewards=pred_reward.flatten().detach().cpu())
+
+        weight = self._get_sample_weight(batch)
+        loss = self.loss_fn(pred_reward, reward, weight)
+
+        detached_loss = loss.detach().cpu()
+        self.reporter.log(eval_loss=detached_loss)
+
+        if weight is not None:
+            unweighted_loss = self._compute_unweighted_loss(pred_reward, reward)
+            self.reporter.log(eval_unweighted_loss=unweighted_loss)
+
+        return detached_loss.item()
+
+    def validation_epoch_end(self, outputs):
+        self.reporter.update_best_model(np.mean(outputs), self.reward_net)
 
     def warm_start_components(self):
         return ["reward_net"]

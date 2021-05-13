@@ -141,6 +141,8 @@ class SyntheticReward(ModelManager):
     def required_normalization_keys(self) -> List[str]:
         raise RuntimeError
 
+    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
+    #  inconsistently.
     def build_trainer(self, use_gpu: bool) -> RewardNetTrainer:
         net_builder = self.net_builder.value
         synthetic_reward_network = net_builder.build_synthetic_reward_network(
@@ -148,8 +150,6 @@ class SyntheticReward(ModelManager):
             action_normalization_data=self.action_normalization_data,
             discrete_action_names=self.discrete_action_names,
         )
-        if use_gpu:
-            synthetic_reward_network = synthetic_reward_network.cuda()
 
         # pyre-fixme[16]: `SyntheticReward` has no attribute `_synthetic_reward_network`.
         self._synthetic_reward_network = synthetic_reward_network
