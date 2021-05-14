@@ -266,8 +266,15 @@ class ActorCriticBase(ModelManager):
             checkpoint_path=self._lightning_checkpoint_path,
             resource_options=resource_options or ResourceOptions(),
         )
-        # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
-        training_report = RLTrainingReport.make_union_instance(
-            reporter.generate_training_report()
+        if reporter is None:
+            training_report = None
+        else:
+            # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
+            training_report = RLTrainingReport.make_union_instance(
+                reporter.generate_training_report()
+            )
+        logger_data = self._lightning_trainer.logger.line_plot_aggregated
+        self._lightning_trainer.logger.clear_local_data()
+        return RLTrainingOutput(
+            training_report=training_report, logger_data=logger_data
         )
-        return RLTrainingOutput(training_report=training_report)
