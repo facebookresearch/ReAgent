@@ -334,38 +334,43 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
             value_loss = F.mse_loss(state_value, target_value.detach())
             yield value_loss
 
-        # Logging at the end to schedule all the cuda operations first
-        self.reporter.log(
-            td_loss=q1_loss,
-            logged_rewards=reward,
-            model_values_on_logged_actions=q1_value,
-            # model_propensities=actor_output.log_prob.exp(),
-            # model_values=min_q_actor_value,
+        self.logger.log_metrics(
+            {
+                "td_loss": q1_loss,
+                "logged_rewards": reward.mean(),
+                "model_values_on_logged_actions": q1_value.mean(),
+                "q1_value": q1_value.mean(),
+                "entropy_temperature": self.entropy_temperature,
+                "log_prob_a": log_prob_a.mean(),
+                "next_state_value": next_state_value.mean(),
+                "target_q_value": target_q_value.mean(),
+                "min_q_actor_value": min_q_actor_value.mean(),
+                "actor_output_log_prob": actor_output.log_prob.mean(),
+                "actor_loss": actor_loss.mean(),
+            },
+            step=self.all_batches_processed,
         )
-
-        if batch_idx % self.trainer.log_every_n_steps == 0:
-            self.reporter.log(
-                q1_value=q1_value,
-                entropy_temperature=self.entropy_temperature,
-                log_prob_a=log_prob_a,
-                next_state_value=next_state_value,
-                target_q_value=target_q_value,
-                min_q_actor_value=min_q_actor_value,
-                actor_output_log_prob=actor_output.log_prob,
-                actor_loss=actor_loss,
+        if self.q2_network:
+            self.logger.log_metrics(
+                {"q2_value": q2_value.mean()},
+                step=self.all_batches_processed,
             )
-            if self.q2_network:
-                self.reporter.log(q2_value=q2_value)
 
-            if self.value_network:
-                self.reporter.log(target_state_value=target_value)
+        if self.value_network:
+            self.logger.log_metrics(
+                {"target_state_value": target_value.mean()},
+                step=self.all_batches_processed,
+            )
 
-            if self.add_kld_to_loss:
-                self.reporter.log(
-                    action_batch_mean=action_batch_m,
-                    action_batch_var=action_batch_v,
-                    kld=kld,
-                )
+        if self.add_kld_to_loss:
+            self.logger.log_metrics(
+                {
+                    "action_batch_mean": action_batch_m.mean(),
+                    "action_batch_var": action_batch_v.mean(),
+                    "kld": kld,
+                },
+                step=self.all_batches_processed,
+            )
 
         # Use the soft update rule to update the target networks
         result = self.soft_update_result()

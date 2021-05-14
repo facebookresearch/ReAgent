@@ -22,7 +22,6 @@ from reagent.net_builder.unions import (
 from reagent.net_builder.value.fully_connected import (
     FullyConnected as ValueFullyConnected,
 )
-from reagent.reporting.sac_reporter import SACReporter
 from reagent.training import SACTrainer, SACTrainerParameters
 
 
@@ -110,7 +109,7 @@ class SAC(ActorCriticBase):
         return trainer
 
     def get_reporter(self):
-        return SACReporter()
+        return None
 
     def build_serving_module(self) -> Dict[str, torch.nn.Module]:
         assert self._actor_network is not None
