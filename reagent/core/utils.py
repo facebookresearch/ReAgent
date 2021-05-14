@@ -2,6 +2,20 @@
 
 from typing import Tuple, Optional
 
+import torch
+
+
+def get_rank() -> int:
+    """
+    Returns the torch.distributed rank of the process. 0 represents
+    the main process and is the default if torch.distributed isn't set up
+    """
+    return (
+        torch.distributed.get_rank()
+        if torch.distributed.is_available() and torch.distributed.is_initialized()
+        else 0
+    )
+
 
 class lazy_property(object):
     """

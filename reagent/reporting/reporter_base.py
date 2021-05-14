@@ -44,11 +44,9 @@ class ReporterBase(CompositeObserver):
         )
         self._reporter_observable = _ReporterObservable(self)
 
-    @rank_zero_only
     def log(self, **kwargs) -> None:
         self._reporter_observable.notify_observers(**kwargs)
 
-    @rank_zero_only
     def flush(self, epoch: int):
         logger.info(f"Epoch {epoch} ended")
 
