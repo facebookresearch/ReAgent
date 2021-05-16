@@ -45,7 +45,8 @@ def _gen_mask(valid_step: torch.Tensor, batch_size: int, seq_len: int):
     ]
     """
     assert valid_step.shape == (batch_size, 1)
-    assert ((1 <= valid_step) <= seq_len).all()
+    assert (1 <= valid_step).all()
+    assert (valid_step <= seq_len).all()
     device = valid_step.device
     mask = torch.arange(seq_len, device=device).repeat(batch_size, 1)
     mask = (mask >= (seq_len - valid_step)).float()
@@ -91,9 +92,9 @@ class SingleStepSyntheticRewardNet(ModelBase):
         output = self.dnn(state, action).squeeze(2).transpose(0, 1)
         assert valid_step is not None
         mask = _gen_mask(valid_step, batch_size, seq_len)
-        output *= mask
+        output_masked = output * mask
 
-        pred_reward = output.sum(dim=1, keepdim=True)
+        pred_reward = output_masked.sum(dim=1, keepdim=True)
         return rlt.RewardNetworkOutput(predicted_reward=pred_reward)
 
     def export_mlp(self):
