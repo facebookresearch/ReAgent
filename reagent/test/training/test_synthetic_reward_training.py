@@ -50,7 +50,7 @@ def create_data(state_dim, action_dim, seq_len, batch_size, num_batches):
     return weight, data
 
 
-def train_and_eval(trainer, data, num_eval_batches=10, max_epochs=1):
+def train_and_eval(trainer, data, num_eval_batches=100, max_epochs=1):
     train_dataloader = DataLoader(data[:-num_eval_batches], collate_fn=lambda x: x[0])
     eval_data = data[-num_eval_batches:]
 
@@ -77,7 +77,7 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         action_dim = 2
         seq_len = 5
         batch_size = 512
-        num_batches = 10000
+        num_batches = 5000
         sizes = [256, 128]
         activations = ["relu", "relu"]
         last_layer_activation = "linear"
@@ -88,7 +88,7 @@ class TestSyntheticRewardTraining(unittest.TestCase):
             activations=activations,
             last_layer_activation=last_layer_activation,
         )
-        optimizer = Optimizer__Union(SGD=classes["SGD"]())
+        optimizer = Optimizer__Union(Adam=classes["Adam"]())
         trainer = RewardNetTrainer(reward_net, optimizer)
         trainer.set_reporter(
             RewardNetworkReporter(
@@ -114,7 +114,7 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         action_dim = 2
         seq_len = 5
         batch_size = 512
-        num_batches = 10000
+        num_batches = 5000
         sizes = [256, 128]
         activations = ["relu", "relu"]
         last_layer_activation = "linear"
@@ -137,6 +137,6 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         weight, data = create_data(
             state_dim, action_dim, seq_len, batch_size, num_batches
         )
-        threshold = 0.6
+        threshold = 0.2
         avg_eval_loss = train_and_eval(trainer, data)
         assert avg_eval_loss < threshold
