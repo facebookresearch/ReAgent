@@ -21,6 +21,7 @@ from reagent.gym.datasets.replay_buffer_dataset import ReplayBufferDataset
 from reagent.gym.envs import Env__Union
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.policies.policy import Policy
+from reagent.gym.policies.random_policies import make_random_policy_for_env
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes, run_episode
 from reagent.gym.types import PostEpisode, PostStep
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
@@ -239,8 +240,13 @@ def run_test_replay_buffer(
     device = torch.device("cuda") if use_gpu else torch.device("cpu")
     # first fill the replay buffer using random policy
     train_after_ts = max(train_after_ts, minibatch_size)
+    random_policy = make_random_policy_for_env(env)
+    agent = Agent.create_for_env(env, policy=random_policy)
     fill_replay_buffer(
-        env=env, replay_buffer=replay_buffer, desired_size=train_after_ts
+        env=env,
+        replay_buffer=replay_buffer,
+        desired_size=train_after_ts,
+        agent=agent,
     )
 
     agent = Agent.create_for_env(env, policy=training_policy, device=device)

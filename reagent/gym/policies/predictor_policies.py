@@ -19,6 +19,7 @@ from reagent.gym.policies.scorers.discrete_scorer import (
     parametric_dqn_serving_scorer,
 )
 from reagent.gym.policies.scorers.slate_q_scorer import slate_q_serving_scorer
+from reagent.models.actor import LOG_PROB_MIN, LOG_PROB_MAX
 
 
 if IS_FB_ENVIRONMENT:
@@ -116,6 +117,10 @@ class ActorPredictorPolicy(Policy):
     def act(
         self, obs: Any, possible_actions_mask: Optional[np.ndarray] = None
     ) -> rlt.ActorOutput:
-        action = self.predictor(obs).cpu()
-        # TODO: return log_probs as well
-        return rlt.ActorOutput(action=action)
+        output = self.predictor(obs)
+        if isinstance(output, tuple):
+            action, log_prob = output
+            log_prob = log_prob.clamp(LOG_PROB_MIN, LOG_PROB_MAX)
+            return rlt.ActorOutput(action=action.cpu(), log_prob=log_prob.cpu())
+        else:
+            return rlt.ActorOutput(action=output.cpu())

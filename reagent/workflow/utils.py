@@ -142,4 +142,8 @@ def train_eval_lightning(
     )
     trainer.fit(trainer_module, datamodule=datamodule)
     trainer.test()
+    if checkpoint_path is not None:
+        # Overwrite the warmstart path with the new model
+        trainer_module.set_clean_stop(True)
+        trainer.save_checkpoint(checkpoint_path)
     return trainer

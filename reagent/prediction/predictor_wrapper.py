@@ -313,7 +313,6 @@ class ActorWithPreprocessor(ModelBase):
             state_with_presence[0], state_with_presence[1]
         )
         state_feature_vector = rlt.FeatureData(preprocessed_state)
-        # TODO: include log_prob in the output
         model_output = self.model(state_feature_vector)
         if self.serve_mean_policy:
             assert (
@@ -326,7 +325,7 @@ class ActorWithPreprocessor(ModelBase):
         if self.action_postprocessor:
             # pyre-fixme[29]: `Optional[Postprocessor]` is not a function.
             action = self.action_postprocessor(action)
-        return action
+        return (action, model_output.log_prob)
 
     def input_prototype(self):
         return (self.state_preprocessor.input_prototype(),)
@@ -351,9 +350,8 @@ class ActorPredictorWrapper(torch.jit.ScriptModule):
     @torch.jit.script_method
     def forward(
         self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]
-    ) -> torch.Tensor:
-        action = self.actor_with_preprocessor(state_with_presence)
-        return action
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self.actor_with_preprocessor(state_with_presence)
 
 
 class RankingActorWithPreprocessor(ModelBase):

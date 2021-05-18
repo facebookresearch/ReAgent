@@ -11,6 +11,7 @@ model:
       rl:
         gamma: 0.9
         target_update_rate: 0.5
+        softmax_policy: true
       entropy_temperature: 0.01
       q_network_optimizer:
         Adam:
@@ -21,7 +22,6 @@ model:
       actor_network_optimizer:
         Adam:
           lr: 0.001
-      alpha_optimizer: null
     actor_net_builder:
       GaussianFullyConnected:
         sizes:
@@ -55,7 +55,7 @@ model:
       calc_cpe_in_training: false
 
 num_train_transitions: 40000  # approx. 200 episodes
-max_steps: 200
+max_steps: 1000
 seed: 42
 num_epochs: 80
 publisher:
@@ -65,3 +65,4 @@ num_eval_episodes: 30
 passing_score_bar: -1000
 reader_options:
   minibatch_size: 1024
+warmstart_path: test_warmstart

@@ -13,7 +13,7 @@ from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.scorers.discrete_scorer import apply_possible_actions_mask
 
 
-def make_random_policy_for_env(env: gym.Env):
+def make_random_policy_for_env(env: gym.Env) -> Policy:
     if isinstance(env.action_space, gym.spaces.Discrete):
         # discrete action space
         return DiscreteRandomPolicy.create_for_env(env)
