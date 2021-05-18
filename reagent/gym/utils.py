@@ -38,8 +38,10 @@ except ImportError:
     HAS_RECSIM = False
 
 
-def fill_replay_buffer(env, replay_buffer: ReplayBuffer, desired_size: int):
-    """Fill replay buffer with random transitions until size reaches desired_size."""
+def fill_replay_buffer(
+    env, replay_buffer: ReplayBuffer, desired_size: int, agent: Agent
+):
+    """Fill replay buffer with transitions until size reaches desired_size."""
     assert (
         0 < desired_size and desired_size <= replay_buffer._replay_capacity
     ), f"It's not true that 0 < {desired_size} <= {replay_buffer._replay_capacity}."
@@ -48,18 +50,15 @@ def fill_replay_buffer(env, replay_buffer: ReplayBuffer, desired_size: int):
         f"(more than desired_size = {desired_size})"
     )
     logger.info(
-        f" Starting to fill replay buffer using random policy to size: {desired_size}."
+        f" Starting to fill replay buffer using policy to size: {desired_size}."
     )
-    random_policy = make_random_policy_for_env(env)
     post_step = add_replay_buffer_post_step(replay_buffer, env=env)
+    agent.post_transition_callback = post_step
 
-    agent = Agent.create_for_env(
-        env, policy=random_policy, post_transition_callback=post_step
-    )
     max_episode_steps = env.max_steps
     with tqdm(
         total=desired_size - replay_buffer.size,
-        desc=f"Filling replay buffer from {replay_buffer.size} to size {desired_size} using random policy",
+        desc=f"Filling replay buffer from {replay_buffer.size} to size {desired_size}",
     ) as pbar:
         mdp_id = 0
         while replay_buffer.size < desired_size:
@@ -155,7 +154,7 @@ def build_normalizer(env: EnvWrapper) -> Dict[str, NormalizationData]:
 
 
 def create_df_from_replay_buffer(
-    env: gym.Env,
+    env,
     problem_domain: ProblemDomain,
     desired_size: int,
     multi_steps: Optional[int],
@@ -177,7 +176,9 @@ def create_df_from_replay_buffer(
         update_horizon=update_horizon,
         return_as_timeline_format=return_as_timeline_format,
     )
-    fill_replay_buffer(env, replay_buffer, desired_size)
+    random_policy = make_random_policy_for_env(env)
+    agent = Agent.create_for_env(env, policy=random_policy)
+    fill_replay_buffer(env, replay_buffer, desired_size, agent)
 
     batch = replay_buffer.sample_all_valid_transitions()
     n = batch.state.shape[0]

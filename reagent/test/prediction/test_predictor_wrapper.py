@@ -193,7 +193,7 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         wrapper = ActorPredictorWrapper(actor_with_preprocessor)
         input_prototype = actor_with_preprocessor.input_prototype()
-        action = wrapper(*input_prototype)
+        action, _log_prob = wrapper(*input_prototype)
         self.assertEqual(action.shape, (1, len(action_normalization_parameters)))
 
         expected_output = postprocessor(

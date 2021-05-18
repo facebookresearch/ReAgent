@@ -13,6 +13,9 @@ from reagent.models.fully_connected_network import FullyConnectedNetwork
 from torch.distributions import Dirichlet
 from torch.distributions.normal import Normal
 
+LOG_PROB_MIN = -2.0
+LOG_PROB_MAX = 2.0
+
 
 class StochasticActor(ModelBase):
     def __init__(self, scorer, sampler):
@@ -86,7 +89,7 @@ class FullyConnectedActor(ModelBase):
         # TODO: log prob is affected by clamping, how to handle that?
         log_prob = (
             self.noise_dist.log_prob(noise).to(action.device).sum(dim=1).view(-1, 1)
-        )
+        ).clamp(LOG_PROB_MIN, LOG_PROB_MAX)
         action = (action + noise.to(action.device)).clamp(
             *CONTINUOUS_TRAINING_ACTION_RANGE
         )
@@ -136,7 +139,6 @@ class GaussianFullyConnectedActor(ModelBase):
         # used to calculate log-prob
         self.const = math.log(math.sqrt(2 * math.pi))
         self.eps = 1e-6
-        self._log_min_max = (-20.0, 2.0)
 
     def input_prototype(self):
         return rlt.FeatureData(torch.randn(1, self.state_dim))
@@ -174,7 +176,7 @@ class GaussianFullyConnectedActor(ModelBase):
             loc = self.loc_layer_norm(loc)
             scale_log = self.scale_layer_norm(scale_log)
 
-        scale_log = scale_log.clamp(*self._log_min_max)
+        scale_log = scale_log.clamp(LOG_PROB_MIN, LOG_PROB_MAX)
         return loc, scale_log
 
     def _squash_raw_action(self, raw_action: torch.Tensor) -> torch.Tensor:
@@ -288,10 +290,6 @@ class DirichletFullyConnectedActor(ModelBase):
         else:
             # ONNX can't export Dirichlet()
             action = torch._sample_dirichlet(concentration)
-
-        if not self.training:
-            # ONNX doesn't like reshape either..
-            return rlt.ActorOutput(action=action)
 
         log_prob = Dirichlet(concentration).log_prob(action)
         return rlt.ActorOutput(action=action, log_prob=log_prob.unsqueeze(dim=1))

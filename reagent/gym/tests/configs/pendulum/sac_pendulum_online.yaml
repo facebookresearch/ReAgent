@@ -8,7 +8,7 @@ model:
         gamma: 0.99
         target_update_rate: 0.005
         softmax_policy: true
-      entropy_temperature: 0.1
+      entropy_temperature: 0.3
       q_network_optimizer:
         Adam:
           lr: 0.001

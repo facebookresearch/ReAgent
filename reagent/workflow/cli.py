@@ -4,6 +4,7 @@
 
 import dataclasses
 import importlib
+import json
 import logging
 import os
 import sys
@@ -58,7 +59,8 @@ def select_relevant_params(config_dict, ConfigClass):
 @reagent.command(short_help="Run the workflow with config file")
 @click.argument("workflow")
 @click.argument("config_file", type=click.File("r"))
-def run(workflow, config_file):
+@click.option("--extra-options", default=None)
+def run(workflow, config_file, extra_options):
 
     func, ConfigClass = _load_func_and_config_class(workflow)
 
@@ -70,6 +72,8 @@ def run(workflow, config_file):
     yaml = YAML(typ="safe")
     config_dict = yaml.load(config_file.read())
     assert config_dict is not None, "failed to read yaml file"
+    if extra_options is not None:
+        config_dict.update(json.loads(extra_options))
     config_dict = select_relevant_params(config_dict, ConfigClass)
     config = ConfigClass(**config_dict)
     func(**config.asdict())

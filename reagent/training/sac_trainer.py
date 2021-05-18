@@ -12,10 +12,10 @@ from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import dataclass
 from reagent.core.dataclasses import field
 from reagent.core.parameters import RLParameters
+from reagent.models.actor import LOG_PROB_MIN, LOG_PROB_MAX
 from reagent.optimizer import Optimizer__Union, SoftUpdate
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.rl_trainer_pytorch import RLTrainerMixin
-
 
 logger = logging.getLogger(__name__)
 
@@ -229,8 +229,7 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
 
             log_prob_a = self.actor_network.get_log_prob(
                 training_batch.next_state, next_state_actor_output.action
-            )
-            log_prob_a = log_prob_a.clamp(-20.0, 20.0)
+            ).clamp(LOG_PROB_MIN, LOG_PROB_MAX)
             next_state_value -= self.entropy_temperature * log_prob_a
 
         if self.gamma > 0.0:
@@ -263,7 +262,7 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
             q2_actor_value = self.q2_network(*state_actor_action)
             min_q_actor_value = torch.min(q1_actor_value, q2_actor_value)
 
-        actor_log_prob = actor_output.log_prob
+        actor_log_prob = actor_output.log_prob.clamp(LOG_PROB_MIN, LOG_PROB_MAX)
 
         if not self.backprop_through_log_prob:
             actor_log_prob = actor_log_prob.detach()
@@ -309,7 +308,10 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
             alpha_loss = -(
                 (
                     self.log_alpha
-                    * (actor_output.log_prob + self.target_entropy).detach()
+                    * (
+                        actor_output.log_prob.clamp(LOG_PROB_MIN, LOG_PROB_MAX)
+                        + self.target_entropy
+                    ).detach()
                 ).mean()
             )
             yield alpha_loss
@@ -327,8 +329,7 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
                 log_prob_a = torch.zeros_like(min_q_actor_value)
                 target_value = min_q_actor_value
             else:
-                log_prob_a = actor_output.log_prob
-                log_prob_a = log_prob_a.clamp(-20.0, 20.0)
+                log_prob_a = actor_output.log_prob.clamp(LOG_PROB_MIN, LOG_PROB_MAX)
                 target_value = min_q_actor_value - self.entropy_temperature * log_prob_a
 
             value_loss = F.mse_loss(state_value, target_value.detach())
