@@ -143,3 +143,20 @@ class TestSyntheticReward(unittest.TestCase):
         assert dnn[4].in_features == 128
         assert dnn[4].out_features == 1
         assert dnn[5]._get_name() == "LeakyReLU"
+
+    def test_lstm_synthetic_reward(self):
+        state_dim = 10
+        action_dim = 2
+        last_layer_activation = "leaky_relu"
+        reward_net = synthetic_reward.SequenceSyntheticRewardNet(
+            state_dim=state_dim,
+            action_dim=action_dim,
+            lstm_hidden_size=128,
+            lstm_num_layers=2,
+            lstm_bidirectional=True,
+            last_layer_activation=last_layer_activation,
+        )
+        dnn = reward_net.fc_out
+        assert dnn.in_features == 128 * 2
+        assert dnn.out_features == 1
+        assert reward_net.output_activation._get_name() == "LeakyReLU"

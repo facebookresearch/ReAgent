@@ -259,3 +259,39 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         threshold = 0.2
         avg_eval_loss = train_and_eval(trainer, data)
         assert avg_eval_loss < threshold
+
+    def test_lstm_parametric_reward(self):
+        """
+        Reward at each step is a linear function of states and actions in a
+        context window around the step.
+
+        However, we can only observe aggregated reward at the last step
+        """
+        state_dim = 10
+        action_dim = 2
+        seq_len = 5
+        batch_size = 512
+        num_batches = 5000
+        last_layer_activation = "linear"
+        reward_net = synthetic_reward.SequenceSyntheticRewardNet(
+            state_dim=state_dim,
+            action_dim=action_dim,
+            lstm_hidden_size=128,
+            lstm_num_layers=2,
+            lstm_bidirectional=True,
+            last_layer_activation=last_layer_activation,
+        )
+        optimizer = Optimizer__Union(Adam=classes["Adam"]())
+        trainer = RewardNetTrainer(reward_net, optimizer)
+        trainer.set_reporter(
+            RewardNetworkReporter(
+                trainer.loss_type,
+                str(reward_net),
+            )
+        )
+        weight, data = create_sequence_data(
+            state_dim, action_dim, seq_len, batch_size, num_batches
+        )
+        threshold = 0.2
+        avg_eval_loss = train_and_eval(trainer, data)
+        assert avg_eval_loss < threshold

@@ -252,3 +252,67 @@ class NGramSyntheticRewardNet(ModelBase):
 
         pred_reward = output_masked.sum(dim=1, keepdim=True)
         return rlt.RewardNetworkOutput(predicted_reward=pred_reward)
+
+
+class SequenceSyntheticRewardNet(ModelBase):
+    def __init__(
+        self,
+        state_dim: int,
+        action_dim: int,
+        lstm_hidden_size: int,
+        lstm_num_layers: int,
+        lstm_bidirectional: bool,
+        last_layer_activation: str,
+    ):
+        """
+        Decompose rewards at the last step to individual steps.
+        """
+        super().__init__()
+
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+
+        self.lstm_hidden_size = lstm_hidden_size
+        self.lstm_num_layers = lstm_num_layers
+        self.lstm_bidirectional = lstm_bidirectional
+
+        self.net = nn.LSTM(
+            input_size=self.state_dim + self.action_dim,
+            hidden_size=self.lstm_hidden_size,
+            num_layers=self.lstm_num_layers,
+            bidirectional=self.lstm_bidirectional,
+        )
+
+        if self.lstm_bidirectional:
+            self.fc_out = nn.Linear(self.lstm_hidden_size * 2, 1)
+        else:
+            self.fc_out = nn.Linear(self.lstm_hidden_size, 1)
+
+        self.output_activation = ACTIVATION_MAP[last_layer_activation]()
+
+    def forward(self, training_batch: rlt.MemoryNetworkInput):
+        # state shape: seq_len, batch_size, state_dim
+        state = training_batch.state
+        # action shape: seq_len, batch_size, action_dim
+        action = rlt.FeatureData(float_features=training_batch.action)
+
+        # shape: seq_len, batch_size, state_dim + action_dim
+        cat_input = torch.cat((state.float_features, action.float_features), dim=-1)
+
+        # shape: batch_size, 1
+        valid_step = training_batch.valid_step
+        seq_len, batch_size, _ = training_batch.action.shape
+
+        # output shape: seq_len, batch_size, self.hidden_size
+        output, _ = self.net(cat_input)
+        # output shape: seq_len, batch_size, 1
+        output = self.fc_out(output)
+        # output shape: seq_len, batch_size, 1
+        output = self.output_activation(output).squeeze(2).transpose(0, 1)
+
+        assert valid_step is not None
+        mask = _gen_mask(valid_step, batch_size, seq_len)
+        output_masked = output * mask
+
+        pred_reward = output_masked.sum(dim=1, keepdim=True)
+        return rlt.RewardNetworkOutput(predicted_reward=pred_reward)
