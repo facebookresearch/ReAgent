@@ -32,6 +32,9 @@ from .synthetic_reward.ngram_synthetic_reward import (
     NGramSyntheticReward as NGramSyntheticRewardType,
     NGramConvNetSyntheticReward as NGramConvNetSyntheticRewardType,
 )
+from .synthetic_reward.sequence_synthetic_reward import (
+    SequenceSyntheticReward as SequenceSyntheticRewardType,
+)
 from .synthetic_reward.single_step_synthetic_reward import (
     SingleStepSyntheticReward as SingleStepSyntheticRewardType,
 )
@@ -85,3 +88,4 @@ class SyntheticRewardNetBuilder__Union(TaggedUnion):
     SingleStepSyntheticReward: Optional[SingleStepSyntheticRewardType] = None
     NGramSyntheticReward: Optional[NGramSyntheticRewardType] = None
     NGramConvNetSyntheticReward: Optional[NGramConvNetSyntheticRewardType] = None
+    SequenceSyntheticReward: Optional[SequenceSyntheticRewardType] = None
