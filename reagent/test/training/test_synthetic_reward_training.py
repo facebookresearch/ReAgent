@@ -219,12 +219,12 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         action_dim = 2
         seq_len = 5
         batch_size = 512
-        num_batches = 10000
-        sizes = [128]
-        activations = ["relu"]
+        num_batches = 5000
+        sizes = [128, 64]
+        activations = ["relu", "relu"]
         last_layer_activation = "linear"
         conv_net_params = rlp.ConvNetParameters(
-            conv_dims=[256],
+            conv_dims=[128],
             conv_height_kernels=[1],
             pool_types=["max"],
             pool_kernel_sizes=[1],
