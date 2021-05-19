@@ -153,6 +153,15 @@ class NormalizationData(BaseDataClass):
     dense_normalization_parameters: Dict[int, NormalizationParameters]
 
 
+@dataclass(frozen=True)
+class ConvNetParameters(BaseDataClass):
+    conv_dims: List[int]
+    conv_height_kernels: List[int]
+    pool_types: List[str]
+    pool_kernel_sizes: List[int]
+    conv_width_kernels: Optional[List[int]] = None
+
+
 #################################################
 #             RL Ranking parameters             #
 #################################################

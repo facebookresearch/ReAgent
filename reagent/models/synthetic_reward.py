@@ -5,7 +5,9 @@ from typing import List
 
 import torch
 import torch.nn as nn
+from reagent.core import parameters as rlp
 from reagent.core import types as rlt
+from reagent.models import convolutional_network
 from reagent.models import fully_connected_network
 from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import ACTIVATION_MAP
@@ -101,7 +103,7 @@ class SingleStepSyntheticRewardNet(ModelBase):
         return self.dnn
 
 
-class NGramSyntheticRewardNet(ModelBase):
+class NGramConvolutionalNetwork(nn.Module):
     def __init__(
         self,
         state_dim: int,
@@ -110,8 +112,78 @@ class NGramSyntheticRewardNet(ModelBase):
         activations: List[str],
         last_layer_activation: str,
         context_size: int,
-        use_batch_norm: bool = False,
-        use_layer_norm: bool = False,
+        conv_net_params: rlp.ConvNetParameters,
+    ) -> None:
+        super().__init__()
+
+        self.input_width = state_dim + action_dim
+        self.input_height = context_size
+        self.num_input_channels = 1
+
+        num_conv_layers = len(conv_net_params.conv_height_kernels)
+        conv_width_kernels = [self.input_width] + [1] * (num_conv_layers - 1)
+
+        cnn_parameters = convolutional_network.CnnParameters(
+            conv_dims=[self.num_input_channels] + conv_net_params.conv_dims,
+            conv_height_kernels=conv_net_params.conv_height_kernels,
+            conv_width_kernels=conv_width_kernels,
+            pool_types=conv_net_params.pool_types,
+            pool_kernels_strides=conv_net_params.pool_kernel_sizes,
+            num_input_channels=self.num_input_channels,
+            input_height=self.input_height,
+            input_width=self.input_width,
+        )
+
+        self.conv_net = convolutional_network.ConvolutionalNetwork(
+            cnn_parameters, [-1] + sizes + [1], activations + [last_layer_activation]
+        )
+
+    def forward(self, input) -> torch.Tensor:
+        """Forward pass NGram conv net.
+
+        :param input shape: seq_len, batch_size, feature_dim
+        """
+        # shape: seq_len * batch_size, 1, context_size, state_dim + action_dim
+        seq_len, batch_size, _ = input.shape
+        reshaped = input.reshape(-1, 1, self.input_height, self.input_width)
+        # shape: seq_len * batch_size, 1
+        output = self.conv_net.forward(reshaped)
+        # shape: seq_len, batch_size, 1
+        return output.reshape(seq_len, batch_size, 1)
+
+
+class NGramFullyConnectedNetwork(nn.Module):
+    def __init__(
+        self,
+        state_dim: int,
+        action_dim: int,
+        sizes: List[int],
+        activations: List[str],
+        last_layer_activation: str,
+        context_size: int,
+    ) -> None:
+        super().__init__()
+
+        self.fc = fully_connected_network.FullyConnectedNetwork(
+            [(state_dim + action_dim) * context_size] + sizes + [1],
+            activations + [last_layer_activation],
+        )
+
+    def forward(self, input) -> torch.Tensor:
+        """Forward pass NGram conv net.
+
+        :param input shape: seq_len, batch_size, feature_dim
+        """
+        return self.fc.forward(input)
+
+
+class NGramSyntheticRewardNet(ModelBase):
+    def __init__(
+        self,
+        state_dim: int,
+        action_dim: int,
+        context_size: int,
+        net: nn.Module,
     ):
         """
         Decompose rewards at the last step to individual steps.
@@ -125,13 +197,7 @@ class NGramSyntheticRewardNet(ModelBase):
         self.context_size = context_size
 
         self.ngram_padding = torch.zeros(1, 1, state_dim + action_dim)
-
-        self.fc = fully_connected_network.FullyConnectedNetwork(
-            [(state_dim + action_dim) * context_size] + sizes + [1],
-            activations + [last_layer_activation],
-            use_batch_norm=use_batch_norm,
-            use_layer_norm=use_layer_norm,
-        )
+        self.net = net
 
     def _ngram(self, input):
         seq_len, batch_size, feature_dim = input.shape
@@ -179,7 +245,7 @@ class NGramSyntheticRewardNet(ModelBase):
         seq_len, batch_size, _ = training_batch.action.shape
 
         # output shape: batch_size, seq_len
-        output = self.fc(ngram).squeeze(2).transpose(0, 1)
+        output = self.net(ngram).squeeze(2).transpose(0, 1)
         assert valid_step is not None
         mask = _gen_mask(valid_step, batch_size, seq_len)
         output_masked = output * mask

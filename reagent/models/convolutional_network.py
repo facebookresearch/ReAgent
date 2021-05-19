@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import collections
 import logging
 import math
 
@@ -13,6 +14,21 @@ from reagent.models.fully_connected_network import FullyConnectedNetwork
 
 
 logger = logging.getLogger(__name__)
+
+
+CnnParameters = collections.namedtuple(
+    "CnnParameters",
+    [
+        "conv_dims",
+        "conv_height_kernels",
+        "conv_width_kernels",
+        "pool_types",
+        "pool_kernels_strides",
+        "num_input_channels",
+        "input_height",
+        "input_width",
+    ],
+)
 
 
 class ConvolutionalNetwork(nn.Module):

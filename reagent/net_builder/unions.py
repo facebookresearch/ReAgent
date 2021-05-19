@@ -30,6 +30,7 @@ from .quantile_dqn.dueling_quantile import DuelingQuantile as DuelingQuantileTyp
 from .quantile_dqn.quantile import Quantile as QuantileType
 from .synthetic_reward.ngram_synthetic_reward import (
     NGramSyntheticReward as NGramSyntheticRewardType,
+    NGramConvNetSyntheticReward as NGramConvNetSyntheticRewardType,
 )
 from .synthetic_reward.single_step_synthetic_reward import (
     SingleStepSyntheticReward as SingleStepSyntheticRewardType,
@@ -83,3 +84,4 @@ class ValueNetBuilder__Union(TaggedUnion):
 class SyntheticRewardNetBuilder__Union(TaggedUnion):
     SingleStepSyntheticReward: Optional[SingleStepSyntheticRewardType] = None
     NGramSyntheticReward: Optional[NGramSyntheticRewardType] = None
+    NGramConvNetSyntheticReward: Optional[NGramConvNetSyntheticRewardType] = None
