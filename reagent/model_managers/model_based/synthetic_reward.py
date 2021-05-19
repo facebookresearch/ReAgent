@@ -24,7 +24,7 @@ from reagent.preprocessing.normalization import (
     get_feature_config,
 )
 from reagent.preprocessing.types import InputColumn
-from reagent.reporting.discrete_dqn_reporter import DiscreteDQNReporter
+from reagent.reporting.reward_network_reporter import RewardNetworkReporter
 from reagent.training import RewardNetTrainer, RewardNetworkTrainerParameters
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import (
@@ -81,21 +81,16 @@ class SyntheticReward(ModelManager):
             "config instead"
         )
 
-        if not self.action_preprocessing_options:
+        if self.discrete_action_names:
             assert (
                 type(self.discrete_action_names) is list
                 and len(self.discrete_action_names) > 1
-            ), (
-                f"Assume this is a discrete action problem because no action_preprocessing_option "
-                f"is specified. Then you need to specify at least 2 actions. Got {self.discrete_action_names}."
-            )
+            ), f"Assume this is a discrete action problem, you need to specify at least 2 actions. Got {self.discrete_action_names}."
         else:
-            assert not self.discrete_action_names, (
-                "If it is a parametric-action problem, please specify action_preprocessing_options "
-                "and parametric_action_float_features, "
-                "and do not specify discrete_action_names"
-            )
-            assert self.action_preprocessing_options.allowedlist_features is None, (
+            assert (
+                self.action_preprocessing_options is None
+                or self.action_preprocessing_options.allowedlist_features is None
+            ), (
                 "Please set action whitelist features in parametric_action_float_features field of "
                 "config instead"
             )
@@ -110,7 +105,7 @@ class SyntheticReward(ModelManager):
 
     @property
     def action_feature_config(self) -> rlt.ModelFeatureConfig:
-        return get_feature_config(self.action_float_features)
+        return get_feature_config(self.parametric_action_float_features)
 
     def run_feature_identification(
         self, input_table_spec: TableSpec
@@ -139,15 +134,20 @@ class SyntheticReward(ModelManager):
 
     @property
     def required_normalization_keys(self) -> List[str]:
-        raise RuntimeError
+        if self.discrete_action_names:
+            return [NormalizationKey.STATE]
+        return [NormalizationKey.STATE, NormalizationKey.ACTION]
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
     def build_trainer(self, use_gpu: bool) -> RewardNetTrainer:
         net_builder = self.net_builder.value
+        action_normalization_data = None
+        if not self.discrete_action_names:
+            action_normalization_data = self.action_normalization_data
         synthetic_reward_network = net_builder.build_synthetic_reward_network(
             self.state_normalization_data,
-            action_normalization_data=self.action_normalization_data,
+            action_normalization_data=action_normalization_data,
             discrete_action_names=self.discrete_action_names,
         )
 
@@ -162,9 +162,9 @@ class SyntheticReward(ModelManager):
         return trainer
 
     def get_reporter(self):
-        return DiscreteDQNReporter(
-            self.trainer_param.actions,
-            target_action_distribution=self.target_action_distribution,
+        return RewardNetworkReporter(
+            self.trainer.loss_type,
+            str(self.net_builder.value),
         )
 
     def build_serving_module(self) -> torch.nn.Module:
@@ -176,11 +176,14 @@ class SyntheticReward(ModelManager):
         ), "_synthetic_reward_network was not initialized"
 
         net_builder = self.net_builder.value
+        action_normalization_data = None
+        if not self.discrete_action_names:
+            action_normalization_data = self.action_normalization_data
         return net_builder.build_serving_module(
             self._synthetic_reward_network,
             self.state_normalization_data,
-            action_names=self.discrete_action_names,
-            state_feature_config=self.state_feature_config,
+            action_normalization_data=action_normalization_data,
+            discrete_action_names=self.discrete_action_names,
         )
 
 
@@ -202,7 +205,8 @@ class SyntheticRewardDataModule(ManualDataModule):
             self.model_manager.state_preprocessing_options or PreprocessingOptions()
         )
         state_features = [
-            ffi.feature_id for ffi in self.state_feature_config.float_feature_infos
+            ffi.feature_id
+            for ffi in self.model_manager.state_feature_config.float_feature_infos
         ]
         logger.info(f"state allowedlist_features: {state_features}")
         state_preprocessing_options = state_preprocessing_options._replace(
@@ -212,19 +216,19 @@ class SyntheticRewardDataModule(ManualDataModule):
         state_normalization_parameters = identify_normalization_parameters(
             input_table_spec, InputColumn.STATE_FEATURES, state_preprocessing_options
         )
-        if self.discrete_action_names:
+        if self.model_manager.discrete_action_names:
             return {
                 NormalizationKey.STATE: NormalizationData(
                     dense_normalization_parameters=state_normalization_parameters
                 )
             }
-
         # Run action feature identification
         action_preprocessing_options = (
             self.model_manager.action_preprocessing_options or PreprocessingOptions()
         )
         action_features = [
-            ffi.feature_id for ffi in self.action_feature_config.float_feature_infos
+            ffi.feature_id
+            for ffi in self.model_manager.action_feature_config.float_feature_infos
         ]
         logger.info(f"action allowedlist_features: {action_features}")
         action_preprocessing_options = action_preprocessing_options._replace(
