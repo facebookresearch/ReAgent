@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 def create_data(state_dim, action_dim, seq_len, batch_size, num_batches):
     SCALE = 2
+    # reward is a linear function of (state, action)
     weight = SCALE * torch.randn(state_dim + action_dim)
     data = [None for _ in range(num_batches)]
     for i in range(num_batches):

@@ -156,18 +156,15 @@ class ReAgentLightningModule(pl.LightningModule):
 
     @final
     def on_train_batch_end(self, *args, **kwargs):
-        logger.info(f"On training batch end {self.batches_processed_this_epoch}")
         self.batches_processed_this_epoch += 1
         self.all_batches_processed += 1
 
     @final
     def on_validation_batch_end(self, *args, **kwargs):
-        logger.info(f"On validation batch end {self.batches_processed_this_epoch}")
         self.batches_processed_this_epoch += 1
 
     @final
     def on_test_batch_end(self, *args, **kwargs):
-        logger.info(f"On test batch end {self.batches_processed_this_epoch}")
         self.batches_processed_this_epoch += 1
 
     def train(self, *args):

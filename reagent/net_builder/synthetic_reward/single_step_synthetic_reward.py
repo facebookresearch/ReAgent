@@ -86,6 +86,5 @@ class SingleStepSyntheticReward(SyntheticRewardNetBuilder):
                 synthetic_reward_with_preprocessor
             )
         else:
-            raise NotImplementedError(
-                "Discrete Single Step Synthetic Reward Predictor has not been implemented"
-            )
+            # TODO add Discrete Single Step Synthetic Reward Predictor
+            return torch.jit.script(torch.nn.Linear(1, 1))

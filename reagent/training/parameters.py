@@ -119,7 +119,7 @@ class C51TrainerParameters:
     pass
 
 
-@make_config_class(RewardNetTrainer.__init__, blacklist=["use_gpu", "reward_net"])
+@make_config_class(RewardNetTrainer.__init__, blacklist=["reward_net"])
 class RewardNetworkTrainerParameters:
     pass
 
