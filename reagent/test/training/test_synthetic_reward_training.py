@@ -8,8 +8,13 @@ import pytorch_lightning as pl
 import torch
 from reagent.core import parameters as rlp
 from reagent.core import types as rlt
-from reagent.models import synthetic_reward
-from reagent.models.synthetic_reward import SingleStepSyntheticRewardNet
+from reagent.models.synthetic_reward import (
+    SyntheticRewardNet,
+    SingleStepSyntheticRewardNet,
+    NGramFullyConnectedNetwork,
+    NGramConvolutionalNetwork,
+    SequenceSyntheticRewardNet,
+)
 from reagent.optimizer.union import Optimizer__Union
 from reagent.optimizer.union import classes
 from reagent.reporting.reward_network_reporter import RewardNetworkReporter
@@ -130,10 +135,30 @@ class TestSyntheticRewardTraining(unittest.TestCase):
     def setUp(self):
         pl.seed_everything(123)
 
-    def test_linear_reward_parametric_reward(self):
+    def test_linear_reward_parametric_reward_success(self):
+        avg_eval_loss = self._test_linear_reward_parametric_reward(
+            ground_truth_reward_from_multiple_steps=False
+        )
+        threshold = 0.1
+        assert avg_eval_loss < threshold
+
+    def test_linear_reward_parametric_reward_fail(self):
+        avg_eval_loss = self._test_linear_reward_parametric_reward(
+            ground_truth_reward_from_multiple_steps=True
+        )
+        # fail to learn
+        threshold = 100.0
+        assert avg_eval_loss > threshold
+
+    def _test_linear_reward_parametric_reward(
+        self, ground_truth_reward_from_multiple_steps=False
+    ):
         """
-        Reward at each step is a linear function of state and action.
+        Reward at each step is a linear function of present state and action.
         However, we can only observe aggregated reward at the last step
+
+        This model will fail to learn when ground-truth reward is a function of
+        multiple steps' states and actions.
         """
         state_dim = 10
         action_dim = 2
@@ -143,12 +168,14 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         sizes = [256, 128]
         activations = ["relu", "relu"]
         last_layer_activation = "linear"
-        reward_net = SingleStepSyntheticRewardNet(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            sizes=sizes,
-            activations=activations,
-            last_layer_activation=last_layer_activation,
+        reward_net = SyntheticRewardNet(
+            SingleStepSyntheticRewardNet(
+                state_dim=state_dim,
+                action_dim=action_dim,
+                sizes=sizes,
+                activations=activations,
+                last_layer_activation=last_layer_activation,
+            )
         )
         optimizer = Optimizer__Union(Adam=classes["Adam"]())
         trainer = RewardNetTrainer(reward_net, optimizer)
@@ -158,12 +185,16 @@ class TestSyntheticRewardTraining(unittest.TestCase):
                 str(reward_net),
             )
         )
-        weight, data = create_data(
-            state_dim, action_dim, seq_len, batch_size, num_batches
-        )
-        threshold = 0.1
+        if ground_truth_reward_from_multiple_steps:
+            weight, data = create_sequence_data(
+                state_dim, action_dim, seq_len, batch_size, num_batches
+            )
+        else:
+            weight, data = create_data(
+                state_dim, action_dim, seq_len, batch_size, num_batches
+            )
         avg_eval_loss = train_and_eval(trainer, data)
-        assert avg_eval_loss < threshold
+        return avg_eval_loss
 
     def test_ngram_fc_parametric_reward(self):
         """
@@ -180,19 +211,15 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         sizes = [256, 128]
         activations = ["relu", "relu"]
         last_layer_activation = "linear"
-        fc = synthetic_reward.NGramFullyConnectedNetwork(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            sizes=sizes,
-            activations=activations,
-            last_layer_activation=last_layer_activation,
-            context_size=3,
-        )
-        reward_net = synthetic_reward.NGramSyntheticRewardNet(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            context_size=3,
-            net=fc,
+        reward_net = SyntheticRewardNet(
+            NGramFullyConnectedNetwork(
+                state_dim=state_dim,
+                action_dim=action_dim,
+                sizes=sizes,
+                activations=activations,
+                last_layer_activation=last_layer_activation,
+                context_size=3,
+            )
         )
         optimizer = Optimizer__Union(Adam=classes["Adam"]())
         trainer = RewardNetTrainer(reward_net, optimizer)
@@ -230,21 +257,16 @@ class TestSyntheticRewardTraining(unittest.TestCase):
             pool_types=["max"],
             pool_kernel_sizes=[1],
         )
-        conv_net = synthetic_reward.NGramConvolutionalNetwork(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            sizes=sizes,
-            activations=activations,
-            last_layer_activation=last_layer_activation,
-            context_size=3,
-            conv_net_params=conv_net_params,
-        )
-
-        reward_net = synthetic_reward.NGramSyntheticRewardNet(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            context_size=3,
-            net=conv_net,
+        reward_net = SyntheticRewardNet(
+            NGramConvolutionalNetwork(
+                state_dim=state_dim,
+                action_dim=action_dim,
+                sizes=sizes,
+                activations=activations,
+                last_layer_activation=last_layer_activation,
+                context_size=3,
+                conv_net_params=conv_net_params,
+            )
         )
         optimizer = Optimizer__Union(Adam=classes["Adam"]())
         trainer = RewardNetTrainer(reward_net, optimizer)
@@ -274,13 +296,15 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         batch_size = 512
         num_batches = 5000
         last_layer_activation = "linear"
-        reward_net = synthetic_reward.SequenceSyntheticRewardNet(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            lstm_hidden_size=128,
-            lstm_num_layers=2,
-            lstm_bidirectional=True,
-            last_layer_activation=last_layer_activation,
+        reward_net = SyntheticRewardNet(
+            SequenceSyntheticRewardNet(
+                state_dim=state_dim,
+                action_dim=action_dim,
+                lstm_hidden_size=128,
+                lstm_num_layers=2,
+                lstm_bidirectional=True,
+                last_layer_activation=last_layer_activation,
+            )
         )
         optimizer = Optimizer__Union(Adam=classes["Adam"]())
         trainer = RewardNetTrainer(reward_net, optimizer)

@@ -2,11 +2,13 @@
 
 from typing import List, Optional
 
-import torch
 from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData, param_hash
 from reagent.models.base import ModelBase
-from reagent.models.synthetic_reward import SequenceSyntheticRewardNet
+from reagent.models.synthetic_reward import (
+    SequenceSyntheticRewardNet,
+    SyntheticRewardNet,
+)
 from reagent.net_builder.synthetic_reward_net_builder import SyntheticRewardNetBuilder
 from reagent.preprocessing.normalization import get_num_output_features
 
@@ -36,7 +38,7 @@ class SequenceSyntheticReward(SyntheticRewardNetBuilder):
             )
         else:
             action_dim = len(discrete_action_names)
-        return SequenceSyntheticRewardNet(
+        net = SequenceSyntheticRewardNet(
             state_dim=state_dim,
             action_dim=action_dim,
             lstm_hidden_size=self.lstm_hidden_size,
@@ -44,17 +46,4 @@ class SequenceSyntheticReward(SyntheticRewardNetBuilder):
             lstm_bidirectional=self.lstm_bidirectional,
             last_layer_activation=self.last_layer_activation,
         )
-
-    def build_serving_module(
-        self,
-        synthetic_reward_network: ModelBase,
-        state_normalization_data: NormalizationData,
-        action_normalization_data: Optional[NormalizationData] = None,
-        discrete_action_names: Optional[List[str]] = None,
-    ) -> torch.nn.Module:
-        """
-        Returns a TorchScript predictor module
-        """
-        raise NotImplementedError(
-            "Sequence Synthetic Reward Predictor has not been implemented"
-        )
+        return SyntheticRewardNet(net=net)
