@@ -180,6 +180,7 @@ class SyntheticReward(ModelManager):
         if not self.discrete_action_names:
             action_normalization_data = self.action_normalization_data
         return net_builder.build_serving_module(
+            self.max_seq_len,
             self._synthetic_reward_network,
             self.state_normalization_data,
             action_normalization_data=action_normalization_data,

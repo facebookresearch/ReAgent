@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class Concat(nn.Module):
-    def forward(self, state: rlt.FeatureData, action: rlt.FeatureData):
-        return torch.cat((state.float_features, action.float_features), dim=-1)
+    def forward(self, state: torch.Tensor, action: torch.Tensor):
+        return torch.cat((state, action), dim=-1)
 
 
 # pyre-fixme[11]: Annotation `Sequential` is not defined as a type.
@@ -32,6 +32,39 @@ class SequentialMultiArguments(nn.Sequential):
             else:
                 inputs = module(inputs)
         return inputs
+
+
+def ngram(input: torch.Tensor, context_size: int, ngram_padding: torch.Tensor):
+    # input shape: seq_len, batch_size, state_dim + action_dim
+    seq_len, batch_size, feature_dim = input.shape
+
+    shifted_list = []
+    for i in range(context_size):
+        offset = i - context_size // 2
+        if offset < 0:
+            shifted = torch.cat(
+                (
+                    # pyre-fixme[16]: `Tensor` has no attribute `tile`.
+                    ngram_padding.tile((-offset, batch_size, 1)),
+                    # pyre-fixme[16]: `Tensor` has no attribute `narrow`.
+                    input.narrow(0, 0, seq_len + offset),
+                ),
+                dim=0,
+            )
+        elif offset > 0:
+            shifted = torch.cat(
+                (
+                    input.narrow(0, offset, seq_len - offset),
+                    ngram_padding.tile(offset, batch_size, 1),
+                ),
+                dim=0,
+            )
+        else:
+            shifted = input
+        shifted_list.append(shifted)
+
+    # shape: seq_len, batch_size, feature_dim * context_size
+    return torch.cat(shifted_list, dim=-1)
 
 
 def _gen_mask(valid_step: torch.Tensor, batch_size: int, seq_len: int):
@@ -55,7 +88,49 @@ def _gen_mask(valid_step: torch.Tensor, batch_size: int, seq_len: int):
     return mask
 
 
-class SingleStepSyntheticRewardNet(ModelBase):
+class SyntheticRewardNet(ModelBase):
+    """
+    This base class provides basic operations to consume inputs and call a synthetic reward net
+
+    A synthetic reward net (self.net) assumes the input contains only torch.Tensors.
+    Expected input shape:
+        state: seq_len, batch_size, state_dim
+        action: seq_len, batch_size, action_dim
+    Expected output shape:
+        reward: batch_size, seq_len
+    """
+
+    def __init__(self, net: nn.Module):
+        super().__init__()
+        self.net = net
+
+    def forward(self, training_batch: rlt.MemoryNetworkInput):
+        # state shape: seq_len, batch_size, state_dim
+        state = training_batch.state.float_features
+        # action shape: seq_len, batch_size, action_dim
+        action = training_batch.action
+
+        # shape: batch_size, 1
+        valid_step = training_batch.valid_step
+        seq_len, batch_size, _ = training_batch.action.shape
+
+        # output shape: batch_size, seq_len
+        output = self.net(state, action)
+        assert valid_step is not None
+        mask = _gen_mask(valid_step, batch_size, seq_len)
+        output_masked = output * mask
+
+        pred_reward = output_masked.sum(dim=1, keepdim=True)
+        return rlt.RewardNetworkOutput(predicted_reward=pred_reward)
+
+    def export_mlp(self):
+        """
+        Export an pytorch nn to feed to predictor wrapper.
+        """
+        return self.net
+
+
+class SingleStepSyntheticRewardNet(nn.Module):
     def __init__(
         self,
         state_dim: int,
@@ -79,28 +154,10 @@ class SingleStepSyntheticRewardNet(ModelBase):
         modules.append(ACTIVATION_MAP[last_layer_activation]())
         self.dnn = SequentialMultiArguments(*modules)
 
-    def forward(self, training_batch: rlt.MemoryNetworkInput):
-        # state shape: seq_len, batch_size, state_dim
-        state = training_batch.state
-        # action shape: seq_len, batch_size, action_dim
-        action = rlt.FeatureData(float_features=training_batch.action)
-
-        # shape: batch_size, 1
-        valid_step = training_batch.valid_step
-        seq_len, batch_size, _ = training_batch.action.shape
-
-        # output shape: batch_size, seq_len
+    def forward(self, state: torch.Tensor, action: torch.Tensor):
         # pyre-fixme[29]: `SequentialMultiArguments` is not a function.
-        output = self.dnn(state, action).squeeze(2).transpose(0, 1)
-        assert valid_step is not None
-        mask = _gen_mask(valid_step, batch_size, seq_len)
-        output_masked = output * mask
-
-        pred_reward = output_masked.sum(dim=1, keepdim=True)
-        return rlt.RewardNetworkOutput(predicted_reward=pred_reward)
-
-    def export_mlp(self):
-        return self.dnn
+        # shape: batch_size, seq_len
+        return self.dnn(state, action).squeeze(2).transpose(0, 1)
 
 
 class NGramConvolutionalNetwork(nn.Module):
@@ -114,8 +171,10 @@ class NGramConvolutionalNetwork(nn.Module):
         context_size: int,
         conv_net_params: rlp.ConvNetParameters,
     ) -> None:
+        assert context_size % 2 == 1, f"Context size is not odd: {context_size}"
         super().__init__()
 
+        self.context_size = context_size
         self.input_width = state_dim + action_dim
         self.input_height = context_size
         self.num_input_channels = 1
@@ -133,23 +192,28 @@ class NGramConvolutionalNetwork(nn.Module):
             input_height=self.input_height,
             input_width=self.input_width,
         )
-
         self.conv_net = convolutional_network.ConvolutionalNetwork(
             cnn_parameters, [-1] + sizes + [1], activations + [last_layer_activation]
         )
 
-    def forward(self, input) -> torch.Tensor:
+        self.ngram_padding = torch.zeros(1, 1, state_dim + action_dim)
+
+    def forward(self, state: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
         """Forward pass NGram conv net.
 
         :param input shape: seq_len, batch_size, feature_dim
         """
+        # shape: seq_len, batch_size, state_dim + action_dim
+        input = torch.cat((state, action), dim=-1)
+        # shape: seq_len, batch_size, (state_dim + action_dim) * context_size
+        ngram_input = ngram(input, self.context_size, self.ngram_padding)
+
+        seq_len, batch_size, _ = ngram_input.shape
         # shape: seq_len * batch_size, 1, context_size, state_dim + action_dim
-        seq_len, batch_size, _ = input.shape
-        reshaped = input.reshape(-1, 1, self.input_height, self.input_width)
-        # shape: seq_len * batch_size, 1
-        output = self.conv_net.forward(reshaped)
-        # shape: seq_len, batch_size, 1
-        return output.reshape(seq_len, batch_size, 1)
+        reshaped = ngram_input.reshape(-1, 1, self.input_height, self.input_width)
+        # shape: batch_size, seq_len
+        output = self.conv_net(reshaped).reshape(seq_len, batch_size).transpose(0, 1)
+        return output
 
 
 class NGramFullyConnectedNetwork(nn.Module):
@@ -162,99 +226,28 @@ class NGramFullyConnectedNetwork(nn.Module):
         last_layer_activation: str,
         context_size: int,
     ) -> None:
+        assert context_size % 2 == 1, f"Context size is not odd: {context_size}"
         super().__init__()
-
+        self.context_size = context_size
+        self.ngram_padding = torch.zeros(1, 1, state_dim + action_dim)
         self.fc = fully_connected_network.FullyConnectedNetwork(
             [(state_dim + action_dim) * context_size] + sizes + [1],
             activations + [last_layer_activation],
         )
 
-    def forward(self, input) -> torch.Tensor:
+    def forward(self, state: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
         """Forward pass NGram conv net.
 
         :param input shape: seq_len, batch_size, feature_dim
         """
-        return self.fc.forward(input)
-
-
-class NGramSyntheticRewardNet(ModelBase):
-    def __init__(
-        self,
-        state_dim: int,
-        action_dim: int,
-        context_size: int,
-        net: nn.Module,
-    ):
-        """
-        Decompose rewards at the last step to individual steps.
-        """
-        super().__init__()
-
-        assert context_size % 2 == 1, f"Context size is not odd: {context_size}"
-
-        self.state_dim = state_dim
-        self.action_dim = action_dim
-        self.context_size = context_size
-
-        self.ngram_padding = torch.zeros(1, 1, state_dim + action_dim)
-        self.net = net
-
-    def _ngram(self, input):
-        seq_len, batch_size, feature_dim = input.shape
-
-        shifted_list = []
-        for i in range(self.context_size):
-            offset = i - self.context_size // 2
-            if offset < 0:
-                shifted = torch.cat(
-                    (
-                        self.ngram_padding.tile((-offset, batch_size, 1)),
-                        input.narrow(0, 0, seq_len + offset),
-                    ),
-                    dim=0,
-                )
-            elif offset > 0:
-                shifted = torch.cat(
-                    (
-                        input.narrow(0, offset, seq_len - offset),
-                        self.ngram_padding.tile(offset, batch_size, 1),
-                    ),
-                    dim=0,
-                )
-            else:
-                shifted = input
-            shifted_list.append(shifted)
-
-        # shape: seq_len, batch_size, feature_dim * context_size
-        return torch.cat(shifted_list, -1)
-
-    def forward(self, training_batch: rlt.MemoryNetworkInput):
-        # state shape: seq_len, batch_size, state_dim
-        state = training_batch.state
-        # action shape: seq_len, batch_size, action_dim
-        action = rlt.FeatureData(float_features=training_batch.action)
-
-        # shape: seq_len, batch_size, state_dim + action_dim
-        cat_input = torch.cat((state.float_features, action.float_features), dim=-1)
-
+        input = torch.cat((state, action), dim=-1)
         # shape: seq_len, batch_size, (state_dim + action_dim) * context_size
-        ngram = self._ngram(cat_input)
-
-        # shape: batch_size, 1
-        valid_step = training_batch.valid_step
-        seq_len, batch_size, _ = training_batch.action.shape
-
-        # output shape: batch_size, seq_len
-        output = self.net(ngram).squeeze(2).transpose(0, 1)
-        assert valid_step is not None
-        mask = _gen_mask(valid_step, batch_size, seq_len)
-        output_masked = output * mask
-
-        pred_reward = output_masked.sum(dim=1, keepdim=True)
-        return rlt.RewardNetworkOutput(predicted_reward=pred_reward)
+        ngram_input = ngram(input, self.context_size, self.ngram_padding)
+        # shape: batch_size, seq_len
+        return self.fc(ngram_input).transpose(0, 1).squeeze(2)
 
 
-class SequenceSyntheticRewardNet(ModelBase):
+class SequenceSyntheticRewardNet(nn.Module):
     def __init__(
         self,
         state_dim: int,
@@ -276,7 +269,7 @@ class SequenceSyntheticRewardNet(ModelBase):
         self.lstm_num_layers = lstm_num_layers
         self.lstm_bidirectional = lstm_bidirectional
 
-        self.net = nn.LSTM(
+        self.lstm = nn.LSTM(
             input_size=self.state_dim + self.action_dim,
             hidden_size=self.lstm_hidden_size,
             num_layers=self.lstm_num_layers,
@@ -290,29 +283,13 @@ class SequenceSyntheticRewardNet(ModelBase):
 
         self.output_activation = ACTIVATION_MAP[last_layer_activation]()
 
-    def forward(self, training_batch: rlt.MemoryNetworkInput):
-        # state shape: seq_len, batch_size, state_dim
-        state = training_batch.state
-        # action shape: seq_len, batch_size, action_dim
-        action = rlt.FeatureData(float_features=training_batch.action)
-
+    def forward(self, state: torch.Tensor, action: torch.Tensor):
         # shape: seq_len, batch_size, state_dim + action_dim
-        cat_input = torch.cat((state.float_features, action.float_features), dim=-1)
-
-        # shape: batch_size, 1
-        valid_step = training_batch.valid_step
-        seq_len, batch_size, _ = training_batch.action.shape
-
+        cat_input = torch.cat((state, action), dim=-1)
         # output shape: seq_len, batch_size, self.hidden_size
-        output, _ = self.net(cat_input)
+        output, _ = self.lstm(cat_input)
         # output shape: seq_len, batch_size, 1
         output = self.fc_out(output)
-        # output shape: seq_len, batch_size, 1
+        # output shape: batch_size, seq_len
         output = self.output_activation(output).squeeze(2).transpose(0, 1)
-
-        assert valid_step is not None
-        mask = _gen_mask(valid_step, batch_size, seq_len)
-        output_masked = output * mask
-
-        pred_reward = output_masked.sum(dim=1, keepdim=True)
-        return rlt.RewardNetworkOutput(predicted_reward=pred_reward)
+        return output
