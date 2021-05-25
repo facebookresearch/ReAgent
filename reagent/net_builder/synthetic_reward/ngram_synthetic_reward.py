@@ -5,9 +5,12 @@ from typing import List, Optional
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import NormalizationData, param_hash, ConvNetParameters
-from reagent.models import synthetic_reward
 from reagent.models.base import ModelBase
-from reagent.models.synthetic_reward import NGramSyntheticRewardNet
+from reagent.models.synthetic_reward import (
+    NGramConvolutionalNetwork,
+    SyntheticRewardNet,
+    NGramFullyConnectedNetwork,
+)
 from reagent.net_builder.synthetic_reward_net_builder import SyntheticRewardNetBuilder
 from reagent.preprocessing.normalization import get_num_output_features
 
@@ -38,7 +41,7 @@ class NGramSyntheticReward(SyntheticRewardNetBuilder):
         else:
             action_dim = len(discrete_action_names)
 
-        fc = synthetic_reward.NGramFullyConnectedNetwork(
+        net = NGramFullyConnectedNetwork(
             state_dim=state_dim,
             action_dim=action_dim,
             sizes=self.sizes,
@@ -46,27 +49,7 @@ class NGramSyntheticReward(SyntheticRewardNetBuilder):
             last_layer_activation=self.last_layer_activation,
             context_size=self.context_size,
         )
-
-        return NGramSyntheticRewardNet(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            context_size=self.context_size,
-            net=fc,
-        )
-
-    def build_serving_module(
-        self,
-        synthetic_reward_network: ModelBase,
-        state_normalization_data: NormalizationData,
-        action_normalization_data: Optional[NormalizationData] = None,
-        discrete_action_names: Optional[List[str]] = None,
-    ) -> torch.nn.Module:
-        """
-        Returns a TorchScript predictor module
-        """
-        raise NotImplementedError(
-            "N-gram Synthetic Reward Predictor has not been implemented"
-        )
+        return SyntheticRewardNet(net)
 
 
 @dataclass
@@ -104,7 +87,7 @@ class NGramConvNetSyntheticReward(SyntheticRewardNetBuilder):
         else:
             action_dim = len(discrete_action_names)
 
-        conv_net = synthetic_reward.NGramConvolutionalNetwork(
+        net = NGramConvolutionalNetwork(
             state_dim=state_dim,
             action_dim=action_dim,
             sizes=self.sizes,
@@ -113,23 +96,4 @@ class NGramConvNetSyntheticReward(SyntheticRewardNetBuilder):
             context_size=self.context_size,
             conv_net_params=self.conv_net_params,
         )
-        return NGramSyntheticRewardNet(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            context_size=self.context_size,
-            net=conv_net,
-        )
-
-    def build_serving_module(
-        self,
-        synthetic_reward_network: ModelBase,
-        state_normalization_data: NormalizationData,
-        action_normalization_data: Optional[NormalizationData] = None,
-        discrete_action_names: Optional[List[str]] = None,
-    ) -> torch.nn.Module:
-        """
-        Returns a TorchScript predictor module
-        """
-        raise NotImplementedError(
-            "N-gram Synthetic Reward Predictor has not been implemented"
-        )
+        return SyntheticRewardNet(net)
