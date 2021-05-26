@@ -100,6 +100,24 @@ class DiscreteDQN(DiscreteDQNBase):
             target_action_distribution=self.target_action_distribution,
         )
 
+    def serving_module_names(self):
+        module_names = ["default_model"]
+        if len(self.action_names) == 2:
+            module_names.append("binary_difference_scorer")
+        return module_names
+
+    def build_serving_modules(self):
+        serving_modules = {"default_model": self.build_serving_module()}
+        if len(self.action_names) == 2:
+            serving_modules.update(
+                {
+                    "binary_difference_scorer": self._build_binary_difference_scorer(
+                        self._q_network
+                    )
+                }
+            )
+        return serving_modules
+
     def build_serving_module(self) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module
@@ -109,6 +127,16 @@ class DiscreteDQN(DiscreteDQNBase):
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,
+            self.state_normalization_data,
+            action_names=self.action_names,
+            state_feature_config=self.state_feature_config,
+        )
+
+    def _build_binary_difference_scorer(self, network):
+        assert network is not None
+        net_builder = self.net_builder.value
+        return net_builder.build_binary_difference_scorer(
+            network,
             self.state_normalization_data,
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
