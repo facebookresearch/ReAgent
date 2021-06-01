@@ -206,7 +206,9 @@ class NGramConvolutionalNetwork(nn.Module):
         # shape: seq_len, batch_size, state_dim + action_dim
         input = torch.cat((state, action), dim=-1)
         # shape: seq_len, batch_size, (state_dim + action_dim) * context_size
-        ngram_input = ngram(input, self.context_size, self.ngram_padding)
+        ngram_input = ngram(
+            input, self.context_size, self.ngram_padding.to(input.device)
+        )
 
         seq_len, batch_size, _ = ngram_input.shape
         # shape: seq_len * batch_size, 1, context_size, state_dim + action_dim
@@ -242,7 +244,9 @@ class NGramFullyConnectedNetwork(nn.Module):
         """
         input = torch.cat((state, action), dim=-1)
         # shape: seq_len, batch_size, (state_dim + action_dim) * context_size
-        ngram_input = ngram(input, self.context_size, self.ngram_padding)
+        ngram_input = ngram(
+            input, self.context_size, self.ngram_padding.to(input.device)
+        )
         # shape: batch_size, seq_len
         return self.fc(ngram_input).transpose(0, 1).squeeze(2)
 
