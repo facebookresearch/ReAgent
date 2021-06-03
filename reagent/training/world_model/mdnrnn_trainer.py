@@ -54,7 +54,9 @@ class MDNRNNTrainer(ReAgentLightningModule):
         )
 
         loss = losses["loss"]
-        self.log("td_loss", loss, prog_bar=True)
+        # TODO: Must setup (or mock) trainer and a LoggerConnector to call self.log()!
+        if self.trainer is not None and self.trainer.logger is not None:
+            self.log("td_loss", loss, prog_bar=True)
         yield loss
 
     def validation_step(  # pyre-ignore inconsistent override because lightning doesn't use types
