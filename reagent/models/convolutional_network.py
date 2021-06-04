@@ -32,13 +32,16 @@ CnnParameters = collections.namedtuple(
 
 
 class ConvolutionalNetwork(nn.Module):
-    def __init__(self, cnn_parameters, layers, activations) -> None:
+    def __init__(self, cnn_parameters, layers, activations, use_layer_norm) -> None:
         super().__init__()
         self.conv_dims = cnn_parameters.conv_dims
         self.conv_height_kernels = cnn_parameters.conv_height_kernels
         self.conv_width_kernels = cnn_parameters.conv_width_kernels
+        self.use_layer_norm = use_layer_norm
+
         self.conv_layers: nn.ModuleList = nn.ModuleList()
         self.pool_layers: nn.ModuleList = nn.ModuleList()
+        self.layer_norm_layers: nn.ModuleList = nn.ModuleList()
 
         for i, _ in enumerate(self.conv_dims[1:]):
             self.conv_layers.append(
@@ -58,6 +61,8 @@ class ConvolutionalNetwork(nn.Module):
                 )
             else:
                 assert False, "Unknown pooling type".format(layers)
+            if self.use_layer_norm:
+                self.layer_norm_layers.append(nn.GroupNorm(1, self.conv_dims[i + 1]))
 
         input_size = (
             cnn_parameters.num_input_channels,
@@ -67,12 +72,17 @@ class ConvolutionalNetwork(nn.Module):
         conv_out = self.conv_forward(torch.ones(1, *input_size))
         self.fc_input_dim = int(np.prod(conv_out.size()[1:]))
         layers[0] = self.fc_input_dim
-        self.feed_forward = FullyConnectedNetwork(layers, activations)
+        self.feed_forward = FullyConnectedNetwork(
+            layers, activations, use_layer_norm=use_layer_norm
+        )
 
     def conv_forward(self, input):
         x = input
         for i, _ in enumerate(self.conv_layers):
-            x = F.relu(self.conv_layers[i](x))
+            x = self.conv_layers[i](x)
+            if self.use_layer_norm:
+                x = self.layer_norm_layers[i](x)
+            x = F.relu(x)
             x = self.pool_layers[i](x)
         return x
 
