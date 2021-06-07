@@ -62,6 +62,22 @@ class Lambda:
         return data
 
 
+class SelectValuePresenceColumns:
+    """
+    Select columns from value-presence source key
+    """
+
+    def __init__(self, source: str, dest: str, indices: List[int]):
+        self.source = source
+        self.dest = dest
+        self.indices = indices
+
+    def __call__(self, data):
+        value, presence = data[self.source]
+        data[self.dest] = (value[:, self.indices], presence[:, self.indices])
+        return data
+
+
 class DenseNormalization:
     """
     Normalize the `keys` using `normalization_data`.
