@@ -20,6 +20,8 @@ class SingleStepSyntheticReward(SyntheticRewardNetBuilder):
     sizes: List[int] = field(default_factory=lambda: [256, 128])
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     last_layer_activation: str = "sigmoid"
+    use_batch_norm: bool = False
+    use_layer_norm: bool = False
 
     def build_synthetic_reward_network(
         self,
@@ -43,5 +45,7 @@ class SingleStepSyntheticReward(SyntheticRewardNetBuilder):
             sizes=self.sizes,
             activations=self.activations,
             last_layer_activation=self.last_layer_activation,
+            use_batch_norm=self.use_batch_norm,
+            use_layer_norm=self.use_layer_norm,
         )
         return SyntheticRewardNet(net)

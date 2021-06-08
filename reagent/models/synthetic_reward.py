@@ -138,6 +138,8 @@ class SingleStepSyntheticRewardNet(nn.Module):
         sizes: List[int],
         activations: List[str],
         last_layer_activation: str,
+        use_batch_norm: bool = False,
+        use_layer_norm: bool = False,
     ):
         """
         Decompose rewards at the last step to individual steps.
@@ -146,7 +148,11 @@ class SingleStepSyntheticRewardNet(nn.Module):
         modules: List[nn.Module] = [Concat()]
         prev_layer_size = state_dim + action_dim
         for size, activation in zip(sizes, activations):
+            if use_batch_norm:
+                modules.append(nn.BatchNorm1d(prev_layer_size))
             modules.append(nn.Linear(prev_layer_size, size))
+            if use_layer_norm:
+                modules.append(nn.LayerNorm(size))
             modules.append(ACTIVATION_MAP[activation]())
             prev_layer_size = size
         # last layer
@@ -170,6 +176,7 @@ class NGramConvolutionalNetwork(nn.Module):
         last_layer_activation: str,
         context_size: int,
         conv_net_params: rlp.ConvNetParameters,
+        use_layer_norm: bool = False,
     ) -> None:
         assert context_size % 2 == 1, f"Context size is not odd: {context_size}"
         super().__init__()
@@ -193,7 +200,10 @@ class NGramConvolutionalNetwork(nn.Module):
             input_width=self.input_width,
         )
         self.conv_net = convolutional_network.ConvolutionalNetwork(
-            cnn_parameters, [-1] + sizes + [1], activations + [last_layer_activation]
+            cnn_parameters,
+            [-1] + sizes + [1],
+            activations + [last_layer_activation],
+            use_layer_norm=use_layer_norm,
         )
 
         self.ngram_padding = torch.zeros(1, 1, state_dim + action_dim)
@@ -227,6 +237,7 @@ class NGramFullyConnectedNetwork(nn.Module):
         activations: List[str],
         last_layer_activation: str,
         context_size: int,
+        use_layer_norm: bool = False,
     ) -> None:
         assert context_size % 2 == 1, f"Context size is not odd: {context_size}"
         super().__init__()
@@ -235,6 +246,7 @@ class NGramFullyConnectedNetwork(nn.Module):
         self.fc = fully_connected_network.FullyConnectedNetwork(
             [(state_dim + action_dim) * context_size] + sizes + [1],
             activations + [last_layer_activation],
+            use_layer_norm=use_layer_norm,
         )
 
     def forward(self, state: torch.Tensor, action: torch.Tensor) -> torch.Tensor:

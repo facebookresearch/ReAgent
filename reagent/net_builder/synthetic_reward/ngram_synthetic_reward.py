@@ -23,6 +23,7 @@ class NGramSyntheticReward(SyntheticRewardNetBuilder):
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     last_layer_activation: str = "sigmoid"
     context_size: int = 3
+    use_layer_norm: bool = False
 
     def build_synthetic_reward_network(
         self,
@@ -48,6 +49,7 @@ class NGramSyntheticReward(SyntheticRewardNetBuilder):
             activations=self.activations,
             last_layer_activation=self.last_layer_activation,
             context_size=self.context_size,
+            use_layer_norm=self.use_layer_norm,
         )
         return SyntheticRewardNet(net)
 
@@ -68,6 +70,7 @@ class NGramConvNetSyntheticReward(SyntheticRewardNetBuilder):
             pool_kernel_sizes=[1, 1],
         )
     )
+    use_layer_norm: bool = False
 
     def build_synthetic_reward_network(
         self,
@@ -95,5 +98,6 @@ class NGramConvNetSyntheticReward(SyntheticRewardNetBuilder):
             last_layer_activation=self.last_layer_activation,
             context_size=self.context_size,
             conv_net_params=self.conv_net_params,
+            use_layer_norm=self.use_layer_norm,
         )
         return SyntheticRewardNet(net)
