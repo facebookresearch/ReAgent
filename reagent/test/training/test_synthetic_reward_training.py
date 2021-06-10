@@ -121,7 +121,8 @@ def train_and_eval(trainer, data, num_eval_batches=100, max_epochs=1):
     train_dataloader = DataLoader(data[:-num_eval_batches], collate_fn=lambda x: x[0])
     eval_data = data[-num_eval_batches:]
 
-    pl_trainer = pl.Trainer(max_epochs=max_epochs)
+    # disable logging in tests
+    pl_trainer = pl.Trainer(max_epochs=max_epochs, logger=False)
     pl_trainer.fit(trainer, train_dataloader)
 
     total_loss = 0

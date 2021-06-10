@@ -10,8 +10,8 @@ import org.scalatest._
 import scala.collection.JavaConversions._
 import scala.util.Try
 
-trait TestLogging extends BeforeAndAfterAll with BeforeAndAfterEach with TestLogger {
-  this: Suite =>
+trait TestLogging extends BeforeAndAfterAll with BeforeAndAfterEach with TestLogger with TestSuiteMixin {
+  this: TestSuite =>
 
   private val logLayout = new EnhancedPatternLayout("%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n")
 
@@ -72,6 +72,7 @@ trait TestLogging extends BeforeAndAfterAll with BeforeAndAfterEach with TestLog
       val scopes = test.scopes
       val text = test.text
       val tags = test.tags
+      val pos = test.pos
     }
 
     super.withFixture(wrappedTest)
