@@ -4,6 +4,7 @@ import logging
 import os
 import pprint
 import unittest
+import uuid
 from typing import Optional, Dict, Any
 
 import numpy as np
@@ -48,7 +49,7 @@ Format path to be: "configs/<env_name>/<model_name>_<env_name>_online.yaml."
 NOTE: These tests should ideally finish quickly (within 10 minutes) since they are
 unit tests which are run many times.
 """
-REPLAY_BUFFER_GYM_TESTS = [
+REPLAY_BUFFER_GYM_TESTS_1 = [
     ("Discrete CRR Cartpole", "configs/cartpole/discrete_crr_cartpole_online.yaml"),
     ("Discrete DQN Cartpole", "configs/cartpole/discrete_dqn_cartpole_online.yaml"),
     ("Discrete C51 Cartpole", "configs/cartpole/discrete_c51_cartpole_online.yaml"),
@@ -58,6 +59,8 @@ REPLAY_BUFFER_GYM_TESTS = [
         "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
     ),
     ("SAC Pendulum", "configs/pendulum/sac_pendulum_online.yaml"),
+]
+REPLAY_BUFFER_GYM_TESTS_2 = [
     ("Continuous CRR Pendulum", "configs/pendulum/continuous_crr_pendulum_online.yaml"),
     ("TD3 Pendulum", "configs/pendulum/td3_pendulum_online.yaml"),
     ("Parametric DQN Cartpole", "configs/cartpole/parametric_dqn_cartpole_online.yaml"),
@@ -91,8 +94,16 @@ curr_dir = os.path.dirname(__file__)
 
 class TestGym(HorizonTestBase):
     # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
-    @parameterized.expand(REPLAY_BUFFER_GYM_TESTS)
-    def test_replay_buffer_gym_cpu(self, name: str, config_path: str):
+    @parameterized.expand(REPLAY_BUFFER_GYM_TESTS_1)
+    def test_replay_buffer_gym_cpu_1(self, name: str, config_path: str):
+        self._test_replay_buffer_gym_cpu(name, config_path)
+
+    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
+    @parameterized.expand(REPLAY_BUFFER_GYM_TESTS_2)
+    def test_replay_buffer_gym_cpu_2(self, name: str, config_path: str):
+        self._test_replay_buffer_gym_cpu(name, config_path)
+
+    def _test_replay_buffer_gym_cpu(self, name: str, config_path: str):
         logger.info(f"Starting {name} on CPU")
         self.run_from_config(
             run_test=run_test_replay_buffer,
@@ -102,10 +113,20 @@ class TestGym(HorizonTestBase):
         logger.info(f"{name} passes!")
 
     # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
-    @parameterized.expand(REPLAY_BUFFER_GYM_TESTS)
+    @parameterized.expand(REPLAY_BUFFER_GYM_TESTS_1)
     @pytest.mark.serial
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_replay_buffer_gym_gpu(self, name: str, config_path: str):
+    def test_replay_buffer_gym_gpu_1(self, name: str, config_path: str):
+        self._test_replay_buffer_gym_gpu(name, config_path)
+
+    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
+    @parameterized.expand(REPLAY_BUFFER_GYM_TESTS_2)
+    @pytest.mark.serial
+    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    def test_replay_buffer_gym_gpu_2(self, name: str, config_path: str):
+        self._test_replay_buffer_gym_gpu(name, config_path)
+
+    def _test_replay_buffer_gym_gpu(self, name: str, config_path: str):
         logger.info(f"Starting {name} on GPU")
         self.run_from_config(
             run_test=run_test_replay_buffer,
@@ -263,7 +284,12 @@ def run_test_replay_buffer(
         device=device,
     )
     data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
-    pl_trainer = pl.Trainer(max_epochs=1, gpus=int(use_gpu))
+    pl_trainer = pl.Trainer(
+        max_epochs=1,
+        gpus=int(use_gpu),
+        deterministic=True,
+        default_root_dir=f"lightning_log_{str(uuid.uuid4())}",
+    )
     # Note: the fit() function below also evaluates the agent along the way
     # and adds the new transitions to the replay buffer, so it is training
     # on incrementally larger and larger buffers.
@@ -311,7 +337,12 @@ def run_test_online_episode(
     agent = Agent.create_for_env(env, policy, device=device)
 
     if isinstance(trainer, pl.LightningModule):
-        pl_trainer = pl.Trainer(max_epochs=1, gpus=int(use_gpu), deterministic=True)
+        pl_trainer = pl.Trainer(
+            max_epochs=1,
+            gpus=int(use_gpu),
+            deterministic=True,
+            default_root_dir=f"lightning_log_{str(uuid.uuid4())}",
+        )
         dataset = EpisodicDataset(
             env=env, agent=agent, num_episodes=num_train_episodes, seed=SEED
         )

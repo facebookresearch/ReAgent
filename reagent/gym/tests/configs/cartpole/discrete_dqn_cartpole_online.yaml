@@ -27,9 +27,9 @@ model:
         - leaky_relu
     eval_parameters:
       calc_cpe_in_training: false
-replay_memory_size: 20000
+replay_memory_size: 100000
 train_every_ts: 1
-train_after_ts: 5000
+train_after_ts: 20000
 num_train_episodes: 30
 num_eval_episodes: 20
 passing_score_bar: 100.0

@@ -128,9 +128,17 @@ object Timeline {
       sqlContext: SQLContext,
       config: TimelineConfiguration
   ): Unit = {
-    var filterTerminal = "HAVING next_state_features IS NOT NULL";
+    var filterTerminal = "WHERE next_state_features IS NOT NULL";
     if (config.addTerminalStateRow) {
       filterTerminal = "";
+    }
+    var filterTimeLimit = "";
+    if (config.timeWindowLimit != None) {
+      if (filterTerminal == "") {
+        filterTimeLimit = s"WHERE time_since_first <= ${config.timeWindowLimit.get}";
+      } else {
+        filterTimeLimit = s" AND time_since_first <= ${config.timeWindowLimit.get}";
+      }
     }
 
     val actionDataType =
@@ -193,23 +201,6 @@ object Timeline {
       case (acc, (k, v)) => s"${acc}, a.${k}"
     }
 
-    val timeLimitedSourceTable = config.timeWindowLimit
-      .map { timeLimit =>
-        s"""
-        , time_limited_source_table AS (
-            SELECT
-                *,
-                sequence_number - FIRST(sequence_number) OVER (
-                     PARTITION BY mdp_id
-                     ORDER BY mdp_id, sequence_number
-                ) AS time_since_first
-            FROM source_table
-            HAVING time_since_first <= ${timeLimit}
-        )
-        """.stripMargin
-      }
-      .getOrElse("")
-
     val sourceTable = s"""
     WITH ${mdpFilter}
         source_table AS (
@@ -225,14 +216,7 @@ object Timeline {
             ${joinClause}
             a.ds BETWEEN '${config.startDs}' AND '${config.endDs}'
         )
-        ${timeLimitedSourceTable}
     """.stripMargin
-
-    val sourceTableName = config.timeWindowLimit
-      .map { _ =>
-        "time_limited_source_table"
-      }
-      .getOrElse("source_table")
 
     val rewardColumnsQuery = rewardColumnDataTypes.foldLeft("") {
       case (acc, (k, v)) => s"${acc}, ${k}"
@@ -253,53 +237,59 @@ object Timeline {
     }
 
     val sqlCommand = s"""
-    ${sourceTable}
+    ${sourceTable},
+    joined_table AS (
+      SELECT
+          mdp_id,
+          state_features,
+          action,
+          LEAD(action) OVER (
+              PARTITION BY
+                  mdp_id
+              ORDER BY
+                  mdp_id,
+                  sequence_number
+          ) AS next_action,
+          action_probability
+          ${rewardColumnsQuery},
+          LEAD(state_features) OVER (
+              PARTITION BY
+                  mdp_id
+              ORDER BY
+                  mdp_id,
+                  sequence_number
+          ) AS next_state_features,
+          sequence_number,
+          ROW_NUMBER() OVER (
+              PARTITION BY
+                  mdp_id
+              ORDER BY
+                  mdp_id,
+                  sequence_number
+          ) AS sequence_number_ordinal,
+          COALESCE(LEAD(sequence_number) OVER (
+              PARTITION BY
+                  mdp_id
+              ORDER BY
+                  mdp_id,
+                  sequence_number
+          ), sequence_number) - sequence_number AS time_diff,
+          sequence_number - FIRST(sequence_number) OVER (
+              PARTITION BY
+                  mdp_id
+              ORDER BY
+                  mdp_id,
+                  sequence_number
+          ) AS time_since_first
+          ${timelineJoinColumnsQuery}
+      FROM source_table
+      CLUSTER BY HASH(mdp_id, sequence_number)
+    )
     SELECT
-        mdp_id,
-        state_features,
-        action,
-        LEAD(action) OVER (
-            PARTITION BY
-                mdp_id
-            ORDER BY
-                mdp_id,
-                sequence_number
-        ) AS next_action,
-        action_probability
-        ${rewardColumnsQuery},
-        LEAD(state_features) OVER (
-            PARTITION BY
-                mdp_id
-            ORDER BY
-                mdp_id,
-                sequence_number
-        ) AS next_state_features,
-        sequence_number,
-        ROW_NUMBER() OVER (
-            PARTITION BY
-                mdp_id
-            ORDER BY
-                mdp_id,
-                sequence_number
-        ) AS sequence_number_ordinal,
-        COALESCE(LEAD(sequence_number) OVER (
-            PARTITION BY
-                mdp_id
-            ORDER BY
-                mdp_id,
-                sequence_number
-        ), sequence_number) - sequence_number AS time_diff,
-        sequence_number - FIRST(sequence_number) OVER (
-            PARTITION BY
-                mdp_id
-            ORDER BY
-                mdp_id,
-                sequence_number
-        ) AS time_since_first
-        ${timelineJoinColumnsQuery}
-    FROM ${sourceTableName}
+      *
+    FROM joined_table
     ${filterTerminal}
-    CLUSTER BY HASH(mdp_id, sequence_number)
+    ${filterTimeLimit}
     """.stripMargin
     log.info("Executing query: ")
     log.info(sqlCommand)

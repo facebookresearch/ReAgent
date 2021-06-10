@@ -262,8 +262,7 @@ def train_workflow(
 
     output_paths = {}
     for module_name, serving_module in model_manager.build_serving_modules().items():
-        # TODO: make this a parameter
-        torchscript_output_path = f"model_{round(time.time())}.torchscript"
+        torchscript_output_path = f"{model_manager.__class__.__name__}_{module_name}_{round(time.time())}.torchscript"
         torch.jit.save(serving_module, torchscript_output_path)
         logger.info(f"Saved {module_name} to {torchscript_output_path}")
         output_paths[module_name] = torchscript_output_path

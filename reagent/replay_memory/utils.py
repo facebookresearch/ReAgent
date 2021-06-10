@@ -64,7 +64,7 @@ def replay_buffer_to_pre_timeline_df(
         "ds": [DEFAULT_DS for _ in range(n)],
         "state_features": _dense_to_sparse(batch.state),
         "action": action,
-        "mdp_id": batch.mdp_id.tolist(),
+        "mdp_id": list(map(str, batch.mdp_id.flatten().tolist())),
         "sequence_number": sequence_number,
         "action_probability": action_probability,
         "reward": reward,

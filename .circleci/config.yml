@@ -83,15 +83,17 @@ commands:
           name: Installing SDKs
           command: |
             mv ~/.bashrc ~/.bashrc.bk
+            sudo apt-get update
+            sudo apt-get install bc
+            sudo apt-get install unzip
+            sudo apt-get install zip
             curl -s "https://get.sdkman.io" | bash
             source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk version
             sdk install java 8.0.272.hs-adpt
             sdk install scala
             sdk install maven
-            sdk install spark 2.4.6
-            sudo apt-get update
-            sudo apt-get install bc
+            sdk install spark 3.1.1
       - run:
           name: Build preprocessing package
           command: |
@@ -140,12 +142,16 @@ commands:
           steps:
             - run:
                 command: |
-                  pyenv global 3.7.0
+                  pyenv install -v 3.8.1
+                  pyenv global 3.8.1
       - run:
           command: |
-            pip install --upgrade pip
-            pip install tox==3.20.1
-            pip install --upgrade wheel setuptools
+            sudo apt update
+            sudo apt install cmake
+            sudo apt install swig
+            pip install --upgrade pip --progress-bar off
+            pip install --upgrade wheel setuptools --progress-bar off
+            pip install tox==3.20.1 --progress-bar off
       - when:
           condition: << parameters.install_gym >>
           steps:
@@ -154,13 +160,13 @@ commands:
                 steps:
                   - run:
                       command: |
-                        pip install -e .[gym,test] --pre -f https://download.pytorch.org/whl/nightly/cu101/torch_nightly.html
+                        pip install -e .[gym,test] --pre -f https://download.pytorch.org/whl/nightly/cu102/torch_nightly.html --progress-bar off
             - unless:
                 condition: << parameters.is_ubuntu_gpu >>
                 steps:
                   - run:
                       command: |
-                        sudo pip install -e .[gym,test] --pre -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
+                        sudo pip install -e .[gym,test] --pre -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html --progress-bar off
 
   run_unittest:
     description: Run unittests, coverage and save results
@@ -171,14 +177,14 @@ commands:
       - run:
           no_output_timeout: 30m
           command: |
-            tox -vv -e << parameters.tox_env >>
+            tox -v -e << parameters.tox_env >>
             bash <(curl -s https://codecov.io/bash)
-      - run: python setup.py bdist_wheel
+      - run: python setup.py -q bdist_wheel
       - store_artifacts:
           path: dist/reagent-0.1-py3-none-any.whl
           destination: reagent-0.1-py3-none-any.whl
       - store_test_results:
-          path: .tox/py37/log/
+          path: .tox/py38/log/
 
   run_interrogate:
     description: Install and run interrogate
@@ -186,16 +192,16 @@ commands:
       - run:
           name: Install interrogate
           command: |
-            pip install interrogate
+            pip install interrogate --progress-bar off
       - run:
           name: Run interrogate on reagent code base
           command: |
             interrogate -piImvv -f 15 reagent/
 
 jobs:
-  gpu_unittest:
+  misc_unittest:
     machine:
-      image: ubuntu-1604-cuda-10.1:201909-23
+      image: ubuntu-1604-cuda-10.2:202012-01
     resource_class: gpu.medium
     environment:
       - CUDA_LAUNCH_BLOCKING: 1
@@ -205,11 +211,47 @@ jobs:
           install_gym: false
           is_ubuntu_gpu: true
       - run_unittest:
-          tox_env: circleci_unittest
+          tox_env: circleci_misc_unittest
 
-  gym_unittest:
+  gym_cpu_unittest:
     machine:
-      image: ubuntu-1604-cuda-10.1:201909-23
+      image: ubuntu-1604-cuda-10.2:202012-01
+    resource_class: large
+    steps:
+      - checkout_merge
+      - pip_install:
+          install_gym: false
+          is_ubuntu_gpu: true
+      - run_unittest:
+          tox_env: circleci_gym_cpu_unittest
+
+  gym_replay_buffer_cpu_unittest_1:
+    machine:
+      image: ubuntu-1604-cuda-10.2:202012-01
+    resource_class: large
+    steps:
+      - checkout_merge
+      - pip_install:
+          install_gym: false
+          is_ubuntu_gpu: true
+      - run_unittest:
+          tox_env: circleci_gym_replay_buffer_1_cpu_unittest
+
+  gym_replay_buffer_cpu_unittest_2:
+    machine:
+      image: ubuntu-1604-cuda-10.2:202012-01
+    resource_class: large
+    steps:
+      - checkout_merge
+      - pip_install:
+          install_gym: false
+          is_ubuntu_gpu: true
+      - run_unittest:
+          tox_env: circleci_gym_replay_buffer_2_cpu_unittest
+
+  gym_gpu_unittest:
+    machine:
+      image: ubuntu-1604-cuda-10.2:202012-01
     resource_class: gpu.medium
     environment:
       - CUDA_LAUNCH_BLOCKING: 1
@@ -219,11 +261,39 @@ jobs:
           install_gym: false
           is_ubuntu_gpu: true
       - run_unittest:
-          tox_env: circleci_gym_unittest
+          tox_env: circleci_gym_gpu_unittest
+
+  gym_replay_buffer_gpu_unittest_1:
+    machine:
+      image: ubuntu-1604-cuda-10.2:202012-01
+    resource_class: gpu.medium
+    environment:
+      - CUDA_LAUNCH_BLOCKING: 1
+    steps:
+      - checkout_merge
+      - pip_install:
+          install_gym: false
+          is_ubuntu_gpu: true
+      - run_unittest:
+          tox_env: circleci_gym_replay_buffer_1_gpu_unittest
+
+  gym_replay_buffer_gpu_unittest_2:
+    machine:
+      image: ubuntu-1604-cuda-10.2:202012-01
+    resource_class: gpu.medium
+    environment:
+      - CUDA_LAUNCH_BLOCKING: 1
+    steps:
+      - checkout_merge
+      - pip_install:
+          install_gym: false
+          is_ubuntu_gpu: true
+      - run_unittest:
+          tox_env: circleci_gym_replay_buffer_2_gpu_unittest
 
   dqn_cartpole_e2e:
     docker:
-      - image: circleci/python:3.7
+      - image: circleci/python:3.8
     resource_class: large
     environment:
       - BASH_ENV: ~/.bashrc
@@ -235,9 +305,9 @@ jobs:
           is_ubuntu_gpu: false
       - end_to_end_test
 
-  seq2slate_e2e:
+  ranking_unittest:
     machine:
-      image: ubuntu-1604-cuda-10.1:201909-23
+      image: ubuntu-1604-cuda-10.2:202012-01
     resource_class: gpu.medium
     environment:
       - CUDA_LAUNCH_BLOCKING: 1
@@ -247,11 +317,53 @@ jobs:
           install_gym: true
           is_ubuntu_gpu: true
       - run_unittest:
-          tox_env: circleci_seq2slate_unittest
+          tox_env: circleci_ranking_unittest
+
+  training_unittest:
+    machine:
+      image: ubuntu-1604-cuda-10.2:202012-01
+    resource_class: gpu.medium
+    environment:
+      - CUDA_LAUNCH_BLOCKING: 1
+    steps:
+      - checkout_merge
+      - pip_install:
+          install_gym: true
+          is_ubuntu_gpu: true
+      - run_unittest:
+          tox_env: circleci_training_unittest
+
+  prediction_unittest:
+    machine:
+      image: ubuntu-1604-cuda-10.2:202012-01
+    resource_class: gpu.medium
+    environment:
+      - CUDA_LAUNCH_BLOCKING: 1
+    steps:
+      - checkout_merge
+      - pip_install:
+          install_gym: true
+          is_ubuntu_gpu: true
+      - run_unittest:
+          tox_env: circleci_prediction_unittest
+
+  world_model_unittest:
+    machine:
+      image: ubuntu-1604-cuda-10.2:202012-01
+    resource_class: gpu.medium
+    environment:
+      - CUDA_LAUNCH_BLOCKING: 1
+    steps:
+      - checkout_merge
+      - pip_install:
+          install_gym: true
+          is_ubuntu_gpu: true
+      - run_unittest:
+          tox_env: circleci_world_model_unittest
 
   sac_pendulum_e2e:
     docker:
-      - image: circleci/python:3.7
+      - image: circleci/python:3.8
     resource_class: large
     environment:
       - BASH_ENV: ~/.bashrc
@@ -265,7 +377,7 @@ jobs:
 
   sac_pendulum_e2e_gpu:
     machine:
-      image: ubuntu-1604-cuda-10.1:201909-23
+      image: ubuntu-1604-cuda-10.2:202012-01
     resource_class: gpu.medium
     environment:
       - CONFIG: reagent/workflow/sample_configs/sac_pendulum_offline.yaml
@@ -301,7 +413,7 @@ jobs:
 
   docstring_coverage:
     docker:
-      - image: circleci/python:3.7
+      - image: circleci/python:3.8
     resource_class: small
     steps:
       - checkout_merge
@@ -310,12 +422,20 @@ jobs:
 workflows:
   build:
     jobs:
-      - seq2slate_e2e
+      - ranking_unittest
+      - training_unittest
+      - prediction_unittest
+      - world_model_unittest
       - dqn_cartpole_e2e
       - sac_pendulum_e2e
       - sac_pendulum_e2e_gpu
-      - gpu_unittest
-      - gym_unittest
+      - misc_unittest
+      - gym_cpu_unittest
+      - gym_gpu_unittest
+      - gym_replay_buffer_cpu_unittest_1
+      - gym_replay_buffer_cpu_unittest_2
+      - gym_replay_buffer_gpu_unittest_1
+      - gym_replay_buffer_gpu_unittest_2
       - rasp_test_linux
       - rasp_test_mac
       - docstring_coverage

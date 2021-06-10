@@ -12,12 +12,13 @@ import org.apache.spark.sql.functions.col
 import org.apache.spark.sql._
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.types._
-import org.scalatest.{BeforeAndAfterAll, FunSuiteLike, Suite}
+import org.scalatest.{BeforeAndAfterAll, Suite}
+import org.scalatest.funsuite.AnyFunSuiteLike
 
 import scala.collection.mutable
 import scala.math.abs
 
-trait PipelineTester extends FunSuiteLike with BeforeAndAfterAll with TestLogging { this: Suite =>
+trait PipelineTester extends AnyFunSuiteLike with BeforeAndAfterAll with TestLogging { this: Suite =>
 
   @transient private var _sparkContext: SparkContext = _
   def sparkContext: SparkContext = _sparkContext
