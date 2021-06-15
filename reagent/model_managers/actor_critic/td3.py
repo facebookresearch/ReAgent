@@ -62,7 +62,9 @@ class TD3(ActorCriticBase):
         # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
         # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
         self._actor_network = actor_net_builder.build_actor(
-            self.state_normalization_data, self.action_normalization_data
+            self.state_feature_config,
+            self.state_normalization_data,
+            self.action_normalization_data,
         )
 
         critic_net_builder = self.critic_net_builder.value
@@ -97,6 +99,7 @@ class TD3(ActorCriticBase):
         assert self._actor_network is not None
         return net_builder.build_serving_module(
             self._actor_network,
+            self.state_feature_config,
             self.state_normalization_data,
             self.action_normalization_data,
         )

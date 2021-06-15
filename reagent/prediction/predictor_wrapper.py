@@ -299,21 +299,25 @@ class ActorWithPreprocessor(ModelBase):
         self,
         model: ModelBase,
         state_preprocessor: Preprocessor,
+        state_feature_config: rlt.ModelFeatureConfig,
         action_postprocessor: Optional[Postprocessor] = None,
         serve_mean_policy: bool = False,
     ):
         super().__init__()
         self.model = model
         self.state_preprocessor = state_preprocessor
+        self.state_feature_config = state_feature_config
+        self.sparse_preprocessor = make_sparse_preprocessor(
+            self.state_feature_config, device=torch.device("cpu")
+        )
         self.action_postprocessor = action_postprocessor
         self.serve_mean_policy = serve_mean_policy
 
-    def forward(self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]):
-        preprocessed_state = self.state_preprocessor(
-            state_with_presence[0], state_with_presence[1]
+    def forward(self, state: rlt.ServingFeatureData):
+        state_feature_data = serving_to_feature_data(
+            state, self.state_preprocessor, self.sparse_preprocessor
         )
-        state_feature_vector = rlt.FeatureData(preprocessed_state)
-        model_output = self.model(state_feature_vector)
+        model_output = self.model(state_feature_data)
         if self.serve_mean_policy:
             assert (
                 model_output.squashed_mean is not None
@@ -328,13 +332,18 @@ class ActorWithPreprocessor(ModelBase):
         return (action, model_output.log_prob)
 
     def input_prototype(self):
-        return (self.state_preprocessor.input_prototype(),)
+        return sparse_input_prototype(
+            model=self.model,
+            state_preprocessor=self.state_preprocessor,
+            state_feature_config=self.state_feature_config,
+        )
 
 
 class ActorPredictorWrapper(torch.jit.ScriptModule):
     def __init__(
         self,
         actor_with_preprocessor: ActorWithPreprocessor,
+        state_feature_config: rlt.ModelFeatureConfig,
         action_feature_ids: List[int] = _DEFAULT_FEATURE_IDS,
     ) -> None:
         """
@@ -349,9 +358,9 @@ class ActorPredictorWrapper(torch.jit.ScriptModule):
 
     @torch.jit.script_method
     def forward(
-        self, state_with_presence: Tuple[torch.Tensor, torch.Tensor]
+        self, state: rlt.ServingFeatureData
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        return self.actor_with_preprocessor(state_with_presence)
+        return self.actor_with_preprocessor(state)
 
 
 class RankingActorWithPreprocessor(ModelBase):

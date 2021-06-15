@@ -115,9 +115,22 @@ class ActorPredictorPolicy(Policy):
     #  its type `no_grad` is not callable.
     @torch.no_grad()
     def act(
-        self, obs: Any, possible_actions_mask: Optional[np.ndarray] = None
+        self,
+        obs: Union[rlt.ServingFeatureData, Tuple[torch.Tensor, torch.Tensor]],
+        possible_actions_mask: Optional[np.ndarray] = None,
     ) -> rlt.ActorOutput:
-        output = self.predictor(obs)
+        """Input is either state_with_presence, or
+        ServingFeatureData (in the case of sparse features)"""
+        assert isinstance(obs, tuple)
+        if isinstance(obs, rlt.ServingFeatureData):
+            state: rlt.ServingFeatureData = obs
+        else:
+            state = rlt.ServingFeatureData(
+                float_features_with_presence=obs,
+                id_list_features={},
+                id_score_list_features={},
+            )
+        output = self.predictor(state)
         if isinstance(output, tuple):
             action, log_prob = output
             log_prob = log_prob.clamp(LOG_PROB_MIN, LOG_PROB_MAX)

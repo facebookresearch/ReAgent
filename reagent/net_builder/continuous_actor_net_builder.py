@@ -2,10 +2,10 @@
 
 import abc
 
+import reagent.core.types as rlt
 import torch
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.parameters import NormalizationData
-from reagent.core.registry_meta import RegistryMeta
 from reagent.models.base import ModelBase
 from reagent.prediction.predictor_wrapper import (
     ActorWithPreprocessor,
@@ -37,6 +37,7 @@ class ContinuousActorNetBuilder:
     @abc.abstractmethod
     def build_actor(
         self,
+        state_feature_config: rlt.ModelFeatureConfig,
         state_normalization_data: NormalizationData,
         action_normalization_data: NormalizationData,
     ) -> ModelBase:
@@ -45,6 +46,7 @@ class ContinuousActorNetBuilder:
     def build_serving_module(
         self,
         actor: ModelBase,
+        state_feature_config: rlt.ModelFeatureConfig,
         state_normalization_data: NormalizationData,
         action_normalization_data: NormalizationData,
         serve_mean_policy: bool = False,
@@ -62,13 +64,16 @@ class ContinuousActorNetBuilder:
         actor_with_preprocessor = ActorWithPreprocessor(
             actor.cpu_model().eval(),
             state_preprocessor,
+            state_feature_config,
             postprocessor,
             serve_mean_policy=serve_mean_policy,
         )
         action_features = Preprocessor(
             action_normalization_data.dense_normalization_parameters, use_gpu=False
         ).sorted_features
-        return ActorPredictorWrapper(actor_with_preprocessor, action_features)
+        return ActorPredictorWrapper(
+            actor_with_preprocessor, state_feature_config, action_features
+        )
 
     def build_ranking_serving_module(
         self,

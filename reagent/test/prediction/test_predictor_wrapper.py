@@ -188,12 +188,13 @@ class TestPredictorWrapper(unittest.TestCase):
             sizes=[16],
             activations=["relu"],
         )
+        state_feature_config = rlt.ModelFeatureConfig()
         actor_with_preprocessor = ActorWithPreprocessor(
-            actor, state_preprocessor, postprocessor
+            actor, state_preprocessor, state_feature_config, postprocessor
         )
-        wrapper = ActorPredictorWrapper(actor_with_preprocessor)
-        input_prototype = actor_with_preprocessor.input_prototype()
-        action, _log_prob = wrapper(*input_prototype)
+        wrapper = ActorPredictorWrapper(actor_with_preprocessor, state_feature_config)
+        input_prototype = actor_with_preprocessor.input_prototype()[0]
+        action, _log_prob = wrapper(input_prototype)
         self.assertEqual(action.shape, (1, len(action_normalization_parameters)))
 
         expected_output = postprocessor(

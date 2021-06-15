@@ -241,6 +241,7 @@ class DiscreteCRR(DiscreteDQNBase):
         assert self._actor_network is not None
         return net_builder.build_serving_module(
             self._actor_network,
+            self.state_feature_config,
             self.state_normalization_data,
             action_feature_ids=list(range(len(self.action_names))),
         )

@@ -2,6 +2,7 @@
 
 from typing import List
 
+import reagent.core.types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import NormalizationData, param_hash
 from reagent.models.actor import DirichletFullyConnectedActor
@@ -32,6 +33,7 @@ class DirichletFullyConnected(ContinuousActorNetBuilder):
 
     def build_actor(
         self,
+        state_feature_config: rlt.ModelFeatureConfig,
         state_normalization_data: NormalizationData,
         action_normalization_data: NormalizationData,
     ) -> ModelBase:

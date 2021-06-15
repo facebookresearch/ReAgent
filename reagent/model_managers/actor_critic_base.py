@@ -20,6 +20,7 @@ from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.model_managers.model_manager import ModelManager
 from reagent.models.base import ModelBase
+from reagent.models.model_feature_config_provider import RawModelFeatureConfigProvider
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
     PolicyNetworkBatchPreprocessor,
@@ -31,6 +32,7 @@ from reagent.reporting.actor_critic_reporter import ActorCriticReporter
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import (
     Dataset,
+    ModelFeatureConfigProvider__Union,
     PreprocessingOptions,
     ReaderOptions,
     ResourceOptions,
@@ -70,7 +72,12 @@ class ActorCriticBase(ModelManager):
     state_preprocessing_options: Optional[PreprocessingOptions] = None
     action_preprocessing_options: Optional[PreprocessingOptions] = None
     action_feature_override: Optional[str] = None
-    state_float_features: Optional[List[Tuple[int, str]]] = None
+    state_feature_config_provider: ModelFeatureConfigProvider__Union = field(
+        # pyre-fixme[28]: Unexpected keyword argument `raw`.
+        default_factory=lambda: ModelFeatureConfigProvider__Union(
+            raw=RawModelFeatureConfigProvider(float_feature_infos=[])
+        )
+    )
     action_float_features: List[Tuple[int, str]] = field(default_factory=list)
     reader_options: Optional[ReaderOptions] = None
     eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
@@ -127,7 +134,7 @@ class ActorCriticBase(ModelManager):
 
     @property
     def state_feature_config(self) -> rlt.ModelFeatureConfig:
-        return get_feature_config(self.state_float_features)
+        return self.state_feature_config_provider.value.get_model_feature_config()
 
     @property
     def action_feature_config(self) -> rlt.ModelFeatureConfig:

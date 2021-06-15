@@ -71,7 +71,9 @@ class SAC(ActorCriticBase):
         # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.
         # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.
         self._actor_network = actor_net_builder.build_actor(
-            self.state_normalization_data, self.action_normalization_data
+            self.state_feature_config,
+            self.state_normalization_data,
+            self.action_normalization_data,
         )
 
         critic_net_builder = self.critic_net_builder.value
@@ -115,6 +117,7 @@ class SAC(ActorCriticBase):
         assert self._actor_network is not None
         actor_serving_module = self.actor_net_builder.value.build_serving_module(
             self._actor_network,
+            self.state_feature_config,
             self.state_normalization_data,
             self.action_normalization_data,
             serve_mean_policy=self.serve_mean_policy,
