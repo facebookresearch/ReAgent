@@ -116,7 +116,7 @@ class DenseNormalization:
             value, presence = value.to(self.device), presence.to(self.device)
             presence[torch.isnan(value)] = 0
             value[torch.isnan(value)] = 0
-            data[k] = self._preprocessor(value, presence)
+            data[k] = self._preprocessor(value, presence).float()
 
         return data
 
