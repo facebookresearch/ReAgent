@@ -896,6 +896,23 @@ class PolicyGradientInput(TensorDataClass):
 
 
 @dataclass
+class BanditRewardModelInput(TensorDataClass):
+    state: FeatureData
+    action: torch.Tensor
+    reward: torch.Tensor
+    action_prob: Optional[torch.Tensor] = None
+
+    @classmethod
+    def from_dict(cls, batch: Dict[str, torch.Tensor]):
+        return cls(
+            state=FeatureData(float_features=batch["state_features"]),
+            action=batch["action"],
+            reward=batch["reward"],
+            action_prob=batch.get("action_probability", None),
+        )
+
+
+@dataclass
 class MemoryNetworkInput(BaseInput):
     action: torch.Tensor
     valid_step: Optional[torch.Tensor] = None

@@ -53,6 +53,7 @@ class DiscreteDQNNetBuilder:
         state_normalization_data: NormalizationData,
         action_names: List[str],
         state_feature_config: rlt.ModelFeatureConfig,
+        predictor_wrapper_type=None,
     ) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module
@@ -63,7 +64,8 @@ class DiscreteDQNNetBuilder:
         dqn_with_preprocessor = DiscreteDqnWithPreprocessor(
             q_network.cpu_model().eval(), state_preprocessor, state_feature_config
         )
-        return DiscreteDqnPredictorWrapper(
+        predictor_wrapper_type = predictor_wrapper_type or DiscreteDqnPredictorWrapper
+        return predictor_wrapper_type(
             dqn_with_preprocessor, action_names, state_feature_config
         )
 
