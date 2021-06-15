@@ -3,6 +3,7 @@
 
 from reagent.training.c51_trainer import C51Trainer
 from reagent.training.cem_trainer import CEMTrainer
+from reagent.training.cfeval import BanditRewardNetTrainer
 from reagent.training.discrete_crr_trainer import DiscreteCRRTrainer
 from reagent.training.dqn_trainer import DQNTrainer
 from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
@@ -38,6 +39,7 @@ from .parameters import (
 
 
 __all__ = [
+    "BanditRewardNetTrainer",
     "C51Trainer",
     "CEMTrainer",
     "RLTrainer",
