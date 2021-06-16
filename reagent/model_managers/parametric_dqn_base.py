@@ -11,6 +11,7 @@ from reagent.core.parameters import (
     NormalizationKey,
 )
 from reagent.data.data_fetcher import DataFetcher
+from reagent.data.manual_data_module import ManualDataModule
 from reagent.data.reagent_data_module import ReAgentDataModule
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
@@ -64,8 +65,6 @@ class ParametricDQNBase(ModelManager):
             "Please set action whitelist features in action_float_features field of "
             "config instead"
         )
-        self._state_preprocessing_options = self.state_preprocessing_options
-        self._action_preprocessing_options = self.action_preprocessing_options
         self._q_network: Optional[ModelBase] = None
         self._metrics_to_score: Optional[List[str]] = None
 
@@ -89,7 +88,7 @@ class ParametricDQNBase(ModelManager):
 
     @property
     def should_generate_eval_dataset(self) -> bool:
-        return self.eval_parameters.calc_cpe_in_training
+        raise RuntimeError
 
     @property
     def state_feature_config(self) -> rlt.ModelFeatureConfig:
@@ -102,12 +101,88 @@ class ParametricDQNBase(ModelManager):
     def run_feature_identification(
         self, input_table_spec: TableSpec
     ) -> Dict[str, NormalizationData]:
+        raise RuntimeError
+
+    @property
+    def required_normalization_keys(self) -> List[str]:
+        return [NormalizationKey.STATE, NormalizationKey.ACTION]
+
+    def query_data(
+        self,
+        input_table_spec: TableSpec,
+        sample_range: Optional[Tuple[float, float]],
+        reward_options: RewardOptions,
+        data_fetcher: DataFetcher,
+    ) -> Dataset:
+        raise RuntimeError
+
+    @property
+    def metrics_to_score(self) -> List[str]:
+        assert self.reward_options is not None
+        if self._metrics_to_score is None:
+            # pyre-fixme[16]: `ParametricDQNBase` has no attribute `_metrics_to_score`.
+            self._metrics_to_score = get_metrics_to_score(
+                self._reward_options.metric_reward_values
+            )
+        return self._metrics_to_score
+
+    def build_batch_preprocessor(self) -> BatchPreprocessor:
+        raise NotImplementedError()
+
+    # TODO: Add below get_data_module() method once methods in
+    # `ParametricDqnDataModule` class are fully implemented
+    # def get_data_module(
+    #     self,
+    #     *,
+    #     input_table_spec: Optional[TableSpec] = None,
+    #     reward_options: Optional[RewardOptions] = None,
+    #     setup_data: Optional[Dict[str, bytes]] = None,
+    #     saved_setup_data: Optional[Dict[str, bytes]] = None,
+    #     reader_options: Optional[ReaderOptions] = None,
+    #     resource_options: Optional[ResourceOptions] = None,
+    # ) -> Optional[ReAgentDataModule]:
+    #     return ParametricDqnDataModule(
+    #         input_table_spec=input_table_spec,
+    #         reward_options=reward_options,
+    #         setup_data=setup_data,
+    #         saved_setup_data=saved_setup_data,
+    #         reader_options=reader_options,
+    #         resource_options=resource_options,
+    #         model_manager=self,
+    #     )
+
+    def train(
+        self,
+        train_dataset: Optional[Dataset],
+        eval_dataset: Optional[Dataset],
+        test_dataset: Optional[Dataset],
+        data_module: Optional[ReAgentDataModule],
+        num_epochs: int,
+        reader_options: ReaderOptions,
+        resource_options: ResourceOptions,
+    ) -> RLTrainingOutput:
+        raise NotImplementedError()
+
+
+class ParametricDqnDataModule(ManualDataModule):
+    @property
+    def should_generate_eval_dataset(self) -> bool:
+        return self.model_manager.eval_parameters.calc_cpe_in_training
+
+    @property
+    def required_normalization_keys(self) -> List[str]:
+        return [NormalizationKey.STATE, NormalizationKey.ACTION]
+
+    def run_feature_identification(
+        self, input_table_spec: TableSpec
+    ) -> Dict[str, NormalizationData]:
         # Run state feature identification
         state_preprocessing_options = (
-            self._state_preprocessing_options or PreprocessingOptions()
+            self.model_manager.state_preprocessing_options or PreprocessingOptions()
         )
         state_features = [
-            ffi.feature_id for ffi in self.state_feature_config.float_feature_infos
+            ffi.feature_id
+            for ffi in self.model_manager.state_feature_config.float_feature_infos
         ]
         logger.info(f"state allowedlist_features: {state_features}")
         state_preprocessing_options = state_preprocessing_options._replace(
@@ -120,10 +195,11 @@ class ParametricDQNBase(ModelManager):
 
         # Run action feature identification
         action_preprocessing_options = (
-            self._action_preprocessing_options or PreprocessingOptions()
+            self.model_manager.action_preprocessing_options or PreprocessingOptions()
         )
         action_features = [
-            ffi.feature_id for ffi in self.action_feature_config.float_feature_infos
+            ffi.feature_id
+            for ffi in self.model_manager.action_feature_config.float_feature_infos
         ]
         logger.info(f"action allowedlist_features: {action_features}")
         action_preprocessing_options = action_preprocessing_options._replace(
@@ -141,10 +217,6 @@ class ParametricDQNBase(ModelManager):
             ),
         }
 
-    @property
-    def required_normalization_keys(self) -> List[str]:
-        return [NormalizationKey.STATE, NormalizationKey.ACTION]
-
     def query_data(
         self,
         input_table_spec: TableSpec,
@@ -152,29 +224,7 @@ class ParametricDQNBase(ModelManager):
         reward_options: RewardOptions,
         data_fetcher: DataFetcher,
     ) -> Dataset:
-        raise NotImplementedError()
-
-    @property
-    def metrics_to_score(self) -> List[str]:
-        assert self.reward_options is not None
-        if self._metrics_to_score is None:
-            # pyre-fixme[16]: `ParametricDQNBase` has no attribute `_metrics_to_score`.
-            self._metrics_to_score = get_metrics_to_score(
-                self._reward_options.metric_reward_values
-            )
-        return self._metrics_to_score
+        raise NotImplementedError
 
     def build_batch_preprocessor(self, use_gpu: bool) -> BatchPreprocessor:
-        raise NotImplementedError()
-
-    def train(
-        self,
-        train_dataset: Optional[Dataset],
-        eval_dataset: Optional[Dataset],
-        test_dataset: Optional[Dataset],
-        data_module: Optional[ReAgentDataModule],
-        num_epochs: int,
-        reader_options: ReaderOptions,
-        resource_options: ResourceOptions,
-    ) -> RLTrainingOutput:
         raise NotImplementedError()
