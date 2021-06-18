@@ -346,7 +346,8 @@ def run_test_online_episode(
         dataset = EpisodicDataset(
             env=env, agent=agent, num_episodes=num_train_episodes, seed=SEED
         )
-        pl_trainer.fit(trainer, dataset)
+        data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
+        pl_trainer.fit(trainer, data_loader)
     else:
         post_episode_callback = train_post_episode(env, trainer, use_gpu)
         _ = train_policy(
