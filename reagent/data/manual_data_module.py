@@ -109,7 +109,7 @@ class ManualDataModule(ReAgentDataModule):
 
     def prepare_data(self, *args, **kwargs):
         if self.setup_data is not None:
-            return None
+            return
 
         key = "normalization_data_map"
 
@@ -139,7 +139,7 @@ class ManualDataModule(ReAgentDataModule):
                 data_fetcher=data_fetcher,
             )
 
-        return self._pickle_setup_data(
+        self.setup_data = self._pickle_setup_data(
             normalization_data_map=normalization_data_map,
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,

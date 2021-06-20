@@ -152,6 +152,22 @@ class NormalizationData(BaseDataClass):
     __hash__ = param_hash
     dense_normalization_parameters: Dict[int, NormalizationParameters]
 
+    def __eq__(self, obj):
+        if not isinstance(obj, NormalizationData):
+            return False
+        elif set(self.dense_normalization_parameters.keys()) != set(
+            obj.dense_normalization_parameters.keys()
+        ):
+            return False
+        else:
+            for i in self.dense_normalization_parameters:
+                if (
+                    self.dense_normalization_parameters[i]
+                    != obj.dense_normalization_parameters[i]
+                ):
+                    return False
+        return True
+
 
 @dataclass(frozen=True)
 class ConvNetParameters(BaseDataClass):
