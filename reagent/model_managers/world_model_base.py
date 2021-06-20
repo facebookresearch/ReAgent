@@ -55,9 +55,6 @@ class WorldModelBase(ModelManager):
     ) -> Dataset:
         raise RuntimeError
 
-    def build_batch_preprocessor(self) -> BatchPreprocessor:
-        raise RuntimeError
-
     # TODO: Add get_data_module() method once methods in
     # `WorldModelDataModule` class are implemented
     # def get_data_module(

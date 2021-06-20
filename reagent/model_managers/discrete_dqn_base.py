@@ -108,9 +108,6 @@ class DiscreteDQNBase(ModelManager):
     def multi_steps(self) -> Optional[int]:
         return self.rl_parameters.multi_steps
 
-    def build_batch_preprocessor(self, use_gpu: bool) -> BatchPreprocessor:
-        raise RuntimeError
-
     def get_data_module(
         self,
         *,

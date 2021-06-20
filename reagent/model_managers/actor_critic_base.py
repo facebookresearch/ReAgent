@@ -177,9 +177,6 @@ class ActorCriticBase(ModelManager):
     ) -> Dataset:
         raise NotImplementedError
 
-    def build_batch_preprocessor(self, use_gpu: bool) -> BatchPreprocessor:
-        raise NotImplementedError
-
     def get_data_module(
         self,
         *,
