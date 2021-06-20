@@ -50,10 +50,12 @@ class DiscreteQRDQN(DiscreteDQNBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self, use_gpu: bool) -> QRDQNTrainer:
+    def build_trainer(
+        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+    ) -> QRDQNTrainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
-            self.state_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
             len(self.action_names),
             # pyre-fixme[16]: `QRDQNTrainerParameters` has no attribute `num_atoms`.
             num_atoms=self.trainer_param.num_atoms,
@@ -72,12 +74,12 @@ class DiscreteQRDQN(DiscreteDQNBase):
             cpe_net_builder = self.cpe_net_builder.value
             reward_network = cpe_net_builder.build_q_network(
                 self.state_feature_config,
-                self.state_normalization_data,
+                normalization_data_map[NormalizationKey.STATE],
                 num_output_nodes,
             )
             q_network_cpe = cpe_net_builder.build_q_network(
                 self.state_feature_config,
-                self.state_normalization_data,
+                normalization_data_map[NormalizationKey.STATE],
                 num_output_nodes,
             )
 

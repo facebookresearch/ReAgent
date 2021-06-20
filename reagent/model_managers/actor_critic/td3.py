@@ -62,23 +62,28 @@ class TD3(ActorCriticBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self, use_gpu: bool) -> TD3Trainer:
+    def build_trainer(
+        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+    ) -> TD3Trainer:
         actor_net_builder = self.actor_net_builder.value
         # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
         # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
         self._actor_network = actor_net_builder.build_actor(
-            self.state_normalization_data, self.action_normalization_data
+            normalization_data_map[NormalizationKey.STATE],
+            normalization_data_map[NormalizationKey.ACTION],
         )
 
         critic_net_builder = self.critic_net_builder.value
         # pyre-fixme[16]: `TD3` has no attribute `_q1_network`.
         # pyre-fixme[16]: `TD3` has no attribute `_q1_network`.
         self._q1_network = critic_net_builder.build_q_network(
-            self.state_normalization_data, self.action_normalization_data
+            normalization_data_map[NormalizationKey.STATE],
+            normalization_data_map[NormalizationKey.ACTION],
         )
         q2_network = (
             critic_net_builder.build_q_network(
-                self.state_normalization_data, self.action_normalization_data
+                normalization_data_map[NormalizationKey.STATE],
+                normalization_data_map[NormalizationKey.ACTION],
             )
             if self.use_2_q_functions
             else None

@@ -46,10 +46,12 @@ class DiscreteC51DQN(DiscreteDQNBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self, use_gpu: bool) -> C51Trainer:
+    def build_trainer(
+        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+    ) -> C51Trainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
-            state_normalization_data=self.state_normalization_data,
+            state_normalization_data=normalization_data_map[NormalizationKey.STATE],
             output_dim=len(self.action_names),
             # pyre-fixme[16]: `C51TrainerParameters` has no attribute `num_atoms`.
             # pyre-fixme[16]: `C51TrainerParameters` has no attribute `num_atoms`.

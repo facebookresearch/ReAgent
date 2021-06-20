@@ -7,7 +7,12 @@ import numpy as np
 import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import CEMTrainerParameters, param_hash, NormalizationData
+from reagent.core.parameters import (
+    CEMTrainerParameters,
+    param_hash,
+    NormalizationData,
+    NormalizationKey,
+)
 from reagent.gym.policies.policy import Policy
 from reagent.model_managers.model_based.world_model import WorldModel
 from reagent.model_managers.world_model_base import WorldModelBase
@@ -58,25 +63,27 @@ class CrossEntropyMethod(WorldModelBase):
     ) -> Policy:
         return CEMPolicy(self.cem_planner_network, self.discrete_action)
 
-    def build_trainer(self, use_gpu: bool) -> CEMTrainer:
+    def build_trainer(
+        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+    ) -> CEMTrainer:
         world_model_manager: WorldModel = WorldModel(
             trainer_param=self.trainer_param.mdnrnn
         )
         world_model_manager.initialize_trainer(
             use_gpu,
             self.reward_options,
-            self._normalization_data_map,
+            normalization_data_map,
         )
         world_model_trainers = [
-            world_model_manager.build_trainer(use_gpu)
+            world_model_manager.build_trainer(normalization_data_map, use_gpu)
             for _ in range(self.trainer_param.num_world_models)
         ]
         world_model_nets = [trainer.memory_network for trainer in world_model_trainers]
         terminal_effective = self.trainer_param.mdnrnn.not_terminal_loss_weight > 0
 
-        action_normalization_parameters = (
-            self.action_normalization_data.dense_normalization_parameters
-        )
+        action_normalization_parameters = normalization_data_map[
+            NormalizationKey.ACTION
+        ].dense_normalization_parameters
         sorted_action_norm_vals = list(action_normalization_parameters.values())
         discrete_action = sorted_action_norm_vals[0].feature_type != CONTINUOUS_ACTION
         action_upper_bounds, action_lower_bounds = None, None
@@ -96,10 +103,14 @@ class CrossEntropyMethod(WorldModelBase):
             num_elites=self.trainer_param.num_elites,
             plan_horizon_length=self.trainer_param.plan_horizon_length,
             state_dim=get_num_output_features(
-                self.state_normalization_data.dense_normalization_parameters
+                normalization_data_map[
+                    NormalizationKey.STATE
+                ].dense_normalization_parameters
             ),
             action_dim=get_num_output_features(
-                self.action_normalization_data.dense_normalization_parameters
+                normalization_data_map[
+                    NormalizationKey.ACTION
+                ].dense_normalization_parameters
             ),
             discrete_action=discrete_action,
             terminal_effective=terminal_effective,
