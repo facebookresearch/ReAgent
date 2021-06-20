@@ -13,8 +13,7 @@ from reagent.core.parameters import (
     NormalizationData,
     NormalizationKey,
 )
-from reagent.data.data_fetcher import DataFetcher
-from reagent.data.reagent_data_module import ReAgentDataModule
+from reagent.data import DataFetcher, ReAgentDataModule, ManualDataModule
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
@@ -104,7 +103,7 @@ class ActorCriticBase(ModelManager):
 
     @property
     def should_generate_eval_dataset(self) -> bool:
-        return self.eval_parameters.calc_cpe_in_training
+        raise NotImplementedError
 
     def create_policy(self, serving: bool) -> Policy:
         """Create online actor critic policy."""
@@ -172,28 +171,7 @@ class ActorCriticBase(ModelManager):
     def run_feature_identification(
         self, input_table_spec: TableSpec
     ) -> Dict[str, NormalizationData]:
-        # Run state feature identification
-        state_normalization_parameters = identify_normalization_parameters(
-            input_table_spec,
-            InputColumn.STATE_FEATURES,
-            self.get_state_preprocessing_options(),
-        )
-
-        # Run action feature identification
-        action_normalization_parameters = identify_normalization_parameters(
-            input_table_spec,
-            InputColumn.ACTION,
-            self.get_action_preprocessing_options(),
-        )
-
-        return {
-            NormalizationKey.STATE: NormalizationData(
-                dense_normalization_parameters=state_normalization_parameters
-            ),
-            NormalizationKey.ACTION: NormalizationData(
-                dense_normalization_parameters=action_normalization_parameters
-            ),
-        }
+        raise NotImplementedError
 
     @property
     def required_normalization_keys(self) -> List[str]:
@@ -206,28 +184,29 @@ class ActorCriticBase(ModelManager):
         reward_options: RewardOptions,
         data_fetcher: DataFetcher,
     ) -> Dataset:
-        logger.info("Starting query")
-        return data_fetcher.query_data(
-            input_table_spec=input_table_spec,
-            discrete_action=False,
-            include_possible_actions=False,
-            custom_reward_expression=reward_options.custom_reward_expression,
-            sample_range=sample_range,
-        )
+        raise NotImplementedError
 
     def build_batch_preprocessor(self, use_gpu: bool) -> BatchPreprocessor:
-        state_preprocessor = Preprocessor(
-            self.state_normalization_data.dense_normalization_parameters,
-            use_gpu=use_gpu,
-        )
-        action_preprocessor = Preprocessor(
-            self.action_normalization_data.dense_normalization_parameters,
-            use_gpu=use_gpu,
-        )
-        return PolicyNetworkBatchPreprocessor(
-            state_preprocessor=state_preprocessor,
-            action_preprocessor=action_preprocessor,
-            use_gpu=use_gpu,
+        raise NotImplementedError
+
+    def get_data_module(
+        self,
+        *,
+        input_table_spec: Optional[TableSpec] = None,
+        reward_options: Optional[RewardOptions] = None,
+        reader_options: Optional[ReaderOptions] = None,
+        setup_data: Optional[Dict[str, bytes]] = None,
+        saved_setup_data: Optional[Dict[str, bytes]] = None,
+        resource_options: Optional[ResourceOptions] = None,
+    ) -> Optional[ReAgentDataModule]:
+        return ActorCriticDataModule(
+            input_table_spec=input_table_spec,
+            reward_options=reward_options,
+            setup_data=setup_data,
+            saved_setup_data=saved_setup_data,
+            reader_options=reader_options,
+            resource_options=resource_options,
+            model_manager=self,
         )
 
     def get_reporter(self):
@@ -244,11 +223,11 @@ class ActorCriticBase(ModelManager):
         reader_options: ReaderOptions,
         resource_options: ResourceOptions,
     ) -> RLTrainingOutput:
-        batch_preprocessor = self.build_batch_preprocessor(resource_options.use_gpu)
         reporter = self.get_reporter()
         # pyre-fixme[16]: `Trainer` has no attribute `set_reporter`.
         # pyre-fixme[16]: `Trainer` has no attribute `set_reporter`.
         self.trainer.set_reporter(reporter)
+        assert data_module
 
         # assert eval_dataset is None
 
@@ -261,8 +240,7 @@ class ActorCriticBase(ModelManager):
             data_module=data_module,
             num_epochs=num_epochs,
             logger_name="ActorCritic",
-            batch_preprocessor=batch_preprocessor,
-            reader_options=self.reader_options,
+            reader_options=reader_options,
             checkpoint_path=self._lightning_checkpoint_path,
             resource_options=resource_options or ResourceOptions(),
         )
@@ -277,4 +255,75 @@ class ActorCriticBase(ModelManager):
         self._lightning_trainer.logger.clear_local_data()
         return RLTrainingOutput(
             training_report=training_report, logger_data=logger_data
+        )
+
+
+class ActorCriticDataModule(ManualDataModule):
+    def run_feature_identification(
+        self, input_table_spec: TableSpec
+    ) -> Dict[str, NormalizationData]:
+        """
+        Derive preprocessing parameters from data. The keys of the dict should
+        match the keys from `required_normalization_keys()`
+        """
+        # Run state feature identification
+        state_normalization_parameters = identify_normalization_parameters(
+            input_table_spec,
+            InputColumn.STATE_FEATURES,
+            self.model_manager.get_state_preprocessing_options(),
+        )
+
+        # Run action feature identification
+        action_normalization_parameters = identify_normalization_parameters(
+            input_table_spec,
+            InputColumn.ACTION,
+            self.model_manager.get_action_preprocessing_options(),
+        )
+
+        return {
+            NormalizationKey.STATE: NormalizationData(
+                dense_normalization_parameters=state_normalization_parameters
+            ),
+            NormalizationKey.ACTION: NormalizationData(
+                dense_normalization_parameters=action_normalization_parameters
+            ),
+        }
+
+    @property
+    def required_normalization_keys(self) -> List[str]:
+        """Get the normalization keys required for current instance"""
+        return [NormalizationKey.STATE, NormalizationKey.ACTION]
+
+    @property
+    def should_generate_eval_dataset(self) -> bool:
+        return self.model_manager.eval_parameters.calc_cpe_in_training
+
+    def query_data(
+        self,
+        input_table_spec: TableSpec,
+        sample_range: Optional[Tuple[float, float]],
+        reward_options: RewardOptions,
+        data_fetcher: DataFetcher,
+    ) -> Dataset:
+        return data_fetcher.query_data(
+            input_table_spec=input_table_spec,
+            discrete_action=False,
+            include_possible_actions=False,
+            custom_reward_expression=reward_options.custom_reward_expression,
+            sample_range=sample_range,
+        )
+
+    def build_batch_preprocessor(self) -> BatchPreprocessor:
+        state_preprocessor = Preprocessor(
+            self.state_normalization_data.dense_normalization_parameters,
+            use_gpu=self.resource_options.use_gpu,
+        )
+        action_preprocessor = Preprocessor(
+            self.action_normalization_data.dense_normalization_parameters,
+            use_gpu=self.resource_options.use_gpu,
+        )
+        return PolicyNetworkBatchPreprocessor(
+            state_preprocessor=state_preprocessor,
+            action_preprocessor=action_preprocessor,
+            use_gpu=self.resource_options.use_gpu,
         )
