@@ -77,10 +77,6 @@ class SlateQBase(ModelManager):
             return Policy(scorer=scorer, sampler=sampler)
 
     @property
-    def should_generate_eval_dataset(self) -> bool:
-        raise RuntimeError
-
-    @property
     def state_feature_config(self) -> rlt.ModelFeatureConfig:
         return get_feature_config(self.state_float_features)
 
