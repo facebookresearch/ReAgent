@@ -168,11 +168,6 @@ class ActorCriticBase(ModelManager):
         )
         return action_preprocessing_options
 
-    def run_feature_identification(
-        self, input_table_spec: TableSpec
-    ) -> Dict[str, NormalizationData]:
-        raise NotImplementedError
-
     @property
     def required_normalization_keys(self) -> List[str]:
         return [NormalizationKey.STATE, NormalizationKey.ACTION]

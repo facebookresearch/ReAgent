@@ -88,11 +88,6 @@ class SlateQBase(ModelManager):
     def item_feature_config(self) -> rlt.ModelFeatureConfig:
         return get_feature_config(self.item_float_features)
 
-    def run_feature_identification(
-        self, input_table_spec: TableSpec
-    ) -> Dict[str, NormalizationData]:
-        raise RuntimeError
-
     @property
     def required_normalization_keys(self) -> List[str]:
         return [NormalizationKey.STATE, NormalizationKey.ITEM]
