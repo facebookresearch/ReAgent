@@ -98,15 +98,6 @@ class ParametricDQNBase(ModelManager):
     def required_normalization_keys(self) -> List[str]:
         return [NormalizationKey.STATE, NormalizationKey.ACTION]
 
-    def query_data(
-        self,
-        input_table_spec: TableSpec,
-        sample_range: Optional[Tuple[float, float]],
-        reward_options: RewardOptions,
-        data_fetcher: DataFetcher,
-    ) -> Dataset:
-        raise RuntimeError
-
     @property
     def metrics_to_score(self) -> List[str]:
         assert self.reward_options is not None

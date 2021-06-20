@@ -118,21 +118,6 @@ class ModelManager:
             f"attr {attr} not available {type(self)} (subclass of ModelManager)."
         )
 
-    @abc.abstractmethod
-    def query_data(
-        self,
-        input_table_spec: TableSpec,
-        sample_range: Optional[Tuple[float, float]],
-        reward_options: RewardOptions,
-        data_fetcher: DataFetcher,
-    ) -> Dataset:
-        """
-        DEPRECATED: Implement get_data_module() instead
-
-        Massage input table into the format expected by the trainer
-        """
-        pass
-
     @property
     def trainer(self) -> Trainer:
         """
