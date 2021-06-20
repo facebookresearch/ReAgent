@@ -222,9 +222,7 @@ class ManualDataModule(ReAgentDataModule):
                 )
             return normalization_data
 
-        raise AttributeError(
-            f"attr {attr} not available {type(self)} (subclass of ModelManager)."
-        )
+        raise AttributeError(f"attr {attr} not available {type(self)}")
 
     @property
     @abc.abstractmethod
