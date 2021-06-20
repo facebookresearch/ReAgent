@@ -7,7 +7,7 @@ from typing import Dict, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import param_hash
+from reagent.core.parameters import NormalizationData, NormalizationKey, param_hash
 from reagent.model_managers.actor_critic_base import ActorCriticBase
 from reagent.models.base import ModelBase
 from reagent.net_builder.continuous_actor.gaussian_fully_connected import (
@@ -111,12 +111,15 @@ class SAC(ActorCriticBase):
     def get_reporter(self):
         return None
 
-    def build_serving_module(self) -> Dict[str, torch.nn.Module]:
+    def build_serving_module(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
         assert self._actor_network is not None
         actor_serving_module = self.actor_net_builder.value.build_serving_module(
             self._actor_network,
-            self.state_normalization_data,
-            self.action_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
+            normalization_data_map[NormalizationKey.ACTION],
             serve_mean_policy=self.serve_mean_policy,
         )
         return actor_serving_module

@@ -297,7 +297,9 @@ def run_test_replay_buffer(
 
     # TODO: Also check train_reward
 
-    serving_policy = manager.create_policy(serving=True)
+    serving_policy = manager.create_policy(
+        serving=True, normalization_data_map=normalization
+    )
 
     eval_rewards = eval_policy(env, serving_policy, num_eval_episodes, serving=True)
     assert (

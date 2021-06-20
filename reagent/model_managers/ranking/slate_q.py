@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import logging
-from typing import Optional
+from typing import Optional, Dict
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import param_hash
+from reagent.core.parameters import param_hash, NormalizationData, NormalizationKey
 from reagent.model_managers.slate_q_base import SlateQBase
 from reagent.models.base import ModelBase
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
@@ -62,9 +62,14 @@ class SlateQ(SlateQBase):
             **self.trainer_param.asdict(),
         )
 
-    def build_serving_module(self) -> torch.nn.Module:
+    def build_serving_module(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
         net_builder = self.net_builder.value
         assert self._q_network is not None
         return net_builder.build_serving_module(
-            self._q_network, self.state_normalization_data, self.item_normalization_data
+            self._q_network,
+            normalization_data_map[NormalizationKey.STATE],
+            normalization_data_map[NormalizationKey.ITEM],
         )

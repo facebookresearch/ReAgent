@@ -3,7 +3,7 @@
 # Note: this file is modeled after td3.py
 
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 import numpy as np
 import reagent.core.types as rlt
@@ -11,6 +11,8 @@ import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import (
     EvaluationParameters,
+    NormalizationData,
+    NormalizationKey,
     param_hash,
 )
 from reagent.gym.policies.policy import Policy
@@ -159,10 +161,17 @@ class DiscreteCRR(DiscreteDQNBase):
         )
         return trainer
 
-    def create_policy(self, serving: bool) -> Policy:
+    def create_policy(
+        self,
+        serving: bool = False,
+        normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
+    ) -> Policy:
         """Create online actor critic policy."""
         if serving:
-            return create_predictor_policy_from_model(self.build_actor_module())
+            assert normalization_data_map
+            return create_predictor_policy_from_model(
+                self.build_actor_module(normalization_data_map)
+            )
         else:
             return ActorPolicyWrapper(self._actor_network)
 
@@ -183,43 +192,56 @@ class DiscreteCRR(DiscreteDQNBase):
             module_names.append("binary_difference_scorer")
         return module_names
 
-    def build_serving_modules(self):
+    def build_serving_modules(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ):
         """
         `actor_dqn` is the actor module wrapped in the DQN predictor wrapper.
         This helps putting the actor in places where DQN predictor wrapper is expected.
         If the policy is greedy, then this wrapper would work.
         """
         serving_modules = {
-            "default_model": self.build_actor_module(),
-            "dqn": self._build_dqn_module(self._q1_network),
-            "actor_dqn": self._build_dqn_module(ActorDQN(self._actor_network)),
+            "default_model": self.build_actor_module(normalization_data_map),
+            "dqn": self._build_dqn_module(self._q1_network, normalization_data_map),
+            "actor_dqn": self._build_dqn_module(
+                ActorDQN(self._actor_network), normalization_data_map
+            ),
         }
         if len(self.action_names) == 2:
             serving_modules.update(
                 {
                     "binary_difference_scorer": self._build_binary_difference_scorer(
-                        ActorDQN(self._actor_network)
+                        ActorDQN(self._actor_network), normalization_data_map
                     ),
                 }
             )
         return serving_modules
 
-    def _build_dqn_module(self, network):
+    def _build_dqn_module(
+        self,
+        network,
+        normalization_data_map: Dict[str, NormalizationData],
+    ):
         critic_net_builder = self.critic_net_builder.value
         assert network is not None
         return critic_net_builder.build_serving_module(
             network,
-            self.state_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )
 
-    def _build_binary_difference_scorer(self, network):
+    def _build_binary_difference_scorer(
+        self,
+        network,
+        normalization_data_map: Dict[str, NormalizationData],
+    ):
         critic_net_builder = self.critic_net_builder.value
         assert network is not None
         return critic_net_builder.build_binary_difference_scorer(
             network,
-            self.state_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )
@@ -236,12 +258,15 @@ class DiscreteCRR(DiscreteDQNBase):
     # action_extractor calls serving_action_extractor() in env_wrapper.py,
     # which checks the type of action_space during serving time and treats
     # spaces.Discrete differently from spaces.Box (continuous).
-    def build_actor_module(self) -> torch.nn.Module:
+    def build_actor_module(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
         net_builder = self.actor_net_builder.value
         assert self._actor_network is not None
         return net_builder.build_serving_module(
             self._actor_network,
-            self.state_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
             action_feature_ids=list(range(len(self.action_names))),
         )
 

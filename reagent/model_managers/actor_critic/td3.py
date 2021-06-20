@@ -3,11 +3,16 @@
 
 
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import EvaluationParameters, param_hash
+from reagent.core.parameters import (
+    EvaluationParameters,
+    NormalizationData,
+    NormalizationKey,
+    param_hash,
+)
 from reagent.model_managers.actor_critic_base import ActorCriticBase
 from reagent.models.base import ModelBase
 from reagent.net_builder.continuous_actor.fully_connected import (
@@ -92,11 +97,14 @@ class TD3(ActorCriticBase):
     def get_reporter(self):
         return TD3Reporter()
 
-    def build_serving_module(self) -> torch.nn.Module:
+    def build_serving_module(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
         net_builder = self.actor_net_builder.value
         assert self._actor_network is not None
         return net_builder.build_serving_module(
             self._actor_network,
-            self.state_normalization_data,
-            self.action_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
+            normalization_data_map[NormalizationKey.ACTION],
         )

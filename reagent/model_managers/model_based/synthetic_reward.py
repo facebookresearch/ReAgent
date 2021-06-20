@@ -158,7 +158,10 @@ class SyntheticReward(ModelManager):
             str(self.net_builder.value),
         )
 
-    def build_serving_module(self) -> torch.nn.Module:
+    def build_serving_module(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module
         """
@@ -169,11 +172,11 @@ class SyntheticReward(ModelManager):
         net_builder = self.net_builder.value
         action_normalization_data = None
         if not self.discrete_action_names:
-            action_normalization_data = self.action_normalization_data
+            action_normalization_data = normalization_data_map[NormalizationKey.ACTION]
         return net_builder.build_serving_module(
             self.max_seq_len,
             self._synthetic_reward_network,
-            self.state_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
             action_normalization_data=action_normalization_data,
             discrete_action_names=self.discrete_action_names,
         )

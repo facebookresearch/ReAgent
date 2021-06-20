@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import logging
+from typing import Dict
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import param_hash
+from reagent.core.parameters import param_hash, NormalizationData, NormalizationKey
 from reagent.model_managers.discrete_dqn_base import DiscreteDQNBase
 from reagent.net_builder.categorical_dqn.categorical import Categorical
 from reagent.net_builder.unions import CategoricalDQNNetBuilder__Union
@@ -75,7 +76,10 @@ class DiscreteC51DQN(DiscreteDQNBase):
             **self.trainer_param.asdict(),
         )
 
-    def build_serving_module(self) -> torch.nn.Module:
+    def build_serving_module(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module
         """
@@ -83,7 +87,7 @@ class DiscreteC51DQN(DiscreteDQNBase):
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,
-            self.state_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )
