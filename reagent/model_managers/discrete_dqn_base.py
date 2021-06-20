@@ -73,8 +73,7 @@ class DiscreteDQNBase(ModelManager):
             )
         else:
             sampler = GreedyActionSampler()
-            # pyre-fixme[16]: `RLTrainer` has no attribute `q_network`.
-            scorer = discrete_dqn_scorer(self.trainer.q_network)
+            scorer = discrete_dqn_scorer(self._q_network)
             return Policy(scorer=scorer, sampler=sampler)
 
     @property

@@ -154,7 +154,7 @@ class SyntheticReward(ModelManager):
 
     def get_reporter(self):
         return RewardNetworkReporter(
-            self.trainer.loss_type,
+            self.trainer_param.loss_type,
             str(self.net_builder.value),
         )
 
