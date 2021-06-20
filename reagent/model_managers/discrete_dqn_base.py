@@ -96,10 +96,6 @@ class DiscreteDQNBase(ModelManager):
         return self._metrics_to_score
 
     @property
-    def required_normalization_keys(self) -> List[str]:
-        return [NormalizationKey.STATE]
-
-    @property
     def multi_steps(self) -> Optional[int]:
         return self.rl_parameters.multi_steps
 
@@ -183,10 +179,6 @@ class DiscreteDqnDataModule(ManualDataModule):
     @property
     def should_generate_eval_dataset(self) -> bool:
         return self.model_manager.eval_parameters.calc_cpe_in_training
-
-    @property
-    def required_normalization_keys(self) -> List[str]:
-        return [NormalizationKey.STATE]
 
     def run_feature_identification(
         self, input_table_spec: TableSpec

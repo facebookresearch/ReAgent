@@ -123,12 +123,6 @@ class SyntheticReward(ModelManager):
             model_manager=self,
         )
 
-    @property
-    def required_normalization_keys(self) -> List[str]:
-        if self.discrete_action_names:
-            return [NormalizationKey.STATE]
-        return [NormalizationKey.STATE, NormalizationKey.ACTION]
-
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
     def build_trainer(
@@ -188,12 +182,6 @@ class SyntheticRewardDataModule(ManualDataModule):
     @property
     def should_generate_eval_dataset(self) -> bool:
         return self.model_manager.eval_parameters.calc_cpe_in_training
-
-    @property
-    def required_normalization_keys(self) -> List[str]:
-        if self.model_manager.discrete_action_names:
-            return [NormalizationKey.STATE]
-        return [NormalizationKey.STATE, NormalizationKey.ACTION]
 
     def run_feature_identification(
         self, input_table_spec: TableSpec

@@ -34,10 +34,6 @@ logger = logging.getLogger(__name__)
 class WorldModelBase(ModelManager):
     reward_boost: Optional[Dict[str, float]] = None
 
-    @property
-    def required_normalization_keys(self) -> List[str]:
-        return [NormalizationKey.STATE, NormalizationKey.ACTION]
-
     # TODO: Add get_data_module() method once methods in
     # `WorldModelDataModule` class are implemented
     # def get_data_module(
@@ -87,10 +83,6 @@ class WorldModelDataModule(ManualDataModule):
     @property
     def should_generate_eval_dataset(self) -> bool:
         return False
-
-    @property
-    def required_normalization_keys(self) -> List[str]:
-        return [NormalizationKey.STATE]
 
     def run_feature_identification(
         self, input_table_spec: TableSpec

@@ -171,10 +171,6 @@ class ActorCriticBase(ModelManager):
         )
         return action_preprocessing_options
 
-    @property
-    def required_normalization_keys(self) -> List[str]:
-        return [NormalizationKey.STATE, NormalizationKey.ACTION]
-
     def get_data_module(
         self,
         *,
@@ -249,8 +245,7 @@ class ActorCriticDataModule(ManualDataModule):
         self, input_table_spec: TableSpec
     ) -> Dict[str, NormalizationData]:
         """
-        Derive preprocessing parameters from data. The keys of the dict should
-        match the keys from `required_normalization_keys()`
+        Derive preprocessing parameters from data.
         """
         # Run state feature identification
         state_normalization_parameters = identify_normalization_parameters(
@@ -274,11 +269,6 @@ class ActorCriticDataModule(ManualDataModule):
                 dense_normalization_parameters=action_normalization_parameters
             ),
         }
-
-    @property
-    def required_normalization_keys(self) -> List[str]:
-        """Get the normalization keys required for current instance"""
-        return [NormalizationKey.STATE, NormalizationKey.ACTION]
 
     @property
     def should_generate_eval_dataset(self) -> bool:
