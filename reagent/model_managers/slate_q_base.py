@@ -62,10 +62,15 @@ class SlateQBase(ModelManager):
         self._q_network: Optional[ModelBase] = None
         self.eval_parameters = self.trainer_param.evaluation
 
-    def create_policy(self, serving: bool) -> Policy:
+    def create_policy(
+        self,
+        serving: bool = False,
+        normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
+    ):
         if serving:
+            assert normalization_data_map
             return create_predictor_policy_from_model(
-                self.build_serving_module(),
+                self.build_serving_module(normalization_data_map),
                 max_num_actions=self.num_candidates,
                 slate_size=self.slate_size,
             )

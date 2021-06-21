@@ -2,13 +2,12 @@
 
 import abc
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import pytorch_lightning as pl
 import torch
 from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData
-from reagent.data.data_fetcher import DataFetcher
 from reagent.data.reagent_data_module import ReAgentDataModule
 from reagent.training import Trainer
 from reagent.workflow.types import (
@@ -218,13 +217,23 @@ class ModelManager:
         pass
 
     # TODO: make abstract
-    # TODO: This function should take normalization_data_map &
-    # dictionary of modules created in `build_trainer()`
-    def build_serving_modules(self) -> Dict[str, torch.nn.Module]:
+    def build_serving_modules(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> Dict[str, torch.nn.Module]:
         """
         Returns TorchScript for serving in production
         """
-        return {"default_model": self.build_serving_module()}
+        return {"default_model": self.build_serving_module(normalization_data_map)}
+
+    def build_serving_module(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
+        """
+        Optionaly, implement this method if you only have one model for serving
+        """
+        raise NotImplementedError
 
     # TODO: make abstract
     def serving_module_names(self) -> List[str]:

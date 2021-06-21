@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import logging
+from typing import Dict
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import param_hash
+from reagent.core.parameters import param_hash, NormalizationData, NormalizationKey
 from reagent.model_managers.parametric_dqn_base import ParametricDQNBase
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
@@ -58,11 +59,14 @@ class ParametricDQN(ParametricDQNBase):
             **self.trainer_param.asdict(),
         )
 
-    def build_serving_module(self) -> torch.nn.Module:
+    def build_serving_module(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
         net_builder = self.net_builder.value
         assert self._q_network is not None
         return net_builder.build_serving_module(
             self._q_network,
-            self.state_normalization_data,
-            self.action_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
+            normalization_data_map[NormalizationKey.ACTION],
         )

@@ -85,9 +85,16 @@ class PPO(ModelManager):
         )
         return trainer
 
-    def create_policy(self, serving: bool = False):
+    def create_policy(
+        self,
+        serving: bool = False,
+        normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
+    ):
         if serving:
-            return create_predictor_policy_from_model(self.build_serving_module())
+            assert normalization_data_map is not None
+            return create_predictor_policy_from_model(
+                self.build_serving_module(normalization_data_map)
+            )
         else:
             if self._policy is None:
                 sampler = SoftmaxActionSampler(temperature=self.sampler_temperature)
@@ -95,11 +102,14 @@ class PPO(ModelManager):
                 self._policy = Policy(scorer=self._policy_network, sampler=sampler)
             return self._policy
 
-    def build_serving_module(self) -> torch.nn.Module:
+    def build_serving_module(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
         assert self._policy_network is not None
         policy_serving_module = self.policy_net_builder.value.build_serving_module(
             q_network=self._policy_network,
-            state_normalization_data=self.state_normalization_data,
+            state_normalization_data=normalization_data_map[NormalizationKey.STATE],
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )

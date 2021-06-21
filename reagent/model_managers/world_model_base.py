@@ -34,14 +34,6 @@ logger = logging.getLogger(__name__)
 class WorldModelBase(ModelManager):
     reward_boost: Optional[Dict[str, float]] = None
 
-    @classmethod
-    def normalization_key(cls) -> str:
-        raise NotImplementedError()
-
-    def create_policy(self) -> Policy:
-        """Create a WorldModel Policy from env."""
-        raise NotImplementedError()
-
     @property
     def required_normalization_keys(self) -> List[str]:
         return [NormalizationKey.STATE, NormalizationKey.ACTION]
