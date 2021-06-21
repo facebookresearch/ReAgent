@@ -203,7 +203,7 @@ class ManualDataModule(ReAgentDataModule):
         if attr.endswith(normalization_data_suffix):
             assert self._normalization_data_map is not None, (
                 f"Trying to access {attr} but normalization_data_map "
-                "has not been set via `initialize_trainer`."
+                "has not been set. Did you run `setup()`"
             )
             normalization_key = attr[: -len(normalization_data_suffix)]
             normalization_data = self._normalization_data_map.get(

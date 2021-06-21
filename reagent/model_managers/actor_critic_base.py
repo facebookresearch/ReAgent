@@ -17,7 +17,6 @@ from reagent.data import DataFetcher, ReAgentDataModule, ManualDataModule
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.model_managers.model_manager import ModelManager
-from reagent.models.base import ModelBase
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
     PolicyNetworkBatchPreprocessor,
@@ -26,6 +25,7 @@ from reagent.preprocessing.batch_preprocessor import (
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
 from reagent.reporting.actor_critic_reporter import ActorCriticReporter
+from reagent.training import ReAgentLightningModule
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import (
     Dataset,
@@ -34,10 +34,8 @@ from reagent.workflow.types import (
     ResourceOptions,
     RewardOptions,
     RLTrainingOutput,
-    RLTrainingReport,
     TableSpec,
 )
-from reagent.workflow.utils import train_eval_lightning
 
 
 logger = logging.getLogger(__name__)
@@ -93,15 +91,9 @@ class ActorCriticBase(ModelManager):
         self._state_preprocessing_options = self.state_preprocessing_options
         self._action_preprocessing_options = self.action_preprocessing_options
 
-        # To be filled by property metrics_to_score
-        self._metrics_to_score: Optional[List[str]] = None
-
-        # To be filled by subclasses
-        self._actor_network: Optional[ModelBase] = None
-        self._q1_network: Optional[ModelBase] = None
-
     def create_policy(
         self,
+        trainer_module: ReAgentLightningModule,
         serving: bool = False,
         normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
     ) -> Policy:
@@ -110,10 +102,10 @@ class ActorCriticBase(ModelManager):
         if serving:
             assert normalization_data_map
             return create_predictor_policy_from_model(
-                self.build_serving_module(normalization_data_map)
+                self.build_serving_module(trainer_module, normalization_data_map)
             )
         else:
-            return ActorPolicyWrapper(self._actor_network)
+            return ActorPolicyWrapper(trainer_module.actor_network)
 
     @property
     def state_feature_config(self) -> rlt.ModelFeatureConfig:
@@ -181,51 +173,6 @@ class ActorCriticBase(ModelManager):
 
     def get_reporter(self):
         return ActorCriticReporter()
-
-    # TODO: deprecate, once we deprecate internal page handlers
-    def train(
-        self,
-        train_dataset: Optional[Dataset],
-        eval_dataset: Optional[Dataset],
-        test_dataset: Optional[Dataset],
-        data_module: Optional[ReAgentDataModule],
-        num_epochs: int,
-        reader_options: ReaderOptions,
-        resource_options: ResourceOptions,
-    ) -> RLTrainingOutput:
-        reporter = self.get_reporter()
-        # pyre-fixme[16]: `Trainer` has no attribute `set_reporter`.
-        # pyre-fixme[16]: `Trainer` has no attribute `set_reporter`.
-        self.trainer.set_reporter(reporter)
-        assert data_module
-
-        # assert eval_dataset is None
-
-        # pyre-fixme[16]: `ActorCriticBase` has no attribute `_lightning_trainer`.
-        self._lightning_trainer = train_eval_lightning(
-            train_dataset=train_dataset,
-            eval_dataset=eval_dataset,
-            test_dataset=test_dataset,
-            trainer_module=self.trainer,
-            data_module=data_module,
-            num_epochs=num_epochs,
-            logger_name="ActorCritic",
-            reader_options=reader_options,
-            checkpoint_path=self._lightning_checkpoint_path,
-            resource_options=resource_options or ResourceOptions(),
-        )
-        if reporter is None:
-            training_report = None
-        else:
-            # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
-            training_report = RLTrainingReport.make_union_instance(
-                reporter.generate_training_report()
-            )
-        logger_data = self._lightning_trainer.logger.line_plot_aggregated
-        self._lightning_trainer.logger.clear_local_data()
-        return RLTrainingOutput(
-            training_report=training_report, logger_data=logger_data
-        )
 
 
 class ActorCriticDataModule(ManualDataModule):

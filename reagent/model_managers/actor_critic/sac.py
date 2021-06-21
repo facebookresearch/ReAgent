@@ -22,6 +22,7 @@ from reagent.net_builder.unions import (
 from reagent.net_builder.value.fully_connected import (
     FullyConnected as ValueFullyConnected,
 )
+from reagent.training import ReAgentLightningModule
 from reagent.training import SACTrainer, SACTrainerParameters
 from reagent.workflow.types import RewardOptions
 
@@ -60,13 +61,8 @@ class SAC(ActorCriticBase):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
-        self._actor_network: Optional[ModelBase] = None
         self.rl_parameters = self.trainer_param.rl
 
-    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
-    #  inconsistently.
-    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
-    #  inconsistently.
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],
@@ -74,17 +70,13 @@ class SAC(ActorCriticBase):
         reward_options: Optional[RewardOptions] = None,
     ) -> SACTrainer:
         actor_net_builder = self.actor_net_builder.value
-        # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.
-        # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.
-        self._actor_network = actor_net_builder.build_actor(
+        actor_network = actor_net_builder.build_actor(
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],
         )
 
         critic_net_builder = self.critic_net_builder.value
-        # pyre-fixme[16]: `SAC` has no attribute `_q1_network`.
-        # pyre-fixme[16]: `SAC` has no attribute `_q1_network`.
-        self._q1_network = critic_net_builder.build_q_network(
+        q1_network = critic_net_builder.build_q_network(
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],
         )
@@ -107,8 +99,8 @@ class SAC(ActorCriticBase):
             )
 
         trainer = SACTrainer(
-            actor_network=self._actor_network,
-            q1_network=self._q1_network,
+            actor_network=actor_network,
+            q1_network=q1_network,
             value_network=value_network,
             q2_network=q2_network,
             # pyre-fixme[16]: `SACTrainerParameters` has no attribute `asdict`.
@@ -122,11 +114,12 @@ class SAC(ActorCriticBase):
 
     def build_serving_module(
         self,
+        trainer_module: ReAgentLightningModule,
         normalization_data_map: Dict[str, NormalizationData],
     ) -> torch.nn.Module:
-        assert self._actor_network is not None
+        assert isinstance(trainer_module, SACTrainer)
         actor_serving_module = self.actor_net_builder.value.build_serving_module(
-            self._actor_network,
+            trainer_module.actor_network,
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],
             serve_mean_policy=self.serve_mean_policy,

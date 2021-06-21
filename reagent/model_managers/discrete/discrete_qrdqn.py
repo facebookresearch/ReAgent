@@ -15,6 +15,7 @@ from reagent.net_builder.unions import (
     QRDQNNetBuilder__Union,
 )
 from reagent.training import QRDQNTrainer, QRDQNTrainerParameters
+from reagent.training import ReAgentLightningModule
 from reagent.workflow.types import RewardOptions
 
 
@@ -56,8 +57,6 @@ class DiscreteQRDQN(DiscreteDQNBase):
     def rl_parameters(self):
         return self.trainer_param.rl
 
-    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
-    #  inconsistently.
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],
@@ -99,8 +98,6 @@ class DiscreteQRDQN(DiscreteDQNBase):
 
             q_network_cpe_target = q_network_cpe.get_target_network()
 
-        # pyre-fixme[16]: `DiscreteQRDQN` has no attribute `_q_network`.
-        self._q_network = q_network
         trainer = QRDQNTrainer(
             q_network=q_network,
             q_network_target=q_network_target,
@@ -116,15 +113,16 @@ class DiscreteQRDQN(DiscreteDQNBase):
 
     def build_serving_module(
         self,
+        trainer_module: ReAgentLightningModule,
         normalization_data_map: Dict[str, NormalizationData],
     ) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module
         """
-        assert self._q_network is not None, "_q_network was not initialized"
+        assert isinstance(trainer_module, QRDQNTrainer)
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
-            self._q_network,
+            trainer_module.q_network,
             normalization_data_map[NormalizationKey.STATE],
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,

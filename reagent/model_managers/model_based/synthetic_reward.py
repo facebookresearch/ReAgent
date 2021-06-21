@@ -25,6 +25,7 @@ from reagent.preprocessing.normalization import (
 )
 from reagent.preprocessing.types import InputColumn
 from reagent.reporting.reward_network_reporter import RewardNetworkReporter
+from reagent.training import ReAgentLightningModule
 from reagent.training import RewardNetTrainer, RewardNetworkTrainerParameters
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import (
@@ -123,8 +124,6 @@ class SyntheticReward(ModelManager):
             model_manager=self,
         )
 
-    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
-    #  inconsistently.
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],
@@ -141,10 +140,8 @@ class SyntheticReward(ModelManager):
             discrete_action_names=self.discrete_action_names,
         )
 
-        # pyre-fixme[16]: `SyntheticReward` has no attribute `_synthetic_reward_network`.
-        self._synthetic_reward_network = synthetic_reward_network
         trainer = RewardNetTrainer(
-            self._synthetic_reward_network,
+            synthetic_reward_network,
             # pyre-fixme[16]: `RewardNetworkTrainerParameters` has no attribute
             #  `asdict`.
             **self.trainer_param.asdict(),
@@ -159,14 +156,13 @@ class SyntheticReward(ModelManager):
 
     def build_serving_module(
         self,
+        trainer_module: ReAgentLightningModule,
         normalization_data_map: Dict[str, NormalizationData],
     ) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module
         """
-        assert (
-            self._synthetic_reward_network is not None
-        ), "_synthetic_reward_network was not initialized"
+        assert isinstance(trainer_module, RewardNetTrainer)
 
         net_builder = self.net_builder.value
         action_normalization_data = None
@@ -174,7 +170,7 @@ class SyntheticReward(ModelManager):
             action_normalization_data = normalization_data_map[NormalizationKey.ACTION]
         return net_builder.build_serving_module(
             self.max_seq_len,
-            self._synthetic_reward_network,
+            trainer_module.reward_net,
             normalization_data_map[NormalizationKey.STATE],
             action_normalization_data=action_normalization_data,
             discrete_action_names=self.discrete_action_names,
