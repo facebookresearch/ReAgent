@@ -13,7 +13,6 @@ from reagent.core.parameters import (
 from reagent.data.data_fetcher import DataFetcher
 from reagent.data.manual_data_module import ManualDataModule
 from reagent.data.reagent_data_module import ReAgentDataModule
-from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.discrete_sampler import (
@@ -62,7 +61,6 @@ class DiscreteDQNBase(ModelManager):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
-        self._metrics_to_score = None
         self._q_network: Optional[ModelBase] = None
 
     def create_policy(
@@ -85,16 +83,6 @@ class DiscreteDQNBase(ModelManager):
     @property
     def state_feature_config(self) -> rlt.ModelFeatureConfig:
         return self.state_feature_config_provider.value.get_model_feature_config()
-
-    @property
-    def metrics_to_score(self) -> List[str]:
-        assert self._reward_options is not None
-        if self._metrics_to_score is None:
-            # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `_metrics_to_score`.
-            self._metrics_to_score = get_metrics_to_score(
-                self._reward_options.metric_reward_values
-            )
-        return self._metrics_to_score
 
     @property
     def multi_steps(self) -> Optional[int]:

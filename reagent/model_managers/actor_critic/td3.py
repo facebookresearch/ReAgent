@@ -27,6 +27,7 @@ from reagent.net_builder.unions import (
 )
 from reagent.reporting.td3_reporter import TD3Reporter
 from reagent.training import TD3Trainer, TD3TrainerParameters
+from reagent.workflow.types import RewardOptions
 
 
 logger = logging.getLogger(__name__)
@@ -63,7 +64,10 @@ class TD3(ActorCriticBase):
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
     def build_trainer(
-        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+        use_gpu: bool,
+        reward_options: Optional[RewardOptions] = None,
     ) -> TD3Trainer:
         actor_net_builder = self.actor_net_builder.value
         # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.

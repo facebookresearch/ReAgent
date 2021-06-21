@@ -58,15 +58,21 @@ class Reinforce(ModelManager):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
-        self.action_names = self.trainer_param.actions
         self._policy: Optional[Policy] = None
         assert (
             len(self.action_names) > 1
         ), f"REINFORCE needs at least 2 actions. Got {self.action_names}."
 
+    @property
+    def action_names(self):
+        return self.trainer_param.action_names
+
     # pyre-ignore
     def build_trainer(
-        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+        use_gpu: bool,
+        reward_options: Optional[RewardOptions] = None,
     ) -> ReinforceTrainer:
         policy_net_builder = self.policy_net_builder.value
         # pyre-ignore
