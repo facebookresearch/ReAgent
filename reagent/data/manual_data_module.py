@@ -183,7 +183,8 @@ class ManualDataModule(ReAgentDataModule):
         self._model_manager = model_manager
 
     def get_normalization_data_map(
-        self, keys: List[str]
+        self,
+        keys: Optional[List[str]] = None,
     ) -> Dict[str, NormalizationData]:
         return self._normalization_data_map
 
@@ -192,15 +193,8 @@ class ManualDataModule(ReAgentDataModule):
         self, input_table_spec: TableSpec
     ) -> Dict[str, NormalizationData]:
         """
-        Derive preprocessing parameters from data. The keys of the dict should
-        match the keys from `required_normalization_keys()`
+        Derive preprocessing parameters from data.
         """
-        pass
-
-    @property
-    @abc.abstractmethod
-    def required_normalization_keys(self) -> List[str]:
-        """Get the normalization keys required for current instance"""
         pass
 
     def __getattr__(self, attr):
