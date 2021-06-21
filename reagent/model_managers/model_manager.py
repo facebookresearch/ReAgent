@@ -165,7 +165,7 @@ class ModelManager:
         ), "Cannot reset self._normalization_data_map"
         # pyre-fixme[16]: `ModelManager` has no attribute `_normalization_data_map`.
         self._normalization_data_map = normalization_data_map
-        trainer = self.build_trainer(use_gpu=use_gpu)
+        trainer = self.build_trainer(normalization_data_map, use_gpu=use_gpu)
         # pyre-fixme[16]: `ModelManager` has no attribute `_trainer`.
         self._trainer = trainer
         if warmstart_path is not None:
@@ -178,7 +178,9 @@ class ModelManager:
         return trainer
 
     @abc.abstractmethod
-    def build_trainer(self, use_gpu: bool) -> Trainer:
+    def build_trainer(
+        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+    ) -> Trainer:
         """
         Implement this to build the trainer, given the config
 

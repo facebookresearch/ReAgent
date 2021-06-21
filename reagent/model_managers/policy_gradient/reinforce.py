@@ -65,19 +65,21 @@ class Reinforce(ModelManager):
         ), f"REINFORCE needs at least 2 actions. Got {self.action_names}."
 
     # pyre-ignore
-    def build_trainer(self, use_gpu: bool) -> ReinforceTrainer:
+    def build_trainer(
+        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+    ) -> ReinforceTrainer:
         policy_net_builder = self.policy_net_builder.value
         # pyre-ignore
         self._policy_network = policy_net_builder.build_q_network(
             self.state_feature_config,
-            self.state_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
             len(self.action_names),
         )
         value_net = None
         if self.value_net_builder:
             value_net_builder = self.value_net_builder.value  # pyre-ignore
             value_net = value_net_builder.build_value_network(
-                self.state_normalization_data
+                normalization_data_map[NormalizationKey.STATE]
             )
         trainer = ReinforceTrainer(
             policy=self.create_policy(),
