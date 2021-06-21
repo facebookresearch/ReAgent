@@ -95,15 +95,6 @@ class DiscreteDQNBase(ModelManager):
     def required_normalization_keys(self) -> List[str]:
         return [NormalizationKey.STATE]
 
-    def query_data(
-        self,
-        input_table_spec: TableSpec,
-        sample_range: Optional[Tuple[float, float]],
-        reward_options: RewardOptions,
-        data_fetcher: DataFetcher,
-    ) -> Dataset:
-        raise RuntimeError
-
     @property
     def multi_steps(self) -> Optional[int]:
         return self.rl_parameters.multi_steps

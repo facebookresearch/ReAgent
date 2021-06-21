@@ -29,7 +29,6 @@ from reagent.workflow.types import (
     ResourceOptions,
     RewardOptions,
     RLTrainingOutput,
-    TableSpec,
 )
 
 
@@ -110,15 +109,6 @@ class Reinforce(ModelManager):
     @property
     def required_normalization_keys(self) -> List[str]:
         return [NormalizationKey.STATE]
-
-    def query_data(
-        self,
-        input_table_spec: TableSpec,
-        sample_range: Optional[Tuple[float, float]],
-        reward_options: RewardOptions,
-        data_fetcher: DataFetcher,
-    ) -> Dataset:
-        raise NotImplementedError
 
     def train(
         self,
