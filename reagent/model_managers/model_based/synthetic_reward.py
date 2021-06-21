@@ -107,11 +107,6 @@ class SyntheticReward(ModelManager):
     def action_feature_config(self) -> rlt.ModelFeatureConfig:
         return get_feature_config(self.parametric_action_float_features)
 
-    def run_feature_identification(
-        self, input_table_spec: TableSpec
-    ) -> Dict[str, NormalizationData]:
-        raise RuntimeError
-
     def get_data_module(
         self,
         *,
