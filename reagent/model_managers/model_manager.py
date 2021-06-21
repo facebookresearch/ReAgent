@@ -118,14 +118,6 @@ class ModelManager:
             f"attr {attr} not available {type(self)} (subclass of ModelManager)."
         )
 
-    @property
-    @abc.abstractmethod
-    def should_generate_eval_dataset(self) -> bool:
-        """
-        DEPRECATED: Implement get_data_module() instead
-        """
-        pass
-
     @abc.abstractmethod
     def query_data(
         self,

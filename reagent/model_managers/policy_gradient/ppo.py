@@ -109,10 +109,6 @@ class PPO(ModelManager):
     def required_normalization_keys(self) -> List[str]:
         return [NormalizationKey.STATE]
 
-    @property
-    def should_generate_eval_dataset(self) -> bool:
-        raise NotImplementedError
-
     def query_data(
         self,
         input_table_spec: TableSpec,
