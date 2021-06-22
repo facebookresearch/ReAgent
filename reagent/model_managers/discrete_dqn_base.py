@@ -211,11 +211,11 @@ class DiscreteDqnDataModule(ManualDataModule):
         preprocessing_options = (
             self.model_manager.preprocessing_options or PreprocessingOptions()
         )
-        logger.info("Overriding allowedlist_features")
         state_features = [
             ffi.feature_id
             for ffi in self.model_manager.state_feature_config.float_feature_infos
         ]
+        logger.info(f"Overriding allowedlist_features: {state_features}")
         preprocessing_options = preprocessing_options._replace(
             allowedlist_features=state_features
         )

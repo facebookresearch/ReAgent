@@ -130,7 +130,7 @@ class WorldModelDataModule(ManualDataModule):
             ffi.feature_id
             for ffi in self.model_manager.state_feature_config.float_feature_infos
         ]
-        logger.info(f"state allowedlist_features: {state_features}")
+        logger.info(f"Overriding state allowedlist_features: {state_features}")
         state_preprocessing_options = state_preprocessing_options._replace(
             allowedlist_features=state_features
         )
