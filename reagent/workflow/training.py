@@ -62,7 +62,8 @@ def identify_and_train_network(
         resource_options=resource_options,
     )
     if data_module is not None:
-        setup_data = data_module.prepare_data()
+        data_module.prepare_data()
+        setup_data = data_module.setup_data
     else:
         normalization_data_map = manager.run_feature_identification(input_table_spec)
 
@@ -134,7 +135,8 @@ def query_and_train(
             saved_setup_data=saved_setup_data,
         )
         if data_module is not None:
-            setup_data = data_module.prepare_data()
+            data_module.prepare_data()
+            setup_data = data_module.setup_data
             # Throw away existing normalization data map
             normalization_data_map = None
 
