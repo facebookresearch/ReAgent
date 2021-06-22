@@ -44,14 +44,6 @@ class AdamW(OptimizerConfig):
 
 
 @dataclass(frozen=True)
-class RAdam(OptimizerConfig):
-    lr: float = 0.001
-    betas: Tuple[float, float] = (0.9, 0.999)
-    eps: float = 1e-08
-    weight_decay: float = 0
-
-
-@dataclass(frozen=True)
 class SparseAdam(OptimizerConfig):
     lr: float = 0.001
     betas: Tuple[float, float] = (0.9, 0.999)
