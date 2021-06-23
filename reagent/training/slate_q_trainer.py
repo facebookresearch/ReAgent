@@ -28,6 +28,7 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
+        discount_time_scale: Optional[float] = None,
         single_selection: bool = True,
         minibatch_size: int = 1024,
         evaluation: rlp.EvaluationParameters = field(  # noqa: B008
@@ -41,6 +42,9 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
                 defines relevant hyperparameters
             optimizer (optional): the optimizer class and
                 optimizer hyperparameters for the q network(s) optimizer
+            discount_time_scale (optional): use to control the discount factor (gamma)
+                relative to the time difference (t2-t1), i.e., gamma^((t2-t1)/time_scale).
+                If it is absent, we won't adjust the discount factor by the time difference.
             single_selection (optional): TBD
             minibatch_size (optional): the size of the minibatch
             evaluation (optional): TBD
@@ -48,6 +52,7 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         super().__init__()
         self.rl_parameters = rl
 
+        self.discount_time_scale = discount_time_scale
         self.single_selection = single_selection
 
         self.q_network = q_network
@@ -108,6 +113,13 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         reward_mask = training_batch.reward_mask
 
         discount_tensor = torch.full_like(reward, self.gamma)
+
+        # Adjust the discount factor by the time_diff if the discount_time_scale is provided,
+        # and the time_diff exists in the training_batch.
+        if self.discount_time_scale and training_batch.time_diff is not None:
+            discount_tensor = discount_tensor ** (
+                training_batch.time_diff / self.discount_time_scale
+            )
 
         if self.rl_parameters.maxq_learning:
             raise NotImplementedError("Q-Learning for SlateQ is not implemented")
