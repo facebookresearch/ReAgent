@@ -65,11 +65,17 @@ class DiscreteDQNBase(ModelManager):
         self._metrics_to_score = None
         self._q_network: Optional[ModelBase] = None
 
-    def create_policy(self, serving: bool) -> Policy:
+    def create_policy(
+        self,
+        serving: bool = False,
+        normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
+    ) -> Policy:
         """Create an online DiscreteDQN Policy from env."""
         if serving:
+            assert normalization_data_map
             return create_predictor_policy_from_model(
-                self.build_serving_module(), rl_parameters=self.rl_parameters
+                self.build_serving_module(normalization_data_map),
+                rl_parameters=self.rl_parameters,
             )
         else:
             sampler = GreedyActionSampler()

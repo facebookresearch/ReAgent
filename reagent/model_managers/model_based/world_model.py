@@ -41,9 +41,3 @@ class WorldModel(WorldModelBase):
             memory_network = memory_network.cuda()
 
         return MDNRNNTrainer(memory_network=memory_network, params=self.trainer_param)
-
-    def build_serving_module(self) -> torch.nn.Module:
-        """
-        Returns a TorchScript predictor module
-        """
-        raise NotImplementedError()

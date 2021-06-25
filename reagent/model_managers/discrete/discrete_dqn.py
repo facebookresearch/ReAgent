@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import logging
+from typing import Dict
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import param_hash
+from reagent.core.parameters import NormalizationData, NormalizationKey, param_hash
 from reagent.model_managers.discrete_dqn_base import DiscreteDQNBase
 from reagent.net_builder.discrete_dqn.dueling import Dueling
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
@@ -106,19 +107,27 @@ class DiscreteDQN(DiscreteDQNBase):
             module_names.append("binary_difference_scorer")
         return module_names
 
-    def build_serving_modules(self):
-        serving_modules = {"default_model": self.build_serving_module()}
+    def build_serving_modules(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ):
+        serving_modules = {
+            "default_model": self.build_serving_module(normalization_data_map)
+        }
         if len(self.action_names) == 2:
             serving_modules.update(
                 {
                     "binary_difference_scorer": self._build_binary_difference_scorer(
-                        self._q_network
+                        self._q_network, normalization_data_map
                     )
                 }
             )
         return serving_modules
 
-    def build_serving_module(self) -> torch.nn.Module:
+    def build_serving_module(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module
         """
@@ -127,17 +136,21 @@ class DiscreteDQN(DiscreteDQNBase):
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,
-            self.state_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )
 
-    def _build_binary_difference_scorer(self, network):
+    def _build_binary_difference_scorer(
+        self,
+        network,
+        normalization_data_map: Dict[str, NormalizationData],
+    ):
         assert network is not None
         net_builder = self.net_builder.value
         return net_builder.build_binary_difference_scorer(
             network,
-            self.state_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )

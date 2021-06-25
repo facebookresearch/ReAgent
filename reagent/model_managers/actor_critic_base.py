@@ -101,11 +101,18 @@ class ActorCriticBase(ModelManager):
         self._actor_network: Optional[ModelBase] = None
         self._q1_network: Optional[ModelBase] = None
 
-    def create_policy(self, serving: bool) -> Policy:
+    def create_policy(
+        self,
+        serving: bool = False,
+        normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
+    ) -> Policy:
         """Create online actor critic policy."""
 
         if serving:
-            return create_predictor_policy_from_model(self.build_serving_module())
+            assert normalization_data_map
+            return create_predictor_policy_from_model(
+                self.build_serving_module(normalization_data_map)
+            )
         else:
             return ActorPolicyWrapper(self._actor_network)
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 import logging
-from typing import Optional
+from typing import Optional, Dict
 
 import numpy as np
 import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import CEMTrainerParameters, param_hash
+from reagent.core.parameters import CEMTrainerParameters, param_hash, NormalizationData
 from reagent.gym.policies.policy import Policy
 from reagent.model_managers.model_based.world_model import WorldModel
 from reagent.model_managers.world_model_base import WorldModelBase
@@ -51,7 +51,11 @@ class CrossEntropyMethod(WorldModelBase):
         super().__post_init_post_parse__()
 
     # TODO: should this be in base class?
-    def create_policy(self, serving: bool = False) -> Policy:
+    def create_policy(
+        self,
+        serving: bool = False,
+        normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
+    ) -> Policy:
         return CEMPolicy(self.cem_planner_network, self.discrete_action)
 
     def build_trainer(self, use_gpu: bool) -> CEMTrainer:
@@ -121,9 +125,3 @@ class CrossEntropyMethod(WorldModelBase):
             parameters=self.trainer_param,
             use_gpu=use_gpu,
         )
-
-    def build_serving_module(self) -> torch.nn.Module:
-        """
-        Returns a TorchScript predictor module
-        """
-        raise NotImplementedError()
