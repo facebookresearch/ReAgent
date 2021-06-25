@@ -5,8 +5,7 @@ from typing import Dict, List, Optional, Tuple
 import reagent.core.types as rlt
 from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData, NormalizationKey
-from reagent.data.data_fetcher import DataFetcher
-from reagent.data.reagent_data_module import ReAgentDataModule
+from reagent.data import DataFetcher, ReAgentDataModule
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.top_k_sampler import TopKSampler
@@ -14,9 +13,7 @@ from reagent.gym.policies.scorers.slate_q_scorer import slate_q_scorer
 from reagent.model_managers.model_manager import ModelManager
 from reagent.models.base import ModelBase
 from reagent.preprocessing.normalization import get_feature_config
-from reagent.preprocessing.types import InputColumn
 from reagent.reporting.slate_q_reporter import SlateQReporter
-from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
@@ -81,7 +78,7 @@ class SlateQBase(ModelManager):
 
     @property
     def should_generate_eval_dataset(self) -> bool:
-        return self.eval_parameters.calc_cpe_in_training
+        raise RuntimeError
 
     @property
     def state_feature_config(self) -> rlt.ModelFeatureConfig:
@@ -94,43 +91,7 @@ class SlateQBase(ModelManager):
     def run_feature_identification(
         self, input_table_spec: TableSpec
     ) -> Dict[str, NormalizationData]:
-        state_preprocessing_options = (
-            self._state_preprocessing_options or PreprocessingOptions()
-        )
-        state_features = [
-            ffi.feature_id for ffi in self.state_feature_config.float_feature_infos
-        ]
-        logger.info(f"state allowedlist_features: {state_features}")
-        state_preprocessing_options = state_preprocessing_options._replace(
-            allowedlist_features=state_features
-        )
-        state_normalization_parameters = identify_normalization_parameters(
-            input_table_spec, InputColumn.STATE_FEATURES, state_preprocessing_options
-        )
-        item_preprocessing_options = (
-            self._item_preprocessing_options or PreprocessingOptions()
-        )
-        item_features = [
-            ffi.feature_id for ffi in self.item_feature_config.float_feature_infos
-        ]
-        logger.info(f"item allowedlist_features: {item_features}")
-        item_preprocessing_options = item_preprocessing_options._replace(
-            allowedlist_features=item_features,
-            sequence_feature_id=self.slate_feature_id,
-        )
-        item_normalization_parameters = identify_normalization_parameters(
-            input_table_spec,
-            InputColumn.STATE_SEQUENCE_FEATURES,
-            item_preprocessing_options,
-        )
-        return {
-            NormalizationKey.STATE: NormalizationData(
-                dense_normalization_parameters=state_normalization_parameters
-            ),
-            NormalizationKey.ITEM: NormalizationData(
-                dense_normalization_parameters=item_normalization_parameters
-            ),
-        }
+        raise RuntimeError
 
     @property
     def required_normalization_keys(self) -> List[str]:
@@ -143,7 +104,7 @@ class SlateQBase(ModelManager):
         reward_options: RewardOptions,
         data_fetcher: DataFetcher,
     ) -> Dataset:
-        raise NotImplementedError("Write for OSS")
+        raise RuntimeError
 
     def get_reporter(self):
         return SlateQReporter()
