@@ -168,7 +168,7 @@ def train_mdnrnn_and_compute_feature_stats(
     env.seed(SEED)
 
     manager = model.value
-    trainer = manager.initialize_trainer(
+    trainer = manager.build_trainer(
         use_gpu=use_gpu,
         reward_options=RewardOptions(),
         normalization_data_map=build_normalizer(env),
@@ -292,7 +292,7 @@ def train_mdnrnn_and_train_on_embedded_env(
     env.seed(SEED)
 
     embedding_manager = embedding_model.value
-    embedding_trainer = embedding_manager.initialize_trainer(
+    embedding_trainer = embedding_manager.build_trainer(
         use_gpu=use_gpu,
         reward_options=RewardOptions(),
         normalization_data_map=build_normalizer(env),
@@ -340,7 +340,7 @@ def train_mdnrnn_and_train_on_embedded_env(
         state_max_value=state_max,
     )
     agent_manager = train_model.value
-    agent_trainer = agent_manager.initialize_trainer(
+    agent_trainer = agent_manager.build_trainer(
         use_gpu=use_gpu,
         reward_options=RewardOptions(),
         # pyre-fixme[6]: Expected `EnvWrapper` for 1st param but got
@@ -365,7 +365,7 @@ def train_mdnrnn_and_train_on_embedded_env(
 
     # evaluate model
     rewards = []
-    policy = agent_manager.create_policy(serving=False)
+    policy = agent_manager.create_policy(agent_trainer, serving=False)
     # pyre-fixme[6]: Expected `EnvWrapper` for 1st param but got
     #  `StateEmbedEnvironment`.
     agent = Agent.create_for_env(embed_env, policy=policy, device=device)

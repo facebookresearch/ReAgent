@@ -235,13 +235,10 @@ def train_workflow(
         normalization_data_map = data_module.get_normalization_data_map()
 
     warmstart_input_path = warmstart_path or None
-    model_manager.initialize_trainer(
+    trainer_module = model_manager.build_trainer(
         use_gpu=use_gpu,
-        # pyre-fixme[6]: Expected `RewardOptions` for 2nd param but got
-        #  `Optional[RewardOptions]`.
         reward_options=reward_options,
         normalization_data_map=normalization_data_map,
-        warmstart_path=warmstart_input_path,
     )
 
     if not reader_options:
@@ -251,7 +248,8 @@ def train_workflow(
         resource_options = ResourceOptions()
 
     with summary_writer_context(writer):
-        train_output = model_manager.train(
+        train_output, lightning_trainer = model_manager.train(
+            trainer_module,
             train_dataset,
             eval_dataset,
             None,
@@ -259,11 +257,12 @@ def train_workflow(
             num_epochs,
             reader_options,
             resource_options,
+            checkpoint_path=warmstart_input_path,
         )
 
     output_paths = {}
     for module_name, serving_module in model_manager.build_serving_modules(
-        normalization_data_map
+        trainer_module, normalization_data_map
     ).items():
         torchscript_output_path = f"{model_manager.__class__.__name__}_{module_name}_{round(time.time())}.torchscript"
         torch.jit.save(serving_module, torchscript_output_path)

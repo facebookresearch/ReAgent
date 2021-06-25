@@ -26,6 +26,7 @@ from reagent.net_builder.unions import (
     ParametricDQNNetBuilder__Union,
 )
 from reagent.reporting.td3_reporter import TD3Reporter
+from reagent.training import ReAgentLightningModule
 from reagent.training import TD3Trainer, TD3TrainerParameters
 from reagent.workflow.types import RewardOptions
 
@@ -58,11 +59,8 @@ class TD3(ActorCriticBase):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
-        self._actor_network: Optional[ModelBase] = None
         self.rl_parameters = self.trainer_param.rl
 
-    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
-    #  inconsistently.
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],
@@ -70,17 +68,13 @@ class TD3(ActorCriticBase):
         reward_options: Optional[RewardOptions] = None,
     ) -> TD3Trainer:
         actor_net_builder = self.actor_net_builder.value
-        # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
-        # pyre-fixme[16]: `TD3` has no attribute `_actor_network`.
-        self._actor_network = actor_net_builder.build_actor(
+        actor_network = actor_net_builder.build_actor(
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],
         )
 
         critic_net_builder = self.critic_net_builder.value
-        # pyre-fixme[16]: `TD3` has no attribute `_q1_network`.
-        # pyre-fixme[16]: `TD3` has no attribute `_q1_network`.
-        self._q1_network = critic_net_builder.build_q_network(
+        q1_network = critic_net_builder.build_q_network(
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],
         )
@@ -94,8 +88,8 @@ class TD3(ActorCriticBase):
         )
 
         trainer = TD3Trainer(
-            actor_network=self._actor_network,
-            q1_network=self._q1_network,
+            actor_network=actor_network,
+            q1_network=q1_network,
             q2_network=q2_network,
             # pyre-fixme[16]: `TD3TrainerParameters` has no attribute `asdict`.
             # pyre-fixme[16]: `TD3TrainerParameters` has no attribute `asdict`.
@@ -108,12 +102,13 @@ class TD3(ActorCriticBase):
 
     def build_serving_module(
         self,
+        trainer_module: ReAgentLightningModule,
         normalization_data_map: Dict[str, NormalizationData],
     ) -> torch.nn.Module:
+        assert isinstance(trainer_module, TD3Trainer)
         net_builder = self.actor_net_builder.value
-        assert self._actor_network is not None
         return net_builder.build_serving_module(
-            self._actor_network,
+            trainer_module.actor_network,
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],
         )

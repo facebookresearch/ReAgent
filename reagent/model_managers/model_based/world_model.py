@@ -31,8 +31,6 @@ class WorldModel(WorldModelBase):
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
 
-    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
-    #  inconsistently.
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],

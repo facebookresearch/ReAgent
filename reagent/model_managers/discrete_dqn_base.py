@@ -20,7 +20,6 @@ from reagent.gym.policies.samplers.discrete_sampler import (
 )
 from reagent.gym.policies.scorers.discrete_scorer import discrete_dqn_scorer
 from reagent.model_managers.model_manager import ModelManager
-from reagent.models.base import ModelBase
 from reagent.models.model_feature_config_provider import RawModelFeatureConfigProvider
 from reagent.preprocessing.batch_preprocessor import (
     BatchPreprocessor,
@@ -29,6 +28,7 @@ from reagent.preprocessing.batch_preprocessor import (
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.preprocessing.types import InputColumn
 from reagent.reporting.discrete_dqn_reporter import DiscreteDQNReporter
+from reagent.training import ReAgentLightningModule
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import (
     Dataset,
@@ -37,11 +37,8 @@ from reagent.workflow.types import (
     ReaderOptions,
     ResourceOptions,
     RewardOptions,
-    RLTrainingOutput,
-    RLTrainingReport,
     TableSpec,
 )
-from reagent.workflow.utils import train_eval_lightning, get_rank
 
 logger = logging.getLogger(__name__)
 
@@ -61,10 +58,10 @@ class DiscreteDQNBase(ModelManager):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
-        self._q_network: Optional[ModelBase] = None
 
     def create_policy(
         self,
+        trainer_module: ReAgentLightningModule,
         serving: bool = False,
         normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
     ) -> Policy:
@@ -72,12 +69,12 @@ class DiscreteDQNBase(ModelManager):
         if serving:
             assert normalization_data_map
             return create_predictor_policy_from_model(
-                self.build_serving_module(normalization_data_map),
+                self.build_serving_module(trainer_module, normalization_data_map),
                 rl_parameters=self.rl_parameters,
             )
         else:
             sampler = GreedyActionSampler()
-            scorer = discrete_dqn_scorer(self._q_network)
+            scorer = discrete_dqn_scorer(trainer_module.q_network)
             return Policy(scorer=scorer, sampler=sampler)
 
     @property
@@ -113,55 +110,6 @@ class DiscreteDQNBase(ModelManager):
             self.trainer_param.actions,
             target_action_distribution=self.target_action_distribution,
         )
-
-    def train(
-        self,
-        train_dataset: Optional[Dataset],
-        eval_dataset: Optional[Dataset],
-        test_dataset: Optional[Dataset],
-        data_module: Optional[ReAgentDataModule],
-        num_epochs: int,
-        reader_options: ReaderOptions,
-        resource_options: Optional[ResourceOptions] = None,
-    ) -> RLTrainingOutput:
-        """
-        Train the model
-
-        Returns partially filled RLTrainingOutput.
-        The field that should not be filled are:
-        - output_path
-        """
-        reporter = self.get_reporter()
-        # pyre-fixme[16]: `RLTrainer` has no attribute `set_reporter`.
-        self.trainer.set_reporter(reporter)
-        assert data_module
-
-        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `_lightning_trainer`.
-        self._lightning_trainer = train_eval_lightning(
-            train_dataset=train_dataset,
-            eval_dataset=eval_dataset,
-            test_dataset=test_dataset,
-            trainer_module=self.trainer,
-            data_module=data_module,
-            num_epochs=num_epochs,
-            logger_name="DiscreteDqn",
-            reader_options=reader_options,
-            checkpoint_path=self._lightning_checkpoint_path,
-            resource_options=resource_options,
-        )
-        rank = get_rank()
-        if rank == 0:
-            # pyre-fixme[16]: `RLTrainingReport` has no attribute `make_union_instance`.
-            training_report = RLTrainingReport.make_union_instance(
-                reporter.generate_training_report()
-            )
-            logger_data = self._lightning_trainer.logger.line_plot_aggregated
-            self._lightning_trainer.logger.clear_local_data()
-            return RLTrainingOutput(
-                training_report=training_report, logger_data=logger_data
-            )
-        # Output from processes with non-0 rank is not used
-        return RLTrainingOutput()
 
 
 class DiscreteDqnDataModule(ManualDataModule):

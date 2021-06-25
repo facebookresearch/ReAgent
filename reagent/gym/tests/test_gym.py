@@ -244,12 +244,11 @@ def run_test_replay_buffer(
     logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
 
     manager = model.value
-    trainer = manager.initialize_trainer(
+    trainer = manager.build_trainer(
         use_gpu=use_gpu,
-        reward_options=RewardOptions(),
         normalization_data_map=normalization,
     )
-    training_policy = manager.create_policy(serving=False)
+    training_policy = manager.create_policy(trainer, serving=False)
 
     if not isinstance(trainer, pl.LightningModule):
         if minibatch_size is None:
@@ -302,7 +301,7 @@ def run_test_replay_buffer(
     # TODO: Also check train_reward
 
     serving_policy = manager.create_policy(
-        serving=True, normalization_data_map=normalization
+        trainer, serving=True, normalization_data_map=normalization
     )
 
     eval_rewards = eval_policy(env, serving_policy, num_eval_episodes, serving=True)
@@ -331,12 +330,11 @@ def run_test_online_episode(
     logger.info(f"Normalization is: \n{pprint.pformat(normalization)}")
 
     manager = model.value
-    trainer = manager.initialize_trainer(
+    trainer = manager.build_trainer(
         use_gpu=use_gpu,
-        reward_options=RewardOptions(),
         normalization_data_map=normalization,
     )
-    policy = manager.create_policy(serving=False)
+    policy = manager.create_policy(trainer, serving=False)
 
     device = torch.device("cuda") if use_gpu else torch.device("cpu")
 

@@ -45,8 +45,6 @@ class Seq2RewardModel(WorldModelBase):
 
     preprocessing_options: Optional[PreprocessingOptions] = None
 
-    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
-    #  inconsistently.
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],

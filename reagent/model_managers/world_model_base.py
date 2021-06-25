@@ -56,28 +56,6 @@ class WorldModelBase(ModelManager):
     #         model_manager=self,
     #     )
 
-    def train(
-        self,
-        train_dataset: Optional[Dataset],
-        eval_dataset: Optional[Dataset],
-        test_dataset: Optional[Dataset],
-        data_module: Optional[ReAgentDataModule],
-        num_epochs: int,
-        reader_options: ReaderOptions,
-        resource_options: ResourceOptions,
-    ) -> RLTrainingOutput:
-        """
-        Train the model
-
-        Returns partially filled RLTrainingOutput. The field that should not be filled
-        are:
-        - output_path
-        - warmstart_output_path
-        - vis_metrics
-        - validation_output
-        """
-        raise NotImplementedError()
-
 
 class WorldModelDataModule(ManualDataModule):
     @property
