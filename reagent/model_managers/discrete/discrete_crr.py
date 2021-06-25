@@ -95,11 +95,13 @@ class DiscreteCRR(DiscreteDQNBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self, use_gpu: bool) -> DiscreteCRRTrainer:
+    def build_trainer(
+        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+    ) -> DiscreteCRRTrainer:
         actor_net_builder = self.actor_net_builder.value
         # pyre-fixme[16]: `DiscreteCRR` has no attribute `_actor_network`.
         self._actor_network = actor_net_builder.build_actor(
-            self.state_normalization_data, len(self.action_names)
+            normalization_data_map[NormalizationKey.STATE], len(self.action_names)
         )
 
         # The arguments to q_network1 and q_network2 below are modeled after those in discrete_dqn.py
@@ -109,14 +111,14 @@ class DiscreteCRR(DiscreteDQNBase):
         # pyre-fixme[16]: `DiscreteCRR` has no attribute `_q1_network`.
         self._q1_network = critic_net_builder.build_q_network(
             self.state_feature_config,
-            self.state_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
             len(self.action_names),
         )
 
         q2_network = (
             critic_net_builder.build_q_network(
                 self.state_feature_config,
-                self.state_normalization_data,
+                normalization_data_map[NormalizationKey.STATE],
                 len(self.action_names),
             )
             # pyre-fixme[16]: `CRRTrainerParameters` has no attribute
@@ -136,12 +138,12 @@ class DiscreteCRR(DiscreteDQNBase):
             cpe_net_builder = self.cpe_net_builder.value
             reward_network = cpe_net_builder.build_q_network(
                 self.state_feature_config,
-                self.state_normalization_data,
+                normalization_data_map[NormalizationKey.STATE],
                 num_output_nodes,
             )
             q_network_cpe = cpe_net_builder.build_q_network(
                 self.state_feature_config,
-                self.state_normalization_data,
+                normalization_data_map[NormalizationKey.STATE],
                 num_output_nodes,
             )
 

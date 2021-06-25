@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 
 import logging
-from typing import Optional
+from typing import Optional, Dict
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import Seq2RewardTrainerParameters, param_hash
+from reagent.core.parameters import (
+    Seq2RewardTrainerParameters,
+    param_hash,
+    NormalizationKey,
+    NormalizationData,
+)
 from reagent.model_managers.world_model_base import WorldModelBase
 from reagent.net_builder.unions import ValueNetBuilder__Union
 from reagent.net_builder.value.fully_connected import FullyConnected
@@ -43,11 +48,15 @@ class Seq2RewardModel(WorldModelBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self, use_gpu: bool) -> Seq2RewardTrainer:
+    def build_trainer(
+        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+    ) -> Seq2RewardTrainer:
         # pyre-fixme[16]: `Seq2RewardModel` has no attribute `_seq2reward_network`.
         self._seq2reward_network = (
             seq2reward_network
-        ) = self.net_builder.value.build_value_network(self.state_normalization_data)
+        ) = self.net_builder.value.build_value_network(
+            normalization_data_map[NormalizationKey.STATE]
+        )
         trainer = Seq2RewardTrainer(
             seq2reward_network=seq2reward_network, params=self.trainer_param
         )

@@ -131,13 +131,15 @@ class SyntheticReward(ModelManager):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self, use_gpu: bool) -> RewardNetTrainer:
+    def build_trainer(
+        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+    ) -> RewardNetTrainer:
         net_builder = self.net_builder.value
         action_normalization_data = None
         if not self.discrete_action_names:
-            action_normalization_data = self.action_normalization_data
+            action_normalization_data = normalization_data_map[NormalizationKey.ACTION]
         synthetic_reward_network = net_builder.build_synthetic_reward_network(
-            self.state_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
             action_normalization_data=action_normalization_data,
             discrete_action_names=self.discrete_action_names,
         )
