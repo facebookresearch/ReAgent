@@ -19,6 +19,7 @@ from reagent.model_managers.world_model_base import WorldModelBase
 from reagent.models.cem_planner import CEMPlannerNetwork
 from reagent.preprocessing.identify_types import CONTINUOUS_ACTION
 from reagent.preprocessing.normalization import get_num_output_features
+from reagent.training import ReAgentLightningModule
 from reagent.training.cem_trainer import CEMTrainer
 from reagent.workflow.types import RewardOptions
 
@@ -59,11 +60,14 @@ class CrossEntropyMethod(WorldModelBase):
     # TODO: should this be in base class?
     def create_policy(
         self,
+        trainer_module: ReAgentLightningModule,
         serving: bool = False,
         normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
     ) -> Policy:
-        return CEMPolicy(self.cem_planner_network, self.discrete_action)
+        assert isinstance(trainer_module, CEMPlannerNetwork)
+        return CEMPolicy(trainer_module.cem_planner_network, self.discrete_action)
 
+    # pyre-fixme
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],
@@ -73,10 +77,10 @@ class CrossEntropyMethod(WorldModelBase):
         world_model_manager: WorldModel = WorldModel(
             trainer_param=self.trainer_param.mdnrnn
         )
-        world_model_manager.initialize_trainer(
-            use_gpu,
-            self.reward_options,
-            normalization_data_map,
+        world_model_manager.build_trainer(
+            use_gpu=use_gpu,
+            reward_options=reward_options,
+            normalization_data_map=normalization_data_map,
         )
         world_model_trainers = [
             world_model_manager.build_trainer(
@@ -129,8 +133,6 @@ class CrossEntropyMethod(WorldModelBase):
         # store for building policy
         # pyre-fixme[16]: `CrossEntropyMethod` has no attribute `discrete_action`.
         self.discrete_action = discrete_action
-        # pyre-fixme[16]: `CrossEntropyMethod` has no attribute `cem_planner_network`.
-        self.cem_planner_network = cem_planner_network
         logger.info(
             f"Built CEM network with discrete action = {discrete_action}, "
             f"action_upper_bound={action_upper_bounds}, "

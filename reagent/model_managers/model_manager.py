@@ -2,14 +2,15 @@
 
 import abc
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import pytorch_lightning as pl
 import torch
 from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData
 from reagent.data.reagent_data_module import ReAgentDataModule
-from reagent.training import Trainer
+from reagent.reporting.reporter_base import ReporterBase
+from reagent.training import ReAgentLightningModule
 from reagent.workflow.types import (
     Dataset,
     ReaderOptions,
@@ -18,6 +19,8 @@ from reagent.workflow.types import (
     RLTrainingOutput,
     TableSpec,
 )
+from reagent.workflow.types import RLTrainingReport
+from reagent.workflow.utils import get_rank, train_eval_lightning
 
 
 logger = logging.getLogger(__name__)
@@ -38,26 +41,17 @@ class ModelManager:
     3. `build_serving_modules()`: Creates the TorchScript modules for serving
     4. `get_reporter()`: Returns the reporter to collect training/evaluation metrics
     5. `create_policy()`: (Optional) Creates Policy object for to interact with Gym
-
-
-    DEPRECATED: The comment below is outdated. We keep it for the context while
-    migrating.
-
-    ModelManager abstracts over common phases of training, i.e.,:
-    1. `run_feature_identification()` defines how to derive feature preprocessing
-       parameters from given data.
-    2. `query_data()` massages the input table into the format expected by the trainer
-    3. `initialize_trainer()` creates the trainer
-    4. `train()`
-    5. `build_serving_module()` builds the module for prediction
-    6. `save_tainer()` saves the trainer for warmstarting
     """
 
     def __post_init_post_parse__(self):
-        # initialization is delayed to `initialize_trainer()`
-        self._trainer: Optional[Trainer] = None
-        self._lightning_trainer: Optional[pl.Trainer] = None
-        self._lightning_checkpoint_path: Optional[str] = None
+        """
+        We use pydantic to parse raw config into typed (dataclass) config.
+        This method is called after everything is parsed, so you could
+        validate constraints that may not be captured with the type alone.
+
+        See https://pydantic-docs.helpmanual.io/usage/dataclasses/#initialize-hooks
+        """
+        pass
 
     def get_data_module(
         self,
@@ -75,55 +69,13 @@ class ModelManager:
         """
         return None
 
-    @property
-    def trainer(self) -> Trainer:
-        """
-        DEPRECATED: The build_trainer() function should also return
-        a dictionary of created networks so that other functions can
-        refer to them.
-
-        Get access to the training module. This is mostly used to extract networks
-        in build_serving_modules() & create_policy().
-        """
-        assert self._trainer is not None, "Call initialize_trainer() first"
-        return self._trainer
-
-    def initialize_trainer(
-        self,
-        use_gpu: bool,
-        reward_options: RewardOptions,
-        normalization_data_map: Dict[str, NormalizationData],
-        warmstart_path: Optional[str] = None,
-    ) -> Trainer:
-        """
-        DEPRECATED: This should be baked into the train() function.
-        `normalization_data_map` is used in build_serving_modules().
-        We can pass it there directly.
-
-        Initialize the trainer. Subclass should not override this. Instead,
-        subclass should implement `build_trainer()`.
-        """
-        trainer = self.build_trainer(
-            normalization_data_map, reward_options=reward_options, use_gpu=use_gpu
-        )
-        # pyre-fixme[16]: `ModelManager` has no attribute `_trainer`.
-        self._trainer = trainer
-        if warmstart_path is not None:
-            if isinstance(trainer, pl.LightningModule):
-                # Delayed until Trainer is initialized
-                self._lightning_checkpoint_path = warmstart_path
-            else:
-                trainer_state = torch.load(warmstart_path)
-                trainer.load_state_dict(trainer_state)
-        return trainer
-
     @abc.abstractmethod
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],
         use_gpu: bool,
         reward_options: Optional[RewardOptions] = None,
-    ) -> Trainer:
+    ) -> ReAgentLightningModule:
         """
         Implement this to build the trainer, given the config
 
@@ -132,12 +84,13 @@ class ModelManager:
         """
         pass
 
-    def destroy_trainer(self):
-        self._trainer = None
-
     @abc.abstractmethod
+    def get_reporter(self) -> ReporterBase:
+        pass
+
     def train(
         self,
+        trainer_module: ReAgentLightningModule,
         train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
         test_dataset: Optional[Dataset],
@@ -145,13 +98,15 @@ class ModelManager:
         num_epochs: int,
         reader_options: ReaderOptions,
         resource_options: ResourceOptions,
-    ) -> RLTrainingOutput:
+        checkpoint_path: Optional[str] = None,
+    ) -> Tuple[RLTrainingOutput, pl.Trainer]:
         """
-        DEPRECATED: Delete this once every trainer is built on PyTorch Lightning &
-        every ModelManager implemnts get_data_module(). Then, we can just move the code
-        in train() of DiscreteDQNBase into the training workflow function
-
         Train the model
+
+        Returns partially filled RLTrainingOutput.
+        The field that should not be filled are:
+        - output_path
+
         Arguments:
             train/eval/test_dataset: what you'd expect
             data_module: [pytorch lightning only] a lightning data module that replaces the use of train/eval datasets
@@ -159,20 +114,63 @@ class ModelManager:
             reader_options: options for the data reader
             resource_options: options for training resources (currently only used for setting num_nodes in pytorch lightning trainer)
         """
-        pass
+        reporter = self.get_reporter()
+        trainer_module.set_reporter(reporter)
+        assert data_module
+
+        lightning_trainer = train_eval_lightning(
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            test_dataset=test_dataset,
+            trainer_module=trainer_module,
+            data_module=data_module,
+            num_epochs=num_epochs,
+            logger_name=str(type(self)),
+            reader_options=reader_options,
+            checkpoint_path=checkpoint_path,
+            resource_options=resource_options,
+        )
+        rank = get_rank()
+        if rank == 0:
+            logger = lightning_trainer.logger
+            # pyre-ignore
+            logger_data = logger.line_plot_aggregated
+            # pyre-ignore
+            logger.clear_local_data()
+            if reporter is None:
+                training_report = None
+            else:
+                # pyre-ignore
+                training_report = RLTrainingReport.make_union_instance(
+                    reporter.generate_training_report()
+                )
+            return (
+                RLTrainingOutput(
+                    training_report=training_report, logger_data=logger_data
+                ),
+                lightning_trainer,
+            )
+        # Output from processes with non-0 rank is not used
+        return RLTrainingOutput(), lightning_trainer
 
     # TODO: make abstract
     def build_serving_modules(
         self,
+        trainer_module: ReAgentLightningModule,
         normalization_data_map: Dict[str, NormalizationData],
     ) -> Dict[str, torch.nn.Module]:
         """
         Returns TorchScript for serving in production
         """
-        return {"default_model": self.build_serving_module(normalization_data_map)}
+        return {
+            "default_model": self.build_serving_module(
+                trainer_module, normalization_data_map
+            )
+        }
 
     def build_serving_module(
         self,
+        trainer_module: ReAgentLightningModule,
         normalization_data_map: Dict[str, NormalizationData],
     ) -> torch.nn.Module:
         """
@@ -188,3 +186,11 @@ class ModelManager:
         these serving modules before we start the training.
         """
         return ["default_model"]
+
+    def create_policy(
+        self,
+        trainer_module: ReAgentLightningModule,
+        serving: bool = False,
+        normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
+    ):
+        raise NotImplementedError

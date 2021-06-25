@@ -31,6 +31,7 @@ from reagent.net_builder.unions import (
 )
 from reagent.reporting.discrete_crr_reporter import DiscreteCRRReporter
 from reagent.training import DiscreteCRRTrainer, CRRTrainerParameters
+from reagent.training import ReAgentLightningModule
 from reagent.workflow.types import RewardOptions
 
 logger = logging.getLogger(__name__)
@@ -87,8 +88,6 @@ class DiscreteCRR(DiscreteDQNBase):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
-        self._actor_network: Optional[ModelBase] = None
-        self._q1_network: Optional[ModelBase] = None
         assert (
             len(self.action_names) > 1
         ), f"DiscreteDQNModel needs at least 2 actions. Got {self.action_names}."
@@ -101,8 +100,6 @@ class DiscreteCRR(DiscreteDQNBase):
     def rl_parameters(self):
         return self.trainer_param.rl
 
-    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
-    #  inconsistently.
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],
@@ -110,8 +107,7 @@ class DiscreteCRR(DiscreteDQNBase):
         reward_options: Optional[RewardOptions] = None,
     ) -> DiscreteCRRTrainer:
         actor_net_builder = self.actor_net_builder.value
-        # pyre-fixme[16]: `DiscreteCRR` has no attribute `_actor_network`.
-        self._actor_network = actor_net_builder.build_actor(
+        actor_network = actor_net_builder.build_actor(
             normalization_data_map[NormalizationKey.STATE], len(self.action_names)
         )
 
@@ -119,8 +115,7 @@ class DiscreteCRR(DiscreteDQNBase):
         # The target networks will be created in DiscreteCRRTrainer
         critic_net_builder = self.critic_net_builder.value
 
-        # pyre-fixme[16]: `DiscreteCRR` has no attribute `_q1_network`.
-        self._q1_network = critic_net_builder.build_q_network(
+        q1_network = critic_net_builder.build_q_network(
             self.state_feature_config,
             normalization_data_map[NormalizationKey.STATE],
             len(self.action_names),
@@ -164,8 +159,8 @@ class DiscreteCRR(DiscreteDQNBase):
             q_network_cpe_target = q_network_cpe.get_target_network()
 
         trainer = DiscreteCRRTrainer(
-            actor_network=self._actor_network,
-            q1_network=self._q1_network,
+            actor_network=actor_network,
+            q1_network=q1_network,
             reward_network=reward_network,
             q2_network=q2_network,
             q_network_cpe=q_network_cpe,
@@ -179,17 +174,19 @@ class DiscreteCRR(DiscreteDQNBase):
 
     def create_policy(
         self,
+        trainer_module: ReAgentLightningModule,
         serving: bool = False,
         normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
     ) -> Policy:
         """Create online actor critic policy."""
+        assert isinstance(trainer_module, DiscreteCRRTrainer)
         if serving:
             assert normalization_data_map
             return create_predictor_policy_from_model(
-                self.build_actor_module(normalization_data_map)
+                self.build_actor_module(trainer_module, normalization_data_map)
             )
         else:
-            return ActorPolicyWrapper(self._actor_network)
+            return ActorPolicyWrapper(trainer_module.actor_network)
 
     def get_reporter(self):
         return DiscreteCRRReporter(
@@ -210,6 +207,7 @@ class DiscreteCRR(DiscreteDQNBase):
 
     def build_serving_modules(
         self,
+        trainer_module: ReAgentLightningModule,
         normalization_data_map: Dict[str, NormalizationData],
     ):
         """
@@ -217,18 +215,23 @@ class DiscreteCRR(DiscreteDQNBase):
         This helps putting the actor in places where DQN predictor wrapper is expected.
         If the policy is greedy, then this wrapper would work.
         """
+        assert isinstance(trainer_module, DiscreteCRRTrainer)
         serving_modules = {
-            "default_model": self.build_actor_module(normalization_data_map),
-            "dqn": self._build_dqn_module(self._q1_network, normalization_data_map),
+            "default_model": self.build_actor_module(
+                trainer_module, normalization_data_map
+            ),
+            "dqn": self._build_dqn_module(
+                trainer_module.q1_network, normalization_data_map
+            ),
             "actor_dqn": self._build_dqn_module(
-                ActorDQN(self._actor_network), normalization_data_map
+                ActorDQN(trainer_module.actor_network), normalization_data_map
             ),
         }
         if len(self.action_names) == 2:
             serving_modules.update(
                 {
                     "binary_difference_scorer": self._build_binary_difference_scorer(
-                        ActorDQN(self._actor_network), normalization_data_map
+                        ActorDQN(trainer_module.actor_network), normalization_data_map
                     ),
                 }
             )
@@ -276,12 +279,12 @@ class DiscreteCRR(DiscreteDQNBase):
     # spaces.Discrete differently from spaces.Box (continuous).
     def build_actor_module(
         self,
+        trainer_module: DiscreteCRRTrainer,
         normalization_data_map: Dict[str, NormalizationData],
     ) -> torch.nn.Module:
         net_builder = self.actor_net_builder.value
-        assert self._actor_network is not None
         return net_builder.build_serving_module(
-            self._actor_network,
+            trainer_module.actor_network,
             normalization_data_map[NormalizationKey.STATE],
             action_feature_ids=list(range(len(self.action_names))),
         )

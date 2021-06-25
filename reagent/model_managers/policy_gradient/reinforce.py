@@ -21,6 +21,7 @@ from reagent.net_builder.unions import (
     DiscreteDQNNetBuilder__Union,
     ValueNetBuilder__Union,
 )
+from reagent.training import ReAgentLightningModule
 from reagent.training import ReinforceTrainer, ReinforceTrainerParameters
 from reagent.workflow.types import (
     Dataset,
@@ -65,9 +66,8 @@ class Reinforce(ModelManager):
 
     @property
     def action_names(self):
-        return self.trainer_param.action_names
+        return self.trainer_param.actions
 
-    # pyre-ignore
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],
@@ -75,8 +75,7 @@ class Reinforce(ModelManager):
         reward_options: Optional[RewardOptions] = None,
     ) -> ReinforceTrainer:
         policy_net_builder = self.policy_net_builder.value
-        # pyre-ignore
-        self._policy_network = policy_net_builder.build_q_network(
+        policy_network = policy_net_builder.build_q_network(
             self.state_feature_config,
             normalization_data_map[NormalizationKey.STATE],
             len(self.action_names),
@@ -88,7 +87,7 @@ class Reinforce(ModelManager):
                 normalization_data_map[NormalizationKey.STATE]
             )
         trainer = ReinforceTrainer(
-            policy=self.create_policy(),
+            policy=self._create_policy(policy_network),
             value_net=value_net,
             **self.trainer_param.asdict(),  # pyre-ignore
         )
@@ -96,45 +95,38 @@ class Reinforce(ModelManager):
 
     def create_policy(
         self,
+        trainer_module: ReAgentLightningModule,
         serving: bool = False,
         normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
     ):
+        assert isinstance(trainer_module, ReinforceTrainer)
         if serving:
             assert normalization_data_map is not None
             return create_predictor_policy_from_model(
-                self.build_serving_module(normalization_data_map)
+                self.build_serving_module(trainer_module, normalization_data_map)
             )
         else:
-            if self._policy is None:
-                sampler = SoftmaxActionSampler(temperature=self.sampler_temperature)
-                # pyre-ignore
-                self._policy = Policy(scorer=self._policy_network, sampler=sampler)
-            return self._policy
+            return self._create_policy(trainer_module.scorer)
+
+    def _create_policy(self, policy_network):
+        if self._policy is None:
+            sampler = SoftmaxActionSampler(temperature=self.sampler_temperature)
+            self._policy = Policy(scorer=policy_network, sampler=sampler)
+        return self._policy
 
     def build_serving_module(
         self,
+        trainer_module: ReAgentLightningModule,
         normalization_data_map: Dict[str, NormalizationData],
     ) -> torch.nn.Module:
-        assert self._policy_network is not None
+        assert isinstance(trainer_module, ReinforceTrainer)
         policy_serving_module = self.policy_net_builder.value.build_serving_module(
-            q_network=self._policy_network,
+            q_network=trainer_module.scorer,
             state_normalization_data=normalization_data_map[NormalizationKey.STATE],
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )
         return policy_serving_module
-
-    def train(
-        self,
-        train_dataset: Optional[Dataset],
-        eval_dataset: Optional[Dataset],
-        test_dataset: Optional[Dataset],
-        data_module: Optional[ReAgentDataModule],
-        num_epochs: int,
-        reader_options: ReaderOptions,
-        resource_options: ResourceOptions,
-    ) -> RLTrainingOutput:
-        raise NotImplementedError
 
     @property
     def state_feature_config(self) -> rlt.ModelFeatureConfig:

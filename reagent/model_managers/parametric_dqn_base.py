@@ -24,6 +24,7 @@ from reagent.preprocessing.normalization import (
     get_feature_config,
 )
 from reagent.preprocessing.types import InputColumn
+from reagent.training import ReAgentLightningModule
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import (
     Dataset,
@@ -67,24 +68,26 @@ class ParametricDQNBase(ModelManager):
 
     def create_policy(
         self,
+        trainer_module: ReAgentLightningModule,
         serving: bool = False,
         normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
     ):
         """Create an online DiscreteDQN Policy from env."""
 
         # FIXME: this only works for one-hot encoded actions
-        # FIXME: We should grab Q-network from the trainer argument
-        action_dim = self._q_network.input_prototype()[1].float_features.shape[1]
+        action_dim = trainer_module.q_network.input_prototype()[1].float_features.shape[
+            1
+        ]
         if serving:
             assert normalization_data_map
             return create_predictor_policy_from_model(
-                self.build_serving_module(normalization_data_map),
+                self.build_serving_module(trainer_module, normalization_data_map),
                 max_num_actions=action_dim,
             )
         else:
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
             scorer = parametric_dqn_scorer(
-                max_num_actions=action_dim, q_network=self._q_network
+                max_num_actions=action_dim, q_network=trainer_module.q_network
             )
             return Policy(scorer=scorer, sampler=sampler)
 
@@ -117,18 +120,6 @@ class ParametricDQNBase(ModelManager):
     #         resource_options=resource_options,
     #         model_manager=self,
     #     )
-
-    def train(
-        self,
-        train_dataset: Optional[Dataset],
-        eval_dataset: Optional[Dataset],
-        test_dataset: Optional[Dataset],
-        data_module: Optional[ReAgentDataModule],
-        num_epochs: int,
-        reader_options: ReaderOptions,
-        resource_options: ResourceOptions,
-    ) -> RLTrainingOutput:
-        raise NotImplementedError()
 
 
 class ParametricDqnDataModule(ManualDataModule):

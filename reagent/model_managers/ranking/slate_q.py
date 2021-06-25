@@ -10,6 +10,7 @@ from reagent.model_managers.slate_q_base import SlateQBase
 from reagent.models.base import ModelBase
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
+from reagent.training import ReAgentLightningModule
 from reagent.training import SlateQTrainer, SlateQTrainerParameters
 from reagent.workflow.types import RewardOptions
 
@@ -41,11 +42,8 @@ class SlateQ(SlateQBase):
         assert (
             self.num_candidates > 0
         ), f"Please set valid num_candidates (currently {self.num_candidates})"
-        self._q_network: Optional[ModelBase] = None
         self.eval_parameters = self.trainer_param.evaluation
 
-    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
-    #  inconsistently.
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],
@@ -53,15 +51,14 @@ class SlateQ(SlateQBase):
         reward_options: Optional[RewardOptions] = None,
     ) -> SlateQTrainer:
         net_builder = self.net_builder.value
-        # pyre-fixme[16]: `SlateQ` has no attribute `_q_network`.
-        self._q_network = net_builder.build_q_network(
+        q_network = net_builder.build_q_network(
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ITEM],
         )
 
-        q_network_target = self._q_network.get_target_network()
+        q_network_target = q_network.get_target_network()
         return SlateQTrainer(
-            q_network=self._q_network,
+            q_network=q_network,
             q_network_target=q_network_target,
             # pyre-fixme[16]: `SlateQTrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),
@@ -69,12 +66,13 @@ class SlateQ(SlateQBase):
 
     def build_serving_module(
         self,
+        trainer_module: ReAgentLightningModule,
         normalization_data_map: Dict[str, NormalizationData],
     ) -> torch.nn.Module:
+        assert isinstance(trainer_module, SlateQTrainer)
         net_builder = self.net_builder.value
-        assert self._q_network is not None
         return net_builder.build_serving_module(
-            self._q_network,
+            trainer_module.q_network,
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ITEM],
         )

@@ -11,6 +11,7 @@ from reagent.model_managers.parametric_dqn_base import ParametricDQNBase
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
 from reagent.training import ParametricDQNTrainer, ParametricDQNTrainerParameters
+from reagent.training import ReAgentLightningModule
 from reagent.workflow.types import RewardOptions
 
 
@@ -31,12 +32,10 @@ class ParametricDQN(ParametricDQNBase):
         )
     )
 
-    def __post_init_post_parse__(self):
-        super().__post_init_post_parse__()
-        self.rl_parameters = self.trainer_param.rl
+    @property
+    def rl_parameters(self):
+        return self.trainer_param.rl
 
-    # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
-    #  inconsistently.
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],
@@ -71,12 +70,13 @@ class ParametricDQN(ParametricDQNBase):
 
     def build_serving_module(
         self,
+        trainer_module: ReAgentLightningModule,
         normalization_data_map: Dict[str, NormalizationData],
     ) -> torch.nn.Module:
+        assert isinstance(trainer_module, ParametricDQNTrainer)
         net_builder = self.net_builder.value
-        assert self._q_network is not None
         return net_builder.build_serving_module(
-            self._q_network,
+            trainer_module.q_network,
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],
         )

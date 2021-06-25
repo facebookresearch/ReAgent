@@ -14,6 +14,7 @@ from reagent.model_managers.model_manager import ModelManager
 from reagent.models.base import ModelBase
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.reporting.slate_q_reporter import SlateQReporter
+from reagent.training import ReAgentLightningModule
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
@@ -59,24 +60,24 @@ class SlateQBase(ModelManager):
         ), "Please set slate_feature_id field of config instead"
         self._state_preprocessing_options = self.state_preprocessing_options
         self._item_preprocessing_options = self.item_preprocessing_options
-        self._q_network: Optional[ModelBase] = None
         self.eval_parameters = self.trainer_param.evaluation
 
     def create_policy(
         self,
+        trainer_module: ReAgentLightningModule,
         serving: bool = False,
         normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
     ):
         if serving:
             assert normalization_data_map
             return create_predictor_policy_from_model(
-                self.build_serving_module(normalization_data_map),
+                self.build_serving_module(trainer_module, normalization_data_map),
                 max_num_actions=self.num_candidates,
                 slate_size=self.slate_size,
             )
         else:
             scorer = slate_q_scorer(
-                num_candidates=self.num_candidates, q_network=self._q_network
+                num_candidates=self.num_candidates, q_network=trainer_module.q_network
             )
             sampler = TopKSampler(k=self.slate_size)
             return Policy(scorer=scorer, sampler=sampler)
@@ -91,15 +92,3 @@ class SlateQBase(ModelManager):
 
     def get_reporter(self):
         return SlateQReporter()
-
-    def train(
-        self,
-        train_dataset: Optional[Dataset],
-        eval_dataset: Optional[Dataset],
-        test_dataset: Optional[Dataset],
-        data_module: Optional[ReAgentDataModule],
-        num_epochs: int,
-        reader_options: ReaderOptions,
-        resource_options: ResourceOptions,
-    ) -> RLTrainingOutput:
-        raise NotImplementedError("Write for OSS")
