@@ -118,10 +118,6 @@ class Reinforce(ModelManager):
         )
         return policy_serving_module
 
-    @property
-    def required_normalization_keys(self) -> List[str]:
-        return [NormalizationKey.STATE]
-
     def train(
         self,
         train_dataset: Optional[Dataset],

@@ -55,7 +55,6 @@ class ModelManager:
 
     def __post_init_post_parse__(self):
         # initialization is delayed to `initialize_trainer()`
-        self._normalization_data_map: Optional[Dict[str, NormalizationData]] = None
         self._reward_options: Optional[RewardOptions] = None
         self._trainer: Optional[Trainer] = None
         self._lightning_trainer: Optional[pl.Trainer] = None
@@ -89,35 +88,6 @@ class ModelManager:
         return None
 
     @property
-    @abc.abstractmethod
-    def required_normalization_keys(self) -> List[str]:
-        """Get the normalization keys required for current instance"""
-        pass
-
-    def __getattr__(self, attr):
-        """Get X_normalization_data by attribute"""
-        normalization_data_suffix = "_normalization_data"
-        if attr.endswith(normalization_data_suffix):
-            assert self._normalization_data_map is not None, (
-                f"Trying to access {attr} but normalization_data_map "
-                "has not been set via `initialize_trainer`."
-            )
-            normalization_key = attr[: -len(normalization_data_suffix)]
-            normalization_data = self._normalization_data_map.get(
-                normalization_key, None
-            )
-            if normalization_data is None:
-                raise AttributeError(
-                    f"normalization key `{normalization_key}` is unavailable. "
-                    f"Available keys are: {self._normalization_data_map.keys()}."
-                )
-            return normalization_data
-
-        raise AttributeError(
-            f"attr {attr} not available {type(self)} (subclass of ModelManager)."
-        )
-
-    @property
     def trainer(self) -> Trainer:
         """
         DEPRECATED: The build_trainer() function should also return
@@ -143,28 +113,10 @@ class ModelManager:
         We can pass it there directly.
 
         Initialize the trainer. Subclass should not override this. Instead,
-        subclass should implement `required_normalization_keys()` and
-        `build_trainer()`.
+        subclass should implement `build_trainer()`.
         """
         assert self._trainer is None, "Trainer was intialized"
         self.reward_options = reward_options
-        # validate that we have all the required keys
-        for normalization_key in self.required_normalization_keys:
-            normalization_data = normalization_data_map.get(normalization_key, None)
-            assert normalization_data is not None, (
-                f"NormalizationData for {normalization_key} "
-                "is required but not provided."
-            )
-            # NOTE: Don't need this check in the future, for non-dense parameters
-            assert normalization_data.dense_normalization_parameters is not None, (
-                f"Dense normalization parameters for "
-                f"{normalization_key} is not provided."
-            )
-        assert (
-            self._normalization_data_map is None
-        ), "Cannot reset self._normalization_data_map"
-        # pyre-fixme[16]: `ModelManager` has no attribute `_normalization_data_map`.
-        self._normalization_data_map = normalization_data_map
         trainer = self.build_trainer(normalization_data_map, use_gpu=use_gpu)
         # pyre-fixme[16]: `ModelManager` has no attribute `_trainer`.
         self._trainer = trainer

@@ -231,9 +231,7 @@ def train_workflow(
 
     if normalization_data_map is None:
         assert data_module is not None
-        normalization_data_map = data_module.get_normalization_data_map(
-            model_manager.required_normalization_keys
-        )
+        normalization_data_map = data_module.get_normalization_data_map()
 
     warmstart_input_path = warmstart_path or None
     model_manager.initialize_trainer(
