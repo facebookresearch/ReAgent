@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import param_hash, NormalizationData, NormalizationKey
+from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.model_managers.parametric_dqn_base import ParametricDQNBase
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
 from reagent.training import ParametricDQNTrainer, ParametricDQNTrainerParameters
+from reagent.workflow.types import RewardOptions
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +38,10 @@ class ParametricDQN(ParametricDQNBase):
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
     def build_trainer(
-        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+        use_gpu: bool,
+        reward_options: Optional[RewardOptions] = None,
     ) -> ParametricDQNTrainer:
         net_builder = self.net_builder.value
         # pyre-fixme[16]: `ParametricDQN` has no attribute `_q_network`.
@@ -45,7 +50,9 @@ class ParametricDQN(ParametricDQNBase):
             normalization_data_map[NormalizationKey.ACTION],
         )
         # Metrics + reward
-        reward_output_dim = len(self.metrics_to_score) + 1
+        reward_options = reward_options or RewardOptions()
+        metrics_to_score = get_metrics_to_score(reward_options.metric_reward_values)
+        reward_output_dim = len(metrics_to_score) + 1
         reward_network = net_builder.build_q_network(
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],

@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import NormalizationData, NormalizationKey, param_hash
+from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.model_managers.discrete_dqn_base import DiscreteDQNBase
 from reagent.net_builder.discrete_dqn.dueling import Dueling
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
 from reagent.reporting.discrete_dqn_reporter import DiscreteDQNReporter
 from reagent.training import DQNTrainer, DQNTrainerParameters
+from reagent.workflow.types import RewardOptions
 
 
 logger = logging.getLogger(__name__)
@@ -35,8 +37,6 @@ class DiscreteDQN(DiscreteDQNBase):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
-        self.rl_parameters = self.trainer_param.rl
-        self.action_names = self.trainer_param.actions
         assert (
             len(self.action_names) > 1
         ), f"DiscreteDQNModel needs at least 2 actions. Got {self.action_names}."
@@ -46,10 +46,21 @@ class DiscreteDQN(DiscreteDQNBase):
                 "should be divisible by 8 for performance reasons!"
             )
 
+    @property
+    def action_names(self):
+        return self.trainer_param.actions
+
+    @property
+    def rl_parameters(self):
+        return self.trainer_param.rl
+
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
     def build_trainer(
-        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+        use_gpu: bool,
+        reward_options: Optional[RewardOptions] = None,
     ) -> DQNTrainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(
@@ -60,10 +71,13 @@ class DiscreteDQN(DiscreteDQNBase):
 
         q_network_target = q_network.get_target_network()
 
+        reward_options = reward_options or RewardOptions()
+        metrics_to_score = get_metrics_to_score(reward_options.metric_reward_values)
+
         reward_network, q_network_cpe, q_network_cpe_target = None, None, None
         if self.eval_parameters.calc_cpe_in_training:
             # Metrics + reward
-            num_output_nodes = (len(self.metrics_to_score) + 1) * len(
+            num_output_nodes = (len(metrics_to_score) + 1) * len(
                 # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `actions`.
                 self.trainer_param.actions
             )
@@ -90,7 +104,7 @@ class DiscreteDQN(DiscreteDQNBase):
             reward_network=reward_network,
             q_network_cpe=q_network_cpe,
             q_network_cpe_target=q_network_cpe_target,
-            metrics_to_score=self.metrics_to_score,
+            metrics_to_score=metrics_to_score,
             evaluation=self.eval_parameters,
             # pyre-fixme[16]: `DQNTrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),

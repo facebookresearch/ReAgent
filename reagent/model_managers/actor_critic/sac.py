@@ -23,6 +23,7 @@ from reagent.net_builder.value.fully_connected import (
     FullyConnected as ValueFullyConnected,
 )
 from reagent.training import SACTrainer, SACTrainerParameters
+from reagent.workflow.types import RewardOptions
 
 
 logger = logging.getLogger(__name__)
@@ -67,7 +68,10 @@ class SAC(ActorCriticBase):
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
     def build_trainer(
-        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+        use_gpu: bool,
+        reward_options: Optional[RewardOptions] = None,
     ) -> SACTrainer:
         actor_net_builder = self.actor_net_builder.value
         # pyre-fixme[16]: `SAC` has no attribute `_actor_network`.

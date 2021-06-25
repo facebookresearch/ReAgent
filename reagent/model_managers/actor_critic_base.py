@@ -14,7 +14,6 @@ from reagent.core.parameters import (
     NormalizationKey,
 )
 from reagent.data import DataFetcher, ReAgentDataModule, ManualDataModule
-from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.model_managers.model_manager import ModelManager
@@ -115,17 +114,6 @@ class ActorCriticBase(ModelManager):
             )
         else:
             return ActorPolicyWrapper(self._actor_network)
-
-    @property
-    def metrics_to_score(self) -> List[str]:
-        assert self._reward_options is not None
-        if self._metrics_to_score is None:
-            # pyre-fixme[16]: `ActorCriticBase` has no attribute `_metrics_to_score`.
-            # pyre-fixme[16]: `ActorCriticBase` has no attribute `_metrics_to_score`.
-            self._metrics_to_score = get_metrics_to_score(
-                self._reward_options.metric_reward_values
-            )
-        return self._metrics_to_score
 
     @property
     def state_feature_config(self) -> rlt.ModelFeatureConfig:

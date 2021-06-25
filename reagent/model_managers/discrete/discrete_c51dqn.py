@@ -2,6 +2,7 @@
 
 import logging
 from typing import Dict
+from typing import Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
@@ -10,6 +11,7 @@ from reagent.model_managers.discrete_dqn_base import DiscreteDQNBase
 from reagent.net_builder.categorical_dqn.categorical import Categorical
 from reagent.net_builder.unions import CategoricalDQNNetBuilder__Union
 from reagent.training import C51Trainer, C51TrainerParameters
+from reagent.workflow.types import RewardOptions
 
 
 logger = logging.getLogger(__name__)
@@ -37,17 +39,26 @@ class DiscreteC51DQN(DiscreteDQNBase):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
-        self.rl_parameters = self.trainer_param.rl
-        self.action_names = self.trainer_param.actions
         assert len(self.action_names) > 1, "DiscreteC51DQN needs at least 2 actions"
         assert (
             self.trainer_param.minibatch_size % 8 == 0
         ), "The minibatch size must be divisible by 8 for performance reasons."
 
+    @property
+    def action_names(self):
+        return self.trainer_param.actions
+
+    @property
+    def rl_parameters(self):
+        return self.trainer_param.rl
+
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
     def build_trainer(
-        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+        use_gpu: bool,
+        reward_options: Optional[RewardOptions] = None,
     ) -> C51Trainer:
         net_builder = self.net_builder.value
         q_network = net_builder.build_q_network(

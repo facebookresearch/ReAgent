@@ -13,7 +13,6 @@ from reagent.core.parameters import (
 from reagent.data.data_fetcher import DataFetcher
 from reagent.data.manual_data_module import ManualDataModule
 from reagent.data.reagent_data_module import ReAgentDataModule
-from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
@@ -23,7 +22,6 @@ from reagent.models.base import ModelBase
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.preprocessing.normalization import (
     get_feature_config,
-    get_num_output_features,
 )
 from reagent.preprocessing.types import InputColumn
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
@@ -66,7 +64,6 @@ class ParametricDQNBase(ModelManager):
             "config instead"
         )
         self._q_network: Optional[ModelBase] = None
-        self._metrics_to_score: Optional[List[str]] = None
 
     def create_policy(
         self,
@@ -98,16 +95,6 @@ class ParametricDQNBase(ModelManager):
     @property
     def action_feature_config(self) -> rlt.ModelFeatureConfig:
         return get_feature_config(self.action_float_features)
-
-    @property
-    def metrics_to_score(self) -> List[str]:
-        assert self.reward_options is not None
-        if self._metrics_to_score is None:
-            # pyre-fixme[16]: `ParametricDQNBase` has no attribute `_metrics_to_score`.
-            self._metrics_to_score = get_metrics_to_score(
-                self._reward_options.metric_reward_values
-            )
-        return self._metrics_to_score
 
     # TODO: Add below get_data_module() method once methods in
     # `ParametricDqnDataModule` class are fully implemented

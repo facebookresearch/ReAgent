@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
-import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import (
     MDNRNNTrainerParameters,
@@ -15,6 +14,7 @@ from reagent.model_managers.world_model_base import WorldModelBase
 from reagent.models.world_model import MemoryNetwork
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
+from reagent.workflow.types import RewardOptions
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,10 @@ class WorldModel(WorldModelBase):
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
     def build_trainer(
-        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+        use_gpu: bool,
+        reward_options: Optional[RewardOptions] = None,
     ) -> MDNRNNTrainer:
         memory_network = MemoryNetwork(
             state_dim=get_num_output_features(
