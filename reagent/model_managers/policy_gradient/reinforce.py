@@ -107,11 +107,6 @@ class Reinforce(ModelManager):
         )
         return policy_serving_module
 
-    def run_feature_identification(
-        self, input_table_spec: TableSpec
-    ) -> Dict[str, NormalizationData]:
-        raise NotImplementedError
-
     @property
     def required_normalization_keys(self) -> List[str]:
         return [NormalizationKey.STATE]
