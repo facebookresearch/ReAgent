@@ -75,6 +75,7 @@ class ParametricDQNBase(ModelManager):
         """Create an online DiscreteDQN Policy from env."""
 
         # FIXME: this only works for one-hot encoded actions
+        # pyre-fixme[16]: `Tensor` has no attribute `input_prototype`.
         action_dim = trainer_module.q_network.input_prototype()[1].float_features.shape[
             1
         ]
@@ -85,9 +86,13 @@ class ParametricDQNBase(ModelManager):
                 max_num_actions=action_dim,
             )
         else:
+            # pyre-fixme[16]: `ParametricDQNBase` has no attribute `rl_parameters`.
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
             scorer = parametric_dqn_scorer(
-                max_num_actions=action_dim, q_network=trainer_module.q_network
+                max_num_actions=action_dim,
+                # pyre-fixme[6]: Expected `ModelBase` for 2nd param but got
+                #  `Union[torch.Tensor, torch.nn.Module]`.
+                q_network=trainer_module.q_network,
             )
             return Policy(scorer=scorer, sampler=sampler)
 
