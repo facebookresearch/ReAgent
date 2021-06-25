@@ -101,10 +101,6 @@ class ActorCriticBase(ModelManager):
         self._actor_network: Optional[ModelBase] = None
         self._q1_network: Optional[ModelBase] = None
 
-    @property
-    def should_generate_eval_dataset(self) -> bool:
-        raise NotImplementedError
-
     def create_policy(self, serving: bool) -> Policy:
         """Create online actor critic policy."""
 

@@ -43,10 +43,6 @@ class WorldModelBase(ModelManager):
         raise NotImplementedError()
 
     @property
-    def should_generate_eval_dataset(self) -> bool:
-        raise RuntimeError
-
-    @property
     def required_normalization_keys(self) -> List[str]:
         return [NormalizationKey.STATE, NormalizationKey.ACTION]
 

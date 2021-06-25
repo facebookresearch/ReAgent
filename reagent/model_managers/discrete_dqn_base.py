@@ -92,10 +92,6 @@ class DiscreteDQNBase(ModelManager):
         return self._metrics_to_score
 
     @property
-    def should_generate_eval_dataset(self) -> bool:
-        raise RuntimeError
-
-    @property
     def required_normalization_keys(self) -> List[str]:
         return [NormalizationKey.STATE]
 
