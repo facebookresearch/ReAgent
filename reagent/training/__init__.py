@@ -6,6 +6,7 @@ from reagent.training.cem_trainer import CEMTrainer
 from reagent.training.cfeval import BanditRewardNetTrainer
 from reagent.training.discrete_crr_trainer import DiscreteCRRTrainer
 from reagent.training.dqn_trainer import DQNTrainer
+from reagent.training.multi_stage_trainer import MultiStageTrainer
 from reagent.training.parametric_dqn_trainer import ParametricDQNTrainer
 from reagent.training.ppo_trainer import PPOTrainer
 from reagent.training.qrdqn_trainer import QRDQNTrainer
@@ -44,6 +45,7 @@ __all__ = [
     "CEMTrainer",
     "RLTrainer",
     "DQNTrainer",
+    "MultiStageTrainer",
     "MDNRNNTrainer",
     "ParametricDQNTrainer",
     "QRDQNTrainer",

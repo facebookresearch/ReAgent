@@ -51,17 +51,12 @@ class Seq2RewardModel(WorldModelBase):
         use_gpu: bool,
         reward_options: Optional[RewardOptions] = None,
     ) -> Seq2RewardTrainer:
-        # pyre-fixme[16]: `Seq2RewardModel` has no attribute `_seq2reward_network`.
-        self._seq2reward_network = (
-            seq2reward_network
-        ) = self.net_builder.value.build_value_network(
+        seq2reward_network = self.net_builder.value.build_value_network(
             normalization_data_map[NormalizationKey.STATE]
         )
         trainer = Seq2RewardTrainer(
             seq2reward_network=seq2reward_network, params=self.trainer_param
         )
-        # pyre-fixme[16]: `Seq2RewardModel` has no attribute `_step_predict_network`.
-        self._step_predict_network = trainer.step_predict_network
         return trainer
 
     def get_reporter(self) -> Seq2RewardReporter:
