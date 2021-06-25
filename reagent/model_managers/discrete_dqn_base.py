@@ -70,10 +70,13 @@ class DiscreteDQNBase(ModelManager):
             assert normalization_data_map
             return create_predictor_policy_from_model(
                 self.build_serving_module(trainer_module, normalization_data_map),
+                # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
                 rl_parameters=self.rl_parameters,
             )
         else:
             sampler = GreedyActionSampler()
+            # pyre-fixme[6]: Expected `ModelBase` for 1st param but got
+            #  `Union[torch.Tensor, torch.nn.Module]`.
             scorer = discrete_dqn_scorer(trainer_module.q_network)
             return Policy(scorer=scorer, sampler=sampler)
 
@@ -83,6 +86,7 @@ class DiscreteDQNBase(ModelManager):
 
     @property
     def multi_steps(self) -> Optional[int]:
+        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
         return self.rl_parameters.multi_steps
 
     def get_data_module(

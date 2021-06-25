@@ -72,7 +72,9 @@ class SlateQBase(ModelManager):
             assert normalization_data_map
             return create_predictor_policy_from_model(
                 self.build_serving_module(trainer_module, normalization_data_map),
+                # pyre-fixme[16]: `SlateQBase` has no attribute `num_candidates`.
                 max_num_actions=self.num_candidates,
+                # pyre-fixme[16]: `SlateQBase` has no attribute `slate_size`.
                 slate_size=self.slate_size,
             )
         else:

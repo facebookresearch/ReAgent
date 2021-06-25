@@ -74,6 +74,7 @@ class CrossEntropyMethod(WorldModelBase):
         use_gpu: bool,
         reward_options: Optional[RewardOptions] = None,
     ) -> CEMTrainer:
+        # pyre-fixme[45]: Cannot instantiate abstract class `WorldModel`.
         world_model_manager: WorldModel = WorldModel(
             trainer_param=self.trainer_param.mdnrnn
         )
