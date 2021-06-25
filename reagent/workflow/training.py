@@ -221,6 +221,7 @@ def train_workflow(
     if setup_data is not None:
         data_module = model_manager.get_data_module(
             setup_data=setup_data,
+            reward_options=reward_options,
             reader_options=reader_options,
             resource_options=resource_options,
         )

@@ -20,6 +20,7 @@ from reagent.models.cem_planner import CEMPlannerNetwork
 from reagent.preprocessing.identify_types import CONTINUOUS_ACTION
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.training.cem_trainer import CEMTrainer
+from reagent.workflow.types import RewardOptions
 
 
 logger = logging.getLogger(__name__)
@@ -64,7 +65,10 @@ class CrossEntropyMethod(WorldModelBase):
         return CEMPolicy(self.cem_planner_network, self.discrete_action)
 
     def build_trainer(
-        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+        use_gpu: bool,
+        reward_options: Optional[RewardOptions] = None,
     ) -> CEMTrainer:
         world_model_manager: WorldModel = WorldModel(
             trainer_param=self.trainer_param.mdnrnn
@@ -75,7 +79,9 @@ class CrossEntropyMethod(WorldModelBase):
             normalization_data_map,
         )
         world_model_trainers = [
-            world_model_manager.build_trainer(normalization_data_map, use_gpu)
+            world_model_manager.build_trainer(
+                normalization_data_map, reward_options=reward_options, use_gpu=use_gpu
+            )
             for _ in range(self.trainer_param.num_world_models)
         ]
         world_model_nets = [trainer.memory_network for trainer in world_model_trainers]

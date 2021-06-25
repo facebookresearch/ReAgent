@@ -3,7 +3,6 @@
 import logging
 from typing import Optional, Dict
 
-import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import (
     Seq2RewardTrainerParameters,
@@ -17,7 +16,7 @@ from reagent.net_builder.value.fully_connected import FullyConnected
 from reagent.net_builder.value.seq2reward_rnn import Seq2RewardNetBuilder
 from reagent.reporting.seq2reward_reporter import Seq2RewardReporter
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer
-from reagent.workflow.types import PreprocessingOptions
+from reagent.workflow.types import PreprocessingOptions, RewardOptions
 
 
 logger = logging.getLogger(__name__)
@@ -49,7 +48,10 @@ class Seq2RewardModel(WorldModelBase):
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
     def build_trainer(
-        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+        use_gpu: bool,
+        reward_options: Optional[RewardOptions] = None,
     ) -> Seq2RewardTrainer:
         # pyre-fixme[16]: `Seq2RewardModel` has no attribute `_seq2reward_network`.
         self._seq2reward_network = (

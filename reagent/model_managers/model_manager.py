@@ -55,21 +55,9 @@ class ModelManager:
 
     def __post_init_post_parse__(self):
         # initialization is delayed to `initialize_trainer()`
-        self._reward_options: Optional[RewardOptions] = None
         self._trainer: Optional[Trainer] = None
         self._lightning_trainer: Optional[pl.Trainer] = None
         self._lightning_checkpoint_path: Optional[str] = None
-
-    @property
-    def reward_options(self) -> RewardOptions:
-        assert self._reward_options is not None
-        return self._reward_options
-
-    @reward_options.setter
-    def reward_options(self, reward_options: RewardOptions):
-        assert self._reward_options is None
-        # pyre-fixme[16]: `ModelManager` has no attribute `_reward_options`.
-        self._reward_options = reward_options
 
     def get_data_module(
         self,
@@ -115,9 +103,9 @@ class ModelManager:
         Initialize the trainer. Subclass should not override this. Instead,
         subclass should implement `build_trainer()`.
         """
-        assert self._trainer is None, "Trainer was intialized"
-        self.reward_options = reward_options
-        trainer = self.build_trainer(normalization_data_map, use_gpu=use_gpu)
+        trainer = self.build_trainer(
+            normalization_data_map, reward_options=reward_options, use_gpu=use_gpu
+        )
         # pyre-fixme[16]: `ModelManager` has no attribute `_trainer`.
         self._trainer = trainer
         if warmstart_path is not None:
@@ -131,7 +119,10 @@ class ModelManager:
 
     @abc.abstractmethod
     def build_trainer(
-        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+        use_gpu: bool,
+        reward_options: Optional[RewardOptions] = None,
     ) -> Trainer:
         """
         Implement this to build the trainer, given the config

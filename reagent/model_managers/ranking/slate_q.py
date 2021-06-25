@@ -11,6 +11,7 @@ from reagent.models.base import ModelBase
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
 from reagent.training import SlateQTrainer, SlateQTrainerParameters
+from reagent.workflow.types import RewardOptions
 
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,10 @@ class SlateQ(SlateQBase):
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
     def build_trainer(
-        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+        use_gpu: bool,
+        reward_options: Optional[RewardOptions] = None,
     ) -> SlateQTrainer:
         net_builder = self.net_builder.value
         # pyre-fixme[16]: `SlateQ` has no attribute `_q_network`.
