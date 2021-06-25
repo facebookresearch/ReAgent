@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import logging
+from typing import Dict
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import param_hash
+from reagent.core.parameters import NormalizationData, NormalizationKey, param_hash
 from reagent.model_managers.discrete_dqn_base import DiscreteDQNBase
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.quantile_dqn.dueling_quantile import DuelingQuantile
@@ -97,7 +98,10 @@ class DiscreteQRDQN(DiscreteDQNBase):
         )
         return trainer
 
-    def build_serving_module(self) -> torch.nn.Module:
+    def build_serving_module(
+        self,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module
         """
@@ -105,7 +109,7 @@ class DiscreteQRDQN(DiscreteDQNBase):
         net_builder = self.net_builder.value
         return net_builder.build_serving_module(
             self._q_network,
-            self.state_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
         )

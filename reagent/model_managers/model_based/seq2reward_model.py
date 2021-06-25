@@ -57,9 +57,3 @@ class Seq2RewardModel(WorldModelBase):
 
     def get_reporter(self) -> Seq2RewardReporter:
         return Seq2RewardReporter(self.trainer_param.action_names)
-
-    def build_serving_module(self) -> torch.nn.Module:
-        """
-        Returns a TorchScript predictor module
-        """
-        raise NotImplementedError()

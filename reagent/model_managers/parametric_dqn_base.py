@@ -68,16 +68,21 @@ class ParametricDQNBase(ModelManager):
         self._q_network: Optional[ModelBase] = None
         self._metrics_to_score: Optional[List[str]] = None
 
-    def create_policy(self, serving: bool) -> Policy:
+    def create_policy(
+        self,
+        serving: bool = False,
+        normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
+    ):
         """Create an online DiscreteDQN Policy from env."""
 
         # FIXME: this only works for one-hot encoded actions
-        action_dim = get_num_output_features(
-            self.action_normalization_data.dense_normalization_parameters
-        )
+        # FIXME: We should grab Q-network from the trainer argument
+        action_dim = self._q_network.input_prototype()[1].float_features.shape[1]
         if serving:
+            assert normalization_data_map
             return create_predictor_policy_from_model(
-                self.build_serving_module(), max_num_actions=action_dim
+                self.build_serving_module(normalization_data_map),
+                max_num_actions=action_dim,
             )
         else:
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
