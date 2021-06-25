@@ -35,17 +35,20 @@ class ParametricDQN(ParametricDQNBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self, use_gpu: bool) -> ParametricDQNTrainer:
+    def build_trainer(
+        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+    ) -> ParametricDQNTrainer:
         net_builder = self.net_builder.value
         # pyre-fixme[16]: `ParametricDQN` has no attribute `_q_network`.
         self._q_network = net_builder.build_q_network(
-            self.state_normalization_data, self.action_normalization_data
+            normalization_data_map[NormalizationKey.STATE],
+            normalization_data_map[NormalizationKey.ACTION],
         )
         # Metrics + reward
         reward_output_dim = len(self.metrics_to_score) + 1
         reward_network = net_builder.build_q_network(
-            self.state_normalization_data,
-            self.action_normalization_data,
+            normalization_data_map[NormalizationKey.STATE],
+            normalization_data_map[NormalizationKey.ACTION],
             output_dim=reward_output_dim,
         )
 

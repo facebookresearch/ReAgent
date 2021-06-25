@@ -45,14 +45,15 @@ class SlateQ(SlateQBase):
 
     # pyre-fixme[15]: `build_trainer` overrides method defined in `ModelManager`
     #  inconsistently.
-    def build_trainer(self, use_gpu: bool) -> SlateQTrainer:
+    def build_trainer(
+        self, normalization_data_map: Dict[str, NormalizationData], use_gpu: bool
+    ) -> SlateQTrainer:
         net_builder = self.net_builder.value
         # pyre-fixme[16]: `SlateQ` has no attribute `_q_network`.
         self._q_network = net_builder.build_q_network(
-            self.state_normalization_data, self.item_normalization_data
+            normalization_data_map[NormalizationKey.STATE],
+            normalization_data_map[NormalizationKey.ITEM],
         )
-        if use_gpu:
-            self._q_network = self._q_network.cuda()
 
         q_network_target = self._q_network.get_target_network()
         return SlateQTrainer(
