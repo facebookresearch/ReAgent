@@ -117,9 +117,6 @@ class ParametricDQNBase(ModelManager):
             )
         return self._metrics_to_score
 
-    def build_batch_preprocessor(self) -> BatchPreprocessor:
-        raise NotImplementedError()
-
     # TODO: Add below get_data_module() method once methods in
     # `ParametricDqnDataModule` class are fully implemented
     # def get_data_module(
@@ -217,5 +214,5 @@ class ParametricDqnDataModule(ManualDataModule):
     ) -> Dataset:
         raise NotImplementedError
 
-    def build_batch_preprocessor(self, use_gpu: bool) -> BatchPreprocessor:
+    def build_batch_preprocessor(self) -> BatchPreprocessor:
         raise NotImplementedError()
