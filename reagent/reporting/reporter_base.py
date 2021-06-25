@@ -5,7 +5,6 @@ import logging
 from typing import Dict
 
 import torch
-from pytorch_lightning.utilities import rank_zero_only
 from reagent.core.observers import (
     CompositeObserver,
     EpochEndObserver,
