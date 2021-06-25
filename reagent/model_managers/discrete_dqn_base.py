@@ -99,11 +99,6 @@ class DiscreteDQNBase(ModelManager):
     def required_normalization_keys(self) -> List[str]:
         return [NormalizationKey.STATE]
 
-    def run_feature_identification(
-        self, input_table_spec: TableSpec
-    ) -> Dict[str, NormalizationData]:
-        raise RuntimeError
-
     def query_data(
         self,
         input_table_spec: TableSpec,

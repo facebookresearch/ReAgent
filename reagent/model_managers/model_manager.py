@@ -89,18 +89,6 @@ class ModelManager:
         """
         return None
 
-    @abc.abstractmethod
-    def run_feature_identification(
-        self, input_table_spec: TableSpec
-    ) -> Dict[str, NormalizationData]:
-        """
-        DEPRECATED: Implement get_data_module() instead
-
-        Derive preprocessing parameters from data. The keys of the dict should
-        match the keys from `required_normalization_keys()`
-        """
-        pass
-
     @property
     @abc.abstractmethod
     def required_normalization_keys(self) -> List[str]:
