@@ -65,4 +65,3 @@ num_eval_episodes: 30
 passing_score_bar: -1000
 reader_options:
   minibatch_size: 1024
-warmstart_path: test_warmstart
