@@ -64,7 +64,7 @@ class CrossEntropyMethod(WorldModelBase):
         serving: bool = False,
         normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
     ) -> Policy:
-        assert isinstance(trainer_module, CEMPlannerNetwork)
+        assert isinstance(trainer_module, CEMTrainer)
         return CEMPolicy(trainer_module.cem_planner_network, self.discrete_action)
 
     # pyre-fixme
