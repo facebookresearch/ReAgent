@@ -231,6 +231,7 @@ class DMEstimator(RLEstimator):
             EstimatorResult(
                 self._log_reward(input.gamma, input.log),
                 estimate,
+                # pyre-fixme[61]: `gt` may not be initialized here.
                 None if input.ground_truth is None else gt,
             )
         )

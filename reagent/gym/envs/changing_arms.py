@@ -164,7 +164,9 @@ class ChangingArms(EnvWrapper):
             else:
                 assert batch_idx == prev_batch_idx
         # handle the case of trailing empty batches
+        # pyre-fixme[61]: `batch_idx` may not be initialized here.
         if batch_idx < batch_size - 1:
+            # pyre-fixme[61]: `batch_idx` may not be initialized here.
             offsets.extend([i] * (batch_size - 1 - batch_idx))
         assert len(offsets) == batch_size, f"{len(offsets)} != {batch_size}."
         id_list_offsets = torch.tensor(offsets)

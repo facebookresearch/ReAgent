@@ -422,7 +422,9 @@ def upload_as_parquet(df) -> Dataset:
         raise Exception(f"Failed to find name after {MAX_UPLOAD_PARQUET_TRIES} tries.")
 
     # perform the write
+    # pyre-fixme[61]: `rand_name` may not be initialized here.
     df.write.mode("errorifexists").format("parquet").saveAsTable(rand_name)
+    # pyre-fixme[61]: `rand_name` may not be initialized here.
     parquet_url = get_table_url(rand_name)
     logger.info(f"Saved parquet to {parquet_url}")
     return Dataset(parquet_url=parquet_url)

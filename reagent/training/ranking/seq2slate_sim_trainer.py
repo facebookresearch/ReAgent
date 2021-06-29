@@ -144,7 +144,9 @@ class Seq2SlateSimulationTrainer(Trainer):
 
         batch_size = model_actions_with_offset.shape[0]
         simulated_slate_features = gather(
-            training_input.src_seq.float_features, model_actions
+            training_input.src_seq.float_features,
+            # pyre-fixme[61]: `model_actions` may not be initialized here.
+            model_actions,
         )
 
         if not self.reward_name_and_net:
@@ -196,8 +198,10 @@ class Seq2SlateSimulationTrainer(Trainer):
             device=self.device,
             # pyre-fixme[6]: Expected `Optional[torch.Tensor]` for 4th param but got
             #  `int`.
+            # pyre-fixme[61]: `model_actions` may not be initialized here.
             action=model_actions,
             slate_reward=sim_slate_reward,
+            # pyre-fixme[61]: `model_propensities` may not be initialized here.
             logged_propensities=model_propensities,
         )
         return on_policy_input
