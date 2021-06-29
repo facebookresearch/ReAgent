@@ -368,6 +368,7 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
                 {
                     "action_batch_mean": action_batch_m.mean(),
                     "action_batch_var": action_batch_v.mean(),
+                    # pyre-fixme[61]: `kld` may not be initialized here.
                     "kld": kld,
                 },
                 step=self.all_batches_processed,

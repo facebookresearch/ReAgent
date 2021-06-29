@@ -254,6 +254,7 @@ def evaluate_all(
     tgt_policy = MultiClassPolicy(action_space, tgt_results.probabilities, tgt_epsilon)
 
     tasks = []
+    # pyre-fixme[61]: `train_choices` may not be initialized here.
     test_queries = list(set(range(len(dataset))) - set(train_choices))
     for estimators, num_samples in experiments:
         samples = []
