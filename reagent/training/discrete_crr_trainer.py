@@ -264,7 +264,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         trainer_preprocessor.py is used, which converts acion taken to a
         one-hot representation.
         """
-        assert isinstance(training_batch, rlt.DiscreteDqnInput)
+        self._check_input(training_batch)
 
         state = training_batch.state
         action = training_batch.action
