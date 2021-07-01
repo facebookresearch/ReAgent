@@ -11,7 +11,6 @@ from reagent.core.types import BaseDataClass
 class LearningMethod(Enum):
     TEACHER_FORCING = "teacher_forcing"
     REINFORCEMENT_LEARNING = "reinforcement_learning"
-    DIFFERENTIABLE_REWARD = "differentiable_reward"
     PAIRWISE_ATTENTION = "pairwise_attention"
     SIMULATION = "simulation"
 
