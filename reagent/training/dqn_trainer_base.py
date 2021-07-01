@@ -4,6 +4,7 @@
 import logging
 from typing import List, Optional
 
+import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.parameters import EvaluationParameters, RLParameters
@@ -107,6 +108,19 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
             self.metrics_to_score = metrics_to_score + ["reward"]
         else:
             self.metrics_to_score = ["reward"]
+
+    def _check_input(self, training_batch: rlt.DiscreteDqnInput):
+        assert isinstance(training_batch, rlt.DiscreteDqnInput)
+        assert training_batch.not_terminal.dim() == training_batch.reward.dim() == 2
+        assert (
+            training_batch.not_terminal.shape[1] == training_batch.reward.shape[1] == 1
+        )
+        assert training_batch.action.dim() == training_batch.next_action.dim() == 2
+        assert (
+            training_batch.action.shape[1]
+            == training_batch.next_action.shape[1]
+            == self.num_actions
+        )
 
     @property
     def num_actions(self) -> int:
