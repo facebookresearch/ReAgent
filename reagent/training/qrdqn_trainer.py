@@ -119,6 +119,8 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
         return optimizers
 
     def train_step_gen(self, training_batch: rlt.DiscreteDqnInput, batch_idx: int):
+        self._check_input(training_batch)
+
         rewards = self.boost_rewards(training_batch.reward, training_batch.action)
         discount_tensor = torch.full_like(rewards, self.gamma)
         possible_next_actions_mask = training_batch.possible_next_actions_mask.float()

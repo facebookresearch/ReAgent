@@ -207,10 +207,10 @@ class DQNTrainer(DQNTrainerBaseLightning):
 
     def train_step_gen(self, training_batch: rlt.DiscreteDqnInput, batch_idx: int):
         # TODO: calls to _maybe_run_optimizer removed, should be replaced with Trainer parameter
-        assert isinstance(training_batch, rlt.DiscreteDqnInput)
+        self._check_input(training_batch)
+
         rewards = self.boost_rewards(training_batch.reward, training_batch.action)
         not_done_mask = training_batch.not_terminal.float()
-        assert not_done_mask.dim() == 2
 
         discount_tensor = self.compute_discount_tensor(training_batch, rewards)
         td_loss = self.compute_td_loss(training_batch, rewards, discount_tensor)
