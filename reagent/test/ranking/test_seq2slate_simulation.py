@@ -25,7 +25,7 @@ class TestSeq2SlateSimulation(unittest.TestCase):
         batch_size = 4096
         epochs = 1
         num_batches = 50
-        expect_reward_threshold = 1.02
+        expect_reward_threshold = 1.12
         hidden_size = 32
         num_candidates = 6
         diverse_input = False
