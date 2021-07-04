@@ -318,7 +318,7 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
         batch_size = 4096
         epochs = 1
         num_batches = 50
-        expect_reward_threshold = 1.02
+        expect_reward_threshold = 1.12
         hidden_size = 32
         num_candidates = 6
         diverse_input = False
@@ -350,7 +350,7 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
         batch_size = 4096
         epochs = 3
         num_batches = 300
-        expect_reward_threshold = 1.03
+        expect_reward_threshold = 1.05
         hidden_size = 32
         num_candidates = 6
         diverse_input = True
