@@ -7,6 +7,7 @@ from itertools import permutations
 
 import numpy as np
 import numpy.testing as npt
+import pytorch_lightning as pl
 import reagent.core.types as rlt
 import torch
 from parameterized import parameterized
@@ -18,6 +19,7 @@ from reagent.optimizer.union import Optimizer__Union, classes
 from reagent.samplers.frechet import FrechetSort
 from reagent.training.ranking.helper import ips_clamp
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
+from torch.utils.data import DataLoader
 
 
 logging.basicConfig(level=logging.INFO)
@@ -37,26 +39,21 @@ frechet_sort_shape_list = [0.1, 0.5, 1.0]
 
 def create_trainer(
     seq2slate_net,
-    batch_size,
     learning_rate,
-    device,
     seq2slate_params,
     policy_gradient_interval,
 ):
-    use_gpu = False if device == torch.device("cpu") else True
     return Seq2SlateTrainer(
         seq2slate_net=seq2slate_net,
-        minibatch_size=batch_size,
-        parameters=seq2slate_params,
+        params=seq2slate_params,
         policy_optimizer=Optimizer__Union(SGD=classes["SGD"](lr=learning_rate)),
-        use_gpu=use_gpu,
         policy_gradient_interval=policy_gradient_interval,
         print_interval=1,
     )
 
 
 def create_seq2slate_transformer(
-    state_dim, candidate_num, candidate_dim, hidden_size, output_arch, device
+    state_dim, candidate_num, candidate_dim, hidden_size, output_arch
 ):
     return Seq2SlateTransformerNet(
         state_dim=state_dim,
@@ -69,7 +66,7 @@ def create_seq2slate_transformer(
         max_tgt_seq_len=candidate_num,
         output_arch=output_arch,
         temperature=0.5,
-    ).to(device)
+    )
 
 
 def create_on_policy_batch(
@@ -102,13 +99,11 @@ def create_on_policy_batch(
 def create_off_policy_batch(
     seq2slate, batch_size, state_dim, candidate_num, candidate_dim, device
 ):
-    state = torch.randn(batch_size, state_dim).to(device)
-    candidates = torch.randn(batch_size, candidate_num, candidate_dim).to(device)
-    reward = torch.rand(batch_size, 1).to(device)
-    action = torch.stack(
-        [torch.randperm(candidate_num).to(device) for _ in range(batch_size)]
-    )
-    logged_slate_prob = torch.rand(batch_size, 1).to(device) / 1e12
+    state = torch.randn(batch_size, state_dim)
+    candidates = torch.randn(batch_size, candidate_num, candidate_dim)
+    reward = torch.rand(batch_size, 1)
+    action = torch.stack([torch.randperm(candidate_num) for _ in range(batch_size)])
+    logged_slate_prob = torch.rand(batch_size, 1) / 1e12
     off_policy_batch = rlt.PreprocessedRankingInput.from_input(
         state=state,
         candidates=candidates,
@@ -192,15 +187,13 @@ class TestSeq2SlateTrainer(unittest.TestCase):
         seq2slate_params = Seq2SlateParameters(on_policy=on_policy)
 
         seq2slate_net = create_seq2slate_transformer(
-            state_dim, candidate_num, candidate_dim, hidden_size, output_arch, device
-        )
-        seq2slate_net_copy = copy.deepcopy(seq2slate_net)
-        seq2slate_net_copy_copy = copy.deepcopy(seq2slate_net)
+            state_dim, candidate_num, candidate_dim, hidden_size, output_arch
+        ).to(device)
+        seq2slate_net_copy = copy.deepcopy(seq2slate_net).to(device)
+        seq2slate_net_copy_copy = copy.deepcopy(seq2slate_net).to(device)
         trainer = create_trainer(
             seq2slate_net,
-            batch_size,
             learning_rate,
-            device,
             seq2slate_params,
             policy_gradient_interval,
         )
@@ -213,8 +206,14 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             rank_seed,
             device,
         )
-        for _ in range(policy_gradient_interval):
-            trainer.train(batch)
+        training_data = DataLoader([batch], collate_fn=lambda x: x[0])
+        pl_trainer = pl.Trainer(
+            max_epochs=policy_gradient_interval,
+            gpus=None if device == torch.device("cpu") else 1,
+            logger=False,
+        )
+        pl_trainer.fit(trainer, training_data)
+        seq2slate_net = trainer.seq2slate_net.to(device)
 
         # manual compute gradient
         torch.manual_seed(rank_seed)
@@ -283,15 +282,13 @@ class TestSeq2SlateTrainer(unittest.TestCase):
         seq2slate_params = Seq2SlateParameters(on_policy=on_policy)
 
         seq2slate_net = create_seq2slate_transformer(
-            state_dim, candidate_num, candidate_dim, hidden_size, output_arch, device
-        )
-        seq2slate_net_copy = copy.deepcopy(seq2slate_net)
-        seq2slate_net_copy_copy = copy.deepcopy(seq2slate_net)
+            state_dim, candidate_num, candidate_dim, hidden_size, output_arch
+        ).to(device)
+        seq2slate_net_copy = copy.deepcopy(seq2slate_net).to(device)
+        seq2slate_net_copy_copy = copy.deepcopy(seq2slate_net).to(device)
         trainer = create_trainer(
             seq2slate_net,
-            batch_size,
             learning_rate,
-            device,
             seq2slate_params,
             policy_gradient_interval,
         )
@@ -299,8 +296,14 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             seq2slate_net, batch_size, state_dim, candidate_num, candidate_dim, device
         )
 
-        for _ in range(policy_gradient_interval):
-            trainer.train(batch)
+        training_data = DataLoader([batch], collate_fn=lambda x: x[0])
+        pl_trainer = pl.Trainer(
+            max_epochs=policy_gradient_interval,
+            gpus=None if device == torch.device("cpu") else 1,
+            logger=False,
+        )
+        pl_trainer.fit(trainer, training_data)
+        seq2slate_net = trainer.seq2slate_net.to(device)
 
         # manual compute gradient
         ranked_per_seq_log_probs = seq2slate_net_copy(
@@ -354,14 +357,12 @@ class TestSeq2SlateTrainer(unittest.TestCase):
         )
 
         seq2slate_net = create_seq2slate_transformer(
-            state_dim, candidate_num, candidate_dim, hidden_size, output_arch, device
+            state_dim, candidate_num, candidate_dim, hidden_size, output_arch
         )
         seq2slate_net_copy = copy.deepcopy(seq2slate_net)
         trainer = create_trainer(
             seq2slate_net,
-            batch_size,
             learning_rate,
-            device,
             seq2slate_params,
             policy_gradient_interval,
         )
@@ -369,8 +370,9 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             seq2slate_net, batch_size, state_dim, candidate_num, candidate_dim, device
         )
 
-        for _ in range(policy_gradient_interval):
-            trainer.train(batch)
+        training_data = DataLoader([batch], collate_fn=lambda x: x[0])
+        pl_trainer = pl.Trainer(max_epochs=policy_gradient_interval, logger=False)
+        pl_trainer.fit(trainer, training_data)
 
         # manual compute gradient
         ranked_per_seq_probs = torch.exp(
@@ -409,7 +411,6 @@ class TestSeq2SlateTrainer(unittest.TestCase):
         state_dim = 1
         hidden_size = 32
         device = torch.device("cpu")
-        batch_size = 32
         learning_rate = 0.001
         policy_gradient_interval = 1
 
@@ -421,13 +422,11 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             ips_clamp=IPSClamp(clamp_method=clamp_method, clamp_max=clamp_max),
         )
         seq2slate_net = create_seq2slate_transformer(
-            state_dim, candidate_num, candidate_dim, hidden_size, output_arch, device
+            state_dim, candidate_num, candidate_dim, hidden_size, output_arch
         )
         trainer = create_trainer(
             seq2slate_net,
-            batch_size,
             learning_rate,
-            device,
             seq2slate_params,
             policy_gradient_interval,
         )
@@ -511,13 +510,11 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             on_policy=False,
         )
         seq2slate_net = create_seq2slate_transformer(
-            state_dim, candidate_num, candidate_dim, hidden_size, output_arch, device
+            state_dim, candidate_num, candidate_dim, hidden_size, output_arch
         )
         trainer = create_trainer(
             seq2slate_net,
-            batch_size,
             learning_rate,
-            device,
             seq2slate_params,
             policy_gradient_interval,
         )

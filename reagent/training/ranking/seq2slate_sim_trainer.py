@@ -7,14 +7,13 @@ from typing import List, Optional
 import numpy as np
 import reagent.core.types as rlt
 import torch
+import torch.nn as nn
 from reagent.core.dataclasses import field
 from reagent.core.parameters import Seq2SlateParameters
 from reagent.core.torch_utils import gather
-from reagent.core.tracker import observable
 from reagent.models.seq2slate import BaselineNet, Seq2SlateMode, Seq2SlateTransformerNet
 from reagent.optimizer.union import Optimizer__Union
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer
-from reagent.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)
@@ -59,16 +58,7 @@ def swap_dist(idx: List[int]):
     return swap_dist_in_slate(idx) + swap_dist_out_slate(idx)
 
 
-@observable(
-    train_ips_score=torch.Tensor,
-    train_clamped_ips_score=torch.Tensor,
-    train_baseline_loss=torch.Tensor,
-    train_logged_slate_rank_probs=torch.Tensor,
-    train_ips_ratio=torch.Tensor,
-    train_clamped_ips_ratio=torch.Tensor,
-    train_advantage=torch.Tensor,
-)
-class Seq2SlateSimulationTrainer(Trainer):
+class Seq2SlateSimulationTrainer(Seq2SlateTrainer):
     """
     Seq2Slate learned with simulation data, with the action
     generated randomly and the reward computed by a reward network
@@ -77,11 +67,11 @@ class Seq2SlateSimulationTrainer(Trainer):
     def __init__(
         self,
         seq2slate_net: Seq2SlateTransformerNet,
-        minibatch_size: int,
-        parameters: Seq2SlateParameters,
+        params: Seq2SlateParameters = field(  # noqa: B008
+            default_factory=Seq2SlateParameters
+        ),
         baseline_net: Optional[BaselineNet] = None,
         baseline_warmup_num_batches: int = 0,
-        use_gpu: bool = False,
         policy_optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
@@ -90,43 +80,34 @@ class Seq2SlateSimulationTrainer(Trainer):
         ),
         policy_gradient_interval: int = 1,
         print_interval: int = 100,
+        calc_cpe: bool = False,
+        reward_network: Optional[nn.Module] = None,
     ) -> None:
-        self.sim_param = parameters.simulation
-        assert self.sim_param is not None
-        # loaded when used
-        self.reward_name_and_net = {}
-        self.parameters = parameters
-        self.minibatch_size = minibatch_size
-        self.use_gpu = use_gpu
-        self.policy_gradient_interval = policy_gradient_interval
-        self.print_interval = print_interval
-        self.device = torch.device("cuda") if use_gpu else torch.device("cpu")
-        self.MAX_DISTANCE = (
-            seq2slate_net.max_src_seq_len * (seq2slate_net.max_src_seq_len - 1) / 2
-        )
-        self.trainer = Seq2SlateTrainer(
+        super().__init__(
             seq2slate_net,
-            minibatch_size,
-            self.parameters,
+            params=params,
             baseline_net=baseline_net,
             baseline_warmup_num_batches=baseline_warmup_num_batches,
-            use_gpu=use_gpu,
             policy_optimizer=policy_optimizer,
             baseline_optimizer=baseline_optimizer,
             policy_gradient_interval=policy_gradient_interval,
             print_interval=print_interval,
+            calc_cpe=calc_cpe,
+            reward_network=reward_network,
         )
-        self.seq2slate_net = self.trainer.seq2slate_net
-        self.baseline_net = self.trainer.baseline_net
-
-    def warm_start_components(self):
-        components = ["seq2slate_net"]
-        return components
+        self.sim_param = params.simulation
+        assert self.sim_param is not None
+        # loaded when used
+        self.reward_name_and_net = {}
+        self.MAX_DISTANCE = (
+            seq2slate_net.max_src_seq_len * (seq2slate_net.max_src_seq_len - 1) / 2
+        )
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
     @torch.no_grad()
     def _simulated_training_input(self, training_input: rlt.PreprocessedRankingInput):
+        device = training_input.state.float_features.device
         # precision error may cause invalid actions
         valid_output = False
         while not valid_output:
@@ -150,11 +131,12 @@ class Seq2SlateSimulationTrainer(Trainer):
         )
 
         if not self.reward_name_and_net:
+            use_gpu = True if device == torch.device("cuda") else False
             self.reward_name_and_net = _load_reward_net(
-                self.sim_param.reward_name_path, self.use_gpu
+                self.sim_param.reward_name_path, use_gpu
             )
 
-        sim_slate_reward = torch.zeros(batch_size, 1, device=self.device)
+        sim_slate_reward = torch.zeros(batch_size, 1, device=device)
         for name, reward_net in self.reward_name_and_net.items():
             weight = self.sim_param.reward_name_weight[name]
             power = self.sim_param.reward_name_power[name]
@@ -181,7 +163,7 @@ class Seq2SlateSimulationTrainer(Trainer):
                 torch.tensor(
                     # pyre-fixme[16]: `int` has no attribute `__iter__`.
                     [swap_dist(x.tolist()) for x in model_actions],
-                    device=self.device,
+                    device=device,
                 )
                 .unsqueeze(1)
                 .float()
@@ -195,7 +177,7 @@ class Seq2SlateSimulationTrainer(Trainer):
         on_policy_input = rlt.PreprocessedRankingInput.from_input(
             state=training_input.state.float_features,
             candidates=training_input.src_seq.float_features,
-            device=self.device,
+            device=device,
             # pyre-fixme[6]: Expected `Optional[torch.Tensor]` for 4th param but got
             #  `int`.
             # pyre-fixme[61]: `model_actions` may not be initialized here.
@@ -206,7 +188,7 @@ class Seq2SlateSimulationTrainer(Trainer):
         )
         return on_policy_input
 
-    def train(self, training_batch: rlt.PreprocessedRankingInput):
-        assert type(training_batch) is rlt.PreprocessedRankingInput
-        training_batch = self._simulated_training_input(training_batch)
-        return self.trainer.train(training_batch)
+    def training_step(self, batch: rlt.PreprocessedRankingInput, batch_idx: int):
+        assert type(batch) is rlt.PreprocessedRankingInput
+        training_batch = self._simulated_training_input(batch)
+        return super().training_step(training_batch, batch_idx)

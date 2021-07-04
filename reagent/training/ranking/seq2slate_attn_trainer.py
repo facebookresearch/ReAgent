@@ -28,7 +28,6 @@ class Seq2SlatePairwiseAttnTrainer(Trainer):
     def __init__(
         self,
         seq2slate_net: Seq2SlateTransformerNet,
-        minibatch_size: int = 1024,
         loss_reporter=None,
         use_gpu: bool = False,
         policy_optimizer: Optimizer__Union = field(  # noqa: B008
@@ -38,7 +37,6 @@ class Seq2SlatePairwiseAttnTrainer(Trainer):
         self.loss_reporter = loss_reporter
         self.use_gpu = use_gpu
         self.seq2slate_net = seq2slate_net
-        self.minibatch_size = minibatch_size
         self.minibatch = 0
         self.optimizer = policy_optimizer.make_optimizer_scheduler(
             self.seq2slate_net.parameters()
