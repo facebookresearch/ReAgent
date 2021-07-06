@@ -304,6 +304,8 @@ class DQNTrainer(DQNTrainerBaseLightning):
         return retval
 
     def validation_step(self, batch, batch_idx):
+        if isinstance(batch, dict):
+            batch = rlt.DiscreteDqnInput.from_dict(batch)
         rewards = self.boost_rewards(batch.reward, batch.action)
         discount_tensor = self.compute_discount_tensor(batch, rewards)
         td_loss = self.compute_td_loss(batch, rewards, discount_tensor)
