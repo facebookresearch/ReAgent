@@ -69,6 +69,7 @@ class TD3(ActorCriticBase):
     ) -> TD3Trainer:
         actor_net_builder = self.actor_net_builder.value
         actor_network = actor_net_builder.build_actor(
+            self.state_feature_config,
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],
         )
@@ -109,6 +110,7 @@ class TD3(ActorCriticBase):
         net_builder = self.actor_net_builder.value
         return net_builder.build_serving_module(
             trainer_module.actor_network,
+            self.state_feature_config,
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],
         )

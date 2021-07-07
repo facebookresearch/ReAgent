@@ -2,6 +2,7 @@
 
 from typing import List
 
+from reagent.core import types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import NormalizationData, param_hash
 from reagent.models.actor import GaussianFullyConnectedActor
@@ -34,6 +35,7 @@ class GaussianFullyConnected(ContinuousActorNetBuilder):
 
     def build_actor(
         self,
+        state_feature_config: rlt.ModelFeatureConfig,
         state_normalization_data: NormalizationData,
         action_normalization_data: NormalizationData,
     ) -> ModelBase:

@@ -299,12 +299,14 @@ class ActorWithPreprocessor(ModelBase):
         self,
         model: ModelBase,
         state_preprocessor: Preprocessor,
+        state_feature_config: rlt.ModelFeatureConfig,
         action_postprocessor: Optional[Postprocessor] = None,
         serve_mean_policy: bool = False,
     ):
         super().__init__()
         self.model = model
         self.state_preprocessor = state_preprocessor
+        self.state_feature_config = state_feature_config
         self.action_postprocessor = action_postprocessor
         self.serve_mean_policy = serve_mean_policy
 
@@ -335,6 +337,7 @@ class ActorPredictorWrapper(torch.jit.ScriptModule):
     def __init__(
         self,
         actor_with_preprocessor: ActorWithPreprocessor,
+        state_feature_config: rlt.ModelFeatureConfig,
         action_feature_ids: List[int] = _DEFAULT_FEATURE_IDS,
     ) -> None:
         """
