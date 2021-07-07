@@ -94,7 +94,7 @@ class ReinforceTrainer(ReAgentLightningModule):
                 offset_reinforcement, subtract_mean=self.subtract_mean
             )
         if self.offset_clamp_min:
-            offset_reinforcement = offset_reinforcement.clamp(min=0)  # pyre-ignore
+            offset_reinforcement = offset_reinforcement.clamp(min=0)
         if self.value_net is not None:
             if self.normalize:
                 raise RuntimeError(
