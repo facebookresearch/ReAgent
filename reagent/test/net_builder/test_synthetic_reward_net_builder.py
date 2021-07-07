@@ -3,6 +3,7 @@
 
 import unittest
 
+import numpy as np
 import numpy.testing as npt
 import torch
 from reagent.core import parameters as rlp
@@ -18,6 +19,9 @@ from reagent.net_builder.synthetic_reward.sequence_synthetic_reward import (
 )
 from reagent.net_builder.synthetic_reward.single_step_synthetic_reward import (
     SingleStepSyntheticReward,
+)
+from reagent.net_builder.synthetic_reward.transformer_synthetic_reward import (
+    TransformerSyntheticReward,
 )
 from reagent.net_builder.synthetic_reward_net_builder import SyntheticRewardNetBuilder
 from reagent.net_builder.unions import SyntheticRewardNetBuilder__Union
@@ -52,15 +56,15 @@ def _create_norm(dim, offset=0):
 
 def _create_input():
     state = torch.randn(SEQ_LEN, BATCH_SIZE, STATE_DIM)
-    valid_step = torch.tensor([[1], [4]])
-    action = torch.tensor(
-        [
-            [[0, 1], [1, 0]],
-            [[0, 1], [1, 0]],
-            [[1, 0], [0, 1]],
-            [[0, 1], [1, 0]],
-        ]
-    )
+    # generate valid_step with shape (BATCH_SIZE, 1), values ranging from [1, SEQ_LEN] (inclusive)
+    valid_step = torch.randint(1, SEQ_LEN + 1, size=(BATCH_SIZE, 1))
+    # create one-hot action value
+    action_label = torch.LongTensor(SEQ_LEN * BATCH_SIZE, 1) % ACTION_DIM
+    action = torch.FloatTensor(SEQ_LEN * BATCH_SIZE, ACTION_DIM)
+    action.zero_()
+    action.scatter_(1, action_label, 1)
+    action = action.reshape(SEQ_LEN, BATCH_SIZE, ACTION_DIM)
+
     input = rlt.MemoryNetworkInput(
         state=rlt.FeatureData(state),
         action=action,
@@ -141,13 +145,17 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
         ).value
         self._test_synthetic_reward_net_builder_discrete_actions(builder)
 
+    def test_transformer_synthetic_reward_net_builder_discrete_actions(
+        self,
+    ):
+        builder = SyntheticRewardNetBuilder__Union(
+            TransformerSyntheticReward=TransformerSyntheticReward()
+        ).value
+        self._test_synthetic_reward_net_builder_discrete_actions(builder)
+
     def _test_synthetic_reward_net_builder_discrete_actions(
         self, builder: SyntheticRewardNetBuilder
     ):
-        # pyre-fixme[28]: Unexpected keyword argument `SingleStepSyntheticReward`.
-        builder = SyntheticRewardNetBuilder__Union(
-            SingleStepSyntheticReward=SingleStepSyntheticReward()
-        ).value
         state_normalization_data = _create_norm(STATE_DIM)
         discrete_action_names = ["1", "2"]
         reward_net = builder.build_synthetic_reward_network(
@@ -205,6 +213,14 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
         ).value
         self._test_synthetic_reward_net_builder_continuous_actions(builder)
 
+    def test_transformer_synthetic_reward_net_builder_continuous_actions(
+        self,
+    ):
+        builder = SyntheticRewardNetBuilder__Union(
+            TransformerSyntheticReward=TransformerSyntheticReward()
+        ).value
+        self._test_synthetic_reward_net_builder_continuous_actions(builder)
+
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
     @torch.no_grad()
@@ -234,7 +250,7 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
         reward_net = builder.build_synthetic_reward_network(
             state_normalization_data,
             action_normalization_data=action_normalization_data,
-        )
+        ).eval()
         input = _create_input()
         preprocessed_input = _create_preprocessed_input(
             input, state_preprocessor, action_preprocessor
