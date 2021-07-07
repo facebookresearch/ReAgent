@@ -71,6 +71,7 @@ class SAC(ActorCriticBase):
     ) -> SACTrainer:
         actor_net_builder = self.actor_net_builder.value
         actor_network = actor_net_builder.build_actor(
+            self.state_feature_config,
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],
         )
@@ -120,6 +121,7 @@ class SAC(ActorCriticBase):
         assert isinstance(trainer_module, SACTrainer)
         actor_serving_module = self.actor_net_builder.value.build_serving_module(
             trainer_module.actor_network,
+            self.state_feature_config,
             normalization_data_map[NormalizationKey.STATE],
             normalization_data_map[NormalizationKey.ACTION],
             serve_mean_policy=self.serve_mean_policy,

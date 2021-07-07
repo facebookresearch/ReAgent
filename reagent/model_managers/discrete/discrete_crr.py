@@ -285,6 +285,7 @@ class DiscreteCRR(DiscreteDQNBase):
         net_builder = self.actor_net_builder.value
         return net_builder.build_serving_module(
             trainer_module.actor_network,
+            self.state_feature_config,
             normalization_data_map[NormalizationKey.STATE],
             action_feature_ids=list(range(len(self.action_names))),
         )

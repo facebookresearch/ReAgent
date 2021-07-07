@@ -3,10 +3,10 @@
 import abc
 from typing import List
 
+import reagent.core.types as rlt
 import torch
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.parameters import NormalizationData
-from reagent.core.registry_meta import RegistryMeta
 from reagent.models.base import ModelBase
 from reagent.prediction.predictor_wrapper import ActorWithPreprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
@@ -36,6 +36,7 @@ class DiscreteActorNetBuilder:
     def build_serving_module(
         self,
         actor: ModelBase,
+        state_feature_config: rlt.ModelFeatureConfig,
         state_normalization_data: NormalizationData,
         action_feature_ids: List[int],
     ) -> torch.nn.Module:
@@ -47,7 +48,8 @@ class DiscreteActorNetBuilder:
             state_normalization_data.dense_normalization_parameters, use_gpu=False
         )
         actor_with_preprocessor = ActorWithPreprocessor(
-            actor.cpu_model().eval(),
-            state_preprocessor,
+            actor.cpu_model().eval(), state_preprocessor, state_feature_config
         )
-        return ActorPredictorWrapper(actor_with_preprocessor, action_feature_ids)
+        return ActorPredictorWrapper(
+            actor_with_preprocessor, state_feature_config, action_feature_ids
+        )

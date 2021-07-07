@@ -3,6 +3,7 @@
 
 import unittest
 
+from reagent.core import types as rlt
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.parameters import NormalizationData, NormalizationParameters
 from reagent.net_builder import continuous_actor
@@ -43,8 +44,9 @@ class TestContinuousActorNetBuilder(unittest.TestCase):
                 for i in range(action_dim)
             }
         )
+        state_feature_config = rlt.ModelFeatureConfig()
         actor_network = builder.build_actor(
-            state_normalization_data, action_normalization_data
+            state_feature_config, state_normalization_data, action_normalization_data
         )
         x = actor_network.input_prototype()
         y = actor_network(x)
@@ -52,8 +54,12 @@ class TestContinuousActorNetBuilder(unittest.TestCase):
         log_prob = y.log_prob
         self.assertEqual(action.shape, (1, action_dim))
         self.assertEqual(log_prob.shape, (1, 1))
+        state_feature_config = rlt.ModelFeatureConfig()
         serving_module = builder.build_serving_module(
-            actor_network, state_normalization_data, action_normalization_data
+            actor_network,
+            state_feature_config,
+            state_normalization_data,
+            action_normalization_data,
         )
         self.assertIsInstance(serving_module, ActorPredictorWrapper)
 
