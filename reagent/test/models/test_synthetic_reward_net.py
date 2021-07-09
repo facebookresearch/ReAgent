@@ -9,6 +9,7 @@ from reagent.core import parameters as rlp
 from reagent.models.synthetic_reward import (
     SingleStepSyntheticRewardNet,
     SequenceSyntheticRewardNet,
+    TransformerSyntheticRewardNet,
     NGramFullyConnectedNetwork,
     NGramConvolutionalNetwork,
     SyntheticRewardNet,
@@ -173,4 +174,51 @@ class TestSyntheticReward(unittest.TestCase):
         assert dnn.out_features == 1
 
         output_activation = reward_net.export_mlp().output_activation
+        assert output_activation._get_name() == "LeakyReLU"
+
+    def test_transformer_synthetic_reward(self):
+        state_dim = 10
+        action_dim = 2
+        d_model = 64
+        nhead = 8
+        num_encoder_layers = 2
+        dim_feedforward = 64
+        dropout = 0.0
+        activation = "relu"
+        last_layer_activation = "leaky_relu"
+        layer_norm_eps = 1e-5
+        max_len = 10
+
+        net = TransformerSyntheticRewardNet(
+            state_dim=state_dim,
+            action_dim=action_dim,
+            d_model=d_model,
+            nhead=nhead,
+            num_encoder_layers=num_encoder_layers,
+            dim_feedforward=dim_feedforward,
+            dropout=dropout,
+            activation=activation,
+            last_layer_activation=last_layer_activation,
+            layer_norm_eps=layer_norm_eps,
+            max_len=max_len,
+        )
+
+        reward_net = SyntheticRewardNet(net)
+        export_net = reward_net.export_mlp()
+        transformer = export_net.transformer
+        assert export_net.state_dim == state_dim
+        assert export_net.action_dim == action_dim
+        assert export_net.d_model == d_model
+        assert export_net.nhead == nhead
+        assert export_net.dim_feedforward == dim_feedforward
+        assert export_net.dropout == dropout
+        assert export_net.activation == activation
+        assert export_net.layer_norm_eps == layer_norm_eps
+
+        assert transformer.num_layers == num_encoder_layers
+        dnn_out = export_net.fc_out
+        assert dnn_out.in_features == d_model
+        assert dnn_out.out_features == 1
+
+        output_activation = export_net.output_activation
         assert output_activation._get_name() == "LeakyReLU"
