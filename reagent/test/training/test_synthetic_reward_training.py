@@ -11,6 +11,7 @@ from reagent.core import types as rlt
 from reagent.models.synthetic_reward import (
     SyntheticRewardNet,
     SingleStepSyntheticRewardNet,
+    TransformerSyntheticRewardNet,
     NGramFullyConnectedNetwork,
     NGramConvolutionalNetwork,
     SequenceSyntheticRewardNet,
@@ -73,7 +74,6 @@ def create_sequence_data(state_dim, action_dim, seq_len, batch_size, num_batches
         feature_mask = (feature_mask >= (seq_len - valid_step)).float()
         assert feature_mask.shape == (batch_size, seq_len), feature_mask.shape
         feature_mask = feature_mask.transpose(0, 1).unsqueeze(-1)
-
         assert feature_mask.shape == (seq_len, batch_size, 1), feature_mask.shape
 
         feature = torch.cat((state, action), dim=2)
@@ -99,9 +99,11 @@ def create_sequence_data(state_dim, action_dim, seq_len, batch_size, num_batches
         reward_matrix = torch.matmul(left_shifted + right_shifted, weight).transpose(
             0, 1
         )
+
         mask = torch.arange(seq_len).repeat(batch_size, 1)
         mask = (mask >= (seq_len - valid_step)).float()
         reward = (reward_matrix * mask).sum(dim=1).reshape(-1, 1)
+
         data[i] = rlt.MemoryNetworkInput(
             state=rlt.FeatureData(state),
             action=action,
@@ -282,7 +284,9 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         )
         threshold = 0.2
         avg_eval_loss = train_and_eval(trainer, data)
-        assert avg_eval_loss < threshold
+        assert avg_eval_loss < threshold, "loss = {} larger than threshold {}".format(
+            avg_eval_loss, threshold
+        )
 
     def test_lstm_parametric_reward(self):
         """
@@ -321,3 +325,55 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         threshold = 0.2
         avg_eval_loss = train_and_eval(trainer, data)
         assert avg_eval_loss < threshold
+
+    def test_transformer_parametric_reward(self):
+        """
+        Reward at each step is a linear function of states and actions in a
+        context window around the step.
+
+        However, we can only observe aggregated reward at the last step
+        """
+        state_dim = 10
+        action_dim = 2
+        seq_len = 5
+        batch_size = 512
+        num_batches = 10000
+        d_model = 64
+        nhead = 8
+        num_encoder_layers = 1
+        dim_feedforward = 64
+        last_layer_activation = "linear"
+        max_len = seq_len + 1
+        reward_net = SyntheticRewardNet(
+            TransformerSyntheticRewardNet(
+                state_dim=state_dim,
+                action_dim=action_dim,
+                d_model=d_model,
+                nhead=nhead,
+                num_encoder_layers=num_encoder_layers,
+                dim_feedforward=dim_feedforward,
+                dropout=0.0,
+                activation="relu",
+                last_layer_activation=last_layer_activation,
+                layer_norm_eps=1e-5,
+                max_len=max_len,
+            )
+        )
+        optimizer = Optimizer__Union(Adam=classes["Adam"]())
+        trainer = RewardNetTrainer(reward_net, optimizer)
+        trainer.set_reporter(
+            RewardNetworkReporter(
+                trainer.loss_type,
+                str(reward_net),
+            )
+        )
+        weight, data = create_sequence_data(
+            state_dim, action_dim, seq_len, batch_size, num_batches
+        )
+
+        print("data info:", type(data))
+        threshold = 0.2
+        avg_eval_loss = train_and_eval(trainer, data)
+        assert (
+            avg_eval_loss < threshold
+        ), "loss = {:.4f} larger than threshold {}".format(avg_eval_loss, threshold)

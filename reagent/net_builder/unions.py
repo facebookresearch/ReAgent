@@ -38,6 +38,9 @@ from .synthetic_reward.sequence_synthetic_reward import (
 from .synthetic_reward.single_step_synthetic_reward import (
     SingleStepSyntheticReward as SingleStepSyntheticRewardType,
 )
+from .synthetic_reward.transformer_synthetic_reward import (
+    TransformerSyntheticReward as TransformerSyntheticRewardType,
+)
 from .value.fully_connected import FullyConnected as FullyConnectedValueType
 from .value.seq2reward_rnn import Seq2RewardNetBuilder as Seq2RewardNetBuilderType
 
@@ -89,3 +92,4 @@ class SyntheticRewardNetBuilder__Union(TaggedUnion):
     NGramSyntheticReward: Optional[NGramSyntheticRewardType] = None
     NGramConvNetSyntheticReward: Optional[NGramConvNetSyntheticRewardType] = None
     SequenceSyntheticReward: Optional[SequenceSyntheticRewardType] = None
+    TransformerSyntheticReward: Optional[TransformerSyntheticRewardType] = None
