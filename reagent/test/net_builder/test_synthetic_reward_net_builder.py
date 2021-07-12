@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import unittest
+
 import numpy.testing as npt
 import torch
 from reagent.core import parameters as rlp
