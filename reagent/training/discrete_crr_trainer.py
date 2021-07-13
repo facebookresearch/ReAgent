@@ -53,6 +53,8 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         use_target_actor: bool = False,
         actions: List[str] = field(default_factory=list),  # noqa: B008
         delayed_policy_update: int = 1,
+        entropy_coeff: float = 0.0,
+        clip_limit: float = 10.0,
     ) -> None:
         """
         Args:
@@ -69,6 +71,16 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
             use_target_actor (optional): specifies whether target actor is used
             delayed_policy_update (optional): the ratio of q network updates
                 to target and policy network updates
+            entropy_coeff: coefficient for entropy regularization
+            clip_limit: threshold for importance sampling when compute entropy
+                regularization using offline samples
+
+            Explaination of entropy regularization:
+            Entropy regularization punishes deterministic policy and encourages
+            "unifom" policy. Entropy regularized MDP can be viewed as add the term
+            (-entropy_coeff * pi_ratio * log_pi_b) to each reward. For detailed
+            formulation of entropy regularized please see eq.(9) & eq.(10) in
+            https://arxiv.org/pdf/2007.06558.pdf
         """
         super().__init__(
             rl,
@@ -114,6 +126,9 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
             q_network_cpe_target,
             optimizer=q_network_optimizer,
         )
+
+        self.entropy_coeff = entropy_coeff
+        self.clip_limit = clip_limit
 
     @property
     def q_network(self):
@@ -203,7 +218,9 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         q_loss = F.mse_loss(q_values, target_q_values)
         return q_loss
 
-    def compute_actor_loss(self, batch_idx, action, all_q_values, all_action_scores):
+    def compute_actor_loss(
+        self, batch_idx, action, logged_action_probs, all_q_values, all_action_scores
+    ):
         # Only update actor network after a fixed number of Q updates
         if batch_idx % self.delayed_policy_update != 0:
             # Yielding None prevents the actor network from updating
@@ -246,6 +263,12 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         # actor (abbreviated as pi) to the actions of the behavioral (b) policy
         log_pi_b = dist.log_prob(logged_action_idxs.squeeze(1)).unsqueeze(1)
 
+        # entropy regularization
+        pi_t = (dist.probs * action).sum(dim=1, keepdim=True)
+        pi_b = logged_action_probs.view(pi_t.shape)
+        pi_ratio = torch.clip(pi_t / pi_b, min=1e-4, max=self.clip_limit)
+        entropy = (pi_ratio * log_pi_b).mean()
+
         # Note: the CRR loss for each datapoint (and the magnitude of the corresponding
         # parameter update) is proportional to log_pi_b * weight. Therefore, as mentioned
         # at the top of Section 3.2, the actor on the one hand has incentive to assign
@@ -253,8 +276,9 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         # the magnitude of log_pi_b), but on the other hand it gives preference to doing
         # this on datapoints where weight is large (i.e., those points on which the
         # Q-value of the observed action is large).
-        actor_loss = (-log_pi_b * weight.detach()).mean()
-        return actor_loss
+        actor_loss_without_reg = (-log_pi_b * weight.detach()).mean()
+        actor_loss = (-log_pi_b * weight.detach()).mean() + self.entropy_coeff * entropy
+        return actor_loss_without_reg, actor_loss
 
     def train_step_gen(self, training_batch: rlt.DiscreteDqnInput, batch_idx: int):
         """
@@ -297,9 +321,10 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         # Note: action_dim (the length of each row of the actor_action
         # matrix obtained below) is assumed to be > 1.
         all_action_scores = self.actor_network(state).action
+        logged_action_probs = training_batch.extras.action_probability
 
-        actor_loss = self.compute_actor_loss(
-            batch_idx, action, all_q_values, all_action_scores
+        actor_loss_without_reg, actor_loss = self.compute_actor_loss(
+            batch_idx, action, logged_action_probs, all_q_values, all_action_scores
         )
         # self.reporter.log(
         #     actor_loss=actor_loss,
@@ -307,6 +332,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         # )
 
         # Show actor_loss on the progress bar and also in Tensorboard graphs
+        self.log("actor_loss_without_reg", actor_loss_without_reg, prog_bar=True)
         self.log("actor_loss", actor_loss, prog_bar=True)
         yield actor_loss
 
@@ -373,13 +399,15 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         )
         all_q_values = self.q1_network(state)
         all_action_scores = self.actor_network(state).action
+        logged_action_probs = batch.extras.action_probability
 
         # loss to log
-        actor_loss = self.compute_actor_loss(
-            batch_idx, action, all_q_values, all_action_scores
+        actor_loss_without_reg, actor_loss = self.compute_actor_loss(
+            batch_idx, action, logged_action_probs, all_q_values, all_action_scores
         )
         td_loss = self.compute_td_loss(self.q1_network, state, action, target_q_values)
 
+        self.log("eval_actor_loss_without_reg", actor_loss_without_reg)
         self.log("eval_actor_loss", actor_loss)
         self.log("eval_td_loss", td_loss)
 
