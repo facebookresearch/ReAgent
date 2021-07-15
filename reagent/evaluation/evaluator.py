@@ -20,7 +20,6 @@ from reagent.evaluation.weighted_sequential_doubly_robust_estimator import (
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 def get_tensor(x, dtype=None):

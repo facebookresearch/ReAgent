@@ -9,7 +9,6 @@ from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class RegistryMeta(abc.ABCMeta):

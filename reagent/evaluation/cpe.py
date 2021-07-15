@@ -11,7 +11,6 @@ from reagent.core.tensorboardX import SummaryWriterContext
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class CpeEstimate(NamedTuple):

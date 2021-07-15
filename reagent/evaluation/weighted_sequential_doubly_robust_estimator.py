@@ -12,7 +12,6 @@ from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class WeightedSequentialDoublyRobustEstimator:
