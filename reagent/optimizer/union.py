@@ -13,7 +13,6 @@ from .utils import is_torch_optimizer
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 def get_torch_optimizers() -> List[str]:

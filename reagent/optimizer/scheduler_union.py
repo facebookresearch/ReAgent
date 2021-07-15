@@ -14,7 +14,6 @@ from .utils import is_torch_lr_scheduler
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 cannot_be_inferred_modules = [cannot_be_inferred]

@@ -14,7 +14,6 @@ from torch import Tensor
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 DEFAULT_FRAC_TRAIN = 0.4

@@ -21,7 +21,6 @@ from reagent.training.utils import rescale_actions
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 # This is here to make typechecker happpy, sigh

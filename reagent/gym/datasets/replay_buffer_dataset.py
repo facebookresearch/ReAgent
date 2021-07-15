@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 from typing import Optional, Callable
 
 import torch
@@ -11,6 +12,8 @@ from reagent.gym.preprocessors import (
 )
 from reagent.gym.types import Transition, Trajectory
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
+
+logger = logging.getLogger(__name__)
 
 
 class ReplayBufferDataset(torch.utils.data.IterableDataset):
@@ -135,13 +138,8 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
 
             rewards.append(episode_reward_sum)
             mdp_id += 1
-            print()
-            print(
-                "Training episode: "
-                + str(mdp_id)
-                + ", total episode reward = "
-                + str(episode_reward_sum)
+            logger.info(
+                f"Training episode: {mdp_id}, total episode reward = {episode_reward_sum}"
             )
 
-        print("Episode rewards during training:")
-        print(rewards)
+        logger.info(f"Episode rewards during training: {rewards}")
