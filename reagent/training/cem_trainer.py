@@ -12,9 +12,10 @@ import logging
 from typing import List
 
 import reagent.core.types as rlt
+import torch.nn as nn
 from reagent.core.parameters import CEMTrainerParameters
 from reagent.models.cem_planner import CEMPlannerNetwork
-from reagent.training.rl_trainer_pytorch import RLTrainer
+from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
 
@@ -29,32 +30,20 @@ def print_mdnrnn_losses(minibatch, model_index, losses) -> None:
     )
 
 
-# TODO: Convert CEMTrainer to PytorchLightning
-class CEMTrainer(RLTrainer):
+class CEMTrainer(ReAgentLightningModule):
     def __init__(
         self,
         cem_planner_network: CEMPlannerNetwork,
         world_model_trainers: List[MDNRNNTrainer],
         parameters: CEMTrainerParameters,
-        use_gpu: bool = False,
     ) -> None:
-        super().__init__(parameters.rl, use_gpu=use_gpu)
+        super().__init__()
         self.cem_planner_network = cem_planner_network
-        self.world_model_trainers = world_model_trainers
-        self.optimizers = []
-        for trainer in self.world_model_trainers:
-            self.optimizers.append(trainer.configure_optimizers()[0])
+        self.world_model_trainers = nn.ModuleList(world_model_trainers)
 
-    def train(self, training_batch: rlt.MemoryNetworkInput) -> None:
-        # batch_idx is not used in MDNRNNTrainer
-        batch_idx_placeholder = 0
-        for i, trainer in enumerate(self.world_model_trainers):
-            optimizer = self.optimizers[i]
-            loss = next(trainer.train_step_gen(training_batch, batch_idx_placeholder))
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            # TODO: report losses instead of printing them
-            # print_mdnrnn_losses(self.minibatch, i, losses)
+    def configure_optimizers(self):
+        return [o for t in self.world_model_trainers for o in t.configure_optimizers()]
 
-        self.minibatch += 1
+    def train_step_gen(self, training_batch: rlt.MemoryNetworkInput, batch_idx: int):
+        for t in self.world_model_trainers:
+            yield from t.train_step_gen(training_batch, batch_idx)

@@ -5,16 +5,14 @@ import os
 import pprint
 import unittest
 import uuid
-from typing import Optional, Dict, Any
+from typing import Optional
 
 import numpy as np
 import pytest
 import pytorch_lightning as pl
 import torch
 from parameterized import parameterized
-from reagent.core.tensorboardX import summary_writer_context
 from reagent.gym.agents.agent import Agent
-from reagent.gym.agents.post_episode import train_post_episode
 from reagent.gym.datasets.episodic_dataset import (
     EpisodicDataset,
 )
@@ -23,16 +21,11 @@ from reagent.gym.envs import Env__Union
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.random_policies import make_random_policy_for_env
-from reagent.gym.runners.gymrunner import evaluate_for_n_episodes, run_episode
-from reagent.gym.types import PostEpisode, PostStep
+from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.model_managers.union import ModelManager__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.test.base.horizon_test_base import HorizonTestBase
-from reagent.training.trainer import Trainer
-from reagent.workflow.types import RewardOptions
-from torch.utils.tensorboard import SummaryWriter
-from tqdm import trange
 
 
 # for seeding the environment
@@ -149,42 +142,6 @@ class TestGym(HorizonTestBase):
             use_gpu=False,
         )
         logger.info(f"{name} passes!")
-
-
-def train_policy(
-    env: EnvWrapper,
-    training_policy: Policy,
-    num_train_episodes: int,
-    post_step: Optional[PostStep] = None,
-    post_episode: Optional[PostEpisode] = None,
-    use_gpu: bool = False,
-) -> np.ndarray:
-    device = torch.device("cuda") if use_gpu else torch.device("cpu")
-    agent = Agent.create_for_env(
-        env,
-        policy=training_policy,
-        post_transition_callback=post_step,
-        post_episode_callback=post_episode,
-        device=device,
-    )
-    running_reward = 0
-    writer = SummaryWriter()
-    with summary_writer_context(writer):
-        train_rewards = []
-        with trange(num_train_episodes, unit=" epoch") as t:
-            for i in t:
-                # Note: run_episode also performs a training step for the agent, if specified in post_step
-                trajectory = run_episode(env=env, agent=agent, mdp_id=i, max_steps=200)
-                ep_reward = trajectory.calculate_cumulative_reward()
-                train_rewards.append(ep_reward)
-                running_reward *= REWARD_DECAY
-                running_reward += (1 - REWARD_DECAY) * ep_reward
-                t.set_postfix(reward=running_reward)
-
-    logger.info("============Train rewards=============")
-    logger.info(train_rewards)
-    logger.info(f"average: {np.mean(train_rewards)};\tmax: {np.max(train_rewards)}")
-    return np.array(train_rewards)
 
 
 def eval_policy(
@@ -340,28 +297,17 @@ def run_test_online_episode(
 
     agent = Agent.create_for_env(env, policy, device=device)
 
-    if isinstance(trainer, pl.LightningModule):
-        pl_trainer = pl.Trainer(
-            max_epochs=1,
-            gpus=int(use_gpu),
-            deterministic=True,
-            default_root_dir=f"lightning_log_{str(uuid.uuid4())}",
-        )
-        dataset = EpisodicDataset(
-            env=env, agent=agent, num_episodes=num_train_episodes, seed=SEED
-        )
-        data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
-        pl_trainer.fit(trainer, data_loader)
-    else:
-        post_episode_callback = train_post_episode(env, trainer, use_gpu)
-        _ = train_policy(
-            env,
-            policy,
-            num_train_episodes,
-            post_step=None,
-            post_episode=post_episode_callback,
-            use_gpu=use_gpu,
-        )
+    pl_trainer = pl.Trainer(
+        max_epochs=1,
+        gpus=int(use_gpu),
+        deterministic=True,
+        default_root_dir=f"lightning_log_{str(uuid.uuid4())}",
+    )
+    dataset = EpisodicDataset(
+        env=env, agent=agent, num_episodes=num_train_episodes, seed=SEED
+    )
+    data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
+    pl_trainer.fit(trainer, data_loader)
 
     eval_rewards = evaluate_for_n_episodes(
         n=num_eval_episodes,
@@ -370,43 +316,6 @@ def run_test_online_episode(
         max_steps=env.max_steps,
         num_processes=1,
     ).squeeze(1)
-    assert (
-        eval_rewards.mean() >= passing_score_bar
-    ), f"Eval reward is {eval_rewards.mean()}, less than < {passing_score_bar}.\n"
-
-
-def run_test_episode_buffer(
-    env: EnvWrapper,
-    policy: Policy,
-    trainer: Trainer,
-    num_train_episodes: int,
-    passing_score_bar: float,
-    num_eval_episodes: int,
-    use_gpu: bool = False,
-):
-    pl.seed_everything(SEED)
-    env.seed(SEED)
-    env.action_space.seed(SEED)
-
-    post_episode_callback = train_post_episode(env, trainer, use_gpu)
-    train_rewards = train_policy(
-        env,
-        policy,
-        num_train_episodes,
-        post_step=None,
-        post_episode=post_episode_callback,
-        use_gpu=use_gpu,
-    )
-
-    # Check whether the max score passed the score bar; we explore during training
-    # the return could be bad (leading to flakiness in C51 and QRDQN).
-    assert np.max(train_rewards) >= passing_score_bar, (
-        f"max reward ({np.max(train_rewards)}) after training for "
-        f"{len(train_rewards)} episodes is less than < {passing_score_bar}.\n"
-    )
-
-    serving_policy = policy
-    eval_rewards = eval_policy(env, serving_policy, num_eval_episodes, serving=False)
     assert (
         eval_rewards.mean() >= passing_score_bar
     ), f"Eval reward is {eval_rewards.mean()}, less than < {passing_score_bar}.\n"
