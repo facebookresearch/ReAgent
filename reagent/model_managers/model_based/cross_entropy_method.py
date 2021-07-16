@@ -65,6 +65,7 @@ class CrossEntropyMethod(WorldModelBase):
         normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
     ) -> Policy:
         assert isinstance(trainer_module, CEMTrainer)
+        # pyre-fixme[16]: `CrossEntropyMethod` has no attribute `discrete_action`.
         return CEMPolicy(trainer_module.cem_planner_network, self.discrete_action)
 
     def build_trainer(
