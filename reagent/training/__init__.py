@@ -16,11 +16,9 @@ from reagent.training.reagent_lightning_module import (
 )
 from reagent.training.reinforce_trainer import ReinforceTrainer
 from reagent.training.reward_network_trainer import RewardNetTrainer
-from reagent.training.rl_trainer_pytorch import RLTrainer
 from reagent.training.sac_trainer import SACTrainer
 from reagent.training.slate_q_trainer import SlateQTrainer
 from reagent.training.td3_trainer import TD3Trainer
-from reagent.training.trainer import Trainer
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
 from .parameters import (
@@ -43,7 +41,6 @@ __all__ = [
     "BanditRewardNetTrainer",
     "C51Trainer",
     "CEMTrainer",
-    "RLTrainer",
     "DQNTrainer",
     "MultiStageTrainer",
     "MDNRNNTrainer",
@@ -66,7 +63,6 @@ __all__ = [
     "Seq2SlateTrainerParameters",
     "ReAgentLightningModule",
     "StoppingEpochCallback",
-    "Trainer",
     "ReinforceTrainer",
     "ReinforceTrainerParameters",
     "PPOTrainer",

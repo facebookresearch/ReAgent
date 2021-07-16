@@ -10,7 +10,7 @@ from reagent.core.dataclasses import field
 from reagent.core.parameters import RLParameters
 from reagent.optimizer import Optimizer__Union, SoftUpdate
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
-from reagent.training.rl_trainer_pytorch import RLTrainerMixin, RLTrainer
+from reagent.training.rl_trainer_pytorch import RLTrainerMixin
 
 
 class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
@@ -203,7 +203,7 @@ class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
     def argmax_with_mask(self, q_values, possible_actions_mask):
         # Set q-values of impossible actions to a very large negative number.
         q_values = q_values.reshape(possible_actions_mask.shape)
-        q_values = q_values + RLTrainer.ACTION_NOT_POSSIBLE_VAL * (
+        q_values = q_values + RLTrainerMixin.ACTION_NOT_POSSIBLE_VAL * (
             1 - possible_actions_mask
         )
         return q_values.argmax(1)

@@ -7,9 +7,7 @@ import unittest
 import numpy.testing as npt
 import torch
 import torch.nn as nn
-from reagent.core.parameters import RLParameters
 from reagent.models.no_soft_update_embedding import NoSoftUpdateEmbedding
-from reagent.training.rl_trainer_pytorch import RLTrainer
 
 
 class Model(nn.Module):
@@ -43,11 +41,28 @@ class TestNoSoftUpdteEmbedding(unittest.TestCase):
         self.assertEqual(1, len(params))
         param = params[0].detach().numpy()
 
-        trainer = RLTrainer(rl_parameters=RLParameters(), use_gpu=False)
-        trainer._soft_update(model, target_model, 0.1)
+        self._soft_update(model, target_model, 0.1)
 
         target_params = list(target_model.parameters())
         self.assertEqual(1, len(target_params))
         target_param = target_params[0].detach().numpy()
 
         npt.assert_array_equal(target_param, param)
+
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
+    @torch.no_grad()
+    def _soft_update(self, network, target_network, tau) -> None:
+        """Target network update logic as defined in DDPG paper
+        updated_params = tau * network_params + (1 - tau) * target_network_params
+        :param network network with parameters to include in soft update
+        :param target_network target network with params to soft update
+        :param tau hyperparameter to control target tracking speed
+        """
+        for t_param, param in zip(target_network.parameters(), network.parameters()):
+            if t_param is param:
+                # Skip soft-updating when the target network shares the parameter with
+                # the network being train.
+                continue
+            new_param = tau * param.data + (1.0 - tau) * t_param.data
+            t_param.data.copy_(new_param)

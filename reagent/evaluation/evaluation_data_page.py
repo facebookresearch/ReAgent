@@ -17,9 +17,8 @@ from reagent.model_utils.seq2slate_utils import Seq2SlateMode
 from reagent.models.seq2slate import Seq2SlateTransformerNet
 
 if TYPE_CHECKING:
-    from reagent.training import ParametricDQNTrainer
+    from reagent.training import ParametricDQNTrainer, ReAgentLightningModule
     from reagent.training.dqn_trainer import DQNTrainer
-    from reagent.training.trainer import Trainer
 
 
 logger = logging.getLogger(__name__)
@@ -53,7 +52,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
     def create_from_training_batch(
         cls,
         tdb: rlt.PreprocessedRankingInput,
-        trainer: Trainer,
+        trainer: ReAgentLightningModule,
         reward_network: Optional[nn.Module] = None,
     ):
         if isinstance(tdb, rlt.DiscreteDqnInput):

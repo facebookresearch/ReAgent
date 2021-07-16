@@ -67,7 +67,6 @@ class CrossEntropyMethod(WorldModelBase):
         assert isinstance(trainer_module, CEMTrainer)
         return CEMPolicy(trainer_module.cem_planner_network, self.discrete_action)
 
-    # pyre-fixme
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],
@@ -143,5 +142,4 @@ class CrossEntropyMethod(WorldModelBase):
             cem_planner_network=cem_planner_network,
             world_model_trainers=world_model_trainers,
             parameters=self.trainer_param,
-            use_gpu=use_gpu,
         )
