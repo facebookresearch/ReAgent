@@ -68,10 +68,6 @@ else:
             if USE_VANILLA_DATACLASS:
                 try:
                     post_init_post_parse = cls.__dict__["__post_init_post_parse__"]
-                    logger.info(
-                        f"Setting {cls.__name__}.__post_init__ to its "
-                        "__post_init_post_parse__"
-                    )
                     cls.__post_init__ = post_init_post_parse
                 except KeyError:
                     pass

@@ -134,7 +134,7 @@ class MapIDListFeatures:
         assert set(id_list_keys).intersection(set(id_score_list_keys)) == set()
         self.feature_config = feature_config
         self.sparse_preprocessor = make_sparse_preprocessor(
-            feature_config=feature_config, device=device
+            feature_config=feature_config, device=device, jit_scripted=False
         )
 
     def __call__(self, data):

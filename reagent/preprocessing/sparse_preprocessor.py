@@ -31,7 +31,7 @@ def map_id_score_list(
 
 
 def make_sparse_preprocessor(
-    feature_config: rlt.ModelFeatureConfig, device: torch.device
+    feature_config: rlt.ModelFeatureConfig, device: torch.device, jit_scripted=True
 ):
     """Helper to initialize, for scripting SparsePreprocessor"""
     id2name: Dict[int, str] = feature_config.id2name
@@ -41,7 +41,11 @@ def make_sparse_preprocessor(
         ].id2index
         for fid in feature_config.id2config
     }
-    return torch.jit.script(SparsePreprocessor(id2name, id2mapping, device))
+    sparse_preprocessor = SparsePreprocessor(id2name, id2mapping, device)
+    if jit_scripted:
+        return torch.jit.script(sparse_preprocessor)
+    else:
+        return sparse_preprocessor
 
 
 class SparsePreprocessor(torch.nn.Module):
