@@ -29,6 +29,19 @@ class ProblemDomain(enum.Enum):
     MDN_RNN = "mdn_rnn"
 
 
+class SlateOptMethod(enum.Enum):
+    GREEDY = "greedy"
+    TOP_K = "top_k"
+    EXACT = "exact"
+
+
+@dataclass(frozen=True)
+class SlateOptParameters(BaseDataClass):
+    __hash__ = param_hash
+
+    method: SlateOptMethod = SlateOptMethod.TOP_K
+
+
 @dataclass(frozen=True)
 class RLParameters(BaseDataClass):
     __hash__ = param_hash

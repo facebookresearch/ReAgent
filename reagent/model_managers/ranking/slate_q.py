@@ -60,6 +60,7 @@ class SlateQ(SlateQBase):
         return SlateQTrainer(
             q_network=q_network,
             q_network_target=q_network_target,
+            slate_size=self.slate_size,
             # pyre-fixme[16]: `SlateQTrainerParameters` has no attribute `asdict`.
             **self.trainer_param.asdict(),
         )
