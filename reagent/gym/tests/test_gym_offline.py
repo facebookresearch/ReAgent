@@ -4,13 +4,16 @@ import logging
 import os
 import pprint
 import unittest
+import uuid
 
 import numpy as np
 import pytest
+import pytorch_lightning as pl
 import torch
 from parameterized import parameterized
 from reagent.core.tensorboardX import summary_writer_context
 from reagent.gym.agents.agent import Agent
+from reagent.gym.datasets.replay_buffer_dataset import OfflineReplayBufferDataset
 from reagent.gym.envs import Gym
 from reagent.gym.policies.random_policies import make_random_policy_for_env
 from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
@@ -82,6 +85,11 @@ def evaluate_cem(env, manager, trainer_module, num_eval_episodes: int):
     )
 
 
+def identity_collate(batch):
+    assert isinstance(batch, list) and len(batch) == 1, f"Got {batch}"
+    return batch[0]
+
+
 def run_test_offline(
     env_name: str,
     model: ModelManager__Union,
@@ -121,18 +129,22 @@ def run_test_offline(
     )
 
     device = torch.device("cuda") if use_gpu else None
-    # pyre-fixme[6]: Expected `device` for 2nd param but got `Optional[torch.device]`.
-    trainer_preprocessor = make_replay_buffer_trainer_preprocessor(trainer, device, env)
-
-    writer = SummaryWriter()
-    with summary_writer_context(writer):
-        for epoch in range(num_train_epochs):
-            logger.info(f"Evaluating before epoch {epoch}: ")
-            eval_rewards = evaluate_cem(env, manager, trainer, 1)
-            for _ in tqdm(range(num_batches_per_epoch)):
-                train_batch = replay_buffer.sample_transition_batch()
-                preprocessed_batch = trainer_preprocessor(train_batch)
-                trainer.train(preprocessed_batch)
+    dataset = OfflineReplayBufferDataset.create_for_trainer(
+        trainer,
+        env,
+        replay_buffer,
+        batch_size=minibatch_size,
+        num_batches=num_batches_per_epoch,
+        device=device,
+    )
+    data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
+    pl_trainer = pl.Trainer(
+        max_epochs=num_train_epochs,
+        gpus=int(use_gpu),
+        deterministic=True,
+        default_root_dir=f"lightning_log_{str(uuid.uuid4())}",
+    )
+    pl_trainer.fit(trainer, data_loader)
 
     logger.info(f"Evaluating after training for {num_train_epochs} epochs: ")
     eval_rewards = evaluate_cem(env, manager, trainer, num_eval_episodes)
