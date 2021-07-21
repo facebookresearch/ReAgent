@@ -21,6 +21,7 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         self,
         q_network,
         q_network_target,
+        slate_size,
         # Start SlateQTrainerParameters
         rl: rlp.RLParameters = field(  # noqa: B008
             default_factory=lambda: rlp.RLParameters(maxq_learning=False)
@@ -28,6 +29,7 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
+        slate_opt_parameters: Optional[rlp.SlateOptParameters] = None,
         discount_time_scale: Optional[float] = None,
         single_selection: bool = True,
         minibatch_size: int = 1024,
@@ -38,6 +40,7 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         """
         Args:
             q_network: states, action -> q-value
+            slate_size(int): a fixed slate size
             rl (optional): an instance of the RLParameter class, which
                 defines relevant hyperparameters
             optimizer (optional): the optimizer class and
@@ -58,6 +61,9 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         self.q_network = q_network
         self.q_network_target = q_network_target
         self.q_network_optimizer = optimizer
+
+        self.slate_size = slate_size
+        self.slate_opt_parameters = slate_opt_parameters
 
     def configure_optimizers(self):
         optimizers = []
@@ -104,6 +110,44 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
             state.repeat_interleave(slate_size, dim=0), slate.as_feature_data()
         ).view(batch_size, slate_size)
 
+    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
+    #  its type `no_grad` is not callable.
+    @torch.no_grad()
+    def _get_maxq_next_action(self, next_state: rlt.FeatureData) -> torch.Tensor:
+        """Get the next action list based on the slate optimization strategy."""
+        slate_opt_parameters = self.slate_opt_parameters
+        assert slate_opt_parameters is not None
+
+        if slate_opt_parameters.method == rlp.SlateOptMethod.TOP_K:
+            return self._get_maxq_topk(next_state)
+        else:
+            raise NotImplementedError(
+                "SlateQ with optimization method other than TOP_K is not implemented."
+            )
+
+    def _get_maxq_topk(self, next_state: rlt.FeatureData) -> torch.Tensor:
+        candidate_docs = next_state.candidate_docs
+        assert candidate_docs is not None
+
+        batch_size, num_candidates, _ = candidate_docs.float_features.shape
+        assert 0 < self.slate_size <= num_candidates
+
+        docs = candidate_docs.select_slate(
+            torch.arange(num_candidates).repeat(batch_size, 1)
+        )
+        next_q_values = self._get_unmasked_q_values(
+            self.q_network_target, next_state, docs
+        ) * self._get_docs_value(docs)
+        _, next_actions = torch.topk(next_q_values, self.slate_size, dim=1)
+
+        return next_actions
+
+    def _get_docs_value(self, docs: rlt.DocList) -> torch.Tensor:
+        value = docs.value
+        if self.single_selection:
+            value = F.softmax(value, dim=1)
+        return value
+
     def train_step_gen(self, training_batch: rlt.SlateQInput, batch_idx: int):
         assert isinstance(
             training_batch, rlt.SlateQInput
@@ -121,31 +165,28 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
                 training_batch.time_diff / self.discount_time_scale
             )
 
-        if self.rl_parameters.maxq_learning:
-            raise NotImplementedError("Q-Learning for SlateQ is not implemented")
-        else:
-            # SARSA (Use the target network)
-            terminal_mask = (
-                training_batch.not_terminal.to(torch.bool) == False
-            ).squeeze(1)
-            next_action_docs = self._action_docs(
+        next_action = (
+            self._get_maxq_next_action(training_batch.next_state)
+            if self.rl_parameters.maxq_learning
+            else training_batch.next_action
+        )
+
+        terminal_mask = (training_batch.not_terminal.to(torch.bool) == False).squeeze(1)
+        next_action_docs = self._action_docs(
+            training_batch.next_state,
+            next_action,
+            terminal_mask=terminal_mask,
+        )
+        next_q_values = torch.sum(
+            self._get_unmasked_q_values(
+                self.q_network_target,
                 training_batch.next_state,
-                training_batch.next_action,
-                terminal_mask=terminal_mask,
+                next_action_docs,
             )
-            value = next_action_docs.value
-            if self.single_selection:
-                value = F.softmax(value, dim=1)
-            next_q_values = torch.sum(
-                self._get_unmasked_q_values(
-                    self.q_network_target,
-                    training_batch.next_state,
-                    next_action_docs,
-                )
-                * value,
-                dim=1,
-                keepdim=True,
-            )
+            * self._get_docs_value(next_action_docs),
+            dim=1,
+            keepdim=True,
+        )
 
         # If not single selection, divide max-Q by N
         if not self.single_selection:
