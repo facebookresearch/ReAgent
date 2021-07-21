@@ -186,6 +186,24 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
             metrics_to_score=reward_stripped_metrics_to_score,
         )
 
+    def _configure_cpe_optimizers(self):
+        target_params = list(self.q_network_cpe_target.parameters())
+        source_params = list(self.q_network_cpe.parameters())
+        # TODO: why is reward net commented out?
+        # source_params += list(self.reward_network.parameters())
+        optimizers = []
+        optimizers.append(
+            self.reward_network_optimizer.make_optimizer_scheduler(
+                self.reward_network.parameters()
+            )
+        )
+        optimizers.append(
+            self.q_network_cpe_optimizer.make_optimizer_scheduler(
+                self.q_network_cpe.parameters()
+            )
+        )
+        return target_params, source_params, optimizers
+
     def _calculate_cpes(
         self,
         training_batch,
