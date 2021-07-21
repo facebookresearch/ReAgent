@@ -143,3 +143,59 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
             )
 
         logger.info(f"Episode rewards during training: {rewards}")
+
+
+class OfflineReplayBufferDataset(torch.utils.data.IterableDataset):
+    """
+    Simply sampling from the replay buffer
+    """
+
+    def __init__(
+        self,
+        env: EnvWrapper,
+        replay_buffer: ReplayBuffer,
+        batch_size: int,
+        num_batches: int,
+        trainer_preprocessor=None,
+    ):
+        super().__init__()
+        self._env = env
+        self._replay_buffer = replay_buffer
+        self._batch_size = batch_size
+        self._num_batches = num_batches
+        self._trainer_preprocessor = trainer_preprocessor
+
+    # TODO: Just use kwargs here?
+    @classmethod
+    def create_for_trainer(
+        cls,
+        trainer,
+        env: EnvWrapper,
+        replay_buffer: ReplayBuffer,
+        batch_size: int,
+        num_batches: int,
+        trainer_preprocessor=None,
+        device=None,
+    ):
+        device = device or torch.device("cpu")
+        if trainer_preprocessor is None:
+            trainer_preprocessor = make_replay_buffer_trainer_preprocessor(
+                trainer, device, env
+            )
+
+        return cls(
+            env=env,
+            replay_buffer=replay_buffer,
+            batch_size=batch_size,
+            num_batches=num_batches,
+            trainer_preprocessor=trainer_preprocessor,
+        )
+
+    def __iter__(self):
+        for _ in range(self._num_batches):
+            train_batch = self._replay_buffer.sample_transition_batch(
+                batch_size=self._batch_size
+            )
+            if self._trainer_preprocessor:
+                train_batch = self._trainer_preprocessor(train_batch)
+            yield train_batch
