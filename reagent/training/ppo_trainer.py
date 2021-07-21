@@ -3,7 +3,7 @@
 import inspect
 import logging
 from dataclasses import field
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 import reagent.core.types as rlt
 import torch
@@ -202,7 +202,7 @@ class PPOTrainer(ReAgentLightningModule):
             # TD loss for the baseline value network
             value_net_loss = torch.stack(losses["value_net_loss"]).sum()
             value_net_opt.zero_grad()
-            self.manual_backward(value_net_loss, value_net_opt)
+            self.manual_backward(value_net_loss)
             value_net_opt.step()
 
         # PPO "loss" for the policy network
