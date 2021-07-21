@@ -98,7 +98,7 @@ class Seq2SlateSimulationTrainer(Seq2SlateTrainer):
         self.sim_param = params.simulation
         assert self.sim_param is not None
         # loaded when used
-        self.reward_name_and_net = {}
+        self.reward_name_and_net = nn.ModuleDict({})
         self.MAX_DISTANCE = (
             seq2slate_net.max_src_seq_len * (seq2slate_net.max_src_seq_len - 1) / 2
         )
@@ -132,8 +132,8 @@ class Seq2SlateSimulationTrainer(Seq2SlateTrainer):
 
         if not self.reward_name_and_net:
             use_gpu = True if device == torch.device("cuda") else False
-            self.reward_name_and_net = _load_reward_net(
-                self.sim_param.reward_name_path, use_gpu
+            self.reward_name_and_net = nn.ModuleDict(
+                _load_reward_net(self.sim_param.reward_name_path, use_gpu)
             )
 
         sim_slate_reward = torch.zeros(batch_size, 1, device=device)
