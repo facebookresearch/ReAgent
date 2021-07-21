@@ -757,7 +757,7 @@ class DiscreteDqnInput(BaseInput):
             next_action=batch[InputColumn.NEXT_ACTION],
             possible_actions_mask=batch[InputColumn.POSSIBLE_ACTIONS_MASK],
             possible_next_actions_mask=batch[InputColumn.POSSIBLE_NEXT_ACTIONS_MASK],
-            extras=batch[InputColumn.EXTRAS],
+            extras=ExtraData.from_dict(batch),
         )
 
 
