@@ -96,19 +96,14 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
         )
 
         if self.calc_cpe_in_training:
-            target_params += list(self.q_network_cpe_target.parameters())
-            source_params += list(self.q_network_cpe.parameters())
-            # source_params += list(self.reward_network.parameters())
-            optimizers.append(
-                self.q_network_cpe_optimizer.make_optimizer_scheduler(
-                    self.q_network_cpe.parameters()
-                )
-            )
-            optimizers.append(
-                self.reward_network_optimizer.make_optimizer_scheduler(
-                    self.reward_network.parameters()
-                )
-            )
+            (
+                cpe_target_params,
+                cpe_source_params,
+                cpe_optimizers,
+            ) = self._configure_cpe_optimizers()
+            target_params += cpe_target_params
+            source_params += cpe_source_params
+            optimizers += cpe_optimizers
 
         optimizers.append(
             SoftUpdate.make_optimizer_scheduler(
@@ -168,9 +163,9 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
             self.huber(td) * (self.quantiles - (td.detach() < 0).float()).abs()
         ).mean()
 
+        yield loss
         # pyre-fixme[16]: `DQNTrainer` has no attribute `loss`.
         self.loss = loss.detach()
-        yield loss
 
         # Get Q-values of next states, used in computing cpe
         all_next_action_scores = (
