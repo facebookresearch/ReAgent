@@ -11,20 +11,16 @@ import pytest
 import pytorch_lightning as pl
 import torch
 from parameterized import parameterized
-from reagent.core.tensorboardX import summary_writer_context
 from reagent.gym.agents.agent import Agent
 from reagent.gym.datasets.replay_buffer_dataset import OfflineReplayBufferDataset
 from reagent.gym.envs import Gym
 from reagent.gym.policies.random_policies import make_random_policy_for_env
-from reagent.gym.preprocessors import make_replay_buffer_trainer_preprocessor
 from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.model_managers.union import ModelManager__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.workflow.types import RewardOptions
-from torch.utils.tensorboard import SummaryWriter
-from tqdm import tqdm
 
 
 # for seeding the environment
