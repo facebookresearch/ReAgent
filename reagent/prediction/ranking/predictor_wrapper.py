@@ -1,18 +1,41 @@
+from enum import Enum
 from typing import Tuple, List, Optional
 
 import torch
 import torch.nn.functional as F
 
 
+class Kernel(Enum):
+    # <x, y> = dot_product(x, y)
+    Linear = "linear"
+
+    # <x, y> = exp(-||x-y||^2 / (2 * sigma^2))
+    RBF = "rbf"
+
+
 class DeterminantalPointProcessPredictorWrapper(torch.jit.ScriptModule):
     """http://jgillenw.com/cikm2018.pdf Algorithm 1"""
 
-    def __init__(self, alpha, rerank_topk: Optional[int] = None) -> None:
+    def __init__(
+        self,
+        alpha: float,
+        kernel: Kernel = Kernel.Linear,
+        sigma: float = 1.0,
+        rerank_topk: Optional[int] = None,
+    ) -> None:
         super().__init__()
         # control the strength of encouragement for diversity
         self.alpha = alpha
+
+        # distance function
+        self.kernel = kernel
+
+        # sigma parameter used in the RBF kernel
+        self.sigma = sigma
+
         # hard code this value so jit.script can work
         self.MIN_VALUE = -3.4e38
+
         # if None, will rerank the full slate
         self.rerank_topk = rerank_topk
         if self.rerank_topk is not None:
@@ -57,19 +80,40 @@ class DeterminantalPointProcessPredictorWrapper(torch.jit.ScriptModule):
         self,
         quality_scores: torch.Tensor,
         feature_vectors: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        # quality_scores shape: num_items, 1
-        # feature_vectors shape: num_items, num_feat
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Args:
+            quality_scores: (num_items, 1)
+            feature_vectors (num_items, num_feat)
+
+        Return:
+            chosen indices: (num_items, )
+            determinants computed at each selection: (num_items, num_items)
+            the kernel matrix: (num_items, num_items)
+        """
+
         quality_scores = quality_scores.float()
         feature_vectors = F.normalize(feature_vectors.float(), p=2.0, dim=1)
 
         num_items = quality_scores.shape[0]
-        B = (self.alpha ** 0.5) * quality_scores * feature_vectors
-        # pyre-fixme[16]: `Tensor` has no attribute `T`.
-        L = torch.mm(B, B.T)
-        L[torch.arange(num_items), torch.arange(num_items)] = (
-            quality_scores.squeeze(1) ** 2
-        )
+        if self.kernel == Kernel.Linear:
+            B = (self.alpha ** 0.5) * quality_scores * feature_vectors
+            L = torch.mm(B, B.t())
+            L[torch.arange(num_items), torch.arange(num_items)] = (
+                quality_scores.squeeze(1) ** 2
+            )
+        elif self.kernel == Kernel.RBF:
+            L = (
+                self.alpha
+                * torch.mm(quality_scores, quality_scores.t())
+                * torch.exp(
+                    -(torch.cdist(feature_vectors, feature_vectors, p=2.0) ** 2)
+                    / (2 * self.sigma ** 2)
+                )
+            )
+        else:
+            raise NotImplementedError()
+
         chosen, dets = self.greedy_select(L)
 
-        return chosen, dets, L, B
+        return chosen, dets, L
