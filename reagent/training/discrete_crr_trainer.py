@@ -259,9 +259,15 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
 
         # entropy regularization
         pi_t = (dist.probs * action).sum(dim=1, keepdim=True)
-        pi_b = logged_action_probs.view(pi_t.shape)
-        pi_ratio = torch.clip(pi_t / pi_b, min=1e-4, max=self.clip_limit)
-        entropy = (pi_ratio * log_pi_b).mean()
+
+        if self.entropy_coeff > 0:
+            pi_b = logged_action_probs.view(pi_t.shape)
+            assert torch.min(pi_b) > 0, "Logged action probability <= 0"
+            pi_ratio = torch.clip(pi_t / pi_b, min=1e-4, max=self.clip_limit)
+            entropy = (pi_ratio * log_pi_b).mean()
+        else:
+            # dummy value
+            entropy = 0
 
         # Note: the CRR loss for each datapoint (and the magnitude of the corresponding
         # parameter update) is proportional to log_pi_b * weight. Therefore, as mentioned
