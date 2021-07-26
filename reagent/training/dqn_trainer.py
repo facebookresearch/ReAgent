@@ -38,7 +38,7 @@ class DQNTrainer(DQNTrainerBaseLightning):
         ),
         imitator=None,
         # Start DQNTrainerParameters. All parameters above should be
-        # in the blacklist for DQNTrainerParameters in parameters.py
+        # in the blocklist for DQNTrainerParameters in parameters.py
         actions: List[str] = field(default_factory=list),  # noqa: B008
         rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
         double_q_learning: bool = True,

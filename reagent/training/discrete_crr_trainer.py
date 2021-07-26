@@ -41,7 +41,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
             default_factory=EvaluationParameters
         ),
         # Start CRRTrainerParameters. All parameters above should be
-        # in the blacklist for CRRTrainerParameters in parameters.py
+        # in the blocklist for CRRTrainerParameters in parameters.py
         rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
         double_q_learning: bool = True,
         q_network_optimizer: Optimizer__Union = field(  # noqa: B008

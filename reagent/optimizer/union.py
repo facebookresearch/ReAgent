@@ -40,7 +40,7 @@ for name in get_torch_optimizers():
             {},
         )
         # fill in optimizer parameters (except params)
-        make_config_class(torch_optimizer_class, blacklist=["params"])(subclass)
+        make_config_class(torch_optimizer_class, blocklist=["params"])(subclass)
 
     subclass.__hash__ = param_hash
     classes[name] = subclass

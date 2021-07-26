@@ -44,14 +44,14 @@ class SlateQBase(ModelManager):
             self.state_preprocessing_options is None
             or self.state_preprocessing_options.allowedlist_features is None
         ), (
-            "Please set state whitelist features in state_float_features field of "
+            "Please set state allowlist features in state_float_features field of "
             "config instead"
         )
         assert (
             self.item_preprocessing_options is None
             or self.item_preprocessing_options.allowedlist_features is None
         ), (
-            "Please set item whitelist features in item_float_features field of "
+            "Please set item allowlist features in item_float_features field of "
             "config instead"
         )
         assert (

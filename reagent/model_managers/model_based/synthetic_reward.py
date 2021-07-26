@@ -78,7 +78,7 @@ class SyntheticReward(ModelManager):
             self.state_preprocessing_options is None
             or self.state_preprocessing_options.allowedlist_features is None
         ), (
-            "Please set state whitelist features in state_float_features field of "
+            "Please set state allowlist features in state_float_features field of "
             "config instead"
         )
 
@@ -92,7 +92,7 @@ class SyntheticReward(ModelManager):
                 self.action_preprocessing_options is None
                 or self.action_preprocessing_options.allowedlist_features is None
             ), (
-                "Please set action whitelist features in parametric_action_float_features field of "
+                "Please set action allowlist features in parametric_action_float_features field of "
                 "config instead"
             )
 
