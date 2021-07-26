@@ -51,7 +51,7 @@ for name in get_torch_lr_schedulers():
             (LearningRateSchedulerConfig,),
             {"__module__": __name__},
         )
-        make_config_class(torch_lr_scheduler_class, blacklist=["optimizer"])(subclass)
+        make_config_class(torch_lr_scheduler_class, blocklist=["optimizer"])(subclass)
 
     subclass.__hash__ = param_hash
     classes[name] = subclass

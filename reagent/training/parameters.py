@@ -20,7 +20,7 @@ from .td3_trainer import TD3Trainer
 
 @make_config_class(
     SACTrainer.__init__,
-    blacklist=["use_gpu", "actor_network", "q1_network", "q2_network", "value_network"],
+    blocklist=["use_gpu", "actor_network", "q1_network", "q2_network", "value_network"],
 )
 class SACTrainerParameters:
     pass
@@ -28,7 +28,7 @@ class SACTrainerParameters:
 
 @make_config_class(
     TD3Trainer.__init__,
-    blacklist=["use_gpu", "actor_network", "q1_network", "q2_network"],
+    blocklist=["use_gpu", "actor_network", "q1_network", "q2_network"],
 )
 class TD3TrainerParameters:
     pass
@@ -36,7 +36,7 @@ class TD3TrainerParameters:
 
 @make_config_class(
     DiscreteCRRTrainer.__init__,
-    blacklist=[
+    blocklist=[
         "use_gpu",
         "actor_network",
         "q1_network",
@@ -53,7 +53,7 @@ class CRRTrainerParameters:
 
 
 @make_config_class(
-    SlateQTrainer.__init__, blacklist=["use_gpu", "q_network", "q_network_target"]
+    SlateQTrainer.__init__, blocklist=["use_gpu", "q_network", "q_network_target"]
 )
 class SlateQTrainerParameters:
     pass
@@ -61,7 +61,7 @@ class SlateQTrainerParameters:
 
 @make_config_class(
     ParametricDQNTrainer.__init__,
-    blacklist=["use_gpu", "q_network", "q_network_target", "reward_network"],
+    blocklist=["use_gpu", "q_network", "q_network_target", "reward_network"],
 )
 class ParametricDQNTrainerParameters:
     pass
@@ -69,7 +69,7 @@ class ParametricDQNTrainerParameters:
 
 @make_config_class(
     DQNTrainer.__init__,
-    blacklist=[
+    blocklist=[
         "use_gpu",
         "q_network",
         "q_network_target",
@@ -88,7 +88,7 @@ class DQNTrainerParameters:
 
 @make_config_class(
     QRDQNTrainer.__init__,
-    blacklist=[
+    blocklist=[
         "use_gpu",
         "q_network",
         "q_network_target",
@@ -106,7 +106,7 @@ class QRDQNTrainerParameters:
 
 @make_config_class(
     C51Trainer.__init__,
-    blacklist=[
+    blocklist=[
         "use_gpu",
         "q_network",
         "q_network_target",
@@ -119,14 +119,14 @@ class C51TrainerParameters:
     pass
 
 
-@make_config_class(RewardNetTrainer.__init__, blacklist=["reward_net"])
+@make_config_class(RewardNetTrainer.__init__, blocklist=["reward_net"])
 class RewardNetworkTrainerParameters:
     pass
 
 
 @make_config_class(
     Seq2SlateTrainer.__init__,
-    blacklist=[
+    blocklist=[
         "use_gpu",
         "seq2slate_net",
         "baseline_net",
@@ -139,7 +139,7 @@ class Seq2SlateTrainerParameters(BaseDataClass):
 
 @make_config_class(
     ReinforceTrainer.__init__,
-    blacklist=[
+    blocklist=[
         "policy",
         "value_net",
     ],
@@ -150,7 +150,7 @@ class ReinforceTrainerParameters:
 
 @make_config_class(
     PPOTrainer.__init__,
-    blacklist=[
+    blocklist=[
         "policy",
         "value_net",
     ],

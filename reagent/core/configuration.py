@@ -9,7 +9,7 @@ from reagent.core.dataclasses import dataclass
 from torch import nn
 
 
-BLACKLIST_TYPES = [nn.Module]
+BLOCKLIST_TYPES = [nn.Module]
 
 
 def _get_param_annotation(p):
@@ -36,9 +36,9 @@ def _get_param_annotation(p):
 
 def make_config_class(
     func,
-    whitelist: Optional[List[str]] = None,
-    blacklist: Optional[List[str]] = None,
-    blacklist_types: List[Type] = BLACKLIST_TYPES,
+    allowlist: Optional[List[str]] = None,
+    blocklist: Optional[List[str]] = None,
+    blocklist_types: List[Type] = BLOCKLIST_TYPES,
 ):
     """
     Create a decorator to create dataclass with the arguments of `func` as fields.
@@ -46,18 +46,18 @@ def make_config_class(
     you must use `dataclass.field(default_factory=default_factory)` as default.
     In that case, the func has to be wrapped with @resolve_defaults below.
 
-    `whitelist` & `blacklist` are mutually exclusive.
+    `allowlist` & `blocklist` are mutually exclusive.
     """
 
     parameters = signature(func).parameters
 
     assert (
-        whitelist is None or blacklist is None
-    ), "whitelist & blacklist are mutually exclusive"
+        allowlist is None or blocklist is None
+    ), "allowlist & blocklist are mutually exclusive"
 
-    blacklist_set = set(blacklist or [])
+    blocklist_set = set(blocklist or [])
 
-    def _is_type_blacklisted(t):
+    def _is_type_blocklisted(t):
         if getattr(t, "__origin__", None) is Union:
             assert len(t.__args__) == 2 and t.__args__[1] == type(
                 None
@@ -66,28 +66,28 @@ def make_config_class(
         if hasattr(t, "__origin__"):
             t = t.__origin__
         assert isclass(t), f"{t} is not a class."
-        return any(issubclass(t, blacklist_type) for blacklist_type in blacklist_types)
+        return any(issubclass(t, blocklist_type) for blocklist_type in blocklist_types)
 
     def _is_valid_param(p):
-        if p.name in blacklist_set:
+        if p.name in blocklist_set:
             return False
         if p.annotation == Parameter.empty and p.default == Parameter.empty:
             return False
         ptype = _get_param_annotation(p)
-        if _is_type_blacklisted(ptype):
+        if _is_type_blocklisted(ptype):
             return False
         return True
 
-    whitelist = whitelist or [p.name for p in parameters.values() if _is_valid_param(p)]
+    allowlist = allowlist or [p.name for p in parameters.values() if _is_valid_param(p)]
 
     def wrapper(config_cls):
         # Add __annotations__ for dataclass
         config_cls.__annotations__ = {
             field_name: _get_param_annotation(parameters[field_name])
-            for field_name in whitelist
+            for field_name in allowlist
         }
         # Set default values
-        for field_name in whitelist:
+        for field_name in allowlist:
             default = parameters[field_name].default
             if default != Parameter.empty:
                 setattr(config_cls, field_name, default)
