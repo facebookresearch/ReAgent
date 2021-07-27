@@ -50,7 +50,7 @@ class EvolutionPool:
             self.parent_tensors[tensor_name] = torch.randn(
                 tensor_size, dtype=torch.float
             )
-            # pyre-fixme[16]: `Tensor` has no attribute `grad`.
+            # pyre-fixme[41]: `grad` cannot be reassigned. It is a read-only property.
             self.parent_tensors[tensor_name].grad = torch.randn(
                 tensor_size, dtype=torch.float
             )
@@ -75,7 +75,6 @@ class EvolutionPool:
         if torch.abs(std_dev) > 1e-6:
             normalized_rewards = (rewards - torch.mean(rewards)) / std_dev
             for parent_tensor in self.parent_tensors.values():
-                # pyre-fixme[16]: `Tensor` has no attribute `grad`.
                 parent_tensor.grad.zero_()
             for i, individual in enumerate(self.population_tensors):
                 for tensor_name, parent_tensor in self.parent_tensors.items():
@@ -95,6 +94,8 @@ class EvolutionPool:
                         * -1
                     )
 
+                    # pyre-fixme[41]: `grad` cannot be reassigned. It is a read-only
+                    #  property.
                     parent_tensor.grad += individual_tensor
             self.optimizer.step()
 
