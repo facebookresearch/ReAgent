@@ -22,6 +22,7 @@ from reagent.prediction.predictor_wrapper import (
 )
 from reagent.prediction.ranking.predictor_wrapper import (
     DeterminantalPointProcessPredictorWrapper,
+    Kernel,
 )
 from reagent.preprocessing.postprocessor import Postprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
@@ -297,7 +298,7 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         self.validate_seq2slate_output(expected_output, wrapper_output)
 
-    def test_determinantal_point_process_wrapper(self):
+    def test_determinantal_point_process_wrapper_linear_kernel(self):
         # The second and third items are identical (similarity=1)
         # So the second and third items have strong repulsion
         # The expected ranked indices should be 2, 0, 1
@@ -311,8 +312,10 @@ class TestPredictorWrapper(unittest.TestCase):
 
         feature_vectors = torch.tensor([[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1]])
 
-        wrapper = DeterminantalPointProcessPredictorWrapper(alpha=1.0)
-        ranked_idx, determinants, L, B = wrapper(quality_scores, feature_vectors)
+        wrapper = DeterminantalPointProcessPredictorWrapper(
+            alpha=1.0, kernel=Kernel.Linear
+        )
+        ranked_idx, determinants, L = wrapper(quality_scores, feature_vectors)
         npt.assert_array_almost_equal(ranked_idx, [2, 0, 1])
         npt.assert_array_almost_equal(
             determinants,
@@ -325,7 +328,6 @@ class TestPredictorWrapper(unittest.TestCase):
             ),
         )
         npt.assert_array_almost_equal(L, [[16, 0, 0], [0, 25, 40], [0, 40, 64]])
-        npt.assert_array_almost_equal(B, [[4, 0, 0, 0], [0, 0, 0, 5], [0, 0, 0, 8]])
 
         # Test shorter rerank positions
         # All three items have different categories, so the final order is 1, 2, 0 if
@@ -338,6 +340,59 @@ class TestPredictorWrapper(unittest.TestCase):
             ]
         )
         feature_vectors = torch.tensor([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]])
-        wrapper = DeterminantalPointProcessPredictorWrapper(alpha=1.0, rerank_topk=1)
-        ranked_idx, _, _, _ = wrapper(quality_scores, feature_vectors)
+        wrapper = DeterminantalPointProcessPredictorWrapper(
+            alpha=1.0, kernel=Kernel.Linear, rerank_topk=1
+        )
+        ranked_idx, _, _ = wrapper(quality_scores, feature_vectors)
+        npt.assert_array_almost_equal(ranked_idx, [1, 0, 2])
+
+    def test_determinantal_point_process_wrapper_rbf_kernel(self):
+        # The second and third items are identical (similarity=1)
+        # So the second and third items have strong repulsion
+        # The expected ranked indices should be 2, 0, 1
+        quality_scores = torch.tensor(
+            [
+                [4],
+                [5],
+                [8],
+            ]
+        )
+
+        feature_vectors = torch.tensor([[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 1]])
+
+        wrapper = DeterminantalPointProcessPredictorWrapper(
+            alpha=1.0, kernel=Kernel.RBF
+        )
+        ranked_idx, determinants, L = wrapper(quality_scores, feature_vectors)
+        npt.assert_array_almost_equal(ranked_idx, [2, 0, 1])
+        npt.assert_array_almost_equal(
+            determinants,
+            torch.tensor(
+                [
+                    [16, 25, 64],
+                    [885.41766159, 0, wrapper.MIN_VALUE],
+                    [wrapper.MIN_VALUE, 0, wrapper.MIN_VALUE],
+                ]
+            ),
+            decimal=3,
+        )
+        npt.assert_array_almost_equal(
+            L, [[16, 7.3576, 11.7721], [7.3576, 25, 40], [11.7721, 40, 64]], decimal=3
+        )
+
+        # Test shorter rerank positions
+        # All three items have different categories, so the final order is 1, 2, 0 if
+        # rerank the full slate. If rerank_topk=1, then the expected order is 1, 0, 2
+        quality_scores = torch.tensor(
+            [
+                [4],
+                [6],
+                [5],
+            ]
+        )
+        feature_vectors = torch.tensor([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]])
+        wrapper = DeterminantalPointProcessPredictorWrapper(
+            alpha=1.0, kernel=Kernel.RBF, rerank_topk=1
+        )
+        ranked_idx, _, _ = wrapper(quality_scores, feature_vectors)
         npt.assert_array_almost_equal(ranked_idx, [1, 0, 2])
