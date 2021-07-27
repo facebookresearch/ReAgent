@@ -71,6 +71,10 @@ REPLAY_BUFFER_GYM_TESTS_2 = [
         "SlateQ RecSim with Discount Scaled by Time Diff",
         "configs/recsim/slate_q_recsim_online_with_time_scale.yaml",
     ),
+    (
+        "SlateQ RecSim multi selection",
+        "configs/recsim/slate_q_recsim_online_multi_selection.yaml",
+    ),
     ("PossibleActionsMask DQN", "configs/functionality/dqn_possible_actions_mask.yaml"),
 ]
 

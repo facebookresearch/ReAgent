@@ -143,10 +143,25 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         return next_actions
 
     def _get_docs_value(self, docs: rlt.DocList) -> torch.Tensor:
-        value = docs.value
+        # Multiplying by the mask to filter out selected padding items.
+        value = docs.value * docs.mask
         if self.single_selection:
             value = F.softmax(value, dim=1)
         return value
+
+    def _get_slate_size(self, state: rlt.FeatureData) -> torch.Tensor:
+        """Get the actual size (ignore all padded items) of each slate by summing item masks."""
+        mask = self._get_item_mask(state)
+        return torch.minimum(
+            mask.sum(1, keepdim=True),
+            torch.tensor([self.slate_size], device=mask.device),
+        )
+
+    def _get_item_mask(self, state: rlt.FeatureData) -> torch.Tensor:
+        """Get the mask from the given state."""
+        candidate_docs = state.candidate_docs
+        assert candidate_docs is not None
+        return candidate_docs.mask
 
     def train_step_gen(self, training_batch: rlt.SlateQInput, batch_idx: int):
         assert isinstance(
@@ -188,10 +203,11 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
             keepdim=True,
         )
 
-        # If not single selection, divide max-Q by N
+        # If not single selection, divide max-Q by the actual slate size.
         if not self.single_selection:
-            _batch_size, slate_size = reward.shape
-            next_q_values = next_q_values / slate_size
+            next_q_values = next_q_values / self._get_slate_size(
+                training_batch.next_state
+            )
 
         filtered_max_q_vals = next_q_values * training_batch.not_terminal.float()
         target_q_values = reward + (discount_tensor * filtered_max_q_vals)

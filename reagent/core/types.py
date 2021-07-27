@@ -268,8 +268,6 @@ class DocList(TensorDataClass):
             torch.arange(action.shape[0]).unsqueeze(1), action.shape[1], dim=1
         )
         mask = self.mask[row_idx, action]
-        # Make sure the indices are in the right range
-        assert mask.to(torch.bool).all()
         float_features = self.float_features[row_idx, action]
         value = self.value[row_idx, action]
         return DocList(float_features, mask, value)
