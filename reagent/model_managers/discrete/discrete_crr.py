@@ -45,8 +45,6 @@ class ActorPolicyWrapper(Policy):
 
     # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
     #  its type `no_grad` is not callable.
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def act(
         self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
@@ -106,10 +104,12 @@ class DiscreteCRR(DiscreteDQNBase):
         use_gpu: bool,
         reward_options: Optional[RewardOptions] = None,
     ) -> DiscreteCRRTrainer:
+        # TODO: target net
         actor_net_builder = self.actor_net_builder.value
         actor_network = actor_net_builder.build_actor(
             normalization_data_map[NormalizationKey.STATE], len(self.action_names)
         )
+        actor_network_target = actor_network.get_target_network()
 
         # The arguments to q_network1 and q_network2 below are modeled after those in discrete_dqn.py
         # The target networks will be created in DiscreteCRRTrainer
@@ -120,18 +120,18 @@ class DiscreteCRR(DiscreteDQNBase):
             normalization_data_map[NormalizationKey.STATE],
             len(self.action_names),
         )
+        q1_network_target = q1_network.get_target_network()
 
-        q2_network = (
-            critic_net_builder.build_q_network(
+        q2_network = q2_network_target = None
+        # pyre-fixme[16]: `CRRTrainerParameters` has no attribute
+        #  `double_q_learning`.
+        if self.trainer_param.double_q_learning:
+            q2_network = critic_net_builder.build_q_network(
                 self.state_feature_config,
                 normalization_data_map[NormalizationKey.STATE],
                 len(self.action_names),
             )
-            # pyre-fixme[16]: `CRRTrainerParameters` has no attribute
-            #  `double_q_learning`.
-            if self.trainer_param.double_q_learning
-            else None
-        )
+            q2_network_target = q2_network.get_target_network()
 
         reward_options = reward_options or RewardOptions()
         metrics_to_score = get_metrics_to_score(reward_options.metric_reward_values)
@@ -160,9 +160,12 @@ class DiscreteCRR(DiscreteDQNBase):
 
         trainer = DiscreteCRRTrainer(
             actor_network=actor_network,
+            actor_network_target=actor_network_target,
             q1_network=q1_network,
+            q1_network_target=q1_network_target,
             reward_network=reward_network,
             q2_network=q2_network,
+            q2_network_target=q2_network_target,
             q_network_cpe=q_network_cpe,
             q_network_cpe_target=q_network_cpe_target,
             metrics_to_score=metrics_to_score,
