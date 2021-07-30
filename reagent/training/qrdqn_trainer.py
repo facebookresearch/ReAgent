@@ -55,7 +55,7 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
             actions=actions,
             evaluation_parameters=evaluation,
         )
-
+        # TODO: check to ensure no rl parameter value is set that isn't actively used by class
         self.double_q_learning = double_q_learning
         self.minibatch_size = minibatch_size
         self.minibatches_per_step = minibatches_per_step
