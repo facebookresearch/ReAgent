@@ -39,9 +39,12 @@ class TD3TrainerParameters:
     blocklist=[
         "use_gpu",
         "actor_network",
+        "actor_network_target",
         "q1_network",
+        "q1_network_target",
         "reward_network",
         "q2_network",
+        "q2_network_target",
         "q_network_cpe",
         "q_network_cpe_target",
         "metrics_to_score",

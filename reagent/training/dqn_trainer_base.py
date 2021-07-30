@@ -34,10 +34,10 @@ class DQNTrainerMixin:
         """
         Used in Q-learning update.
 
-        :param q_values: PyTorch tensor with shape (batch_size, state_dim). Each row
+        :param q_values: PyTorch tensor with shape (batch_size, action_dim). Each row
             contains the list of Q-values for each possible action in this state.
 
-        :param q_values_target: PyTorch tensor with shape (batch_size, state_dim). Each row
+        :param q_values_target: PyTorch tensor with shape (batch_size, action_dim). Each row
             contains the list of Q-values from the target network
             for each possible action in this state.
 

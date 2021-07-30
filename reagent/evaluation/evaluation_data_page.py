@@ -334,6 +334,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
         rewards = trainer.boost_rewards(rewards, actions)
         # pyre-fixme[29]: `Union[nn.Module, torch.Tensor]` is not a function.
         model_values = trainer.q_network_cpe(states)[:, 0:num_actions]
+        # TODO: make generic get_action_idxs for each trainer class
         # Note: model_outputs are obtained from the q_network for DQN algorithms
         # and from the actor_network for CRR.
         model_outputs, _ = trainer.get_detached_model_outputs(states)

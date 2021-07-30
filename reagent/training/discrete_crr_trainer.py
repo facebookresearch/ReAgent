@@ -31,9 +31,12 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
     def __init__(
         self,
         actor_network,
+        actor_network_target,
         q1_network,
+        q1_network_target,
         reward_network,
         q2_network=None,
+        q2_network_target=None,
         q_network_cpe=None,
         q_network_cpe_target=None,
         metrics_to_score=None,
@@ -59,10 +62,13 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         """
         Args:
             actor_network: states -> actions, trained to maximize value
+            actor_network_target: copy of actor network for training stability
             q1_network: states -> q-value for all actions
+            q1_network_target: copy of q-network for training stability
             q2_network (optional): double q-learning to stabilize training
                 from overestimation bias. The presence of q2_network is specified
                 in discrete_crr.py using the config parameter double_q_learning
+            q2_network_target (optional): copy of q-network for training stability
             rl (optional): an instance of the RLParameter class, which
                 defines relevant hyperparameters
             q_network_optimizer (optional): the optimizer class and
@@ -97,15 +103,18 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         self.use_target_actor = use_target_actor
 
         self.q1_network = q1_network
-        self.q1_network_target = copy.deepcopy(self.q1_network)
+        self.q1_network_target = q1_network_target
         self.q_network_optimizer = q_network_optimizer
 
         self.q2_network = q2_network
         if self.q2_network is not None:
-            self.q2_network_target = copy.deepcopy(self.q2_network)
+            assert (
+                q2_network_target is not None
+            ), "q2_network provided without a target network"
+            self.q2_network_target = q2_network_target
 
         self.actor_network = actor_network
-        self.actor_network_target = copy.deepcopy(self.actor_network)
+        self.actor_network_target = actor_network_target
         self.actor_network_optimizer = actor_network_optimizer
 
         self.delayed_policy_update = delayed_policy_update
@@ -219,7 +228,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         if batch_idx % self.delayed_policy_update != 0:
             # Yielding None prevents the actor network from updating
             actor_loss = None
-            return actor_loss
+            return (actor_loss, actor_loss)
 
         # dist is the distribution of actions derived from the actor's outputs (logits)
         dist = pyd.Categorical(logits=all_action_scores)
@@ -347,7 +356,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
             not_terminal.float(),
         )
 
-        # Do we ever use model_action_idxs computed below?
+        # TODO: rename underlying function to get_max_possible_values_and_idxs
         model_action_idxs = self.get_max_q_values(
             all_action_scores,
             training_batch.possible_actions_mask if self.maxq_learning else action,
