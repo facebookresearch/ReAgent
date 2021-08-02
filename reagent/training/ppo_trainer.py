@@ -208,5 +208,5 @@ class PPOTrainer(ReAgentLightningModule):
         # PPO "loss" for the policy network
         ppo_loss = torch.stack(losses["ppo_loss"]).sum()
         ppo_opt.zero_grad()
-        self.manual_backward(ppo_loss, ppo_opt)
+        self.manual_backward(ppo_loss)
         ppo_opt.step()
