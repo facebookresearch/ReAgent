@@ -10,7 +10,7 @@ model:
     slate_score_id: [42, 42]  # filler
     trainer_param:
       single_selection: False
-      next_slate_value_norm_method: "norm_by_next_slate_size"
+      next_slate_value_norm_method: "norm_by_current_slate_size"
       optimizer:
         Adam:
           lr: 0.001
