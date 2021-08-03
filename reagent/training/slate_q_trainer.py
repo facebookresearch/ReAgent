@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import enum
 import logging
 from typing import Optional
 
@@ -14,6 +15,19 @@ from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.rl_trainer_pytorch import RLTrainerMixin
 
 logger = logging.getLogger(__name__)
+
+
+class NextSlateValueNormMethod(enum.Enum):
+    """
+    The Q value of the current slate item is the sum of the item's short-term reward and
+    the normalized sum of all item Q-values on the next slate.
+    We can normalize the sum by either the current slate size (NORM_BY_CURRENT_SLATE_SIZE)
+    or the next slate size (NORM_BY_NEXT_SLATE_SIZE).
+    This enum distinguishes between these two different ways of normalizing the next slate value.
+    """
+
+    NORM_BY_CURRENT_SLATE_SIZE = "norm_by_current_slate_size"
+    NORM_BY_NEXT_SLATE_SIZE = "norm_by_next_slate_size"
 
 
 class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
@@ -32,6 +46,7 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         slate_opt_parameters: Optional[rlp.SlateOptParameters] = None,
         discount_time_scale: Optional[float] = None,
         single_selection: bool = True,
+        next_slate_value_norm_method: NextSlateValueNormMethod = NextSlateValueNormMethod.NORM_BY_CURRENT_SLATE_SIZE,
         minibatch_size: int = 1024,
         evaluation: rlp.EvaluationParameters = field(  # noqa: B008
             default_factory=lambda: rlp.EvaluationParameters(calc_cpe_in_training=False)
@@ -49,6 +64,8 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
                 relative to the time difference (t2-t1), i.e., gamma^((t2-t1)/time_scale).
                 If it is absent, we won't adjust the discount factor by the time difference.
             single_selection (optional): TBD
+            next_slate_value_norm_method (optional): how to calculate the next slate value
+                when single_selection is False. By default we use NORM_BY_CURRENT_SLATE_SIZE.
             minibatch_size (optional): the size of the minibatch
             evaluation (optional): TBD
         """
@@ -57,6 +74,7 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
 
         self.discount_time_scale = discount_time_scale
         self.single_selection = single_selection
+        self.next_slate_value_norm_method = next_slate_value_norm_method
 
         self.q_network = q_network
         self.q_network_target = q_network_target
@@ -163,6 +181,22 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         assert candidate_docs is not None
         return candidate_docs.mask
 
+    def _get_avg_by_slate_size(self, batch: rlt.SlateQInput):
+        """Get the slate_size for averaging the sum of slate value."""
+        if (
+            self.next_slate_value_norm_method
+            == NextSlateValueNormMethod.NORM_BY_NEXT_SLATE_SIZE
+        ):
+            return self._get_slate_size(batch.next_state)
+        if (
+            self.next_slate_value_norm_method
+            == NextSlateValueNormMethod.NORM_BY_CURRENT_SLATE_SIZE
+        ):
+            return self._get_slate_size(batch.state)
+        raise NotImplementedError(
+            f"The next_slate_value_norm_method {self.next_slate_value_norm_method} has not been implemented"
+        )
+
     def train_step_gen(self, training_batch: rlt.SlateQInput, batch_idx: int):
         assert isinstance(
             training_batch, rlt.SlateQInput
@@ -205,9 +239,7 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
 
         # If not single selection, divide max-Q by the actual slate size.
         if not self.single_selection:
-            next_q_values = next_q_values / self._get_slate_size(
-                training_batch.next_state
-            )
+            next_q_values = next_q_values / self._get_avg_by_slate_size(training_batch)
 
         filtered_max_q_vals = next_q_values * training_batch.not_terminal.float()
         target_q_values = reward + (discount_tensor * filtered_max_q_vals)

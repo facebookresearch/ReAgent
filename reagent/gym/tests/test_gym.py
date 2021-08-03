@@ -75,6 +75,10 @@ REPLAY_BUFFER_GYM_TESTS_2 = [
         "SlateQ RecSim multi selection",
         "configs/recsim/slate_q_recsim_online_multi_selection.yaml",
     ),
+    (
+        "SlateQ RecSim multi selection average by current slate size",
+        "configs/recsim/slate_q_recsim_online_multi_selection_avg_curr.yaml",
+    ),
     ("PossibleActionsMask DQN", "configs/functionality/dqn_possible_actions_mask.yaml"),
 ]
 
