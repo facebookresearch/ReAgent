@@ -3,6 +3,7 @@
 import abc
 import inspect
 import logging
+from typing import List, Optional
 
 from reagent.core.registry_meta import RegistryMeta
 from reagent.core.result_registries import ValidationResult
@@ -18,12 +19,16 @@ class ModelValidator(metaclass=RegistryMeta):
     they can be registered in the workflows.
     """
 
-    def validate(self, training_output: RLTrainingOutput):
+    def validate(
+        self,
+        training_output: RLTrainingOutput,
+        result_history: Optional[List[RLTrainingOutput]] = None,
+    ):
         """
         This method takes RLTrainingOutput so that it can extract anything it
         might need from it.
         """
-        result = self.do_validate(training_output)
+        result = self.do_validate(training_output, result_history)
         # Avoid circular dependency at import time
         from reagent.workflow.types import ValidationResult__Union
 
@@ -38,7 +43,11 @@ class ModelValidator(metaclass=RegistryMeta):
         return ValidationResult__Union.make_union_instance(result, result_type)
 
     @abc.abstractmethod
-    def do_validate(self, training_output: RLTrainingOutput) -> ValidationResult:
+    def do_validate(
+        self,
+        training_output: RLTrainingOutput,
+        result_history: Optional[List[RLTrainingOutput]],
+    ) -> ValidationResult:
         """
         This method takes RLTrainingOutput so that it can extract anything it
         might need from it.

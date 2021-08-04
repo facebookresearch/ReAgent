@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from typing import List, Optional
 
 from reagent.core.dataclasses import dataclass
 from reagent.core.result_types import NoValidationResults
@@ -14,5 +15,9 @@ class NoValidation(ModelValidator):
     some validation.
     """
 
-    def do_validate(self, training_output: RLTrainingOutput) -> NoValidationResults:
+    def do_validate(
+        self,
+        training_output: RLTrainingOutput,
+        result_history: Optional[List[RLTrainingOutput]],
+    ) -> NoValidationResults:
         return NoValidationResults(should_publish=True)
