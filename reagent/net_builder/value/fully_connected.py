@@ -31,6 +31,7 @@ class FullyConnected(ValueNetBuilder):
         state_dim = get_num_output_features(
             state_normalization_data.dense_normalization_parameters
         )
+        # TODO: do we want to make a special class for this that has the correct forward?
         return FullyConnectedNetwork(
             [state_dim] + self.sizes + [output_dim],
             self.activations + ["linear"],

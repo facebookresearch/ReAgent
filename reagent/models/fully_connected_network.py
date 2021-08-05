@@ -3,11 +3,12 @@
 
 import logging
 import math
-from typing import List
+from typing import List, Union
 
 import torch
 import torch.nn as nn
 import torch.nn.init as init
+from reagent.core import types as rlt
 from reagent.models.base import ModelBase
 
 
@@ -110,9 +111,11 @@ class FullyConnectedNetwork(ModelBase):
     def input_prototype(self):
         return torch.randn(1, self.input_dim)
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:
+    def forward(self, input: Union[torch.Tensor, rlt.FeatureData]) -> torch.Tensor:
         """Forward pass for generic feed-forward DNNs. Assumes activation names
         are valid pytorch activation names.
         :param input tensor
         """
+        if type(input) is rlt.FeatureData:
+            input = input.float_features
         return self.dnn(input)

@@ -3,7 +3,7 @@
 import inspect
 import logging
 from dataclasses import field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import reagent.core.types as rlt
 import torch
@@ -32,7 +32,7 @@ class PPOTrainer(ReAgentLightningModule):
     def __init__(
         self,
         policy: Policy,
-        gamma: float = 0.0,
+        gamma: float = 0.9,
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
@@ -91,6 +91,7 @@ class PPOTrainer(ReAgentLightningModule):
         rewards = trajectory.reward.detach()
         scorer_inputs = []
         if inspect.getattr_static(trajectory, "graph", None) is not None:
+            # TODO: can this line be hit currently in ReAgent?
             # GNN
             scorer_inputs.append(trajectory.graph)
         else:
@@ -165,17 +166,24 @@ class PPOTrainer(ReAgentLightningModule):
 
     # pyre-fixme[14]: `training_step` overrides method defined in
     #  `ReAgentLightningModule` inconsistently.
-    def training_step(self, training_batch: rlt.PolicyGradientInput, batch_idx: int):
+    def training_step(
+        self,
+        training_batch: Union[rlt.PolicyGradientInput, Dict[str, torch.Tensor]],
+        batch_idx: int,
+    ):
         if isinstance(training_batch, dict):
             training_batch = rlt.PolicyGradientInput.from_dict(training_batch)
 
         self.traj_buffer.append(training_batch)
+        # TODO: should we be using batch_idx here?
         self.step += 1
         if self.step % self.update_freq == 0:
             self.update_model()
 
     def update_model(self):
-        assert len(self.traj_buffer) == self.update_freq
+        assert (
+            len(self.traj_buffer) == self.update_freq
+        ), "trajectory buffer does not have sufficient samples for model_update"
         for _ in range(self.update_epochs):
             # iterate through minibatches of PPO updates in random order
             random_order = torch.randperm(len(self.traj_buffer))
