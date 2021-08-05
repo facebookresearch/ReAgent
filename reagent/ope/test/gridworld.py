@@ -281,6 +281,7 @@ class NoiseGridWorldModel(Environment):
         assert isinstance(
             action.value, int
         ), f"got type {type(action.value)} instead of int"
+        # pyre-fixme[16]: `int` has no attribute `__setitem__`.
         probs[action.value] = 1 - self.epsilon
         states = {}
         for a in self.action_space:
@@ -288,7 +289,9 @@ class NoiseGridWorldModel(Environment):
             if sr.state in states:
                 rp = states[sr.state]
                 states[sr.state] = RewardProbability(
-                    rp.reward + sr.reward, rp.prob + probs[a.value]
+                    rp.reward + sr.reward,
+                    # pyre-fixme[16]: `int` has no attribute `__getitem__`.
+                    rp.prob + probs[a.value],
                 )
             else:
                 states[sr.state] = RewardProbability(sr.reward, probs[a.value])

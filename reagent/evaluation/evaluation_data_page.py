@@ -490,6 +490,8 @@ class EvaluationDataPage(rlt.TensorDataClass):
             self.logged_rewards,
             # pyre-ignore [6]: Expected `torch.Tensor` but got `Optional[torch.Tensor]`
             self.mdp_id,
+            # pyre-fixme[6]: Expected `Tensor` for 3rd param but got
+            #  `Optional[torch.Tensor]`.
             self.sequence_number,
             gamma,
         )
@@ -499,7 +501,11 @@ class EvaluationDataPage(rlt.TensorDataClass):
             ] = EvaluationDataPage.compute_values_for_mdps(
                 # pyre-ignore [6]: Expected `torch.Tensor` but got `Optional[torch.Tensor]`
                 self.logged_metrics,
+                # pyre-fixme[6]: Expected `Tensor` for 2nd param but got
+                #  `Optional[torch.Tensor]`.
                 self.mdp_id,
+                # pyre-fixme[6]: Expected `Tensor` for 3rd param but got
+                #  `Optional[torch.Tensor]`.
                 self.sequence_number,
                 gamma,
             )

@@ -110,6 +110,9 @@ class RandomRLPolicy(RLPolicy):
         self._prob = 1.0 / len(action_space)
 
     def action_dist(self, state: State) -> ActionDistribution:
+        # pyre-fixme[6]: Expected `Union[Mapping[TypeWrapper[Union[Tuple[float],
+        #  Tuple[int], Tensor, float, int, np.ndarray]], float], Sequence[float],
+        #  Tensor, np.ndarray]` for 1st param but got `int`.
         return self._action_space.distribution([self._prob] * len(self._action_space))
 
 
