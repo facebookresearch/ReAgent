@@ -79,7 +79,10 @@ class SlateQBase(ModelManager):
             )
         else:
             scorer = slate_q_scorer(
-                num_candidates=self.num_candidates, q_network=trainer_module.q_network
+                num_candidates=self.num_candidates,
+                # pyre-fixme[6]: Expected `ModelBase` for 2nd param but got
+                #  `Union[torch.Tensor, torch.nn.Module]`.
+                q_network=trainer_module.q_network,
             )
             sampler = TopKSampler(k=self.slate_size)
             return Policy(scorer=scorer, sampler=sampler)
