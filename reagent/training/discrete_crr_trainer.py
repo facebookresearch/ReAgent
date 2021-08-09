@@ -56,6 +56,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         use_target_actor: bool = False,
         actions: List[str] = field(default_factory=list),  # noqa: B008
         delayed_policy_update: int = 1,
+        beta: float = 1.0,
         entropy_coeff: float = 0.0,
         clip_limit: float = 10.0,
     ) -> None:
@@ -77,6 +78,10 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
             use_target_actor (optional): specifies whether target actor is used
             delayed_policy_update (optional): the ratio of q network updates
                 to target and policy network updates
+            beta: coefficient for KL-divergence policy constaint regularization of CRR
+                see eq(5) in https://arxiv.org/pdf/2006.15134.pdf. With large beta, the output
+                policy of CRR can not leaves too far away from the logged policy
+
             entropy_coeff: coefficient for entropy regularization
             clip_limit: threshold for importance sampling when compute entropy
                 regularization using offline samples
@@ -135,7 +140,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
             q_network_cpe_target,
             optimizer=q_network_optimizer,
         )
-
+        self.beta = beta
         self.entropy_coeff = entropy_coeff
         self.clip_limit = clip_limit
 
@@ -246,7 +251,9 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         # of every action in the present state
 
         weight = torch.clamp(
-            (advantages * action).sum(dim=1, keepdim=True).exp(), 0, 20.0
+            ((1 / self.beta) * (advantages * action).sum(dim=1, keepdim=True)).exp(),
+            0,
+            20.0,
         )
         # Remember: training_batch.action is in the one-hot format
         logged_action_idxs = torch.argmax(action, dim=1, keepdim=True)
