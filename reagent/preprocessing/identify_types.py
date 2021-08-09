@@ -30,7 +30,7 @@ FEATURE_TYPES = (
 ROW_DELIM = "\n"
 COLUMN_DELIM = ";"
 
-DEFAULT_MAX_UNIQUE_ENUM = 100
+DEFAULT_MAX_UNIQUE_ENUM = 10
 
 
 def _is_probability(feature_values):
