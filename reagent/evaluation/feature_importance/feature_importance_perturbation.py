@@ -41,7 +41,9 @@ class FeatureImportancePerturbation(FeatureImportanceBase):
                     perturbed_data = self.perturb_fn(copy_data, feature_idx)
                     perturbed_pred_value = self.pred_fn(self.model, perturbed_data)
                     feature_importance_vals[feature_id].append(
-                        torch.mean(torch.abs(perturbed_pred_value - pred_value))
+                        torch.mean(
+                            torch.abs(perturbed_pred_value - pred_value)
+                        ).detach()
                     )
                 logger.info(f"Processed {batch_idx} batches {r}-th time")
 
