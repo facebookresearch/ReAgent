@@ -27,6 +27,7 @@ class TestARSOptimizer(unittest.TestCase):
         y = torch.ones(dim)
         n_pert = 100
         feature_dim = 2
+        np.random.seed(seed=123456)
         ars_opt = ARSOptimizer(feature_dim, n_pert, rand_ars_params=True)
         for i in range(n_generations):
             perturbed_params = ars_opt.sample_perturbed_params()
