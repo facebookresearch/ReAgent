@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple, List
 
 import torch
 from reagent.core import types as rlt
@@ -9,6 +9,8 @@ from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import NormalizationData
 from reagent.core.parameters import NormalizationKey
 from reagent.core.parameters import param_hash
+from reagent.data.data_fetcher import DataFetcher
+from reagent.data.reagent_data_module import ReAgentDataModule
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
@@ -22,8 +24,12 @@ from reagent.net_builder.unions import (
 from reagent.training import PPOTrainer, PPOTrainerParameters
 from reagent.training import ReAgentLightningModule
 from reagent.workflow.types import (
+    Dataset,
     ModelFeatureConfigProvider__Union,
+    ReaderOptions,
+    ResourceOptions,
     RewardOptions,
+    RLTrainingOutput,
 )
 
 
