@@ -5,7 +5,6 @@ import unittest
 
 import torch
 from reagent.core.parameters import NormalizationData, NormalizationParameters
-from reagent.core.types import FeatureData
 from reagent.net_builder import value
 from reagent.net_builder.unions import ValueNetBuilder__Union
 from reagent.preprocessing.identify_types import CONTINUOUS
@@ -26,6 +25,6 @@ class TestValueNetBuilder(unittest.TestCase):
         )
         value_network = builder.build_value_network(normalization_data)
         batch_size = 5
-        x = FeatureData(float_features=torch.randn(batch_size, state_dim))
+        x = torch.randn(batch_size, state_dim)
         y = value_network(x)
         self.assertEqual(y.shape, (batch_size, 1))
