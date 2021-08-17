@@ -2,8 +2,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
+import numpy as np
 import torch
 from reagent.core import types as rlt
 from reagent.core.tensorboardX import SummaryWriterContext
@@ -13,6 +14,7 @@ from reagent.models.dqn import FullyConnectedDQN
 
 
 logger = logging.getLogger(__name__)
+INVALID_ACTION_CONSTANT = -1e10
 
 
 class DuelingQNetwork(ModelBase):
@@ -31,7 +33,7 @@ class DuelingQNetwork(ModelBase):
         input_prototype = shared_network.input_prototype()
         assert isinstance(
             input_prototype, rlt.FeatureData
-        ), f"shared_network should expect FeatureData as input"
+        ), "shared_network should expect FeatureData as input"
         self.advantage_network = advantage_network
         self.value_network = value_network
 
@@ -95,7 +97,11 @@ class DuelingQNetwork(ModelBase):
         q_value = value + advantage
         return value, raw_advantage, advantage, q_value
 
-    def forward(self, state: rlt.FeatureData) -> torch.Tensor:
+    def forward(
+        self,
+        state: rlt.FeatureData,
+        possible_actions_mask: Optional[Union[torch.Tensor, np.ndarray]] = None,
+    ) -> torch.Tensor:
         value, raw_advantage, advantage, q_value = self._get_values(state)
 
         # TODO: export these as observable values
@@ -107,7 +113,13 @@ class DuelingQNetwork(ModelBase):
             for i in range(advantage.shape[1]):
                 a = advantage[:, i]
                 _log_histogram_and_mean(f"{self._name}/{i}", "advantage", a)
-
+        if possible_actions_mask is not None:
+            if isinstance(possible_actions_mask, np.ndarray):
+                possible_actions_mask = torch.tensor(possible_actions_mask)
+            # subtract huge value from impossible actions to force their probabilities to 0
+            q_value = (
+                q_value + (1 - possible_actions_mask.float()) * INVALID_ACTION_CONSTANT
+            )
         return q_value
 
 

@@ -3,11 +3,12 @@
 
 import logging
 import math
-from typing import List
+from typing import List, Optional
 
 import torch
 import torch.nn as nn
 import torch.nn.init as init
+from reagent.core import types as rlt
 from reagent.models.base import ModelBase
 
 
@@ -116,3 +117,56 @@ class FullyConnectedNetwork(ModelBase):
         :param input tensor
         """
         return self.dnn(input)
+
+
+class FloatFeatureFullyConnected(ModelBase):
+    """
+    A fully connected network that takes FloatFeatures input
+    and supports distributional prediction.
+    """
+
+    def __init__(
+        self,
+        state_dim,
+        output_dim,
+        sizes,
+        activations,
+        *,
+        num_atoms: Optional[int] = None,
+        use_batch_norm: bool = False,
+        dropout_ratio: float = 0.0,
+        normalized_output: bool = False,
+        use_layer_norm: bool = False,
+    ):
+        super().__init__()
+        assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
+        assert output_dim > 0, "output_dim must be > 0, got {}".format(output_dim)
+        self.state_dim = state_dim
+        self.output_dim = output_dim
+        assert len(sizes) == len(
+            activations
+        ), "The numbers of sizes and activations must match; got {} vs {}".format(
+            len(sizes), len(activations)
+        )
+        self.num_atoms = num_atoms
+        self.fc = FullyConnectedNetwork(
+            [state_dim] + sizes + [output_dim * (num_atoms or 1)],
+            activations + ["linear"],
+            use_batch_norm=use_batch_norm,
+            dropout_ratio=dropout_ratio,
+            normalize_output=normalized_output,
+            use_layer_norm=use_layer_norm,
+        )
+
+    def input_prototype(self):
+        return rlt.FeatureData(self.fc.input_prototype())
+
+    def forward(
+        self,
+        state: rlt.FeatureData,
+    ) -> torch.Tensor:
+        float_features = state.float_features
+        x = self.fc(float_features)
+        if self.num_atoms is not None:
+            x = x.view(float_features.shape[0], self.action_dim, self.num_atoms)
+        return x

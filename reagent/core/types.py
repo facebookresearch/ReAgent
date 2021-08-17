@@ -53,6 +53,7 @@ class TensorDataClass(BaseDataClass):
         tensor_attr = getattr(torch.Tensor, attr, None)
 
         if tensor_attr is None or not callable(tensor_attr):
+            # TODO: can we get this working well with jupyter?
             logger.error(
                 f"Attempting to call {self.__class__.__name__}.{attr} on "
                 f"{type(self)} (instance of TensorDataClass)."
@@ -735,11 +736,37 @@ class BaseInput(TensorDataClass):
 
 @dataclass
 class DiscreteDqnInput(BaseInput):
+    """
+    See input_prototype for DQN expected input shapes
+    """
+
     action: torch.Tensor
     next_action: torch.Tensor
     possible_actions_mask: torch.Tensor
     possible_next_actions_mask: torch.Tensor
     extras: ExtraData
+
+    @classmethod
+    def input_prototype(cls, action_dim=2, batch_size=10, state_dim=3):
+        return cls(
+            state=FeatureData(float_features=torch.randn(batch_size, state_dim)),
+            next_state=FeatureData(float_features=torch.randn(batch_size, state_dim)),
+            reward=torch.rand(batch_size, 1),
+            time_diff=torch.ones(batch_size, 1),
+            step=torch.ones(batch_size, 1),
+            not_terminal=torch.ones(batch_size, 1),
+            action=F.one_hot(
+                torch.randint(high=action_dim, size=(batch_size,)),
+                num_classes=action_dim,
+            ),
+            next_action=F.one_hot(
+                torch.randint(high=action_dim, size=(batch_size,)),
+                num_classes=action_dim,
+            ),
+            possible_actions_mask=torch.ones(batch_size, action_dim),
+            possible_next_actions_mask=torch.ones(batch_size, action_dim),
+            extras=ExtraData(action_probability=torch.ones(batch_size, 1)),
+        )
 
     @classmethod
     def from_dict(cls, batch):
@@ -858,6 +885,10 @@ class PolicyNetworkInput(BaseInput):
 
 @dataclass
 class PolicyGradientInput(TensorDataClass):
+    """
+    See input_prototype for expected input dimensions
+    """
+
     state: FeatureData
     action: torch.Tensor
     reward: torch.Tensor
@@ -865,14 +896,13 @@ class PolicyGradientInput(TensorDataClass):
     possible_actions_mask: Optional[torch.Tensor] = None
 
     @classmethod
-    def input_prototype(cls):
-        num_classes = 5
-        batch_size = 10
-        state_dim = 3
-        action_dim = 2
+    def input_prototype(cls, action_dim=2, batch_size=10, state_dim=3):
         return cls(
             state=FeatureData(float_features=torch.randn(batch_size, state_dim)),
-            action=F.one_hot(torch.randint(high=num_classes, size=(batch_size,))),
+            action=F.one_hot(
+                torch.randint(high=action_dim, size=(batch_size,)),
+                num_classes=action_dim,
+            ),
             reward=torch.rand(batch_size),
             log_prob=torch.log(torch.rand(batch_size)),
             possible_actions_mask=torch.ones(batch_size, action_dim),
