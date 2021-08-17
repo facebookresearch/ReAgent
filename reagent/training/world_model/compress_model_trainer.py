@@ -7,7 +7,8 @@ import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.parameters import Seq2RewardTrainerParameters
-from reagent.models.fully_connected_network import FullyConnectedNetwork
+from reagent.core.types import FeatureData
+from reagent.models.fully_connected_network import FloatFeatureFullyConnected
 from reagent.models.seq2reward_model import Seq2RewardNetwork
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.utils import gen_permutations
@@ -22,7 +23,7 @@ class CompressModelTrainer(ReAgentLightningModule):
 
     def __init__(
         self,
-        compress_model_network: FullyConnectedNetwork,
+        compress_model_network: FloatFeatureFullyConnected,
         seq2reward_network: Seq2RewardNetwork,
         params: Seq2RewardTrainerParameters,
     ):
@@ -58,13 +59,17 @@ class CompressModelTrainer(ReAgentLightningModule):
         self.reporter.log(mse_loss=detached_loss, accuracy=accuracy)
         yield loss
 
+    @staticmethod
+    def extract_state_first_step(batch):
+        return FeatureData(batch.state.float_features[0])
+
     # pyre-ignore inconsistent override because lightning doesn't use types
     def validation_step(self, batch: rlt.MemoryNetworkInput, batch_idx: int):
         mse, acc = self.get_loss(batch)
         detached_loss = mse.cpu().detach().item()
         acc = acc.item()
 
-        state_first_step = batch.state.float_features[0]
+        state_first_step = CompressModelTrainer.extract_state_first_step(batch)
         # shape: batch_size, action_dim
         q_values_all_action_all_data = (
             self.compress_model_network(state_first_step).cpu().detach()
@@ -90,15 +95,13 @@ class CompressModelTrainer(ReAgentLightningModule):
         return (detached_loss, q_values, action_distribution, acc)
 
     def get_loss(self, batch: rlt.MemoryNetworkInput):
+        state_first_step = CompressModelTrainer.extract_state_first_step(batch)
         # shape: batch_size, num_action
-        compress_model_output = self.compress_model_network(
-            batch.state.float_features[0]
-        )
+        compress_model_output = self.compress_model_network(state_first_step)
 
-        state_first_step = batch.state.float_features[0]
         target = get_Q(
             self.seq2reward_network,
-            state_first_step,
+            state_first_step.float_features,
             self.all_permut,
         )
         assert (

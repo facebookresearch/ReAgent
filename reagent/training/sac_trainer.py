@@ -212,9 +212,7 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
         #
 
         if self.value_network is not None:
-            next_state_value = self.value_network_target(
-                training_batch.next_state.float_features
-            )
+            next_state_value = self.value_network_target(training_batch.next_state)
         else:
             next_state_actor_output = self.actor_network(training_batch.next_state)
             next_state_actor_action = (
@@ -268,7 +266,7 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
             actor_log_prob = actor_log_prob.detach()
 
         if self.crr_config is not None:
-            cur_value = self.value_network(training_batch.state.float_features)
+            cur_value = self.value_network(training_batch.state)
             advantage = (min_q_actor_value - cur_value).detach()
             # pyre-fixme[16]: `Optional` has no attribute `get_weight_from_advantage`.
             crr_weight = self.crr_config.get_weight_from_advantage(advantage)
@@ -323,7 +321,7 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
         #
 
         if self.value_network is not None:
-            state_value = self.value_network(state.float_features)
+            state_value = self.value_network(state)
 
             if self.logged_action_uniform_prior:
                 log_prob_a = torch.zeros_like(min_q_actor_value)

@@ -5,7 +5,7 @@ from typing import List
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import NormalizationData, param_hash
-from reagent.models.fully_connected_network import FullyConnectedNetwork
+from reagent.models.fully_connected_network import FloatFeatureFullyConnected
 from reagent.net_builder.value_net_builder import ValueNetBuilder
 from reagent.preprocessing.normalization import get_num_output_features
 
@@ -31,8 +31,10 @@ class FullyConnected(ValueNetBuilder):
         state_dim = get_num_output_features(
             state_normalization_data.dense_normalization_parameters
         )
-        return FullyConnectedNetwork(
-            [state_dim] + self.sizes + [output_dim],
-            self.activations + ["linear"],
+        return FloatFeatureFullyConnected(
+            state_dim=state_dim,
+            output_dim=output_dim,
+            sizes=self.sizes,
+            activations=self.activations,
             use_layer_norm=self.use_layer_norm,
         )
