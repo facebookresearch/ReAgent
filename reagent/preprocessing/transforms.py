@@ -131,7 +131,9 @@ class MapIDListFeatures:
     ):
         self.id_list_keys = id_list_keys
         self.id_score_list_keys = id_score_list_keys
-        assert set(id_list_keys).intersection(set(id_score_list_keys)) == set()
+        assert (
+            set(id_list_keys).intersection(set(id_score_list_keys)) == set()
+        ), f"id_list_keys: {id_list_keys}; id_score_list_keys: {id_score_list_keys}"
         self.feature_config = feature_config
         self.sparse_preprocessor = make_sparse_preprocessor(
             feature_config=feature_config, device=device

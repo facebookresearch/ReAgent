@@ -102,6 +102,6 @@ class SparsePreprocessor(torch.nn.Module):
                 ret[self.id2name[fid]] = (
                     offsets.to(self.device),
                     idx_keys.to(self.device),
-                    weights.to(self.device),
+                    weights.to(self.device).float(),
                 )
         return ret
