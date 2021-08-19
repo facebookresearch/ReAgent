@@ -859,6 +859,5 @@ class CompressModelWithPreprocessor(DiscreteDqnWithPreprocessor):
         state_feature_data = serving_to_feature_data(
             state, self.state_preprocessor, self.sparse_preprocessor
         )
-        # TODO: model is a fully connected network which only takes in Tensor now.
-        q_values = self.model(state_feature_data.float_features)
+        q_values = self.model(state_feature_data)
         return q_values
