@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Any, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import reagent.core.types as rlt
@@ -130,7 +130,7 @@ class ActorPredictorPolicy(Policy):
                 id_list_features={},
                 id_score_list_features={},
             )
-        output = self.predictor(state)
+        output = self.predictor(*state)
         if isinstance(output, tuple):
             action, log_prob = output
             log_prob = log_prob.clamp(LOG_PROB_MIN, LOG_PROB_MAX)
