@@ -315,6 +315,8 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         return eval_data
 
     def validation_step(self, batch, batch_idx):
+        if isinstance(batch, dict):
+            batch = rlt.DiscreteDqnInput.from_dict(batch)
         # HACK: Move to cpu in order to hold more batches in memory
         # This is only needed when trainers need in-memory
         # EvaluationDataPages of the full evaluation dataset
