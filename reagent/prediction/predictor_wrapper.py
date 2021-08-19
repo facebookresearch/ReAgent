@@ -230,7 +230,7 @@ class OSSPredictorUnwrapper(nn.Module):
 
 
 DiscreteDqnPredictorUnwrapper = OSSSparsePredictorUnwrapper
-ActorPredictorUnwrapper = OSSPredictorUnwrapper
+ActorPredictorUnwrapper = OSSSparsePredictorUnwrapper
 ParametricDqnPredictorUnwrapper = OSSPredictorUnwrapper
 
 
