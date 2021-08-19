@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import abc
 import logging
 from typing import Dict, List, Optional, Tuple
 
@@ -9,6 +10,7 @@ from reagent.core.parameters import (
     EvaluationParameters,
     NormalizationData,
     NormalizationKey,
+    RLParameters,
 )
 from reagent.data.data_fetcher import DataFetcher
 from reagent.data.manual_data_module import ManualDataModule
@@ -59,6 +61,11 @@ class DiscreteDQNBase(ModelManager):
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
 
+    @property
+    @abc.abstractmethod
+    def rl_parameters(self) -> RLParameters:
+        pass
+
     def create_policy(
         self,
         trainer_module: ReAgentLightningModule,
@@ -70,7 +77,6 @@ class DiscreteDQNBase(ModelManager):
             assert normalization_data_map
             return create_predictor_policy_from_model(
                 self.build_serving_module(trainer_module, normalization_data_map),
-                # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
                 rl_parameters=self.rl_parameters,
             )
         else:
@@ -84,9 +90,21 @@ class DiscreteDQNBase(ModelManager):
     def state_feature_config(self) -> rlt.ModelFeatureConfig:
         return self.state_feature_config_provider.value.get_model_feature_config()
 
+    def get_state_preprocessing_options(self) -> PreprocessingOptions:
+        state_preprocessing_options = (
+            self.preprocessing_options or PreprocessingOptions()
+        )
+        state_features = [
+            ffi.feature_id for ffi in self.state_feature_config.float_feature_infos
+        ]
+        logger.info(f"state allowedlist_features: {state_features}")
+        state_preprocessing_options = state_preprocessing_options._replace(
+            allowedlist_features=state_features
+        )
+        return state_preprocessing_options
+
     @property
     def multi_steps(self) -> Optional[int]:
-        # pyre-fixme[16]: `DiscreteDQNBase` has no attribute `rl_parameters`.
         return self.rl_parameters.multi_steps
 
     def get_data_module(

@@ -35,13 +35,3 @@ class lazy_property(object):
         value = self._fget(obj)
         setattr(obj, self.__name__, value)
         return value
-
-
-def get_data_split_ratio(tablespec) -> Optional[Tuple[float, float, float]]:
-    if tablespec is None:
-        return None
-
-    train_ratio = (tablespec.table_sample or 100.0) / 100.0
-    eval_ratio = (tablespec.eval_table_sample or 0.0) / 100.0
-
-    return (train_ratio, 0.0, eval_ratio)

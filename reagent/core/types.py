@@ -772,17 +772,12 @@ class DiscreteDqnInput(BaseInput):
     def from_dict(cls, batch):
         base = super().from_dict(batch)
         return cls(
-            state=base.state,
-            next_state=base.next_state,
-            reward=base.reward,
-            time_diff=base.time_diff,
-            step=base.step,
-            not_terminal=base.not_terminal,
             action=batch[InputColumn.ACTION],
             next_action=batch[InputColumn.NEXT_ACTION],
             possible_actions_mask=batch[InputColumn.POSSIBLE_ACTIONS_MASK],
             possible_next_actions_mask=batch[InputColumn.POSSIBLE_NEXT_ACTIONS_MASK],
             extras=ExtraData.from_dict(batch),
+            **base.as_dict_shallow(),
         )
 
 

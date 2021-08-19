@@ -401,6 +401,9 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         # In other words, the validation_epoch_end() function will take a list of validation
         # EvaluationDataPages.
 
+        if isinstance(batch, dict):
+            batch = rlt.DiscreteDqnInput.from_dict(batch)
+
         # validation data
         state = batch.state
         action = batch.action
