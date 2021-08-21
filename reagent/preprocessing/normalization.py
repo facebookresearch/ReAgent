@@ -48,6 +48,7 @@ def identify_parameter(
     skip_quantiles=False,
     feature_type=None,
 ):
+    force_boxcox = feature_type == identify_types.BOXCOX
     if feature_type is None:
         feature_type = identify_types.identify_type(values, max_unique_enum_values)
 
@@ -71,8 +72,9 @@ def identify_parameter(
         mean = float(np.mean(values))
         values = values - mean
         stddev = max(float(np.std(values, ddof=1)), 1.0)
-    if feature_type == identify_types.CONTINUOUS:
-        if min_value == max_value:
+
+    if feature_type == identify_types.CONTINUOUS or force_boxcox:
+        if min_value == max_value and not force_boxcox:
             return no_op_feature()
         k2_original, p_original = stats.normaltest(values)
 
@@ -87,9 +89,11 @@ def identify_parameter(
                 k2_original, p_original, k2_boxcox, p_boxcox
             )
         )
-        if lambda_ < 0.9 or lambda_ > 1.1:
+        if lambda_ < 0.9 or lambda_ > 1.1 or force_boxcox:
             # Lambda is far enough from 1.0 to be worth doing boxcox
-            if k2_original > k2_boxcox * 10 and k2_boxcox <= quantile_k2_threshold:
+            if (
+                k2_original > k2_boxcox * 10 and k2_boxcox <= quantile_k2_threshold
+            ) or force_boxcox:
                 # The boxcox output is significantly more normally distributed
                 # than the original data and is normal enough to apply
                 # effectively.
@@ -100,7 +104,7 @@ def identify_parameter(
                     np.isfinite(stddev)
                     and stddev < BOX_COX_MAX_STDDEV
                     and not np.isclose(stddev, 0)
-                ):
+                ) or force_boxcox:
                     values = candidate_values
                     boxcox_lambda = float(lambda_)
         if boxcox_lambda is None or skip_box_cox:
