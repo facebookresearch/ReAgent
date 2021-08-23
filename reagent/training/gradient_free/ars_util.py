@@ -5,23 +5,43 @@ import torch
 
 
 """
-Utility functions for Advanced Random Search algorithm
+Utility functions for Advanced Random Search (ARS) algorithm
 based on the paper "Simple random search provides a competitive approach
 to reinforcement learning", Mania et al.
-https://arxiv.org/pdf/1803.07055.pdf
+https://arxiv.org/abs/1803.07055
 
-Usage example:
-    n_pert = given number of random perturbations
-    alpha = step size
-    feature_dim = feature dimension + 1 (for label)
-    noise = noise level (<1 and >0) added to the random perturbations
-    model = the target model
-    X = training features
-    y = labels
-    X_e = eval features
-    y_e = eval labels
-    metric = eval metric
+Here, we show an example of training a data reweighting policy using ARS. The policy
+is learned to weight each sample for training a supervised learning model. ARS is a
+competitive alternative to the policy gradient method in "Data Valuation using
+Reinforcement Learning", Yoon, Arik, and Pfister.
+https://arxiv.org/abs/1909.11671
 
+
+    def reward_func(pos_param, neg_param):
+        # Return rewards for positively/negatively perturbed parameters
+        # model = a supervised learning model
+        # X = training features
+        # y = labels
+
+        # Initialize a supervised learning model
+        model_pos = model.init()
+        # Sample weights are bounded within (0, 1)
+        pos_weight = torch.sigmoid(torch.matmul(torch.column_stack((X, y)), pos_param))
+        model_pos.fit(X, y, sample_weight=pos_weight)
+        r_pos = metric(model_pos.predict(X_e), y_e)
+
+        model_neg = model.init()
+        neg_weight = torch.sigmoid(torch.matmul(torch.column_stack((X, y)), neg_param))
+        model_neg.fit(X, y, sample_weight=neg_weight)
+        r_neg = metric(model_neg.predict(X_e), y_e)
+
+        return (r_pos, r_neg)
+
+    # Training
+    # feature_dim = feature dimension + 1 (for label)
+    # n_pert = given number of random perturbations
+    # alpha = step size
+    # noise = noise level (between 0 ~ 1) added to the random perturbations
     ars_opt = ARSOptimizer(feature_dim, n_pert, alpha=alpha, noise=noise)
 
     for _ in range(n_generations):
@@ -29,24 +49,8 @@ Usage example:
         rewards = []
         for idx in range(0, len(perturbed_params)):
             pos_param, neg_param = params[idx]
-            model_pos = model.init()
-            pos_weight = torch.sigmoid(torch.matmul(torch.column_stack((X, y)), pos_param))
-            model_pos.fit(X, y, sample_weight=pos_weight)
-            r_pos = metric(model_pos.predict(X_e), y_e)
-            rewards.append(r_pos)
-
-            model_neg = model.init()
-            neg_weight = torch.sigmoid(torch.matmul(torch.column_stack((X, y)), neg_param))
-            model_neg.fit(X, y, sample_weight=neg_weight)
-            r_neg = metric(model_neg.predict(X_e), y_e)
-            rewards.append(r_neg)
+            rewards.extend(reward_func(pos_param, neg_param))
         ars_opt.update_ars_params(rewards)
-
-    model_eval = model.init()
-    eval_weight = torch.sigmoid(torch.matmul(torch.column_stack((X, y)),
-                        torch.from_numpy(ars_opt.ars_params).float()))
-    model_eval.fit(X, y, sample_weight=eval_weight)
-    reward = metric(model_eval.predict(X_e), y_e)
 """
 
 
