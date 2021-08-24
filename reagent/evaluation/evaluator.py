@@ -92,7 +92,6 @@ class Evaluator:
 
         if self.action_names is not None:
             if edp.optimal_q_values is not None:
-                # pyre-ignore [16]: `Optional` has no attribute `mean`
                 value_means = edp.optimal_q_values.mean(dim=0)
                 cpe_details.q_value_means = {
                     action: float(value_means[i])

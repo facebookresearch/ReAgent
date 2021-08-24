@@ -113,7 +113,6 @@ class EvaluationDataPage(rlt.TensorDataClass):
             batch_size,
             tgt_seq_len,
             candidate_dim,
-            # pyre-fixme[16]: `Optional` has no attribute `float_features`.
         ) = training_input.tgt_out_seq.float_features.shape
         device = training_input.state.float_features.device
 
@@ -147,6 +146,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
         model_rewards_for_logged_action = reward_network(
             training_input.state.float_features,
             training_input.src_seq.float_features,
+            # pyre-fixme[16]: `Optional` has no attribute `float_features`.
             training_input.tgt_out_seq.float_features,
             training_input.src_src_mask,
             training_input.tgt_out_idx,
@@ -488,10 +488,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
         assert self.mdp_id is not None and self.sequence_number is not None
         logged_values = EvaluationDataPage.compute_values_for_mdps(
             self.logged_rewards,
-            # pyre-ignore [6]: Expected `torch.Tensor` but got `Optional[torch.Tensor]`
             self.mdp_id,
-            # pyre-fixme[6]: Expected `Tensor` for 3rd param but got
-            #  `Optional[torch.Tensor]`.
             self.sequence_number,
             gamma,
         )
@@ -499,7 +496,6 @@ class EvaluationDataPage(rlt.TensorDataClass):
             logged_metrics_values: Optional[
                 torch.Tensor
             ] = EvaluationDataPage.compute_values_for_mdps(
-                # pyre-ignore [6]: Expected `torch.Tensor` but got `Optional[torch.Tensor]`
                 self.logged_metrics,
                 # pyre-fixme[6]: Expected `Tensor` for 2nd param but got
                 #  `Optional[torch.Tensor]`.
@@ -627,8 +623,8 @@ class EvaluationDataPage(rlt.TensorDataClass):
         assert self.model_metrics_values is not None, "metrics must not be none"
 
         return self._replace(
-            # pyre-ignore [16]: `Optional` has no attribute `__getitem__`
             logged_rewards=self.logged_metrics[:, i : i + 1],
+            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
             logged_values=self.logged_metrics_values[:, i : i + 1],
             model_rewards=self.model_metrics[
                 :, i * num_actions : (i + 1) * num_actions

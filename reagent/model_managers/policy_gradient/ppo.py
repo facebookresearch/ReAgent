@@ -74,7 +74,7 @@ class PPO(ModelManager):
         )
         value_net = None
         if self.value_net_builder:
-            value_net_builder = self.value_net_builder.value  # pyre-ignore
+            value_net_builder = self.value_net_builder.value
             value_net = value_net_builder.build_value_network(
                 normalization_data_map[NormalizationKey.STATE]
             )

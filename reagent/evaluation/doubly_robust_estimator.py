@@ -130,8 +130,8 @@ class DoublyRobustEstimator:
         if edp.contexts is None:
             raise ValueError("contexts not provided in input")
         contexts_dict = {
-            # pyre-ignore [16]: `Optional` has no attribute `__getitem__`
             "train": edp.contexts[idx_train],
+            # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
             "valid": edp.contexts[idx_valid],
             "eval": edp.contexts[idx_eval],
         }

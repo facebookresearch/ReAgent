@@ -344,7 +344,6 @@ class NNTrainer(Trainer):
 
     def score(self, x: Tensor, y: Tensor, weight: Optional[Tensor] = None) -> float:
         if self._loss_fn is not None:
-            # pyre-fixme[29]: `Optional[torch.nn.MSELoss]` is not a function.
             return self._loss_fn(y, x).item()
         else:
             raise Exception("mode not trained")

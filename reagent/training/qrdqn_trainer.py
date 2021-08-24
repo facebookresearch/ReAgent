@@ -128,7 +128,6 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
             discount_tensor = torch.pow(self.gamma, training_batch.time_diff.float())
         if self.multi_steps is not None:
             assert training_batch.step is not None
-            # pyre-fixme[16]: Optional type has no attribute `float`.
             discount_tensor = torch.pow(self.gamma, training_batch.step.float())
 
         next_qf = self.q_network_target(training_batch.next_state)

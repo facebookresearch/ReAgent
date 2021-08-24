@@ -385,7 +385,6 @@ def _embed_states(x: FeatureData) -> FeatureData:
     return FeatureData(
         float_features=_concat_state_candidates(
             x.float_features,
-            # pyre-fixme[16]: `Optional` has no attribute `float_features`.
             x.candidate_docs.float_features,
         )
     )

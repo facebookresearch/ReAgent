@@ -39,8 +39,6 @@ class DeterminantalPointProcessPredictorWrapper(torch.jit.ScriptModule):
         # if None, will rerank the full slate
         self.rerank_topk = rerank_topk
         if self.rerank_topk is not None:
-            # pyre-fixme[58]: `>` is not supported for operand types `Optional[int]`
-            #  and `int`.
             assert self.rerank_topk > 0
 
     def unchosen_dets(self, L, chosen: List[int]):

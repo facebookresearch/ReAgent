@@ -904,7 +904,6 @@ class Seq2SlateNet(ModelBase):
                 mode=mode.value,
                 state=input.state.float_features,
                 src_seq=input.src_seq.float_features,
-                # pyre-fixme[16]: `Optional` has no attribute `float_features`.
                 tgt_in_seq=input.tgt_in_seq.float_features,
                 tgt_in_idx=input.tgt_in_idx,
                 tgt_out_idx=input.tgt_out_idx,

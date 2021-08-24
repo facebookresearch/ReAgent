@@ -112,7 +112,7 @@ class PPOTrainer(ReAgentLightningModule):
             offset_reinforcement = offset_reinforcement.clamp(min=0)
         if self.value_net is not None:
             # subtract learned value function baselines from rewards
-            baselines = self.value_net(trajectory.state).squeeze()  # pyre-ignore
+            baselines = self.value_net(trajectory.state).squeeze()
             # use reward-to-go as label for training the value function
             losses["value_net_loss"] = self.value_loss_fn(
                 baselines, offset_reinforcement
