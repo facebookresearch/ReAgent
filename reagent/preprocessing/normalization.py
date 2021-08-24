@@ -199,8 +199,6 @@ def get_feature_start_indices(
         start_indices.append(cur_idx)
         if np.feature_type == identify_types.ENUM:
             assert np.possible_values is not None
-            # pyre-fixme[6]: Expected `Sized` for 1st param but got
-            #  `Optional[List[int]]`.
             cur_idx += len(np.possible_values)
         else:
             cur_idx += 1

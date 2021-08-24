@@ -106,7 +106,6 @@ class Seq2SlateTrainer(ReAgentLightningModule):
 
         if self.baseline_net:
             # Train baseline
-            # pyre-fixme[29]: `Optional[BaselineNet]` is not a function.
             b = self.baseline_net(batch)
             baseline_loss = 1.0 / batch_size * torch.sum((b - reward) ** 2)
             baseline_opt.zero_grad()
@@ -210,8 +209,6 @@ class Seq2SlateTrainer(ReAgentLightningModule):
         eval_baseline_loss = torch.tensor([0.0]).reshape(1)
         if self.baseline_net:
             baseline_net = self.baseline_net
-            # pyre-fixme[29]: `Optional[reagent.models.seq2slate.BaselineNet]` is
-            #  not a function.
             b = baseline_net(batch).detach()
             eval_baseline_loss = F.mse_loss(b, batch.slate_reward).cpu().reshape(1)
         else:

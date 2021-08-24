@@ -48,8 +48,6 @@ class BanditRewardNetTrainer(ReAgentLightningModule):
         weight = None
         if self.weighted_by_inverse_propensity:
             assert batch.action_prob is not None
-            # pyre-fixme[58]: `/` is not supported for operand types `float` and
-            #  `Optional[torch.Tensor]`.
             weight = 1.0 / batch.action_prob
         return weight
 

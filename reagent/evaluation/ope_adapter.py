@@ -68,7 +68,6 @@ class OPEstimatorAdapter:
                 logged_propensities[action] = edp.logged_propensities[idx]
             log.append(
                 LogSample(
-                    # pyre-ignore [16]: Optional type has no attribute `__getitem__`
                     context=None if edp.contexts is None else edp.contexts[idx],
                     log_action=Action(action),
                     log_reward=edp.logged_rewards[idx],

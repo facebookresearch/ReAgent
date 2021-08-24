@@ -151,7 +151,6 @@ class DQNTrainer(DQNTrainerBaseLightning):
             discount_tensor = torch.pow(self.gamma, batch.time_diff.float())
         if self.multi_steps is not None:
             assert batch.step is not None
-            # pyre-fixme[16]: `Optional` has no attribute `float`.
             discount_tensor = torch.pow(self.gamma, batch.step.float())
         return discount_tensor
 

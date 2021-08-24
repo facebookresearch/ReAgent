@@ -327,7 +327,6 @@ class ActorWithPreprocessor(ModelBase):
             action = model_output.action
 
         if self.action_postprocessor:
-            # pyre-fixme[29]: `Optional[Postprocessor]` is not a function.
             action = self.action_postprocessor(action)
         return (action, model_output.log_prob)
 
@@ -404,7 +403,6 @@ class RankingActorWithPreprocessor(ModelBase):
         input = rlt._embed_states(input)
         action = self.model(input).action
         if self.action_postprocessor is not None:
-            # pyre-fixme[29]: `Optional[Postprocessor]` is not a function.
             action = self.action_postprocessor(action)
         return action
 

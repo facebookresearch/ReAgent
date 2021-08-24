@@ -92,8 +92,6 @@ class SAC(ActorCriticBase):
 
         value_network = None
         if self.value_net_builder:
-            # pyre-fixme[16]: `Optional` has no attribute `value`.
-            # pyre-fixme[16]: `Optional` has no attribute `value`.
             value_net_builder = self.value_net_builder.value
             value_network = value_net_builder.build_value_network(
                 normalization_data_map[NormalizationKey.STATE]

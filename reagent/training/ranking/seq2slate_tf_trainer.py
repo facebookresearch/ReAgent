@@ -71,8 +71,6 @@ class Seq2SlateTeacherForcingTrainer(ReAgentLightningModule):
         assert log_probs.requires_grad
 
         assert batch.optim_tgt_out_idx is not None
-        # pyre-fixme[6]: Expected `Tensor` for 1st param but got
-        #  `Optional[torch.Tensor]`.
         labels = self._transform_label(batch.optim_tgt_out_idx)
         assert not labels.requires_grad
         loss = self.kl_div_loss(log_probs, labels)
