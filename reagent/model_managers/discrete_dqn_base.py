@@ -66,6 +66,12 @@ class DiscreteDQNBase(ModelManager):
     def rl_parameters(self) -> RLParameters:
         pass
 
+    @property
+    @abc.abstractmethod
+    def action_names(self) -> List[str]:
+        # Returns the list of possible actions for this instance of problem
+        pass
+
     def create_policy(
         self,
         trainer_module: ReAgentLightningModule,
