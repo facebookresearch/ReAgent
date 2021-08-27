@@ -1,5 +1,7 @@
 #include "reagent/serving/core/PytorchActionValueScorer.h"
-
+#ifdef FB_INTERNAL
+#include "caffe2/caffe2/fb/predictor/PyTorchPredictorContainer.h" // @manual=//caffe2/caffe2/fb/predictor:pytorch_predictor_container
+#endif
 #include "reagent/serving/core/Operator.h"
 
 namespace reagent {
@@ -7,15 +9,25 @@ namespace reagent {
 PytorchActionValueScorer::PytorchActionValueScorer() : ActionValueScorer() {}
 
 StringDoubleMap PytorchActionValueScorer::predict(
-    const DecisionRequest& request, int modelId, int snapshotId) {
+    const DecisionRequest& request,
+    int modelId,
+    int snapshotId) {
   try {
     std::string path =
         "/tmp/" + std::to_string(modelId) + "/" + std::to_string(snapshotId);
 
     if (models_.find(path) == models_.end()) {
       try {
+#ifdef FB_INTERNAL
+        // First load predictor container, then extract module
+        std::shared_ptr<caffe2::PyTorchPredictorContainer> pytorchPredictor_;
+        pytorchPredictor_ =
+            std::make_shared<caffe2::PyTorchPredictorContainer>(path);
+        auto module = pytorchPredictor_->getPredictor()->get_module();
+#else
         // Deserialize the ScriptModule from a file using torch::jit::load().
         torch::jit::script::Module module = torch::jit::load(path);
+#endif
         models_[path] = std::move(module);
       } catch (const c10::Error& e) {
         LOG(ERROR) << "Error loading the model: " << e.what();
@@ -78,4 +90,4 @@ StringDoubleMap PytorchActionValueScorer::predict(
   LOG(FATAL) << "Should never get here";
 }
 
-}  // namespace reagent
+} // namespace reagent
