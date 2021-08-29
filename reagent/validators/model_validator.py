@@ -8,7 +8,7 @@ from typing import List, Optional
 from reagent.core.registry_meta import RegistryMeta
 from reagent.core.result_registries import ValidationResult
 from reagent.workflow.types import RLTrainingOutput
-
+from reagent.workflow.types import TableSpec
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +23,15 @@ class ModelValidator(metaclass=RegistryMeta):
         self,
         training_output: RLTrainingOutput,
         result_history: Optional[List[RLTrainingOutput]] = None,
+        input_table_spec: Optional[TableSpec] = None,
     ):
         """
         This method takes RLTrainingOutput so that it can extract anything it
         might need from it.
         """
-        result = self.do_validate(training_output, result_history)
+        result = self.do_validate(
+            training_output, result_history, input_table_spec=input_table_spec
+        )
         # Avoid circular dependency at import time
         from reagent.workflow.types import ValidationResult__Union
 
@@ -46,7 +49,8 @@ class ModelValidator(metaclass=RegistryMeta):
     def do_validate(
         self,
         training_output: RLTrainingOutput,
-        result_history: Optional[List[RLTrainingOutput]],
+        result_history: Optional[List[RLTrainingOutput]] = None,
+        input_table_spec: Optional[TableSpec] = None,
     ) -> ValidationResult:
         """
         This method takes RLTrainingOutput so that it can extract anything it
