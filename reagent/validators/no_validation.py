@@ -5,6 +5,7 @@ from reagent.core.dataclasses import dataclass
 from reagent.core.result_types import NoValidationResults
 from reagent.validators.model_validator import ModelValidator
 from reagent.workflow.types import RLTrainingOutput
+from reagent.workflow.types import TableSpec
 
 
 @dataclass
@@ -18,6 +19,7 @@ class NoValidation(ModelValidator):
     def do_validate(
         self,
         training_output: RLTrainingOutput,
-        result_history: Optional[List[RLTrainingOutput]],
+        result_history: Optional[List[RLTrainingOutput]] = None,
+        input_table_spec: Optional[TableSpec] = None,
     ) -> NoValidationResults:
         return NoValidationResults(should_publish=True)

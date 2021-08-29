@@ -192,7 +192,8 @@ class BinaryDifferenceScorerWithPreprocessor(ModelBase):
         q_values = self.model(state_feature_data)
         assert q_values.shape[1] == 2, f"{q_values.shape}"
         softmax_vals = F.softmax(q_values, dim=1)
-        return softmax_vals[:, 1] - softmax_vals[:, 0]
+        # TODO for future cleanup: kind of a misnomer now, since not really "difference"
+        return softmax_vals[:, 1]
 
     def input_prototype(self):
         return sparse_input_prototype(
