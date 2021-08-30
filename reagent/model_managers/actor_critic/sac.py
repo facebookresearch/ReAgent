@@ -91,8 +91,9 @@ class SAC(ActorCriticBase):
         )
 
         value_network = None
-        if self.value_net_builder:
-            value_net_builder = self.value_net_builder.value
+        value_net_builder = self.value_net_builder
+        if value_net_builder:
+            value_net_builder = value_net_builder.value
             value_network = value_net_builder.build_value_network(
                 normalization_data_map[NormalizationKey.STATE]
             )
