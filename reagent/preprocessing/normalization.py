@@ -198,8 +198,9 @@ def get_feature_start_indices(
         np = normalization_parameters[feature]
         start_indices.append(cur_idx)
         if np.feature_type == identify_types.ENUM:
-            assert np.possible_values is not None
-            cur_idx += len(np.possible_values)
+            possible_values = np.possible_values
+            assert possible_values is not None
+            cur_idx += len(possible_values)
         else:
             cur_idx += 1
     return start_indices

@@ -9,8 +9,6 @@ from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import NormalizationData
 from reagent.core.parameters import NormalizationKey
 from reagent.core.parameters import param_hash
-from reagent.data.data_fetcher import DataFetcher
-from reagent.data.reagent_data_module import ReAgentDataModule
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
@@ -24,12 +22,8 @@ from reagent.net_builder.unions import (
 from reagent.training import ReAgentLightningModule
 from reagent.training import ReinforceTrainer, ReinforceTrainerParameters
 from reagent.workflow.types import (
-    Dataset,
     ModelFeatureConfigProvider__Union,
-    ReaderOptions,
-    ResourceOptions,
     RewardOptions,
-    RLTrainingOutput,
 )
 
 
@@ -81,8 +75,9 @@ class Reinforce(ModelManager):
             len(self.action_names),
         )
         value_net = None
-        if self.value_net_builder:
-            value_net_builder = self.value_net_builder.value
+        value_net_builder = self.value_net_builder
+        if value_net_builder:
+            value_net_builder = value_net_builder.value
             value_net = value_net_builder.build_value_network(
                 normalization_data_map[NormalizationKey.STATE]
             )
