@@ -17,6 +17,7 @@ from reagent.preprocessing.normalization import (
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.test.base.utils import NumpyFeatureProcessor
 from reagent.test.preprocessing.preprocessing_util import (
+    CONTINUOUS_FEATURE_ID,
     BOXCOX_FEATURE_ID,
     ENUM_FEATURE_ID,
     PROBABILITY_FEATURE_ID,
@@ -319,7 +320,7 @@ class TestPreprocessing(unittest.TestCase):
                 ),
             )
 
-    def test_type_override(self):
+    def test_type_override_binary(self):
         # Take a feature that should be identified as probability
         feature_value_map = read_data()
         probability_values = feature_value_map[PROBABILITY_FEATURE_ID]
@@ -329,3 +330,36 @@ class TestPreprocessing(unittest.TestCase):
             "_", probability_values, feature_type=identify_types.BINARY
         )
         self.assertEqual(parameter.feature_type, "BINARY")
+
+    def test_type_override_continuous(self):
+        # Take a feature that should be identified as BOXCOX
+        feature_value_map = read_data()
+        probability_values = feature_value_map[BOXCOX_FEATURE_ID]
+
+        # And ask for a CONTINUOUS anyways
+        parameter = normalization.identify_parameter(
+            "_", probability_values, feature_type=identify_types.CONTINUOUS
+        )
+        self.assertEqual(parameter.feature_type, "CONTINUOUS")
+
+    def test_type_override_boxcox(self):
+        # Take a feature that should be identified as CONTINUOUS
+        feature_value_map = read_data()
+        probability_values = feature_value_map[CONTINUOUS_FEATURE_ID]
+
+        # And ask for a BOXCOX anyways
+        parameter = normalization.identify_parameter(
+            "_", probability_values, feature_type=identify_types.BOXCOX
+        )
+        self.assertEqual(parameter.feature_type, "BOXCOX")
+
+    def test_type_override_quantile(self):
+        # Take a feature that should be identified as CONTINUOUS
+        feature_value_map = read_data()
+        probability_values = feature_value_map[BOXCOX_FEATURE_ID]
+
+        # And ask for a QUANTILE anyways
+        parameter = normalization.identify_parameter(
+            "_", probability_values, feature_type=identify_types.QUANTILE
+        )
+        self.assertEqual(parameter.feature_type, "QUANTILE")

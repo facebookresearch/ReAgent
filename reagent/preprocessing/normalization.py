@@ -49,6 +49,8 @@ def identify_parameter(
     feature_type=None,
 ):
     force_boxcox = feature_type == identify_types.BOXCOX
+    force_continuous = feature_type == identify_types.CONTINUOUS
+    force_quantile = feature_type == identify_types.QUANTILE
     if feature_type is None:
         feature_type = identify_types.identify_type(values, max_unique_enum_values)
 
@@ -73,8 +75,8 @@ def identify_parameter(
         values = values - mean
         stddev = max(float(np.std(values, ddof=1)), 1.0)
 
-    if feature_type == identify_types.CONTINUOUS or force_boxcox:
-        if min_value == max_value and not force_boxcox:
+    if feature_type == identify_types.CONTINUOUS or force_boxcox or force_quantile:
+        if min_value == max_value and not (force_boxcox or force_quantile):
             return no_op_feature()
         k2_original, p_original = stats.normaltest(values)
 
@@ -89,7 +91,9 @@ def identify_parameter(
                 k2_original, p_original, k2_boxcox, p_boxcox
             )
         )
-        if lambda_ < 0.9 or lambda_ > 1.1 or force_boxcox:
+        if (lambda_ < 0.9 or lambda_ > 1.1 or force_boxcox) and not (
+            force_continuous or force_quantile
+        ):
             # Lambda is far enough from 1.0 to be worth doing boxcox
             if (
                 k2_original > k2_boxcox * 10 and k2_boxcox <= quantile_k2_threshold
@@ -116,7 +120,8 @@ def identify_parameter(
             boxcox_lambda is None
             and k2_original > quantile_k2_threshold
             and (not skip_quantiles)
-        ):
+            and not force_continuous
+        ) or force_quantile:
             feature_type = identify_types.QUANTILE
             quantiles = (
                 np.unique(
