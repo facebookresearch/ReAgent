@@ -16,6 +16,8 @@ from reagent.core.base_dataclass import BaseDataClass
 from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
+from reagent.core.registry_meta import wrap_oss_with_dataclass
+from reagent.core.tagged_union import TaggedUnion
 from reagent.core.torch_utils import gather
 from reagent.model_utils.seq2slate_utils import DECODER_START_SYMBOL, subsequent_mask
 from reagent.preprocessing.types import InputColumn
@@ -146,7 +148,7 @@ class FloatFeatureInfo(BaseDataClass):
 
 
 @pydantic_dataclass
-class IdMapping(object):
+class ExplicitMapping(object):
     __hash__ = param_hash
 
     ids: List[int] = field(default_factory=list)
@@ -172,10 +174,25 @@ class IdMapping(object):
 
 
 @pydantic_dataclass
+class ModuloMapping:
+    """
+    Map IDs to [0, table_size) via modulo `table_size`
+    """
+
+    table_size: int
+
+
+@wrap_oss_with_dataclass
+class IdMappingUnion(TaggedUnion):
+    explicit_mapping: Optional[ExplicitMapping] = None
+    modulo: Optional[ModuloMapping] = None
+
+
+@pydantic_dataclass
 class ModelFeatureConfig(BaseDataClass):
     float_feature_infos: List[FloatFeatureInfo] = field(default_factory=list)
     # table name -> id mapping
-    id_mapping_config: Dict[str, IdMapping] = field(default_factory=dict)
+    id_mapping_config: Dict[str, IdMappingUnion] = field(default_factory=dict)
     # id_list_feature_configs is feature_id -> list of values
     id_list_feature_configs: List[IdListFeatureConfig] = field(default_factory=list)
     # id_score_list_feature_configs is feature_id -> (keys -> values)

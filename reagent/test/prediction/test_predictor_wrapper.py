@@ -98,7 +98,11 @@ class TestPredictorWrapper(unittest.TestCase):
                     name="A", feature_id=10, id_mapping_name="A_mapping"
                 )
             ],
-            id_mapping_config={"A_mapping": rlt.IdMapping(ids=[0, 1, 2])},
+            id_mapping_config={
+                "A_mapping": rlt.IdMappingUnion(
+                    explicit_mapping=rlt.ExplicitMapping(ids=[0, 1, 2])
+                )
+            },
         )
         embedding_concat = models.EmbeddingBagConcat(
             state_dim=len(state_normalization_parameters),

@@ -87,7 +87,11 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
                     name="A", feature_id=10, id_mapping_name="A_mapping"
                 )
             ],
-            id_mapping_config={"A_mapping": rlt.IdMapping(ids=[0, 1, 2])},
+            id_mapping_config={
+                "A_mapping": rlt.IdMappingUnion(
+                    explicit_mapping=rlt.ExplicitMapping(ids=[0, 1, 2])
+                )
+            },
         )
         self._test_discrete_dqn_net_builder(
             chooser, state_feature_config=state_feature_config
@@ -108,7 +112,11 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
                     name="B", feature_id=100, id_mapping_name="A_mapping"
                 )
             ],
-            id_mapping_config={"A_mapping": rlt.IdMapping(ids=[0, 1, 2])},
+            id_mapping_config={
+                "A_mapping": rlt.IdMappingUnion(
+                    explicit_mapping=rlt.ExplicitMapping(ids=[0, 1, 2])
+                )
+            },
         )
         self._test_discrete_dqn_net_builder(
             chooser, state_feature_config=state_feature_config

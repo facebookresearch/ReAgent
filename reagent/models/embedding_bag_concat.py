@@ -34,7 +34,7 @@ class EmbeddingBagConcat(ModelBase):
         self.embedding_bags = torch.nn.ModuleDict(
             {
                 table_name: torch.nn.EmbeddingBag(
-                    num_embeddings=id_mapping.table_size,
+                    num_embeddings=id_mapping.value.table_size,
                     embedding_dim=embedding_dim,
                     mode="sum",
                 )
