@@ -314,7 +314,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: true
+          install_gym: false
           is_ubuntu_gpu: true
       - run_unittest:
           tox_env: circleci_ranking_unittest
@@ -328,7 +328,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: true
+          install_gym: false
           is_ubuntu_gpu: true
       - run_unittest:
           tox_env: circleci_training_unittest
@@ -342,7 +342,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: true
+          install_gym: false
           is_ubuntu_gpu: true
       - run_unittest:
           tox_env: circleci_prediction_unittest
@@ -356,7 +356,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: true
+          install_gym: false
           is_ubuntu_gpu: true
       - run_unittest:
           tox_env: circleci_world_model_unittest
