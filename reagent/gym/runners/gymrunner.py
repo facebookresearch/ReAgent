@@ -67,7 +67,7 @@ def evaluate_for_n_episodes(
     agent: Agent,
     max_steps: Optional[int] = None,
     gammas: Sequence[float] = (1.0,),
-    num_processes: int = 4,
+    num_processes: int = 0,
 ) -> np.ndarray:
     """Return an np array A of shape n x len(gammas)
     where A[i, j] = ith episode evaluated with gamma=gammas[j].
