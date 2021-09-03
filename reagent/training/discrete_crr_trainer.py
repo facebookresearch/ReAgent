@@ -3,7 +3,6 @@
 
 # Note: this files is modeled after td3_trainer.py
 
-import copy
 import logging
 from typing import List, Tuple
 
@@ -59,6 +58,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         beta: float = 1.0,
         entropy_coeff: float = 0.0,
         clip_limit: float = 10.0,
+        max_weight: float = 20.0,
     ) -> None:
         """
         Args:
@@ -85,6 +85,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
             entropy_coeff: coefficient for entropy regularization
             clip_limit: threshold for importance sampling when compute entropy
                 regularization using offline samples
+            max_weight: the maximum possible action weight in the actor loss
 
             Explaination of entropy regularization:
             Entropy regularization punishes deterministic policy and encourages
@@ -143,6 +144,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         self.beta = beta
         self.entropy_coeff = entropy_coeff
         self.clip_limit = clip_limit
+        self.max_weight = max_weight
 
     @property
     def q_network(self):
@@ -253,7 +255,7 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         weight = torch.clamp(
             ((1 / self.beta) * (advantages * action).sum(dim=1, keepdim=True)).exp(),
             0,
-            20.0,
+            self.max_weight,
         )
         # Remember: training_batch.action is in the one-hot format
         logged_action_idxs = torch.argmax(action, dim=1, keepdim=True)
