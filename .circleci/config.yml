@@ -137,15 +137,12 @@ commands:
         type: boolean
         default: false
     steps:
-      - when:
-          condition: << parameters.is_ubuntu_gpu >>
-          steps:
-            - run:
-                command: |
-                  pyenv install -v 3.8.1
-                  pyenv global 3.8.1
       - run:
+          # ubuntu-1604-cuda-10.2:202012-01 image has python2.7 by default
+          # we need to use python3.8 for tests
           command: |
+            pyenv install -v 3.8.1
+            pyenv global 3.8.1
             sudo apt update
             sudo apt install cmake
             sudo apt install swig
@@ -166,7 +163,7 @@ commands:
                 steps:
                   - run:
                       command: |
-                        sudo pip install -e .[gym,test] --pre -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html --progress-bar off
+                        pip install -e .[gym,test] --pre -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html --progress-bar off
 
   run_unittest:
     description: Run unittests, coverage and save results
@@ -215,37 +212,37 @@ jobs:
 
   gym_cpu_unittest:
     machine:
-      image: ubuntu-1604-cuda-10.2:202012-01
-    resource_class: large
+      image: ubuntu-1604:202101-01
+    resource_class: xlarge
     steps:
       - checkout_merge
       - pip_install:
           install_gym: false
-          is_ubuntu_gpu: true
+          is_ubuntu_gpu: false
       - run_unittest:
           tox_env: circleci_gym_cpu_unittest
 
   gym_replay_buffer_cpu_unittest_1:
     machine:
-      image: ubuntu-1604-cuda-10.2:202012-01
-    resource_class: large
+      image: ubuntu-1604:202101-01
+    resource_class: xlarge
     steps:
       - checkout_merge
       - pip_install:
           install_gym: false
-          is_ubuntu_gpu: true
+          is_ubuntu_gpu: false
       - run_unittest:
           tox_env: circleci_gym_replay_buffer_1_cpu_unittest
 
   gym_replay_buffer_cpu_unittest_2:
     machine:
       image: ubuntu-1604-cuda-10.2:202012-01
-    resource_class: large
+    resource_class: xlarge
     steps:
       - checkout_merge
       - pip_install:
           install_gym: false
-          is_ubuntu_gpu: true
+          is_ubuntu_gpu: false
       - run_unittest:
           tox_env: circleci_gym_replay_buffer_2_cpu_unittest
 
@@ -292,11 +289,10 @@ jobs:
           tox_env: circleci_gym_replay_buffer_2_gpu_unittest
 
   dqn_cartpole_e2e:
-    docker:
-      - image: circleci/python:3.8
-    resource_class: large
+    machine:
+      image: ubuntu-1604:202101-01
+    resource_class: xlarge
     environment:
-      - BASH_ENV: ~/.bashrc
       - CONFIG: reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
     steps:
       - checkout_merge
@@ -361,12 +357,23 @@ jobs:
       - run_unittest:
           tox_env: circleci_world_model_unittest
 
+  lite_api_unittest:
+    machine:
+      image: ubuntu-1604:202101-01
+    resource_class: xlarge
+    steps:
+      - checkout_merge
+      - pip_install:
+          install_gym: false
+          is_ubuntu_gpu: false
+      - run_unittest:
+          tox_env: circleci_lite_api_unittest
+
   sac_pendulum_e2e:
-    docker:
-      - image: circleci/python:3.8
-    resource_class: large
+    machine:
+      image: ubuntu-1604:202101-01
+    resource_class: xlarge
     environment:
-      - BASH_ENV: ~/.bashrc
       - CONFIG: reagent/workflow/sample_configs/sac_pendulum_offline.yaml
     steps:
       - checkout_merge
@@ -391,7 +398,7 @@ jobs:
   rasp_test_linux:
     docker:
       - image: cimg/base:2020.01
-    resource_class: large
+    resource_class: xlarge
     steps:
       - checkout_merge
       - rasp_build_deps:
@@ -422,6 +429,7 @@ jobs:
 workflows:
   build:
     jobs:
+      - lite_api_unittest
       - ranking_unittest
       - training_unittest
       - prediction_unittest
