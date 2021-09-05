@@ -10,7 +10,7 @@ from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData
 from reagent.data.reagent_data_module import ReAgentDataModule
 from reagent.reporting.reporter_base import ReporterBase
-from reagent.training import ReAgentLightningModule
+from reagent.training import ReAgentLightningModule, MultiStageTrainer
 from reagent.workflow.types import (
     Dataset,
     ReaderOptions,
@@ -114,6 +114,12 @@ class ModelManager:
             reader_options: options for the data reader
             resource_options: options for training resources (currently only used for setting num_nodes in pytorch lightning trainer)
         """
+        if isinstance(trainer_module, MultiStageTrainer):
+            assert trainer_module.multi_stage_total_epochs == num_epochs, (
+                f"The sum of each stage's epoch ({trainer_module.trainer_epoch_mapping})"
+                f" should be equal to num_epochs ({num_epochs})."
+            )
+
         reporter = self.get_reporter()
         trainer_module.set_reporter(reporter)
         assert data_module

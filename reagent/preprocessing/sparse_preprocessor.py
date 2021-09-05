@@ -134,11 +134,10 @@ def make_sparse_preprocessor(
         config.feature_id: _make_id_score_list_mapper(config)
         for config in feature_config.id_score_list_feature_configs
     }
-    return torch.jit.script(
-        SparsePreprocessor(
-            id2name, name2id, id_list_mappers, id_score_list_mappers, device
-        )
+    sparse_preprocessor = SparsePreprocessor(
+        id2name, name2id, id_list_mappers, id_score_list_mappers, device
     )
+    return torch.jit.script(sparse_preprocessor)
 
 
 class SparsePreprocessor(torch.nn.Module):
