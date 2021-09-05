@@ -3,6 +3,7 @@
 import bisect
 import functools
 import itertools
+from collections import OrderedDict
 from typing import List, Dict, Tuple
 
 import torch.nn as nn
@@ -30,10 +31,22 @@ class MultiStageTrainer(ReAgentLightningModule):
             else self._flush_reporter
         )
         self._in_testing_loop = False
+
         # Cumulative sum of number of epochs up to the index (of trainers)
-        self._trainer_epochs = [0] + epochs
+        self._trainer_acc_epochs = [0] + epochs
         for i in range(1, len(epochs) + 1):
-            self._trainer_epochs[i] += self._trainer_epochs[i - 1]
+            self._trainer_acc_epochs[i] += self._trainer_acc_epochs[i - 1]
+
+        # Num of epochs for each trainer. Used to check if the sum of them
+        # equals to num_epochs used in pytorch-lightning trainer
+        self.trainer_epoch_mapping = OrderedDict()
+        for t, e in zip(trainers, epochs):
+            trainer_name = type(t).__name__
+            self.trainer_epoch_mapping[trainer_name] = e
+
+    @property
+    def multi_stage_total_epochs(self):
+        return self._trainer_acc_epochs[-1]
 
     def set_reporter(self, reporter):
         super().set_reporter(reporter)
@@ -107,9 +120,9 @@ class MultiStageTrainer(ReAgentLightningModule):
     def _get_trainer_idx_from_epoch(self):
         # Cycling through the trainers
         epoch = (self.trainer.current_epoch - self._starting_epoch) % (
-            self._trainer_epochs[-1]
+            self._trainer_acc_epochs[-1]
         )
-        trainer_idx = bisect.bisect_right(self._trainer_epochs, epoch) - 1
+        trainer_idx = bisect.bisect_right(self._trainer_acc_epochs, epoch) - 1
 
         return trainer_idx
 
