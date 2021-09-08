@@ -106,6 +106,8 @@ class ComboOptimizerBase:
                 param[k], Choice
             ), "Only support discrete parameterization now"
         self.param = param
+        # pyre-fixme[6]: Expected `Optional[Tuple[float, float]]` for 2nd param but
+        #  got `Optional[float]`.
         self.obj_func = obj_func_scaler(obj_func, obj_exp_offset_scale)
         self.batch_size = batch_size
         self.obj_exp_scale = obj_exp_offset_scale
@@ -183,6 +185,7 @@ class RandomSearchOptimizer(ComboOptimizerBase):
         param: ng.p.Dict,
         obj_func: Callable,
         batch_size: int = BATCH_SIZE,
+        # pyre-fixme[11]: Annotation `array` is not defined as a type.
         sampling_weights: Optional[Dict[str, np.array]] = None,
     ):
         self.sampling_weights = sampling_weights
@@ -511,7 +514,10 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
         temp,
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         sampled_solutions, sampled_log_probs = sample_from_logits(
-            self.logits, batch_size, temp
+            # pyre-fixme[16]: `PolicyGradientOptimizer` has no attribute `logits`.
+            self.logits,
+            batch_size,
+            temp,
         )
         return sampled_solutions, sampled_log_probs
 
@@ -681,9 +687,11 @@ class QLearningOptimizer(ComboOptimizerBase):
         exp_replay = []
         acc_input_dim = 0
         # The first cur_state_action is a dummy vector of all -1
+        # pyre-fixme[16]: `QLearningOptimizer` has no attribute `input_dim`.
         cur_state_action = torch.full((batch_size, self.input_dim), -1).float()
         for k in self.sorted_keys:
             v = self.param[k]
+            # pyre-fixme[16]: `Parameter` has no attribute `choices`.
             num_choices = len(v.choices)
             next_state_action_all_pairs = cur_state_action.repeat_interleave(
                 num_choices, dim=0
@@ -692,6 +700,7 @@ class QLearningOptimizer(ComboOptimizerBase):
                 :, :, acc_input_dim : acc_input_dim + num_choices
             ] = torch.eye(num_choices)
             q_values = (
+                # pyre-fixme[16]: `QLearningOptimizer` has no attribute `q_net`.
                 self.q_net(next_state_action_all_pairs)
                 .detach()
                 .reshape(batch_size, num_choices)
@@ -718,6 +727,8 @@ class QLearningOptimizer(ComboOptimizerBase):
         # the first element is not useful
         exp_replay.pop(0)
 
+        # pyre-fixme[7]: Expected `Tuple[Dict[str, torch.Tensor], torch.Tensor]` but
+        #  got `Tuple[Dict[typing.Any, typing.Any], typing.List[typing.Any]]`.
         return sampled_solutions, exp_replay
 
     def sample(self, batch_size, temp=GREEDY_TEMP):
