@@ -139,6 +139,17 @@ class ComboOptimizerBase:
     def sample(self, batch_size, temp=None):
         raise NotImplementedError()
 
+    def indices_to_raw_choices(self, sampled_sol):
+        batch_size = list(sampled_sol.values())[0].shape[0]
+        sampled_sol_i_vals = []
+        for i in range(batch_size):
+            sampled_sol_i = {k: sampled_sol[k][i] for k in sampled_sol}
+            sampled_sol_i_val = {
+                k: self.param[k].choices.value[v] for k, v in sampled_sol_i.items()
+            }
+            sampled_sol_i_vals.append(sampled_sol_i_val)
+        return sampled_sol_i_vals
+
 
 class RandomSearchOptimizer(ComboOptimizerBase):
     """
