@@ -2,6 +2,7 @@
 
 import random
 import unittest
+from collections import defaultdict
 from typing import Dict
 
 import nevergrad as ng
@@ -130,6 +131,82 @@ class TestComboOptimizer(unittest.TestCase):
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
+
+    def test_random_sample_with_raw_choices_1(self):
+        batch_size = 1
+        input_param = ng.p.Dict(
+            choice1=ng.p.Choice([32, 64, 128]),
+            choice2=ng.p.Choice([True, False]),
+            choice3=ng.p.Choice(["Red", "Blue", "Green", "Yellow", "Purple"]),
+        )
+        obj_func = None
+        optimizer = RandomSearchOptimizer(
+            input_param, obj_func, batch_size=batch_size, sampling_weights=None
+        )
+        sampled_sol = optimizer.sample(batch_size)
+        sampled_sol = optimizer.indices_to_raw_choices(sampled_sol)
+        self.assertEqual(len(sampled_sol), batch_size)
+        self.assertIsInstance(sampled_sol, list)
+        for sample in sampled_sol:
+            self.assertSetEqual(set(sample.keys()), set(input_param.keys()))
+            for key in sample:
+                self.assertIn(sample[key], input_param[key].choices.value)
+
+    def test_random_sample_with_raw_choices_2(self):
+        batch_size = 200
+        input_param = ng.p.Dict(
+            choice1=ng.p.Choice([32, 64, 128]),
+            choice2=ng.p.Choice([True, False]),
+            choice3=ng.p.Choice(["Red", "Blue", "Green", "Yellow", "Purple"]),
+        )
+        obj_func = None
+
+        sampling_weights = {
+            "choice1": [0.5, 0.5, 0.0],
+            "choice2": [0.25, 0.75],
+            "choice3": [0.1, 0.9, 0.0, 0.0, 0.0],
+        }
+
+        optimizer = RandomSearchOptimizer(
+            input_param,
+            obj_func,
+            batch_size=batch_size,
+            sampling_weights=sampling_weights,
+        )
+        sampled_sol = optimizer.sample(batch_size)
+        sampled_sol = optimizer.indices_to_raw_choices(sampled_sol)
+        self.assertEqual(len(sampled_sol), batch_size)
+        self.assertIsInstance(sampled_sol, list)
+
+        counts = {key: defaultdict(int) for key in sampling_weights}
+        for sample in sampled_sol:
+            self.assertSetEqual(set(sample.keys()), set(input_param.keys()))
+            self.assertIn(sample["choice1"], [32, 64])
+            self.assertIn(sample["choice2"], [True, False])
+            self.assertIn(sample["choice3"], ["Red", "Blue"])
+            for key in sample:
+                counts[key][sample[key]] += 1
+
+        self.assertAlmostEqual(counts["choice1"][32] / float(batch_size), 0.5, places=1)
+        self.assertAlmostEqual(counts["choice1"][64] / float(batch_size), 0.5, places=1)
+        self.assertEqual(counts["choice1"][128], 0)
+
+        self.assertAlmostEqual(
+            counts["choice2"][True] / float(batch_size), 0.25, places=1
+        )
+        self.assertAlmostEqual(
+            counts["choice2"][False] / float(batch_size), 0.75, places=1
+        )
+
+        self.assertAlmostEqual(
+            counts["choice3"]["Red"] / float(batch_size), 0.1, places=1
+        )
+        self.assertAlmostEqual(
+            counts["choice3"]["Blue"] / float(batch_size), 0.9, places=1
+        )
+        self.assertEqual(counts["choice3"]["Green"], 0)
+        self.assertEqual(counts["choice3"]["Yellow"], 0)
+        self.assertEqual(counts["choice3"]["Purple"], 0)
 
     def test_nevergrad_optimizer_discrete(self):
         batch_size = 32
