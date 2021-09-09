@@ -4,7 +4,7 @@
 import heapq
 import logging
 from collections import defaultdict, deque
-from typing import Callable, Dict, Tuple, Optional
+from typing import Callable, Dict, Tuple, Optional, List, Any
 
 import nevergrad as ng
 import numpy as np
@@ -24,7 +24,7 @@ MAX_NUM_BEST_SOLUTIONS = 1000
 GREEDY_TEMP = 0.0001
 
 
-def sample_from_logits(keyed_logits: Dict[str, torch.Tensor], batch_size, temp):
+def sample_from_logits(keyed_logits: Dict[str, nn.Parameter], batch_size, temp):
     sampled_log_probs = torch.zeros(batch_size, 1)
     sampled_solutions = {}
     for k, logits in keyed_logits.items():
@@ -99,15 +99,13 @@ class ComboOptimizerBase:
         param: ng.p.Dict,
         obj_func: Callable,
         batch_size: int = BATCH_SIZE,
-        obj_exp_offset_scale: Optional[float] = None,
+        obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
     ):
         for k in param:
             assert isinstance(
                 param[k], Choice
             ), "Only support discrete parameterization now"
         self.param = param
-        # pyre-fixme[6]: Expected `Optional[Tuple[float, float]]` for 2nd param but
-        #  got `Optional[float]`.
         self.obj_func = obj_func_scaler(obj_func, obj_exp_offset_scale)
         self.batch_size = batch_size
         self.obj_exp_scale = obj_exp_offset_scale
@@ -156,7 +154,7 @@ class RandomSearchOptimizer(ComboOptimizerBase):
             The input dictionary has choice names as the key and sampled choice
             indices as the value (of shape (batch_size, ))
 
-        sampling_weights (Optional[Dict[str, np.array]]):
+        sampling_weights (Optional[Dict[str, np.ndarray]]):
             Instead of uniform sampling, we sample solutions with preferred
             weights. Key: choice name, value: sampling weights
 
@@ -185,8 +183,7 @@ class RandomSearchOptimizer(ComboOptimizerBase):
         param: ng.p.Dict,
         obj_func: Callable,
         batch_size: int = BATCH_SIZE,
-        # pyre-fixme[11]: Annotation `array` is not defined as a type.
-        sampling_weights: Optional[Dict[str, np.array]] = None,
+        sampling_weights: Optional[Dict[str, np.ndarray]] = None,
     ):
         self.sampling_weights = sampling_weights
         super().__init__(
@@ -309,12 +306,13 @@ class LogitBasedComboOptimizerBase(ComboOptimizerBase):
         learning_rate: float = LEARNING_RATE,
         anneal_rate: float = ANNEAL_RATE,
         batch_size: int = BATCH_SIZE,
-        obj_exp_offset_scale: Optional[float] = None,
+        obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
     ):
         self.temp = start_temp
         self.min_temp = min_temp
         self.anneal_rate = anneal_rate
         self.learning_rate = learning_rate
+        self.logits: Dict[str, nn.Parameter] = {}
         super().__init__(
             param,
             obj_func,
@@ -323,7 +321,6 @@ class LogitBasedComboOptimizerBase(ComboOptimizerBase):
         )
 
     def _init(self):
-        self.logits = {}
         parameters = []
         for k in self.param.keys():
             v = self.param[k]
@@ -491,7 +488,7 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
         learning_rate: float = LEARNING_RATE,
         anneal_rate=ANNEAL_RATE,
         batch_size=BATCH_SIZE,
-        obj_exp_offset_scale: Optional[float] = None,
+        obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
     ):
         super().__init__(
             param,
@@ -514,7 +511,6 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
         temp,
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         sampled_solutions, sampled_log_probs = sample_from_logits(
-            # pyre-fixme[16]: `PolicyGradientOptimizer` has no attribute `logits`.
             self.logits,
             batch_size,
             temp,
@@ -622,7 +618,7 @@ class QLearningOptimizer(ComboOptimizerBase):
         anneal_rate=ANNEAL_RATE,
         batch_size=BATCH_SIZE,
         model_dim: int = 128,
-        obj_exp_offset_scale: Optional[float] = None,
+        obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
         num_batches_per_learning: int = 10,
         replay_size: int = 100,
     ):
@@ -641,6 +637,8 @@ class QLearningOptimizer(ComboOptimizerBase):
         self.num_batches_per_learning = num_batches_per_learning
         self.replay_size = replay_size
         self.exp_replay = deque([], maxlen=replay_size)
+        self.input_dim = 0
+        self.q_net = None
         super().__init__(
             param,
             obj_func,
@@ -649,7 +647,6 @@ class QLearningOptimizer(ComboOptimizerBase):
         )
 
     def _init(self):
-        self.input_dim = 0
         for k in self.sorted_keys:
             v = self.param[k]
             if isinstance(v, ng.p.Choice):
@@ -681,13 +678,12 @@ class QLearningOptimizer(ComboOptimizerBase):
         self,
         batch_size,
         temp,
-    ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
+    ) -> Tuple[Dict[str, torch.Tensor], List[Any]]:
         logger.info(f"Explore with temp={self.temp}")
-        sampled_solutions = {}
+        sampled_solutions: Dict[str, torch.Tensor] = {}
         exp_replay = []
         acc_input_dim = 0
         # The first cur_state_action is a dummy vector of all -1
-        # pyre-fixme[16]: `QLearningOptimizer` has no attribute `input_dim`.
         cur_state_action = torch.full((batch_size, self.input_dim), -1).float()
         for k in self.sorted_keys:
             v = self.param[k]
@@ -700,7 +696,6 @@ class QLearningOptimizer(ComboOptimizerBase):
                 :, :, acc_input_dim : acc_input_dim + num_choices
             ] = torch.eye(num_choices)
             q_values = (
-                # pyre-fixme[16]: `QLearningOptimizer` has no attribute `q_net`.
                 self.q_net(next_state_action_all_pairs)
                 .detach()
                 .reshape(batch_size, num_choices)
@@ -727,8 +722,6 @@ class QLearningOptimizer(ComboOptimizerBase):
         # the first element is not useful
         exp_replay.pop(0)
 
-        # pyre-fixme[7]: Expected `Tuple[Dict[str, torch.Tensor], torch.Tensor]` but
-        #  got `Tuple[Dict[typing.Any, typing.Any], typing.List[typing.Any]]`.
         return sampled_solutions, exp_replay
 
     def sample(self, batch_size, temp=GREEDY_TEMP):
