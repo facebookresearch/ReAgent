@@ -136,13 +136,14 @@ class ModelManager:
             checkpoint_path=checkpoint_path,
             resource_options=resource_options,
         )
+
         rank = get_rank()
         if rank == 0:
-            logger = lightning_trainer.logger
+            trainer_logger = lightning_trainer.logger
             # pyre-ignore
-            logger_data = logger.line_plot_aggregated
+            logger_data = trainer_logger.line_plot_aggregated
             # pyre-ignore
-            logger.clear_local_data()
+            trainer_logger.clear_local_data()
             if reporter is None:
                 training_report = None
             else:
