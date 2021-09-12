@@ -188,10 +188,8 @@ class DiscreteDqnDataModule(ManualDataModule):
     def build_batch_preprocessor(self) -> BatchPreprocessor:
         state_preprocessor = Preprocessor(
             self.state_normalization_data.dense_normalization_parameters,
-            use_gpu=self.resource_options.use_gpu,
         )
         return DiscreteDqnBatchPreprocessor(
             num_actions=len(self.model_manager.action_names),
             state_preprocessor=state_preprocessor,
-            use_gpu=self.resource_options.use_gpu,
         )
