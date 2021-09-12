@@ -106,6 +106,9 @@ class ManualDataModule(ReAgentDataModule):
         self.saved_setup_data = saved_setup_data or {}
 
         self._setup_done = False
+        self._num_train_data_loader_calls = 0
+        self._num_val_data_loader_calls = 0
+        self._num_test_data_loader_calls = 0
 
     def prepare_data(self, *args, **kwargs):
         if self.setup_data is not None:
@@ -241,7 +244,7 @@ class ManualDataModule(ReAgentDataModule):
     def build_batch_preprocessor(self) -> BatchPreprocessor:
         pass
 
-    def get_dataloader(self, dataset: Dataset):
+    def get_dataloader(self, dataset: Dataset, identity: str = "Default"):
         batch_preprocessor = self.build_batch_preprocessor()
         reader_options = self.reader_options
         assert reader_options
@@ -262,21 +265,29 @@ class ManualDataModule(ReAgentDataModule):
         return _closing_iter(dataloader)
 
     def train_dataloader(self):
-        return self.get_dataloader(self._train_dataset)
+        self._num_train_data_loader_calls += 1
+        return self.get_dataloader(
+            self._train_dataset,
+            identity=f"train_{self._num_train_data_loader_calls}",
+        )
 
     def test_dataloader(self):
+        self._num_test_data_loader_calls += 1
         # TODO: we currently use the same data for test and validation.
         # We should have three different splits of the total data
-        return self._get_eval_dataset()
+        return self._get_eval_dataset(
+            identity=f"test_{self._num_test_data_loader_calls}"
+        )
 
     def val_dataloader(self):
-        return self._get_eval_dataset()
+        self._num_val_data_loader_calls += 1
+        return self._get_eval_dataset(identity=f"val_{self._num_val_data_loader_calls}")
 
-    def _get_eval_dataset(self):
+    def _get_eval_dataset(self, identity: str):
         test_dataset = getattr(self, "_eval_dataset", None)
         if not test_dataset:
             return None
-        return self.get_dataloader(test_dataset)
+        return self.get_dataloader(test_dataset, identity)
 
 
 def _closing_iter(dataloader):
