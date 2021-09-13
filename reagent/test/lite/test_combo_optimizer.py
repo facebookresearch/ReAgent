@@ -210,12 +210,18 @@ class TestComboOptimizer(unittest.TestCase):
 
     def test_nevergrad_optimizer_discrete(self):
         batch_size = 32
+        n_generations = 40
         input_param = discrete_input_param()
         gt_net = create_ground_truth_net(input_param)
         obj_func = create_discrete_choice_obj_func(input_param, gt_net)
-        optimizer = NeverGradOptimizer(input_param, obj_func, batch_size=batch_size)
+        optimizer = NeverGradOptimizer(
+            input_param,
+            obj_func,
+            estimated_budgets=batch_size * n_generations,
+            batch_size=batch_size,
+            optimizer_name="CMA",
+        )
         best_rs_result = random_sample(input_param, obj_func, n_generations=20)
-        n_generations = 100
         history_min_reward = torch.tensor(9999.0)
         for i in range(n_generations):
             (
