@@ -24,7 +24,10 @@ MAX_NUM_BEST_SOLUTIONS = 1000
 GREEDY_TEMP = 0.0001
 
 
-def sample_from_logits(keyed_logits: Dict[str, nn.Parameter], batch_size, temp):
+def sample_from_logits(
+    keyed_logits: Dict[str, nn.Parameter], batch_size: int, temp: float
+) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
+    """Return sampled solutions and sampled log probabilities"""
     sampled_log_probs = torch.zeros(batch_size, 1)
     sampled_solutions = {}
     for k, logits in keyed_logits.items():
@@ -36,7 +39,9 @@ def sample_from_logits(keyed_logits: Dict[str, nn.Parameter], batch_size, temp):
     return sampled_solutions, sampled_log_probs
 
 
-def obj_func_scaler(obj_func, exp_offset_and_scale: Optional[Tuple[float, float]]):
+def obj_func_scaler(
+    obj_func: Callable, exp_offset_and_scale: Optional[Tuple[float, float]]
+) -> Callable:
     """
     Scale objective functions to make optimizers get out of local minima more easily.
 
@@ -57,19 +62,19 @@ def obj_func_scaler(obj_func, exp_offset_and_scale: Optional[Tuple[float, float]
     return obj_func_scaled
 
 
-def _num_of_params(model):
+def _num_of_params(model) -> int:
     return len(torch.cat([p.flatten() for p in model.parameters()]))
 
 
 class BestResultsQueue:
     """Maintain the `max_len` lowest numbers"""
 
-    def __init__(self, max_len):
+    def __init__(self, max_len: int) -> None:
         self.max_len = max_len
         self.reward_sol_dict = defaultdict(set)
         self.heap = []
 
-    def insert(self, reward, sol):
+    def insert(self, reward: torch.Tensor, sol: Dict[str, torch.Tensor]) -> None:
         # Negate the reward because maximal N elements will be kept
         # in heap, while all optimizers are a minimizer.
         reward = -reward
@@ -86,7 +91,7 @@ class BestResultsQueue:
             )
             self.reward_sol_dict[old_r].remove(old_sol_str)
 
-    def topk(self, k):
+    def topk(self, k: int) -> List[Tuple[torch.Tensor, Dict[str, torch.Tensor]]]:
         k = min(k, len(self.heap))
         res = heapq.nlargest(k, self.heap)
         # a list of (reward, sol) tuples
@@ -100,7 +105,7 @@ class ComboOptimizerBase:
         obj_func: Callable,
         batch_size: int = BATCH_SIZE,
         obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
-    ):
+    ) -> None:
         for k in param:
             assert isinstance(
                 param[k], Choice
@@ -113,39 +118,57 @@ class ComboOptimizerBase:
         self.best_sols = BestResultsQueue(MAX_NUM_BEST_SOLUTIONS)
         self._init()
 
-    def _init(self):
+    def _init(self) -> None:
         pass
 
-    def optimize_step(self):
+    def optimize_step(self) -> Tuple:
         all_results = self._optimize_step()
         self.step += 1
         sampled_solutions, sampled_reward = all_results[0], all_results[1]
         self._maintain_best_solutions(sampled_solutions, sampled_reward)
         return all_results
 
-    def _maintain_best_solutions(self, sampled_solutions, sampled_reward):
+    def _maintain_best_solutions(
+        self, sampled_sols: Dict[str, torch.Tensor], sampled_reward: torch.Tensor
+    ) -> None:
         for idx in range(len(sampled_reward)):
             r = sampled_reward[idx].item()
-            sol = {k: sampled_solutions[k][idx] for k in sampled_solutions}
+            sol = {k: sampled_sols[k][idx] for k in sampled_sols}
             self.best_sols.insert(r, sol)
 
-    def best_solutions(self, k=1):
-        """k solutions with the smallest rewards"""
+    def best_solutions(
+        self, k: int = 1
+    ) -> List[Tuple[torch.Tensor, Dict[str, torch.Tensor]]]:
+        """
+        k solutions with the smallest rewards
+        Return is a list of tuples (reward, solution)
+        """
         return self.best_sols.topk(k)
 
-    def _optimize_step(self):
+    def _optimize_step(self) -> Tuple:
         raise NotImplementedError()
 
-    def sample(self, batch_size, temp=None):
+    def sample(
+        self, batch_size: int, temp: Optional[float] = None
+    ) -> Dict[str, torch.Tensor]:
+        """
+        Return sampled solutions, keyed by parameter names.
+        For discrete parameters, the values are choice indices;
+        For continuous parameters, the values are sampled float vectors.
+        """
         raise NotImplementedError()
 
-    def indices_to_raw_choices(self, sampled_sol):
+    def indices_to_raw_choices(
+        self, sampled_sol: Dict[str, torch.Tensor]
+    ) -> List[Dict[str, str]]:
         batch_size = list(sampled_sol.values())[0].shape[0]
         sampled_sol_i_vals = []
         for i in range(batch_size):
             sampled_sol_i = {k: sampled_sol[k][i] for k in sampled_sol}
             sampled_sol_i_val = {
-                k: self.param[k].choices.value[v] for k, v in sampled_sol_i.items()
+                # pyre-fixme[16]: `Parameter` has no attribute `choices`.
+                k: self.param[k].choices.value[v]
+                for k, v in sampled_sol_i.items()
             }
             sampled_sol_i_vals.append(sampled_sol_i_val)
         return sampled_sol_i_vals
@@ -195,7 +218,7 @@ class RandomSearchOptimizer(ComboOptimizerBase):
         obj_func: Callable,
         batch_size: int = BATCH_SIZE,
         sampling_weights: Optional[Dict[str, np.ndarray]] = None,
-    ):
+    ) -> None:
         self.sampling_weights = sampling_weights
         super().__init__(
             param,
@@ -203,10 +226,13 @@ class RandomSearchOptimizer(ComboOptimizerBase):
             batch_size,
         )
 
-    def sample(self, batch_size, temp=None):
+    def sample(
+        self, batch_size: int, temp: Optional[float] = None
+    ) -> Dict[str, torch.Tensor]:
         assert temp is None, "temp is not used in Random Search"
         sampled_sol = {}
         for k, param in self.param.items():
+            # pyre-fixme[16]: `Parameter` has no attribute `choices`.
             num_choices = len(param.choices)
             if self.sampling_weights is None:
                 sampled_sol[k] = torch.randint(num_choices, (batch_size,))
@@ -217,7 +243,7 @@ class RandomSearchOptimizer(ComboOptimizerBase):
                 )
         return sampled_sol
 
-    def _optimize_step(self):
+    def _optimize_step(self) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         sampled_solutions = self.sample(self.batch_size)
         sampled_reward, _ = self.obj_func(sampled_solutions)
         sampled_reward = sampled_reward.detach()
@@ -260,24 +286,32 @@ class NeverGradOptimizer(ComboOptimizerBase):
         >>> assert best_choice['choice1'] == 2
     """
 
-    def _init(self):
+    def _init(self) -> None:
+        # pyre-fixme[16]: `NeverGradOptimizer` has no attribute `optimizer`.
         self.optimizer = ng.optimizers.NGOpt(
             parametrization=ng.p.Instrumentation(self.param), budget=0, num_workers=1
         )
+        # pyre-fixme[16]: `NeverGradOptimizer` has no attribute `choice_to_index`.
         self.choice_to_index = {}
         for k, param in self.param.items():
+            # pyre-fixme[16]: `Parameter` has no attribute `choices`.
             self.choice_to_index[k] = {v: i for i, v in enumerate(param.choices.value)}
 
-    def sample(self, batch_size, temp=None):
+    def sample(
+        self, batch_size: int, temp: Optional[float] = None
+    ) -> Dict[str, torch.Tensor]:
         assert temp is None, "temp is not used in Random Search"
         ng_sols_idx = {k: torch.zeros(batch_size) for k in self.param}
         for i in range(batch_size):
+            # pyre-fixme[16]: `NeverGradOptimizer` has no attribute `optimizer`.
             ng_sol = self.optimizer.ask().value[0][0]
             for k in ng_sol:
+                # pyre-fixme[16]: `NeverGradOptimizer` has no attribute
+                #  `choice_to_index`.
                 ng_sols_idx[k][i] = self.choice_to_index[k][ng_sol[k]]
         return ng_sols_idx
 
-    def sample_internal(self, batch_size, temp=None):
+    def sample_internal(self, batch_size: int, temp: Optional[float] = None) -> Tuple:
         """
         Return sampled solutions in two formats.
         (1) our own format, which is a dictionary and consistent with other optimizers.
@@ -289,19 +323,23 @@ class NeverGradOptimizer(ComboOptimizerBase):
         ng_sols_idx = {k: torch.zeros(batch_size, dtype=torch.long) for k in self.param}
         ng_sols_raw = []
         for i in range(batch_size):
+            # pyre-fixme[16]: `NeverGradOptimizer` has no attribute `optimizer`.
             ng_sol = self.optimizer.ask()
             ng_sols_raw.append(ng_sol)
             ng_sol_val = ng_sol.value[0][0]
             for k in ng_sol_val:
+                # pyre-fixme[16]: `NeverGradOptimizer` has no attribute
+                #  `choice_to_index`.
                 ng_sols_idx[k][i] = self.choice_to_index[k][ng_sol_val[k]]
         return ng_sols_idx, ng_sols_raw
 
-    def _optimize_step(self):
+    def _optimize_step(self) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         sampled_sol_idxs, sampled_sols = self.sample_internal(self.batch_size)
         sampled_reward, _ = self.obj_func(sampled_sol_idxs)
         sampled_reward = sampled_reward.detach()
 
         for ng_sol, r in zip(sampled_sols, sampled_reward):
+            # pyre-fixme[16]: `NeverGradOptimizer` has no attribute `optimizer`.
             self.optimizer.tell(ng_sol, r.item())
 
         return sampled_sol_idxs, sampled_reward
@@ -318,12 +356,13 @@ class LogitBasedComboOptimizerBase(ComboOptimizerBase):
         anneal_rate: float = ANNEAL_RATE,
         batch_size: int = BATCH_SIZE,
         obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
-    ):
+    ) -> None:
         self.temp = start_temp
         self.min_temp = min_temp
         self.anneal_rate = anneal_rate
         self.learning_rate = learning_rate
         self.logits: Dict[str, nn.Parameter] = {}
+        self.optimizer = None
         super().__init__(
             param,
             obj_func,
@@ -331,7 +370,7 @@ class LogitBasedComboOptimizerBase(ComboOptimizerBase):
             obj_exp_offset_scale,
         )
 
-    def _init(self):
+    def _init(self) -> None:
         parameters = []
         for k in self.param.keys():
             v = self.param[k]
@@ -343,17 +382,20 @@ class LogitBasedComboOptimizerBase(ComboOptimizerBase):
                 raise NotImplementedError()
         self.optimizer = torch.optim.Adam(parameters, lr=self.learning_rate)
 
-    def sample(self, batch_size, temp=GREEDY_TEMP):
+    def sample(
+        self, batch_size: int, temp: Optional[float] = GREEDY_TEMP
+    ) -> Dict[str, torch.Tensor]:
+        assert temp is not None, "temp is needed for sampling logits"
         sampled_solutions, _ = sample_from_logits(self.logits, batch_size, temp)
         return sampled_solutions
 
 
-def sample_gumbel(shape, eps=1e-20):
+def sample_gumbel(shape: Tuple[int, ...], eps: float = 1e-20) -> torch.Tensor:
     U = torch.rand(shape)
     return -torch.log(-torch.log(U + eps) + eps)
 
 
-def gumbel_softmax(logits, temperature):
+def gumbel_softmax(logits: torch.Tensor, temperature: float) -> torch.Tensor:
     y = logits + sample_gumbel(logits.size())
     return F.softmax(y / temperature, dim=-1)
 
@@ -404,9 +446,9 @@ class GumbelSoftmaxOptimizer(LogitBasedComboOptimizerBase):
         start_temp: float = 1.0,
         min_temp: float = 0.1,
         learning_rate: float = LEARNING_RATE,
-        anneal_rate=ANNEAL_RATE,
-        batch_size=BATCH_SIZE,
-    ):
+        anneal_rate: float = ANNEAL_RATE,
+        batch_size: int = BATCH_SIZE,
+    ) -> None:
         super().__init__(
             param,
             obj_func,
@@ -419,13 +461,13 @@ class GumbelSoftmaxOptimizer(LogitBasedComboOptimizerBase):
             obj_exp_offset_scale=None,
         )
 
-    def sample_internal(self, batch_size, temp):
+    def sample_internal(self, batch_size: int, temp: float) -> Dict[str, torch.Tensor]:
         sampled_softmax_vals = {}
         for k, logits in self.logits.items():
             sampled_softmax_vals[k] = gumbel_softmax(logits.repeat(batch_size, 1), temp)
         return sampled_softmax_vals
 
-    def _optimize_step(self):
+    def _optimize_step(self) -> Tuple:
         sampled_softmax_vals = self.sample_internal(self.batch_size, self.temp)
 
         sampled_reward, _ = self.obj_func(sampled_softmax_vals)
@@ -497,10 +539,10 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
         start_temp: float = 1.0,
         min_temp: float = 1.0,
         learning_rate: float = LEARNING_RATE,
-        anneal_rate=ANNEAL_RATE,
-        batch_size=BATCH_SIZE,
+        anneal_rate: float = ANNEAL_RATE,
+        batch_size: int = BATCH_SIZE,
         obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
-    ):
+    ) -> None:
         super().__init__(
             param,
             obj_func,
@@ -512,14 +554,17 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
             obj_exp_offset_scale,
         )
 
-    def sample(self, batch_size, temp=GREEDY_TEMP):
+    def sample(
+        self, batch_size: int, temp: Optional[float] = GREEDY_TEMP
+    ) -> Dict[str, torch.Tensor]:
+        assert temp is not None, "temp is needed for sampling logits"
         sampled_solutions, _ = sample_from_logits(self.logits, batch_size, temp)
         return sampled_solutions
 
     def sample_internal(
         self,
-        batch_size,
-        temp,
+        batch_size: int,
+        temp: float,
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         sampled_solutions, sampled_log_probs = sample_from_logits(
             self.logits,
@@ -528,7 +573,7 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
         )
         return sampled_solutions, sampled_log_probs
 
-    def _optimize_step(self):
+    def _optimize_step(self) -> Tuple:
         sampled_solutions, sampled_log_probs = self.sample_internal(
             self.batch_size, self.temp
         )
@@ -560,7 +605,7 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
         return sampled_solutions, sampled_reward, sampled_log_probs
 
 
-def shuffle_exp_replay(exp_replay):
+def shuffle_exp_replay(exp_replay: List[Any]) -> Any:
     shuffle_idx = np.random.permutation(len(exp_replay))
     for idx in shuffle_idx:
         yield exp_replay[idx]
@@ -626,13 +671,13 @@ class QLearningOptimizer(ComboOptimizerBase):
         start_temp: float = 1.0,
         min_temp: float = 0.1,
         learning_rate: float = LEARNING_RATE,
-        anneal_rate=ANNEAL_RATE,
-        batch_size=BATCH_SIZE,
+        anneal_rate: float = ANNEAL_RATE,
+        batch_size: int = BATCH_SIZE,
         model_dim: int = 128,
         obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
         num_batches_per_learning: int = 10,
         replay_size: int = 100,
-    ):
+    ) -> None:
         self.model_dim = model_dim
         self.sorted_keys = sorted(param.keys())
         assert (
@@ -650,6 +695,7 @@ class QLearningOptimizer(ComboOptimizerBase):
         self.exp_replay = deque([], maxlen=replay_size)
         self.input_dim = 0
         self.q_net = None
+        self.optimizer = None
         super().__init__(
             param,
             obj_func,
@@ -657,7 +703,7 @@ class QLearningOptimizer(ComboOptimizerBase):
             obj_exp_offset_scale,
         )
 
-    def _init(self):
+    def _init(self) -> None:
         for k in self.sorted_keys:
             v = self.param[k]
             if isinstance(v, ng.p.Choice):
@@ -687,8 +733,8 @@ class QLearningOptimizer(ComboOptimizerBase):
 
     def sample_internal(
         self,
-        batch_size,
-        temp,
+        batch_size: int,
+        temp: float,
     ) -> Tuple[Dict[str, torch.Tensor], List[Any]]:
         logger.info(f"Explore with temp={self.temp}")
         sampled_solutions: Dict[str, torch.Tensor] = {}
@@ -735,11 +781,16 @@ class QLearningOptimizer(ComboOptimizerBase):
 
         return sampled_solutions, exp_replay
 
-    def sample(self, batch_size, temp=GREEDY_TEMP):
+    def sample(
+        self, batch_size: int, temp: Optional[float] = GREEDY_TEMP
+    ) -> Dict[str, torch.Tensor]:
+        assert temp is not None, "temp is needed for epsilon greedy"
         sampled_solutions, _ = self.sample_internal(batch_size, temp)
         return sampled_solutions
 
-    def _optimize_step(self):
+    def _optimize_step(
+        self,
+    ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor, np.ndarray]:
         sampled_solutions, exp_replay = self.sample_internal(self.batch_size, self.temp)
         sampled_reward, sampled_scaled_reward = self.obj_func(sampled_solutions)
         sampled_reward, sampled_scaled_reward = (
