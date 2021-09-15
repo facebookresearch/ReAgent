@@ -265,6 +265,14 @@ class NeverGradOptimizer(ComboOptimizerBase):
             The input dictionary has choice names as the key and sampled choice
             indices as the value (of shape (batch_size, ))
 
+        estimated_budgets (int): estimated number of budgets (objective evaluation
+            times) for nevergrad to perform auto tuning.
+
+        optimizer_name (Optional[str]): ng optimizer to be used specifically
+            All possible nevergrad optimizers are available at:
+            https://facebookresearch.github.io/nevergrad/optimization.html#choosing-an-optimizer.
+            If not specified, we use the meta optimizer NGOpt
+
     Example:
 
         >>> BATCH_SIZE = 4
@@ -277,7 +285,10 @@ class NeverGradOptimizer(ComboOptimizerBase):
         ...             reward[i, 0] = 0.0
         ...     return reward
         ...
-        >>> optimizer = NeverGradOptimizer(ng_param, obj_func, batch_size=BATCH_SIZE)
+        >>> optimizer = NeverGradOptimizer(
+        ...    ng_param, obj_func, batch_size=BATCH_SIZE, estimated_budgets=40
+        ... )
+        >>>
         >>> for i in range(10):
         ...     res = optimizer.optimize_step()
         ...
@@ -286,13 +297,32 @@ class NeverGradOptimizer(ComboOptimizerBase):
         >>> assert best_choice['choice1'] == 2
     """
 
-    def _init(self) -> None:
-        # pyre-fixme[16]: `NeverGradOptimizer` has no attribute `optimizer`.
-        self.optimizer = ng.optimizers.NGOpt(
-            parametrization=ng.p.Instrumentation(self.param), budget=0, num_workers=1
-        )
-        # pyre-fixme[16]: `NeverGradOptimizer` has no attribute `choice_to_index`.
+    def __init__(
+        self,
+        param: ng.p.Dict,
+        obj_func: Callable,
+        estimated_budgets: int,
+        batch_size: int = BATCH_SIZE,
+        optimizer_name: Optional[str] = None,
+    ) -> None:
+        self.estimated_budgets = estimated_budgets
+        self.optimizer_name = optimizer_name
+        self.optimizer = None
         self.choice_to_index = {}
+        super().__init__(
+            param,
+            obj_func,
+            batch_size,
+        )
+
+    def _init(self) -> None:
+        optimizer_name = self.optimizer_name or "NGOpt"
+        logger.info(f"Nevergrad uses {optimizer_name} optimizer")
+        self.optimizer = ng.optimizers.registry[optimizer_name](
+            parametrization=self.param,
+            budget=self.estimated_budgets,
+            num_workers=self.batch_size,
+        )
         for k, param in self.param.items():
             # pyre-fixme[16]: `Parameter` has no attribute `choices`.
             self.choice_to_index[k] = {v: i for i, v in enumerate(param.choices.value)}
@@ -303,11 +333,8 @@ class NeverGradOptimizer(ComboOptimizerBase):
         assert temp is None, "temp is not used in Random Search"
         ng_sols_idx = {k: torch.zeros(batch_size) for k in self.param}
         for i in range(batch_size):
-            # pyre-fixme[16]: `NeverGradOptimizer` has no attribute `optimizer`.
-            ng_sol = self.optimizer.ask().value[0][0]
+            ng_sol = self.optimizer.ask().value
             for k in ng_sol:
-                # pyre-fixme[16]: `NeverGradOptimizer` has no attribute
-                #  `choice_to_index`.
                 ng_sols_idx[k][i] = self.choice_to_index[k][ng_sol[k]]
         return ng_sols_idx
 
@@ -323,13 +350,10 @@ class NeverGradOptimizer(ComboOptimizerBase):
         ng_sols_idx = {k: torch.zeros(batch_size, dtype=torch.long) for k in self.param}
         ng_sols_raw = []
         for i in range(batch_size):
-            # pyre-fixme[16]: `NeverGradOptimizer` has no attribute `optimizer`.
             ng_sol = self.optimizer.ask()
             ng_sols_raw.append(ng_sol)
-            ng_sol_val = ng_sol.value[0][0]
+            ng_sol_val = ng_sol.value
             for k in ng_sol_val:
-                # pyre-fixme[16]: `NeverGradOptimizer` has no attribute
-                #  `choice_to_index`.
                 ng_sols_idx[k][i] = self.choice_to_index[k][ng_sol_val[k]]
         return ng_sols_idx, ng_sols_raw
 
@@ -339,7 +363,6 @@ class NeverGradOptimizer(ComboOptimizerBase):
         sampled_reward = sampled_reward.detach()
 
         for ng_sol, r in zip(sampled_sols, sampled_reward):
-            # pyre-fixme[16]: `NeverGradOptimizer` has no attribute `optimizer`.
             self.optimizer.tell(ng_sol, r.item())
 
         return sampled_sol_idxs, sampled_reward
