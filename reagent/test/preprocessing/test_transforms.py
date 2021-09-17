@@ -1,9 +1,12 @@
 import unittest
+from typing import List
 from unittest.mock import Mock, patch
 
 import numpy as np
+import reagent.core.types as rlt
 import torch
 from reagent.preprocessing import transforms
+from reagent.preprocessing.types import InputColumn
 
 
 class TestTransforms(unittest.TestCase):
@@ -100,3 +103,104 @@ class TestTransforms(unittest.TestCase):
         in_1, in_2 = [call_args.args for call_args in preprocessor.call_args_list]
         self.assertTrue(torch.all(torch.stack(in_1) == torch.stack(a_in)))
         self.assertTrue(torch.all(torch.stack(in_2) == torch.stack(b_in)))
+
+    @patch("reagent.preprocessing.transforms.make_sparse_preprocessor")
+    def test_MapIDListFeatures(self, mock_make_sparse_preprocessor):
+        data = {
+            InputColumn.STATE_ID_LIST_FEATURES: {0: [torch.tensor(1), torch.tensor(2)]},
+            InputColumn.STATE_ID_SCORE_LIST_FEATURES: {
+                1: [
+                    torch.tensor(1),
+                    torch.tensor(2),
+                    torch.tensor(3),
+                ]
+            },
+        }
+        mock_make_sparse_preprocessor.return_value.preprocess_id_list.return_value = {
+            InputColumn.STATE_ID_LIST_FEATURES: [torch.tensor(2), torch.tensor(3)]
+        }
+        mock_make_sparse_preprocessor.return_value.preprocess_id_score_list.return_value = {
+            InputColumn.STATE_ID_SCORE_LIST_FEATURES: [
+                torch.tensor(4),
+                torch.tensor(5),
+                torch.tensor(6),
+            ]
+        }
+        state_id_list_columns: List[str] = [
+            InputColumn.STATE_ID_LIST_FEATURES,
+            InputColumn.NEXT_STATE_ID_LIST_FEATURES,
+        ]
+        state_id_score_list_columns: List[str] = [
+            InputColumn.STATE_ID_SCORE_LIST_FEATURES,
+            InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES,
+        ]
+        state_feature_config = rlt.ModelFeatureConfig(
+            id_list_feature_configs=[
+                rlt.IdListFeatureConfig(
+                    name=InputColumn.STATE_ID_LIST_FEATURES,
+                    feature_id=0,
+                    id_mapping_name="state_id_list_features_mapping",
+                )
+            ],
+            id_score_list_feature_configs=[
+                rlt.IdScoreListFeatureConfig(
+                    name=InputColumn.STATE_ID_SCORE_LIST_FEATURES,
+                    feature_id=1,
+                    id_mapping_name="state_id_score_list_features_mapping",
+                )
+            ],
+            id_mapping_config={
+                "state_id_list_features_mapping": rlt.IdMappingUnion(
+                    explicit_mapping=rlt.ExplicitMapping(ids=[0, 1, 2])
+                ),
+                "state_id_score_list_features_mapping": rlt.IdMappingUnion(
+                    explicit_mapping=rlt.ExplicitMapping(ids=[3, 4, 5])
+                ),
+            },
+        )
+
+        map_id_list_features = transforms.MapIDListFeatures(
+            id_list_keys=state_id_list_columns,
+            id_score_list_keys=state_id_score_list_columns,
+            feature_config=state_feature_config,
+            device=torch.device("cpu"),
+        )
+        out = map_id_list_features(data)
+        # output should contain all k in id_list_keys & id_score_list_keys
+        self.assertEqual(len(out), 4)
+        # The key should contain none if data don't have it
+        self.assertIsNone(
+            out[InputColumn.NEXT_STATE_ID_LIST_FEATURES], "It should be filtered out"
+        )
+        # The value of data changed based on sparse-preprocess mapping
+        self.assertEqual(
+            out[InputColumn.STATE_ID_LIST_FEATURES],
+            {InputColumn.STATE_ID_LIST_FEATURES: [torch.tensor(2), torch.tensor(3)]},
+        )
+        # Testing assertion in the call method
+        wrong_data = {
+            InputColumn.STATE_ID_LIST_FEATURES: [torch.tensor(1), torch.tensor(2)],
+            InputColumn.STATE_ID_SCORE_LIST_FEATURES: [
+                torch.tensor(1),
+                torch.tensor(2),
+                torch.tensor(3),
+            ],
+        }
+        with self.assertRaises(AssertionError):
+            map_id_list_features(wrong_data)
+        # Testing assertion in the constructor
+        state_id_list_columns: List[str] = [
+            InputColumn.STATE_ID_LIST_FEATURES,
+            InputColumn.NEXT_STATE_ID_LIST_FEATURES,
+        ]
+        state_id_score_list_columns: List[str] = [
+            InputColumn.STATE_ID_LIST_FEATURES,
+            InputColumn.NEXT_STATE_ID_LIST_FEATURES,
+        ]
+        with self.assertRaises(AssertionError):
+            transforms.MapIDListFeatures(
+                id_list_keys=state_id_list_columns,
+                id_score_list_keys=state_id_score_list_columns,
+                feature_config=state_feature_config,
+                device=torch.device("cpu"),
+            )
