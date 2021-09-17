@@ -30,6 +30,30 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(o1, {"a": (1, 0), "b": 2})
         self.assertEqual(o2, {"a_presence": 0, "b": 2})
 
+    def test_MaskByPresence(self):
+        keys = ["a", "b"]
+        mbp = transforms.MaskByPresence(keys)
+        data = {
+            "a": (torch.tensor(1), torch.tensor(0)),
+            "b": (torch.tensor(3), torch.tensor(1)),
+        }
+        expected = {"a": torch.tensor(0), "b": torch.tensor(3)}
+        out = mbp(data)
+        self.assertEqual(out["a"], expected["a"])
+        self.assertEqual(out["b"], expected["b"])
+        with self.assertRaisesRegex(Exception, "Not valid value"):
+            data2 = {
+                "a": torch.tensor(1),
+                "b": (torch.tensor(3), torch.tensor(1)),
+            }
+            out = mbp(data2)
+        with self.assertRaisesRegex(Exception, "Unmatching value shape"):
+            data3 = {
+                "a": (torch.tensor(1), torch.tensor([0, 2])),
+                "b": (torch.tensor(3), torch.tensor(1)),
+            }
+            out = mbp(data3)
+
     def test_Lambda(self):
         lam = transforms.Lambda(keys=["a", "b", "c"], fn=lambda x: x + 1)
         data = {"a": 1, "b": 2, "c": 3, "d": 4}
