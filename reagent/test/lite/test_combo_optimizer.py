@@ -284,13 +284,11 @@ class TestComboOptimizer(unittest.TestCase):
             (
                 sampled_solutions,
                 reward,
-                avg_td_loss,
             ) = optimizer.optimize_step()
             mean_reward = torch.mean(reward.data)
             print(
                 f"Generation={i}, mean_reward={mean_reward}, "
                 f"min_reward={torch.min(reward.data)}, "
-                f"avg_td_loss={avg_td_loss}, "
                 f"temperature={optimizer.temp}"
             )
 
@@ -301,7 +299,7 @@ class TestComboOptimizer(unittest.TestCase):
 
     def test_gumbel_softmax_optimizer_discrete(self):
         batch_size = 32
-        anneal_rate = 0.001
+        anneal_rate = 0.97
         learning_rate = 0.1
         input_param = discrete_input_param()
         gt_net = create_ground_truth_net(input_param)
@@ -391,7 +389,7 @@ class TestComboOptimizer(unittest.TestCase):
                 input_param,
                 obj_func,
                 batch_size=batch_size,
-                anneal_rate=0.003,
+                anneal_rate=0.997,
             )
             for i in range(n_generations):
                 # non-exploration at the last generation
@@ -402,14 +400,12 @@ class TestComboOptimizer(unittest.TestCase):
                 (
                     sampled_solutions,
                     reward,
-                    avg_td_loss,
                 ) = ql_optimizer.optimize_step()
                 mean_reward_ql_optimizer = torch.mean(reward.data)
                 min_reward_ql_optimizer = torch.min(reward.data)
                 print(
                     f"Generation={i}, mean_reward={mean_reward_ql_optimizer}, "
                     f"min_reward={min_reward_ql_optimizer}, "
-                    f"avg_td_loss={avg_td_loss}, "
                     f"temp={temp}"
                 )
             results.append(mean_reward_ql_optimizer)
