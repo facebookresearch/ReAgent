@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import abc
 import heapq
 import logging
 from collections import defaultdict, deque
@@ -16,7 +17,7 @@ from nevergrad.parametrization.choice import Choice
 
 logger = logging.getLogger(__name__)
 
-ANNEAL_RATE = 0.0003
+ANNEAL_RATE = 0.9997
 LEARNING_RATE = 0.001
 BATCH_SIZE = 512
 # People rarely need more than that
@@ -62,7 +63,7 @@ def obj_func_scaler(
     return obj_func_scaled
 
 
-def _num_of_params(model) -> int:
+def _num_of_params(model: nn.Module) -> int:
     return len(torch.cat([p.flatten() for p in model.parameters()]))
 
 
@@ -114,7 +115,7 @@ class ComboOptimizerBase:
         self.obj_func = obj_func_scaler(obj_func, obj_exp_offset_scale)
         self.batch_size = batch_size
         self.obj_exp_scale = obj_exp_offset_scale
-        self.step = 0
+        self.last_sample_internal_res = None
         self.best_sols = BestResultsQueue(MAX_NUM_BEST_SOLUTIONS)
         self._init()
 
@@ -123,7 +124,6 @@ class ComboOptimizerBase:
 
     def optimize_step(self) -> Tuple:
         all_results = self._optimize_step()
-        self.step += 1
         sampled_solutions, sampled_reward = all_results[0], all_results[1]
         self._maintain_best_solutions(sampled_solutions, sampled_reward)
         return all_results
@@ -145,7 +145,39 @@ class ComboOptimizerBase:
         """
         return self.best_sols.topk(k)
 
+    @abc.abstractmethod
     def _optimize_step(self) -> Tuple:
+        """
+        The main component of ComboOptimizer.optimize_step(). The user only
+        needs to loop over optimizer_step() until the budget runs out.
+
+        _optimize_step() will call sample_internal() and update_params()
+        to perform sampling and parameter updating
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def sample_internal(
+        self,
+        batch_size: Optional[int] = None,
+    ) -> Tuple:
+        """
+        Record and return sampled solutions and any other important
+        information for learning.
+
+        It samples self.batch_size number of solutions, unless batch_size is provided.
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def update_params(
+        self,
+        reward: torch.Tensor,
+    ) -> None:
+        """
+        Update model parameters by reward. Reward is objective function
+        values evaluated on the solutions sampled by sample_internal()
+        """
         raise NotImplementedError()
 
     def sample(
@@ -155,6 +187,8 @@ class ComboOptimizerBase:
         Return sampled solutions, keyed by parameter names.
         For discrete parameters, the values are choice indices;
         For continuous parameters, the values are sampled float vectors.
+
+        This function is usually called after learning is done.
         """
         raise NotImplementedError()
 
@@ -243,10 +277,22 @@ class RandomSearchOptimizer(ComboOptimizerBase):
                 )
         return sampled_sol
 
+    def sample_internal(
+        self, batch_size: Optional[int] = None
+    ) -> Tuple[Dict[str, torch.Tensor]]:
+        batch_size = batch_size or self.batch_size
+        sampled_sol = self.sample(batch_size, temp=None)
+        self.last_sample_internal_res = sampled_sol
+        return (sampled_sol,)
+
+    def update_params(self, reward: torch.Tensor):
+        self.last_sample_internal_res = None
+
     def _optimize_step(self) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
-        sampled_solutions = self.sample(self.batch_size)
+        sampled_solutions = self.sample_internal(self.batch_size)[0]
         sampled_reward, _ = self.obj_func(sampled_solutions)
         sampled_reward = sampled_reward.detach()
+        self.update_params(sampled_reward)
         return sampled_solutions, sampled_reward
 
 
@@ -338,7 +384,7 @@ class NeverGradOptimizer(ComboOptimizerBase):
                 ng_sols_idx[k][i] = self.choice_to_index[k][ng_sol[k]]
         return ng_sols_idx
 
-    def sample_internal(self, batch_size: int, temp: Optional[float] = None) -> Tuple:
+    def sample_internal(self, batch_size: Optional[int] = None) -> Tuple:
         """
         Return sampled solutions in two formats.
         (1) our own format, which is a dictionary and consistent with other optimizers.
@@ -346,7 +392,7 @@ class NeverGradOptimizer(ComboOptimizerBase):
             value (of shape (batch_size, ))
         (2) nevergrad format returned by optimizer.ask()
         """
-        assert temp is None, "temp is not used in Random Search"
+        batch_size = batch_size or self.batch_size
         ng_sols_idx = {k: torch.zeros(batch_size, dtype=torch.long) for k in self.param}
         ng_sols_raw = []
         for i in range(batch_size):
@@ -355,16 +401,20 @@ class NeverGradOptimizer(ComboOptimizerBase):
             ng_sol_val = ng_sol.value
             for k in ng_sol_val:
                 ng_sols_idx[k][i] = self.choice_to_index[k][ng_sol_val[k]]
+        self.last_sample_internal_res = (ng_sols_idx, ng_sols_raw)
         return ng_sols_idx, ng_sols_raw
+
+    def update_params(self, reward: torch.Tensor) -> None:
+        _, sampled_sols = self.last_sample_internal_res
+        for ng_sol, r in zip(sampled_sols, reward):
+            self.optimizer.tell(ng_sol, r.item())
+        self.last_sample_internal_res = None
 
     def _optimize_step(self) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         sampled_sol_idxs, sampled_sols = self.sample_internal(self.batch_size)
         sampled_reward, _ = self.obj_func(sampled_sol_idxs)
         sampled_reward = sampled_reward.detach()
-
-        for ng_sol, r in zip(sampled_sols, sampled_reward):
-            self.optimizer.tell(ng_sol, r.item())
-
+        self.update_params(sampled_reward)
         return sampled_sol_idxs, sampled_reward
 
 
@@ -443,6 +493,10 @@ class GumbelSoftmaxOptimizer(LogitBasedComboOptimizerBase):
 
         min_temp: minimal temperature (towards the end of learning) for sampling gumbel-softmax
 
+        update_params_within_optimizer (bool): If False, skip updating parameters within this
+            Optimizer. The Gumbel-softmax parameters will be updated in external systems.
+
+
     Example:
 
         >>> BATCH_SIZE = 4
@@ -471,7 +525,9 @@ class GumbelSoftmaxOptimizer(LogitBasedComboOptimizerBase):
         learning_rate: float = LEARNING_RATE,
         anneal_rate: float = ANNEAL_RATE,
         batch_size: int = BATCH_SIZE,
+        update_params_within_optimizer: bool = True,
     ) -> None:
+        self.update_params_within_optimizer = update_params_within_optimizer
         super().__init__(
             param,
             obj_func,
@@ -484,26 +540,34 @@ class GumbelSoftmaxOptimizer(LogitBasedComboOptimizerBase):
             obj_exp_offset_scale=None,
         )
 
-    def sample_internal(self, batch_size: int, temp: float) -> Dict[str, torch.Tensor]:
+    def sample_internal(
+        self, batch_size: Optional[int] = None
+    ) -> Tuple[Dict[str, torch.Tensor]]:
+        batch_size = batch_size or self.batch_size
         sampled_softmax_vals = {}
         for k, logits in self.logits.items():
-            sampled_softmax_vals[k] = gumbel_softmax(logits.repeat(batch_size, 1), temp)
-        return sampled_softmax_vals
+            sampled_softmax_vals[k] = gumbel_softmax(
+                logits.repeat(batch_size, 1), self.temp
+            )
+        self.last_sample_internal_res = sampled_softmax_vals
+        return (sampled_softmax_vals,)
+
+    def update_params(self, reward: torch.Tensor) -> None:
+        if self.update_params_within_optimizer:
+            reward_mean = reward.mean()
+            assert reward_mean.requires_grad
+            self.optimizer.zero_grad()
+            reward_mean.backward()
+            self.optimizer.step()
+
+        self.temp = np.maximum(self.temp * self.anneal_rate, self.min_temp)
+        self.last_sample_internal_res = None
 
     def _optimize_step(self) -> Tuple:
-        sampled_softmax_vals = self.sample_internal(self.batch_size, self.temp)
-
+        sampled_softmax_vals = self.sample_internal(self.batch_size)[0]
         sampled_reward, _ = self.obj_func(sampled_softmax_vals)
+        self.update_params(sampled_reward)
 
-        sampled_reward_mean = sampled_reward.mean()
-        assert sampled_reward_mean.requires_grad
-        self.optimizer.zero_grad()
-        sampled_reward_mean.backward()
-        self.optimizer.step()
-
-        self.temp = np.maximum(
-            self.temp * np.exp(-self.anneal_rate * self.step), self.min_temp
-        )
         sampled_softmax_vals = {
             k: v.detach().clone() for k, v in sampled_softmax_vals.items()
         }
@@ -586,35 +650,27 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
 
     def sample_internal(
         self,
-        batch_size: int,
-        temp: float,
+        batch_size: Optional[int] = None,
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
+        batch_size = batch_size or self.batch_size
         sampled_solutions, sampled_log_probs = sample_from_logits(
             self.logits,
             batch_size,
-            temp,
+            self.temp,
         )
+        self.last_sample_internal_res = sampled_solutions, sampled_log_probs
         return sampled_solutions, sampled_log_probs
 
-    def _optimize_step(self) -> Tuple:
-        sampled_solutions, sampled_log_probs = self.sample_internal(
-            self.batch_size, self.temp
-        )
-
-        sampled_reward, sampled_scaled_reward = self.obj_func(sampled_solutions)
-        sampled_reward, sampled_scaled_reward = (
-            sampled_reward.detach(),
-            sampled_scaled_reward.detach(),
-        )
-
+    def update_params(self, reward: torch.Tensor):
+        _, sampled_log_probs = self.last_sample_internal_res
         if self.batch_size == 1:
-            adv = sampled_scaled_reward
+            adv = reward
         else:
-            adv = sampled_scaled_reward - torch.mean(sampled_scaled_reward)
+            adv = reward - torch.mean(reward)
 
         assert not adv.requires_grad
         assert sampled_log_probs.requires_grad
-        assert sampled_log_probs.shape == adv.shape == sampled_reward.shape
+        assert sampled_log_probs.shape == adv.shape == reward.shape
         assert adv.ndim == 2
         assert adv.shape[-1] == 1
 
@@ -622,9 +678,19 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-        self.temp = np.maximum(
-            self.temp * np.exp(-self.anneal_rate * self.step), self.min_temp
+
+        self.temp = np.maximum(self.temp * self.anneal_rate, self.min_temp)
+        self.last_sample_internal_res = None
+
+    def _optimize_step(self) -> Tuple:
+        sampled_solutions, sampled_log_probs = self.sample_internal(self.batch_size)
+
+        sampled_reward, sampled_scaled_reward = self.obj_func(sampled_solutions)
+        sampled_reward, sampled_scaled_reward = (
+            sampled_reward.detach(),
+            sampled_scaled_reward.detach(),
         )
+        self.update_params(sampled_scaled_reward)
         return sampled_solutions, sampled_reward, sampled_log_probs
 
 
@@ -756,10 +822,17 @@ class QLearningOptimizer(ComboOptimizerBase):
 
     def sample_internal(
         self,
+        batch_size: Optional[int] = None,
+    ) -> Tuple[Dict[str, torch.Tensor], List[Any]]:
+        batch_size = batch_size or self.batch_size
+        return self._sample_internal(batch_size, self.temp)
+
+    def _sample_internal(
+        self,
         batch_size: int,
         temp: float,
     ) -> Tuple[Dict[str, torch.Tensor], List[Any]]:
-        logger.info(f"Explore with temp={self.temp}")
+        logger.info(f"Explore with temp={temp}")
         sampled_solutions: Dict[str, torch.Tensor] = {}
         exp_replay = []
         acc_input_dim = 0
@@ -802,29 +875,24 @@ class QLearningOptimizer(ComboOptimizerBase):
         # the first element is not useful
         exp_replay.pop(0)
 
+        self.last_sample_internal_res = (sampled_solutions, exp_replay)
         return sampled_solutions, exp_replay
 
     def sample(
         self, batch_size: int, temp: Optional[float] = GREEDY_TEMP
     ) -> Dict[str, torch.Tensor]:
         assert temp is not None, "temp is needed for epsilon greedy"
-        sampled_solutions, _ = self.sample_internal(batch_size, temp)
+        sampled_solutions, _ = self._sample_internal(batch_size, temp)
         return sampled_solutions
 
-    def _optimize_step(
-        self,
-    ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor, np.ndarray]:
-        sampled_solutions, exp_replay = self.sample_internal(self.batch_size, self.temp)
-        sampled_reward, sampled_scaled_reward = self.obj_func(sampled_solutions)
-        sampled_reward, sampled_scaled_reward = (
-            sampled_reward.detach(),
-            sampled_scaled_reward.detach(),
-        )
+    def update_params(self, reward: torch.Tensor) -> None:
+        _, exp_replay = self.last_sample_internal_res
+
         # insert reward placeholder to exp replay
         # exp replay now has the format:
         # (cur_state_action, next_state_action_all_pairs, terminal, reward)
         self.exp_replay.extend([[*exp, None] for exp in exp_replay])
-        self.exp_replay[-1][-1] = sampled_scaled_reward
+        self.exp_replay[-1][-1] = reward
 
         assert len(exp_replay) == len(self.sorted_keys)
         avg_td_loss = []
@@ -833,17 +901,17 @@ class QLearningOptimizer(ComboOptimizerBase):
             cur_state_action,
             next_state_action_all_pairs,
             terminal,
-            reward,
+            r,
         ) in enumerate(shuffle_exp_replay(self.exp_replay)):
             q = self.q_net(cur_state_action)
             if terminal:
                 # negate reward to be consistent with other optimizers.
                 # reward returned by obj_func is to be minimized
                 # but q-learning tries to maxmize accumulated rewards
-                loss = F.mse_loss(q, -reward)
+                loss = F.mse_loss(q, -r)
             else:
                 q_next = self.q_net(next_state_action_all_pairs).detach()
-                # assume gamma=1
+                # assume gamma=1 (no discounting)
                 loss = F.mse_loss(q, q_next.max(dim=1).values)
             self.optimizer.zero_grad()
             loss.backward()
@@ -853,8 +921,20 @@ class QLearningOptimizer(ComboOptimizerBase):
             if i == self.num_batches_per_learning - 1:
                 break
 
-        self.temp = np.maximum(
-            self.temp * np.exp(-self.anneal_rate * self.step), self.min_temp
-        )
         avg_td_loss = np.mean(avg_td_loss)
-        return sampled_solutions, sampled_reward, avg_td_loss
+        logger.info(f"Avg td loss: {avg_td_loss}")
+
+        self.temp = np.maximum(self.temp * self.anneal_rate, self.min_temp)
+        self.last_sample_internal_res = None
+
+    def _optimize_step(
+        self,
+    ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
+        sampled_solutions, exp_replay = self.sample_internal(self.batch_size)
+        sampled_reward, sampled_scaled_reward = self.obj_func(sampled_solutions)
+        sampled_reward, sampled_scaled_reward = (
+            sampled_reward.detach(),
+            sampled_scaled_reward.detach(),
+        )
+        self.update_params(sampled_scaled_reward)
+        return sampled_solutions, sampled_reward
