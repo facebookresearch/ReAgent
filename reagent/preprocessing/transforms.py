@@ -292,6 +292,7 @@ class FixedLengthSequences:
     def __call__(self, data):
         for key, to_key in zip(self.keys, self.to_keys):
             offsets, value = data[key][self.sequence_id]
+            # TODO assert regarding offsets length compared to value
             expected_length = self.expected_length
             if expected_length is None:
                 if len(offsets) > 1:
