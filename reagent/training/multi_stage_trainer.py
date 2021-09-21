@@ -7,6 +7,7 @@ from collections import OrderedDict
 from typing import List, Dict, Tuple
 
 import torch.nn as nn
+from pytorch_lightning.loops.closure import ClosureResult
 from reagent.core.utils import lazy_property
 
 from .reagent_lightning_module import ReAgentLightningModule
@@ -180,7 +181,6 @@ class MultiStageTrainer(ReAgentLightningModule):
         optimizer_trainer_idx, offset = self._optimizer_step_to_trainer_idx[
             optimizer_idx
         ]
-
         if epoch_trainer_idx == optimizer_trainer_idx:
             # FIXME: epoch argument is not really correct
             # Trainer will see the total epochs, including those epochs they
@@ -194,4 +194,14 @@ class MultiStageTrainer(ReAgentLightningModule):
                 on_tpu=on_tpu,
                 using_native_amp=using_native_amp,
                 using_lbfgs=using_lbfgs,
+            )
+        # FIXME: this is a hack around https://github.com/PyTorchLightning/pytorch-lightning/pull/9360
+        # which assumes that the optimizer closure will be consumed per training step invocation
+        # however this is not true in the multi-stage trainer as the training step is called for *all* of the
+        # optimizers configured under `trainers` even though only one lightning module is active at a given time
+        # A more robust solution would be to use manual optimization, where the lightning trainer does no inspection
+        # of the optimization closure for further processing
+        elif hasattr(optimizer_closure, "_result"):
+            optimizer_closure._result = ClosureResult(
+                closure_loss=None, loss=None, result_collection=None
             )
