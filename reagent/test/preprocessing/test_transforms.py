@@ -204,3 +204,67 @@ class TestTransforms(unittest.TestCase):
                 feature_config=state_feature_config,
                 device=torch.device("cpu"),
             )
+
+    def test_FixedLengthSequences(self):
+        # of form {sequence_id: (offsets, Tuple(Tensor, Tensor))}
+        a_T = (torch.tensor([0, 1]), torch.tensor([1, 0]))
+        b_T = (torch.tensor([1, 1]), torch.tensor([1, 0]))
+        a_in = {1: (torch.tensor([0]), a_T)}
+        b_in = {1: (torch.tensor([0, 2]), b_T)}
+        fls1 = transforms.FixedLengthSequences(keys=["a", "b"], sequence_id=1)
+        fls2 = transforms.FixedLengthSequences(
+            keys=["a", "b"], sequence_id=1, expected_length=2
+        )
+        fls3 = transforms.FixedLengthSequences(
+            keys=["a", "b"], sequence_id=1, expected_length=2, to_keys=["to_a", "to_b"]
+        )
+        o1 = fls1({"a": a_in, "b": b_in})
+        o2 = fls2({"a": a_in, "b": b_in})
+        o3 = fls3({"a": a_in, "b": b_in})
+        # o1, o2 should contain only keys
+        self.assertEqual(len(o1), 2)
+        self.assertEqual(len(o2), 2)
+        # o3 should contain keys & to_keys
+        self.assertEqual(len(o3), 4)
+        # ensure `T` is set back to key
+        self.assertTrue(
+            torch.all(o1["a"][0] == a_T[0]) and torch.all(o1["a"][1] == a_T[1])
+        )
+        self.assertTrue(
+            torch.all(o1["b"][0] == b_T[0]) and torch.all(o1["b"][1] == b_T[1])
+        )
+        self.assertTrue(
+            torch.all(o2["a"][0] == a_T[0]) and torch.all(o2["a"][1] == a_T[1])
+        )
+        self.assertTrue(
+            torch.all(o2["b"][0] == b_T[0]) and torch.all(o2["b"][1] == b_T[1])
+        )
+        # ensure keys not changed
+        self.assertEqual(o3["a"], a_in)
+        self.assertEqual(o3["b"], b_in)
+        # # ensure `T` is set to_key
+        self.assertTrue(
+            torch.all(o3["to_a"][0] == a_T[0]) and torch.all(o3["to_a"][1] == a_T[1])
+        )
+        self.assertTrue(
+            torch.all(o3["to_b"][0] == b_T[0]) and torch.all(o3["to_b"][1] == b_T[1])
+        )
+        # Testing assertions in the call method
+        # TODO testing assert regarding offsets length compared to value
+        c_T = (torch.tensor([0, 1]), torch.tensor([1, 1]))
+        with self.assertRaisesRegex(Exception, "Unexpected offsets"):
+            # wrong expected length
+            fls = transforms.FixedLengthSequences(
+                keys=["a", "b"], sequence_id=1, expected_length=1
+            )
+            fls({"a": a_in, "b": b_in})
+        with self.assertRaisesRegex(Exception, "Unexpected offsets"):
+            # wrong offsets
+            c_in = {1: (torch.tensor([0, 1]), c_T)}
+            fls = transforms.FixedLengthSequences(keys=["a", "b", "c"], sequence_id=1)
+            fls({"a": a_in, "b": b_in, "c": c_in})
+        # Testing assertion in the constructor
+        with self.assertRaises(AssertionError):
+            transforms.FixedLengthSequences(
+                keys=["a", "b"], sequence_id=1, to_keys=["to_a"]
+            )
