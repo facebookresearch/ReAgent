@@ -15,6 +15,31 @@ class TestTransforms(unittest.TestCase):
         # currently not needed
         pass
 
+    def assertDictComparatorEqual(self, a, b, cmp):
+        """
+        assertDictEqual() compares args with ==. This allows caller to override
+        comparator via cmp argument.
+        """
+        self.assertIsInstance(a, dict, "First argument is not a dictionary")
+        self.assertIsInstance(b, dict, "Second argument is not a dictionary")
+        self.assertSequenceEqual(a.keys(), b.keys())
+
+        for key in a.keys():
+            self.assertTrue(cmp(a[key], b[key]), msg=f"Different at key {key}")
+
+    def assertDictOfTensorEqual(self, a, b):
+        """
+        Helper method to compare dicts with values of type Tensor.
+
+        Cannot use assertDictEqual when values are of type Tensor since
+        tensor1 == tensor2 results in a tensor of bools. Use this instead.
+        """
+
+        def _tensor_cmp(a, b):
+            return torch.all(a == b)
+
+        self.assertDictComparatorEqual(a, b, _tensor_cmp)
+
     def test_Compose(self):
         t1, t2 = Mock(return_value=2), Mock(return_value=3)
         compose = transforms.Compose(t1, t2)
@@ -56,6 +81,47 @@ class TestTransforms(unittest.TestCase):
                 "b": (torch.tensor(3), torch.tensor(1)),
             }
             out = mbp(data3)
+
+    def test_StackDenseFixedSizeArray(self):
+        # happy path: value is type Tensor; check cast to float
+        value = torch.eye(4).to(dtype=torch.int)  # start as int
+        data = {"a": value}
+        out = transforms.StackDenseFixedSizeArray(data.keys(), size=4)(data)
+        expected = {"a": value.to(dtype=torch.float)}
+        self.assertDictOfTensorEqual(out, expected)
+        self.assertTrue(out["a"].dtype == torch.float, msg="dtype != float")
+
+        # happy path: value is list w/ elements type Tuple[Tensor, Tensor]
+        presence = torch.tensor([[1, 1, 1], [1, 1, 1]])
+        data = {
+            "a": [
+                (torch.tensor([[0, 0, 0], [1, 1, 1]]), presence),
+                (torch.tensor([[2, 2, 2], [3, 3, 3]]), presence),
+            ],
+            "b": [
+                (torch.tensor([[3, 3, 3], [2, 2, 2]]), presence),
+                (torch.tensor([[1, 1, 1], [0, 0, 0]]), presence),
+            ],
+        }
+        out = transforms.StackDenseFixedSizeArray(data.keys(), size=3)(data)
+        expected = {
+            "a": torch.tile(torch.arange(4).view(-1, 1).to(dtype=torch.float), (1, 3)),
+            "b": torch.tile(
+                torch.arange(4).flip(dims=(0,)).view(-1, 1).to(dtype=torch.float),
+                (1, 3),
+            ),
+        }
+        self.assertDictOfTensorEqual(out, expected)
+
+        # raise for tensor wrong shape
+        with self.assertRaisesRegex(ValueError, "Wrong shape"):
+            sdf = transforms.StackDenseFixedSizeArray(["a"], size=3)
+            sdf({"a": torch.ones(2)})
+
+        # raise for tensor wrong ndim
+        with self.assertRaisesRegex(ValueError, "Wrong shape"):
+            sdf = transforms.StackDenseFixedSizeArray(["a"], size=2)
+            sdf({"a": torch.zeros(2, 2, 2)})
 
     def test_Lambda(self):
         lam = transforms.Lambda(keys=["a", "b", "c"], fn=lambda x: x + 1)
