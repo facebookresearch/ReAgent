@@ -202,6 +202,4 @@ class MultiStageTrainer(ReAgentLightningModule):
         # A more robust solution would be to use manual optimization, where the lightning trainer does no inspection
         # of the optimization closure for further processing
         elif hasattr(optimizer_closure, "_result"):
-            optimizer_closure._result = ClosureResult(
-                closure_loss=None, loss=None, result_collection=None
-            )
+            optimizer_closure._result = ClosureResult(closure_loss=None)
