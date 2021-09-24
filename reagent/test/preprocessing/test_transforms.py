@@ -456,3 +456,66 @@ class TestTransforms(unittest.TestCase):
             transforms.FixedLengthSequences(
                 keys=["a", "b"], sequence_id=1, to_keys=["to_a"]
             )
+
+    def test_SlateView(self):
+        # Unit tests for the SlateView class
+        sv = transforms.SlateView(keys=["a"], slate_size=-1)
+
+        # GIVEN a SlateView with keys = ["a"]
+        # WHEN data is passed in under a key "b"
+        # THEN the value for "b" should not be unflattened since the key "b" is not in SlateView.keys!
+        sv.slate_size = 1
+        sv.keys = ["a"]
+        a_in = torch.tensor([[1, 2], [3, 4], [5, 6], [7, 8]])
+        b_in = torch.tensor([[1, 2], [3, 4], [5, 6], [7, 8]])
+        data = {"a": a_in, "b": b_in}
+        out = sv(data)
+        self.assertEqual(out["b"].shape, torch.Size([4, 2]))
+        self.assertTorchTensorEqual(out["b"], b_in)
+
+        # GIVEN slate.size = 1 and keys = ["a", "b"]
+        # WHEN input shape is [4, 2]
+        # THEN output shape should be [4, 1, 2] for all keys
+        sv.slate_size = 1
+        sv.keys = ["a", "b"]
+        a_in = torch.tensor([[1, 2], [3, 4], [5, 6], [7, 8]])
+        b_in = torch.tensor([[10, 20], [30, 40], [50, 60], [70, 80]])
+        data = {"a": a_in, "b": b_in}
+        out = sv(data)
+        a_out_412 = torch.tensor([[[1, 2]], [[3, 4]], [[5, 6]], [[7, 8]]])
+        b_out_412 = torch.tensor([[[10, 20]], [[30, 40]], [[50, 60]], [[70, 80]]])
+        self.assertEqual(out["a"].shape, torch.Size([4, 1, 2]))
+        self.assertEqual(out["b"].shape, torch.Size([4, 1, 2]))
+        self.assertDictOfTensorEqual({"a": a_out_412, "b": b_out_412}, out)
+
+        # GIVEN a SlateView with keys = ["a", "b"]
+        # WHEN data is passed in missing one or more of those keys
+        # THEN a KeyError should be raised
+        sv.keys = ["a", "b"]
+        a_in = torch.tensor([[1, 2], [3, 4]])
+        c_in = torch.tensor([[1, 2], [3, 4]])
+        data = {"a": a_in, "c": c_in}
+        with self.assertRaises(KeyError):
+            out = sv(data)
+
+        # GIVEN a SlateView with keys = ["a"]
+        # WHEN data is passed in that is of an invalid shape
+        # THEN a RuntimeError should be raised
+        sv.slate_size = 2
+        sv.keys = ["a"]
+        a_in = torch.tensor([[1, 2]])
+        data = {"a": a_in}
+        with self.assertRaises(RuntimeError):
+            out = sv(data)
+
+        # GIVEN slate.size = 2 and keys = ["a"]
+        # WHEN input shape is [4, 3]
+        # THEN output shape should be [2, 2, 3]
+        sv.slate_size = 2
+        sv.keys = ["a"]
+        a_in = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
+        data = {"a": a_in}
+        out = sv(data)
+        a_out_223 = torch.tensor([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+        self.assertEqual(out["a"].shape, torch.Size([2, 2, 3]))
+        self.assertDictOfTensorEqual({"a": a_out_223}, out)
