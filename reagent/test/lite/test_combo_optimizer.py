@@ -132,6 +132,66 @@ class TestComboOptimizer(unittest.TestCase):
         np.random.seed(seed)
         torch.manual_seed(seed)
 
+    def test_random_sample_with_raw_choices_using_uncommon_key(self):
+        batch_size = 200
+        input_param = ng.p.Dict(
+            **{
+                "#1": ng.p.Choice([32, 64, 128]),
+                "choice2[3]": ng.p.Choice([True, False]),
+                "choice3.attr": ng.p.Choice(
+                    ["Red", "Blue", "Green", "Yellow", "Purple"]
+                ),
+            }
+        )
+        obj_func = None
+
+        sampling_weights = {
+            "#1": [0.5, 0.5, 0.0],
+            "choice2[3]": [0.25, 0.75],
+            "choice3.attr": [0.1, 0.9, 0.0, 0.0, 0.0],
+        }
+
+        optimizer = RandomSearchOptimizer(
+            input_param,
+            obj_func,
+            batch_size=batch_size,
+            sampling_weights=sampling_weights,
+        )
+        sampled_sol = optimizer.sample(batch_size)
+        sampled_sol = optimizer.indices_to_raw_choices(sampled_sol)
+        self.assertEqual(len(sampled_sol), batch_size)
+        self.assertIsInstance(sampled_sol, list)
+
+        counts = {key: defaultdict(int) for key in sampling_weights}
+        for sample in sampled_sol:
+            self.assertSetEqual(set(sample.keys()), set(input_param.keys()))
+            self.assertIn(sample["#1"], [32, 64])
+            self.assertIn(sample["choice2[3]"], [True, False])
+            self.assertIn(sample["choice3.attr"], ["Red", "Blue"])
+            for key in sample:
+                counts[key][sample[key]] += 1
+
+        self.assertAlmostEqual(counts["#1"][32] / float(batch_size), 0.5, places=1)
+        self.assertAlmostEqual(counts["#1"][64] / float(batch_size), 0.5, places=1)
+        self.assertEqual(counts["#1"][128], 0)
+
+        self.assertAlmostEqual(
+            counts["choice2[3]"][True] / float(batch_size), 0.25, places=1
+        )
+        self.assertAlmostEqual(
+            counts["choice2[3]"][False] / float(batch_size), 0.75, places=1
+        )
+
+        self.assertAlmostEqual(
+            counts["choice3.attr"]["Red"] / float(batch_size), 0.1, places=1
+        )
+        self.assertAlmostEqual(
+            counts["choice3.attr"]["Blue"] / float(batch_size), 0.9, places=1
+        )
+        self.assertEqual(counts["choice3.attr"]["Green"], 0)
+        self.assertEqual(counts["choice3.attr"]["Yellow"], 0)
+        self.assertEqual(counts["choice3.attr"]["Purple"], 0)
+
     def test_random_sample_with_raw_choices_1(self):
         batch_size = 1
         input_param = ng.p.Dict(
