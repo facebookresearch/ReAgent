@@ -393,6 +393,19 @@ class TestTransforms(unittest.TestCase):
                 device=torch.device("cpu"),
             )
 
+    def test_OneHotActions(self):
+        keys = ["0", "1", "2"]
+        num_actions = 2
+        oha = transforms.OneHotActions(keys, num_actions)
+        data_in = {"0": torch.tensor(0), "1": torch.tensor(1), "2": torch.tensor(2)}
+        data_out = oha(data_in)
+        expected = {
+            "0": torch.tensor([1, 0]),
+            "1": torch.tensor([0, 1]),
+            "2": torch.tensor([0, 0]),
+        }
+        self.assertDictOfTensorEqual(data_out, expected)
+
     def test_FixedLengthSequences(self):
         # of form {sequence_id: (offsets, Tuple(Tensor, Tensor))}
         a_T = (torch.tensor([0, 1]), torch.tensor([1, 0]))
