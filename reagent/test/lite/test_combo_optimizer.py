@@ -276,8 +276,8 @@ class TestComboOptimizer(unittest.TestCase):
         obj_func = create_discrete_choice_obj_func(input_param, gt_net)
         optimizer = NeverGradOptimizer(
             input_param,
-            obj_func,
-            estimated_budgets=batch_size * n_generations,
+            batch_size * n_generations,  # estimated_budgets
+            obj_func=obj_func,
             batch_size=batch_size,
             optimizer_name="DoubleFastGADiscreteOnePlusOne",
         )
