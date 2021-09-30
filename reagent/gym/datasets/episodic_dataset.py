@@ -2,8 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-import math
-from typing import Optional, Callable
+from typing import Optional
 
 import torch
 from reagent.gym.agents.agent import Agent

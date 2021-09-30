@@ -11,14 +11,13 @@ model:
       off_policy: False
       optimizer:
         Adam:
-          lr: 0.0025
-          weight_decay: 0.001
+          lr: 0.001
     policy_net_builder:
       FullyConnected:
         sizes:
-        - 8
+        - 64
         activations:
-        - linear
+        - leaky_relu
     sampler_temperature: 1.0
 num_train_episodes: 1000
 num_eval_episodes: 100
