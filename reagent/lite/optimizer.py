@@ -41,8 +41,9 @@ def sample_from_logits(
 
 
 def obj_func_scaler(
-    obj_func: Callable, exp_offset_and_scale: Optional[Tuple[float, float]]
-) -> Callable:
+    obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]],
+    exp_offset_and_scale: Optional[Tuple[float, float]],
+) -> Optional[Callable]:
     """
     Scale objective functions to make optimizers get out of local minima more easily.
 
@@ -50,6 +51,9 @@ def obj_func_scaler(
 
     if obj_exp_offset_scale is None, do not scale the obj_function (i.e., reward == scaled_reward)
     """
+    if obj_func is None:
+        return None
+
     if exp_offset_and_scale is not None:
         offset, scale = exp_offset_and_scale
 
@@ -103,7 +107,7 @@ class ComboOptimizerBase:
     def __init__(
         self,
         param: ng.p.Dict,
-        obj_func: Callable,
+        obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]] = None,
         batch_size: int = BATCH_SIZE,
         obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
     ) -> None:
@@ -123,6 +127,11 @@ class ComboOptimizerBase:
         pass
 
     def optimize_step(self) -> Tuple:
+        assert self.obj_func is not None, (
+            "obj_func not provided. Can't call optimize_step() for optimization. "
+            "You have to perform manual optimization, i.e., call sample_internal() then update_params()"
+        )
+
         all_results = self._optimize_step()
         sampled_solutions, sampled_reward = all_results[0], all_results[1]
         self._maintain_best_solutions(sampled_solutions, sampled_reward)
@@ -249,7 +258,7 @@ class RandomSearchOptimizer(ComboOptimizerBase):
     def __init__(
         self,
         param: ng.p.Dict,
-        obj_func: Callable,
+        obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]] = None,
         batch_size: int = BATCH_SIZE,
         sampling_weights: Optional[Dict[str, np.ndarray]] = None,
     ) -> None:
@@ -304,15 +313,15 @@ class NeverGradOptimizer(ComboOptimizerBase):
     Args:
         param (ng.p.Dict): a nevergrad dictionary for specifying input choices
 
+        estimated_budgets (int): estimated number of budgets (objective evaluation
+            times) for nevergrad to perform auto tuning.
+
         obj_func (Callable[[Dict[str, torch.Tensor]], torch.Tensor]):
             a function which consumes sampled solutions and returns
             rewards as tensors of shape (batch_size, 1).
 
             The input dictionary has choice names as the key and sampled choice
             indices as the value (of shape (batch_size, ))
-
-        estimated_budgets (int): estimated number of budgets (objective evaluation
-            times) for nevergrad to perform auto tuning.
 
         optimizer_name (Optional[str]): ng optimizer to be used specifically
             All possible nevergrad optimizers are available at:
@@ -331,8 +340,9 @@ class NeverGradOptimizer(ComboOptimizerBase):
         ...             reward[i, 0] = 0.0
         ...     return reward
         ...
+        >>> estimated_budgets = 40
         >>> optimizer = NeverGradOptimizer(
-        ...    ng_param, obj_func, batch_size=BATCH_SIZE, estimated_budgets=40
+        ...    ng_param, estimated_budgets, obj_func, batch_size=BATCH_SIZE,
         ... )
         >>>
         >>> for i in range(10):
@@ -346,8 +356,8 @@ class NeverGradOptimizer(ComboOptimizerBase):
     def __init__(
         self,
         param: ng.p.Dict,
-        obj_func: Callable,
         estimated_budgets: int,
+        obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]] = None,
         batch_size: int = BATCH_SIZE,
         optimizer_name: Optional[str] = None,
     ) -> None:
@@ -422,9 +432,9 @@ class LogitBasedComboOptimizerBase(ComboOptimizerBase):
     def __init__(
         self,
         param: ng.p.Dict,
-        obj_func: Callable,
         start_temp: float,
         min_temp: float,
+        obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]] = None,
         learning_rate: float = LEARNING_RATE,
         anneal_rate: float = ANNEAL_RATE,
         batch_size: int = BATCH_SIZE,
@@ -519,7 +529,7 @@ class GumbelSoftmaxOptimizer(LogitBasedComboOptimizerBase):
     def __init__(
         self,
         param: ng.p.Dict,
-        obj_func: Callable[[Dict[str, torch.Tensor]], torch.Tensor],
+        obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]] = None,
         start_temp: float = 1.0,
         min_temp: float = 0.1,
         learning_rate: float = LEARNING_RATE,
@@ -530,9 +540,9 @@ class GumbelSoftmaxOptimizer(LogitBasedComboOptimizerBase):
         self.update_params_within_optimizer = update_params_within_optimizer
         super().__init__(
             param,
-            obj_func,
             start_temp,
             min_temp,
+            obj_func,
             learning_rate,
             anneal_rate,
             batch_size,
@@ -621,7 +631,7 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
     def __init__(
         self,
         param: ng.p.Dict,
-        obj_func: Callable[[Dict[str, torch.Tensor]], torch.Tensor],
+        obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]] = None,
         # default (start_temp=min_temp=1.0): no temperature change for policy gradient
         start_temp: float = 1.0,
         min_temp: float = 1.0,
@@ -632,9 +642,9 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
     ) -> None:
         super().__init__(
             param,
-            obj_func,
             start_temp,
             min_temp,
+            obj_func,
             learning_rate,
             anneal_rate,
             batch_size,
@@ -756,7 +766,7 @@ class QLearningOptimizer(ComboOptimizerBase):
     def __init__(
         self,
         param: ng.p.Dict,
-        obj_func: Callable[[Dict[str, torch.Tensor]], torch.Tensor],
+        obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]] = None,
         start_temp: float = 1.0,
         min_temp: float = 0.1,
         learning_rate: float = LEARNING_RATE,
