@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, Optional
 
 import torch
 from reagent.core import types as rlt
