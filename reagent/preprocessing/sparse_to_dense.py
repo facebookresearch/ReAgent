@@ -4,8 +4,6 @@
 
 from typing import Dict, List, Tuple
 
-# @manual=third-party//pandas:pandas-py
-import pandas as pd
 import torch
 from reagent.preprocessing import normalization
 
@@ -34,7 +32,9 @@ class StringKeySparseToDenseProcessor(SparseToDenseProcessor):
             sorted_features, set_missing_value_to_zero
         )
 
-    def process(self, sparse_data) -> Tuple[torch.Tensor, torch.Tensor]:
+    def process(
+        self, sparse_data: List[Dict[str, float]]
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         # Convert all keys to integers
         sparse_data_int = []
         for sd in sparse_data:
