@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class Compose:
+    """
+    Applies an iterable collection of transform functions
+    """
+
     def __init__(self, *transforms):
         self.transforms = transforms
 
@@ -50,7 +54,7 @@ class ValuePresence:
 
 
 class Lambda:
-    """For simple transforms"""
+    """Applies an arbitrary callable transform"""
 
     def __init__(self, keys: List[str], fn: Callable):
         self.keys = keys
@@ -122,6 +126,10 @@ class DenseNormalization:
 
 
 class MapIDListFeatures:
+    """
+    Applies a SparsePreprocessor (see sparse_preprocessor.SparsePreprocessor)
+    """
+
     def __init__(
         self,
         id_list_keys: List[str],
@@ -155,7 +163,8 @@ class MapIDListFeatures:
 
 
 class OneHotActions:
-    """Keys should be in the set {0,1,2,...,num_actions}, where
+    """
+    Keys should be in the set {0,1,2,...,num_actions}, where
     a value equal to num_actions denotes that it's not valid.
     """
 
@@ -209,6 +218,7 @@ class ColumnVector:
 class MaskByPresence:
     """
     Expect data to be (value, presence) and return value * presence.
+    This zeros out values that aren't present.
     """
 
     def __init__(self, keys: List[str]):
@@ -232,8 +242,9 @@ class MaskByPresence:
 
 class StackDenseFixedSizeArray:
     """
-    Expect data to be List of (Value, Presence), and output a tensor of shape
-    (batch_size, feature_dim).
+    If data is a tensor, ensures it has the correct shape. If data is a list of
+    (value, presence) discards the presence tensors and concatenates the values
+    to output a tensor of shape (batch_size, feature_dim).
     """
 
     def __init__(self, keys: List[str], size: int, dtype=torch.float):
@@ -261,18 +272,23 @@ class StackDenseFixedSizeArray:
 
 class FixedLengthSequences:
     """
-    For loops over each key, to_key in zip(keys, to_keys).
-    Expects each key to be `Dict[Int, Tuple[Tensor, T]]`.
-    The sequence_id is the key of the dict. The first element of the tuple
-    is the offset for each example, which is expected to be in fixed interval.
-    If `to_key` is set, extract `T` to that key. Otherwise, put `T` back to `key`
+    Does two things:
+        1. makes sure each sequence in the list of keys has the expected fixed length
+        2. if to_keys is provided, copies the relevant sequence_id to the new key,
+        otherwise overwrites the old key
+
+    Expects each data[key] to be `Dict[Int, Tuple[Tensor, T]]`. Where:
+    - key is the feature id
+    - sequence_id is the key of the dict data[key]
+    - The first element of the tuple is the offset for each example, which is expected to be in fixed interval.
+    - The second element is the data at each step in the sequence
 
     This is mainly for FB internal use,
     see fbcode/caffe2/caffe2/fb/proto/io_metadata.thrift
     for the data format extracted from SequenceFeatureMetadata
 
     NOTE: this is not product between two lists (keys and to_keys);
-    it's setting keys[i] to to_keys[i] in a parallel way
+    it's setting keys[sequence_id] to to_keys in a parallel way
     """
 
     def __init__(
@@ -335,6 +351,10 @@ class SlateView:
 
 
 class FixedLengthSequenceDenseNormalization:
+    """
+    Combines the FixedLengthSequences, DenseNormalization, and SlateView transforms
+    """
+
     def __init__(
         self,
         keys: List[str],
