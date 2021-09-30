@@ -63,7 +63,7 @@ def fill_replay_buffer(
         mdp_id = 0
         while replay_buffer.size < desired_size:
             last_size = replay_buffer.size
-            max_steps = desired_size - replay_buffer.size - 1
+            max_steps = desired_size - replay_buffer.size
             if max_episode_steps is not None:
                 max_steps = min(max_episode_steps, max_steps)
             run_episode(env=env, agent=agent, mdp_id=mdp_id, max_steps=max_steps)
@@ -159,6 +159,7 @@ def create_df_from_replay_buffer(
     desired_size: int,
     multi_steps: Optional[int],
     ds: str,
+    shuffle_df: bool = True,
 ) -> pd.DataFrame:
     # fill the replay buffer
     set_seed(env, SEED)
@@ -170,17 +171,23 @@ def create_df_from_replay_buffer(
         return_as_timeline_format = True
     is_multi_steps = multi_steps is not None
 
+    # The last element of replay buffer always lacks
+    # next_action and next_possible_actions.
+    # To get full data for every returned sample, we create
+    # replay buffer of desired_size + 1 and discard the last element.
     replay_buffer = ReplayBuffer(
-        replay_capacity=desired_size,
+        replay_capacity=desired_size + 1,
         batch_size=1,
         update_horizon=update_horizon,
         return_as_timeline_format=return_as_timeline_format,
     )
     random_policy = make_random_policy_for_env(env)
     agent = Agent.create_for_env(env, policy=random_policy)
-    fill_replay_buffer(env, replay_buffer, desired_size, agent)
+    fill_replay_buffer(env, replay_buffer, desired_size + 1, agent)
 
-    batch = replay_buffer.sample_all_valid_transitions()
+    batch = replay_buffer.sample_transition_batch(
+        batch_size=desired_size, indices=torch.arange(desired_size)
+    )
     n = batch.state.shape[0]
     logger.info(f"Creating df of size {n}.")
 
@@ -328,8 +335,9 @@ def create_df_from_replay_buffer(
     df = pd.DataFrame(df_dict)
     # validate df
     validate_mdp_ids_seq_nums(df)
-    # shuffling (sample the whole batch)
-    df = df.reindex(np.random.permutation(df.index))
+    if shuffle_df:
+        # shuffling (sample the whole batch)
+        df = df.reindex(np.random.permutation(df.index))
     return df
 
 
