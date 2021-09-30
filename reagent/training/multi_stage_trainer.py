@@ -7,7 +7,7 @@ from collections import OrderedDict
 from typing import List, Dict, Tuple
 
 import torch.nn as nn
-from pytorch_lightning.loops.closure import ClosureResult
+from pytorch_lightning.loops.optimization.optimizer_loop import ClosureResult
 from reagent.core.utils import lazy_property
 
 from .reagent_lightning_module import ReAgentLightningModule
