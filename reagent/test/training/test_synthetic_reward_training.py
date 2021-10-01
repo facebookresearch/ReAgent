@@ -371,8 +371,7 @@ class TestSyntheticRewardTraining(unittest.TestCase):
             state_dim, action_dim, seq_len, batch_size, num_batches
         )
 
-        print("data info:", type(data))
-        threshold = 0.2
+        threshold = 0.25
         avg_eval_loss = train_and_eval(trainer, data)
         assert (
             avg_eval_loss < threshold

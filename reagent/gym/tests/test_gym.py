@@ -52,10 +52,10 @@ REPLAY_BUFFER_GYM_TESTS_1 = [
         "configs/open_gridworld/discrete_dqn_open_gridworld.yaml",
     ),
     ("SAC Pendulum", "configs/pendulum/sac_pendulum_online.yaml"),
-]
-REPLAY_BUFFER_GYM_TESTS_2 = [
     ("Continuous CRR Pendulum", "configs/pendulum/continuous_crr_pendulum_online.yaml"),
     ("TD3 Pendulum", "configs/pendulum/td3_pendulum_online.yaml"),
+]
+REPLAY_BUFFER_GYM_TESTS_2 = [
     ("Parametric DQN Cartpole", "configs/cartpole/parametric_dqn_cartpole_online.yaml"),
     (
         "Parametric SARSA Cartpole",
