@@ -236,8 +236,11 @@ class RandomSearchOptimizer(ComboOptimizerBase):
             weights. Key: choice name, value: sampling weights
 
     Example:
+        >>> _ = torch.manual_seed(0)
+        >>> np.random.seed(0)
         >>> BATCH_SIZE = 4
         >>> ng_param = ng.p.Dict(choice1=ng.p.Choice(["blue", "green", "red"]))
+        >>>
         >>> def obj_func(sampled_sol: Dict[str, torch.Tensor]):
         ...     reward = torch.ones(BATCH_SIZE, 1)
         ...     for i in range(BATCH_SIZE):
@@ -330,8 +333,11 @@ class NeverGradOptimizer(ComboOptimizerBase):
 
     Example:
 
+        >>> _ = torch.manual_seed(0)
+        >>> np.random.seed(0)
         >>> BATCH_SIZE = 4
         >>> ng_param = ng.p.Dict(choice1=ng.p.Choice(["blue", "green", "red"]))
+        >>>
         >>> def obj_func(sampled_sol: Dict[str, torch.Tensor]):
         ...     reward = torch.ones(BATCH_SIZE, 1)
         ...     for i in range(BATCH_SIZE):
@@ -509,8 +515,11 @@ class GumbelSoftmaxOptimizer(LogitBasedComboOptimizerBase):
 
     Example:
 
+        >>> _ = torch.manual_seed(0)
+        >>> np.random.seed(0)
         >>> BATCH_SIZE = 4
         >>> ng_param = ng.p.Dict(choice1=ng.p.Choice(["blue", "green", "red"]))
+        >>>
         >>> def obj_func(sampled_sol: Dict[str, torch.Tensor]):
         ...     # best action is "red"
         ...     reward = torch.mm(sampled_sol['choice1'], torch.tensor([[1.], [1.], [0.]]))
@@ -606,8 +615,11 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
             indices as the value (of shape (batch_size, ))
 
     Example:
-        >>> BATCH_SIZE = 8
+        >>> _ = torch.manual_seed(0)
+        >>> np.random.seed(0)
+        >>> BATCH_SIZE = 16
         >>> ng_param = ng.p.Dict(choice1=ng.p.Choice(["blue", "green", "red"]))
+        >>>
         >>> def obj_func(sampled_sol: Dict[str, torch.Tensor]):
         ...     reward = torch.ones(BATCH_SIZE, 1)
         ...     for i in range(BATCH_SIZE):
@@ -619,7 +631,7 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
         >>> optimizer = PolicyGradientOptimizer(
         ...     ng_param, obj_func, batch_size=BATCH_SIZE, learning_rate=0.1
         ... )
-        >>> for i in range(20):
+        >>> for i in range(30):
         ...    res = optimizer.optimize_step()
         ...
         >>> best_reward, best_choice = optimizer.best_solutions(k=1)[0]
@@ -743,8 +755,11 @@ class QLearningOptimizer(ComboOptimizerBase):
             choices will generate n batches in the replay buffer.
 
     Example:
+        >>> _ = torch.manual_seed(0)
+        >>> np.random.seed(0)
         >>> BATCH_SIZE = 4
         >>> ng_param = ng.p.Dict(choice1=ng.p.Choice(["blue", "green", "red"]))
+        >>>
         >>> def obj_func(sampled_sol: Dict[str, torch.Tensor]):
         ...     reward = torch.ones(BATCH_SIZE, 1)
         ...     for i in range(BATCH_SIZE):

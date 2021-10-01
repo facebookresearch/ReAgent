@@ -9,6 +9,7 @@ from typing import Optional
 import gym
 import numpy as np
 import pandas as pd
+import pytorch_lightning as pl
 import torch
 from reagent.data.spark_utils import call_spark_class, get_spark_session
 from reagent.gym.agents.agent import Agent
@@ -28,11 +29,10 @@ from .types import TableSpec
 logger = logging.getLogger(__name__)
 
 
-def initialize_seed(seed: Optional[int] = None):
-    if seed is not None:
-        random.seed(seed)
-        np.random.seed(seed)
-        torch.manual_seed(seed)
+def initialize_seed(seed: int, env):
+    pl.seed_everything(seed)
+    env.seed(seed)
+    env.action_space.seed(seed)
 
 
 def offline_gym_random(
@@ -79,7 +79,7 @@ def _offline_gym(
     max_steps: Optional[int],
     seed: int = 1,
 ):
-    initialize_seed(seed)
+    initialize_seed(seed, env)
 
     replay_buffer = ReplayBuffer(replay_capacity=num_train_transitions, batch_size=1)
     fill_replay_buffer(env, replay_buffer, num_train_transitions, agent)
@@ -153,8 +153,8 @@ def evaluate_gym(
     module_name: str = "default_model",
     max_steps: Optional[int] = None,
 ):
-    initialize_seed(1)
     env = Gym(env_name=env_name)
+    initialize_seed(1, env)
     agent = make_agent_from_model(env, model, publisher, module_name)
 
     rewards = evaluate_for_n_episodes(
