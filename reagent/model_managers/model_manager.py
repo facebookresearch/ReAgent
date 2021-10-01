@@ -139,10 +139,9 @@ class ModelManager:
 
         rank = get_rank()
         if rank == 0:
+            # pyre-ignore
             trainer_logger = lightning_trainer.logger
-            # pyre-ignore
             logger_data = trainer_logger.line_plot_aggregated
-            # pyre-ignore
             trainer_logger.clear_local_data()
             if reporter is None:
                 training_report = None
