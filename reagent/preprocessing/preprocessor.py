@@ -238,7 +238,7 @@ class Preprocessor(Module):
         input: torch.Tensor,
         norm_params: List[NormalizationParameters],
     ) -> torch.Tensor:
-        clamped_input = torch.clamp(input, 0.01, 0.99)
+        clamped_input = torch.clamp(input, 1e-5, 1 - 1e-5)
         return self.negative_one_tensor * (
             ((self.one_tensor / clamped_input) - self.one_tensor).log()
         )
