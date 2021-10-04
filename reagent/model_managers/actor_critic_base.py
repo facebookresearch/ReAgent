@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import abc
 import logging
+from dataclasses import replace
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -130,8 +130,8 @@ class ActorCriticBase(ModelManager):
             ffi.feature_id for ffi in self.state_feature_config.float_feature_infos
         ]
         logger.info(f"state allowedlist_features: {state_features}")
-        state_preprocessing_options = state_preprocessing_options._replace(
-            allowedlist_features=state_features
+        state_preprocessing_options = replace(
+            state_preprocessing_options, allowedlist_features=state_features
         )
         return state_preprocessing_options
 
@@ -152,7 +152,8 @@ class ActorCriticBase(ModelManager):
             action_feature_override = self.action_feature_override
 
         assert action_preprocessing_options.feature_overrides is None
-        action_preprocessing_options = action_preprocessing_options._replace(
+        action_preprocessing_options = replace(
+            action_preprocessing_options,
             allowedlist_features=action_features,
             feature_overrides={fid: action_feature_override for fid in action_features},
         )
