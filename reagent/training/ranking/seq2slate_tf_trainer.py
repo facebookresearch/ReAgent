@@ -86,8 +86,6 @@ class Seq2SlateTeacherForcingTrainer(ReAgentLightningModule):
         if (self.all_batches_processed + 1) % self.print_interval == 0:
             logger.info(f"{self.all_batches_processed + 1} batch: loss={loss}")
 
-        return log_probs, loss
-
     def _transform_label(self, optim_tgt_out_idx: torch.Tensor):
         label_size = self.seq2slate_net.max_src_seq_len + 2
         label = F.one_hot(optim_tgt_out_idx, label_size)
