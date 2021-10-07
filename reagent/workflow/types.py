@@ -14,7 +14,6 @@ from reagent.core.result_registries import (
     ValidationResult,
 )
 from reagent.core.tagged_union import TaggedUnion
-from reagent.core.types import BaseDataClass
 from reagent.models.model_feature_config_provider import ModelFeatureConfigProvider
 from reagent.preprocessing.normalization import (
     DEFAULT_MAX_QUANTILE_SIZE,
@@ -77,7 +76,7 @@ class ResourceOptions:
 
 
 @dataclass
-class PreprocessingOptions(BaseDataClass):
+class PreprocessingOptions:
     num_samples: int = DEFAULT_NUM_SAMPLES
     max_unique_enum_values: int = DEFAULT_MAX_UNIQUE_ENUM
     quantile_size: int = DEFAULT_MAX_QUANTILE_SIZE

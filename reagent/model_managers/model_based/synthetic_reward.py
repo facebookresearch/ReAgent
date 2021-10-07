@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+from dataclasses import replace
 from typing import Dict, List, Optional, Tuple
 
 import reagent.core.types as rlt
@@ -193,8 +194,8 @@ class SyntheticRewardDataModule(ManualDataModule):
             for ffi in self.model_manager.state_feature_config.float_feature_infos
         ]
         logger.info(f"state allowedlist_features: {state_features}")
-        state_preprocessing_options = state_preprocessing_options._replace(
-            allowedlist_features=state_features
+        state_preprocessing_options = replace(
+            state_preprocessing_options, allowedlist_features=state_features
         )
 
         state_normalization_parameters = identify_normalization_parameters(
@@ -215,8 +216,8 @@ class SyntheticRewardDataModule(ManualDataModule):
             for ffi in self.model_manager.action_feature_config.float_feature_infos
         ]
         logger.info(f"action allowedlist_features: {action_features}")
-        action_preprocessing_options = action_preprocessing_options._replace(
-            allowedlist_features=action_features
+        action_preprocessing_options = replace(
+            action_preprocessing_options, allowedlist_features=action_features
         )
         action_normalization_parameters = identify_normalization_parameters(
             input_table_spec, InputColumn.ACTION, action_preprocessing_options

@@ -1,23 +1,19 @@
 #!/usr/bin/env python3
 import logging
-from typing import Dict, List, Optional, Tuple
+from dataclasses import replace
+from typing import Dict, Optional, Tuple
 
 from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData, NormalizationKey
 from reagent.data.data_fetcher import DataFetcher
 from reagent.data.manual_data_module import ManualDataModule
-from reagent.data.reagent_data_module import ReAgentDataModule
-from reagent.gym.policies.policy import Policy
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.preprocessing.types import InputColumn
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
-    ReaderOptions,
-    ResourceOptions,
     RewardOptions,
-    RLTrainingOutput,
     TableSpec,
 )
 
@@ -72,8 +68,8 @@ class WorldModelDataModule(ManualDataModule):
             for ffi in self.model_manager.state_feature_config.float_feature_infos
         ]
         logger.info(f"Overriding state allowedlist_features: {state_features}")
-        state_preprocessing_options = state_preprocessing_options._replace(
-            allowedlist_features=state_features
+        state_preprocessing_options = replace(
+            state_preprocessing_options, allowedlist_features=state_features
         )
 
         state_normalization_parameters = identify_normalization_parameters(
