@@ -1,8 +1,9 @@
 import unittest
+from io import BytesIO
 
 import numpy as np
 import numpy.testing as npt
-from numpy.random import default_rng
+import torch
 from parameterized import parameterized
 from reagent.mab.ucb import (
     UCBTunedBernoulli,
@@ -10,10 +11,8 @@ from reagent.mab.ucb import (
     UCBTuned,
     UCB1,
     _get_arm_indices,
-    _place_values_at_indeces,
+    _place_values_at_indices,
 )
-
-rng = default_rng()
 
 
 class TestUCButils(unittest.TestCase):
@@ -29,13 +28,13 @@ class TestUCButils(unittest.TestCase):
         with self.assertRaises(ValueError):
             _get_arm_indices(ids_of_all_arms, ids_of_arms_in_batch)
 
-    def test_place_values_at_indeces(self):
-        values = [3, 7, 11]
+    def test_place_values_at_indices(self):
+        values = torch.tensor([3, 7, 11], dtype=torch.float)
         idxs = [2, 3, 5]
         len_ = 7
-        result = _place_values_at_indeces(values, idxs, len_)
-        expected_result = np.array([0, 0, 3, 7, 0, 11, 0])
-        npt.assert_array_equal(result, expected_result)
+        result = _place_values_at_indices(values, idxs, len_)
+        expected_result = torch.Tensor([0, 0, 3, 7, 0, 11, 0])
+        npt.assert_array_equal(result.numpy(), expected_result.numpy())
 
 
 class TestUCB(unittest.TestCase):
@@ -50,11 +49,11 @@ class TestUCB(unittest.TestCase):
     def test_batch_training(self, name, cls):
         n_arms = 5
         b = cls(n_arms=n_arms)
-        total_obs_per_arm = np.zeros(n_arms)
-        total_success_per_arm = np.zeros(n_arms)
+        total_obs_per_arm = torch.zeros(n_arms)
+        total_success_per_arm = torch.zeros(n_arms)
         for _ in range(10):
-            n_obs_per_arm = rng.integers(0, 50, size=n_arms)
-            n_success_per_arm = (rng.random(size=n_arms) * n_obs_per_arm).astype(int)
+            n_obs_per_arm = torch.randint(0, 50, size=(n_arms,)).float()
+            n_success_per_arm = torch.rand(size=(n_arms,)) * n_obs_per_arm
             total_obs_per_arm += n_obs_per_arm
             total_success_per_arm += n_success_per_arm
 
@@ -67,35 +66,37 @@ class TestUCB(unittest.TestCase):
                 b.add_batch_observations(n_obs_per_arm, n_success_per_arm)
 
             npt.assert_array_equal(
-                b.total_n_obs_per_arm, total_obs_per_arm
+                b.total_n_obs_per_arm.numpy(), total_obs_per_arm.numpy()
             )  # observation counters are correct
             npt.assert_array_equal(
-                b.total_sum_reward_per_arm, total_success_per_arm
+                b.total_sum_reward_per_arm.numpy(), total_success_per_arm.numpy()
             )  # success counters are corect
             if issubclass(cls, UCBTuned):
                 # we keep track of squared rewards only for UCBTuned
                 npt.assert_array_equal(
-                    b.total_sum_reward_squared_per_arm, total_success_per_arm
+                    b.total_sum_reward_squared_per_arm.numpy(),
+                    total_success_per_arm.numpy(),
                 )  # squared rewards equal to rewards for Bernoulli bandit
 
             self.assertEqual(
-                b.total_n_obs_all_arms, np.sum(total_obs_per_arm)
+                b.total_n_obs_all_arms, total_obs_per_arm.sum().item()
             )  # total observation counter correct
 
             ucb_scores = b.get_ucb_scores()
 
             # UCB scores shape and type are correct
             self.assertEqual(ucb_scores.shape, (n_arms,))
-            self.assertIsInstance(ucb_scores, np.ndarray)
+            self.assertIsInstance(ucb_scores, torch.Tensor)
 
             avg_rewards = total_success_per_arm / total_obs_per_arm
 
-            npt.assert_array_equal(
-                b.get_avg_reward_values(), avg_rewards
+            npt.assert_array_almost_equal(
+                b.get_avg_reward_values().numpy(), avg_rewards.numpy()
             )  # avg rewards computed correctly
 
             npt.assert_array_less(
-                avg_rewards, np.where(b.total_n_obs_per_arm > 0, ucb_scores, np.nan)
+                avg_rewards,
+                np.where(b.total_n_obs_per_arm.numpy() > 0, ucb_scores.numpy(), np.nan),
             )  # UCB scores greater than avg rewards
 
     @parameterized.expand(
@@ -108,8 +109,8 @@ class TestUCB(unittest.TestCase):
     )
     def test_class_method(self, name, cls):
         n_arms = 5
-        n_obs_per_arm = rng.integers(0, 50, size=n_arms)
-        n_success_per_arm = (rng.random(size=n_arms) * n_obs_per_arm).astype(int)
+        n_obs_per_arm = torch.randint(0, 50, size=(n_arms,)).float()
+        n_success_per_arm = torch.rand(size=(n_arms,)) * n_obs_per_arm
         if cls == UCBTuned:
             ucb_scores = cls.get_ucb_scores_from_batch(
                 n_obs_per_arm, n_success_per_arm, n_success_per_arm
@@ -119,12 +120,13 @@ class TestUCB(unittest.TestCase):
 
         # UCB scores shape and type are correct
         self.assertEqual(ucb_scores.shape, (n_arms,))
-        self.assertIsInstance(ucb_scores, np.ndarray)
+        self.assertIsInstance(ucb_scores, torch.Tensor)
 
         avg_rewards = n_success_per_arm / n_obs_per_arm
 
         npt.assert_array_less(
-            avg_rewards, np.where(n_obs_per_arm > 0, ucb_scores, np.nan)
+            avg_rewards.numpy(),
+            np.where(n_obs_per_arm.numpy() > 0, ucb_scores.numpy(), np.nan),
         )  # UCB scores greater than avg rewards
 
     @parameterized.expand(
@@ -139,12 +141,12 @@ class TestUCB(unittest.TestCase):
         n_arms = 5
         total_n_obs = 100
         b = cls(n_arms=n_arms)
-        total_obs_per_arm = np.zeros(n_arms)
-        total_success_per_arm = np.zeros(n_arms)
-        true_ctrs = rng.random(size=n_arms)
+        total_obs_per_arm = torch.zeros(n_arms)
+        total_success_per_arm = torch.zeros(n_arms)
+        true_ctrs = torch.rand(size=(n_arms,))
         for _ in range(total_n_obs):
             chosen_arm = b.get_action()
-            reward = rng.binomial(1, true_ctrs[chosen_arm], 1)[0]
+            reward = torch.bernoulli(true_ctrs[chosen_arm])
             b.add_single_observation(chosen_arm, reward)
             total_obs_per_arm[chosen_arm] += 1
             total_success_per_arm[chosen_arm] += reward
@@ -161,7 +163,7 @@ class TestUCB(unittest.TestCase):
             )
 
         npt.assert_array_equal(
-            online_ucb_scores, offline_ucb_scores
+            online_ucb_scores.numpy(), offline_ucb_scores.numpy()
         )  # UCB scores computed by online and offline algorithms match
 
     @parameterized.expand(
@@ -175,8 +177,8 @@ class TestUCB(unittest.TestCase):
     def test_save_load(self, name, cls):
         n_arms = 5
         b = cls(n_arms=n_arms)
-        n_obs_per_arm = rng.integers(0, 100, size=n_arms)
-        n_success_per_arm = (rng.random(size=n_arms) * n_obs_per_arm).astype(int)
+        n_obs_per_arm = torch.randint(0, 100, size=(n_arms,)).float()
+        n_success_per_arm = torch.rand(size=(n_arms,)) * n_obs_per_arm
         if cls == UCBTuned:
             # UCBTuned retquires additional input
             b.add_batch_observations(
@@ -187,13 +189,18 @@ class TestUCB(unittest.TestCase):
 
         ucb_scores_before_save = b.get_ucb_scores()
 
-        j = b.to_json()
-        b_loaded = cls.from_json(j)
+        f_write = BytesIO()
+        torch.save(b, f_write)
+        f_write.seek(0)
+        f_read = BytesIO(f_write.read())
+        f_write.close()
+        b_loaded = torch.load(f_read)
+        f_read.close()
 
         ucb_scores_after_load = b_loaded.get_ucb_scores()
 
         npt.assert_array_equal(
-            ucb_scores_before_save, ucb_scores_after_load
+            ucb_scores_before_save.numpy(), ucb_scores_after_load.numpy()
         )  # UCB scores are same before saving and after loading
 
         self.assertListEqual(b.arm_ids, b_loaded.arm_ids)
@@ -210,10 +217,10 @@ class TestUCB(unittest.TestCase):
         # arm 0 earns no rewards, so we specify arm_ids 1,...,N explicitly
         n_arms = 5
         b = cls(n_arms=n_arms)
-        n_obs_per_arm = rng.integers(0, 100, size=n_arms - 1)
-        n_success_per_arm = (rng.random(size=n_arms - 1) * n_obs_per_arm).astype(int)
+        n_obs_per_arm = torch.randint(0, 100, size=(n_arms - 1,)).float()
+        n_success_per_arm = torch.rand(size=(n_arms - 1,)) * n_obs_per_arm
         if cls == UCBTuned:
-            # UCBTuned retquires additional input
+            # UCBTuned requires additional input
             b.add_batch_observations(
                 n_obs_per_arm,
                 n_success_per_arm,
@@ -226,5 +233,12 @@ class TestUCB(unittest.TestCase):
             )
 
         self.assertEqual(b.total_n_obs_per_arm[0], 0)
-        npt.assert_array_equal(n_obs_per_arm, b.total_n_obs_per_arm[1:])
-        npt.assert_array_equal(n_success_per_arm, b.total_sum_reward_per_arm[1:])
+        npt.assert_array_equal(n_obs_per_arm.numpy(), b.total_n_obs_per_arm[1:].numpy())
+        npt.assert_array_equal(
+            n_success_per_arm.numpy(), b.total_sum_reward_per_arm[1:].numpy()
+        )
+        if issubclass(cls, UCBTuned):
+            npt.assert_array_equal(
+                n_success_per_arm.numpy(),
+                b.total_sum_reward_squared_per_arm[1:].numpy(),
+            )
