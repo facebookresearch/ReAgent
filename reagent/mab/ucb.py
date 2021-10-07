@@ -1,8 +1,9 @@
-import json
+import math
 from abc import ABC, abstractmethod
-from typing import Sequence, Union, Dict, Optional, List
+from typing import Union, Optional, List
 
-import numpy as np
+import torch
+from torch import Tensor
 
 
 def _get_arm_indices(
@@ -17,35 +18,26 @@ def _get_arm_indices(
     return arm_idxs
 
 
-def _place_values_at_indeces(
-    values: np.ndarray, idxs: List[int], total_len: int
-) -> np.ndarray:
+def _place_values_at_indices(values: Tensor, idxs: List[int], total_len: int) -> Tensor:
     """
 
     TODO: maybe replace with sparse vector function?
 
     Args:
-        values (np.ndarray): The values
-        idxs (List[int]): The indeces at which the values have to be placed
+        values (Tensor): The values
+        idxs (List[int]): The indices at which the values have to be placed
         total_len (int): Length of the array
     """
     assert len(values) == len(idxs)
-    ret = np.zeros(total_len)
+    ret = torch.zeros(total_len)
     ret[idxs] = values
     return ret
 
 
-class BaseUCB(ABC):
+class BaseUCB(torch.nn.Module, ABC):
     """
     Base class for UCB-like Multi-Armed Bandits (MAB)
     """
-
-    _fields_for_saving = [
-        "arm_ids",
-        "total_n_obs_all_arms",
-        "total_n_obs_per_arm",
-        "total_sum_reward_per_arm",
-    ]
 
     def __init__(
         self,
@@ -53,6 +45,7 @@ class BaseUCB(ABC):
         n_arms: Optional[int] = None,
         arm_ids: Optional[List[Union[str, int]]] = None,
     ):
+        super().__init__()
         if n_arms is not None:
             self.arm_ids = list(range(n_arms))
             self.n_arms = n_arms
@@ -60,19 +53,19 @@ class BaseUCB(ABC):
             self.arm_ids = arm_ids
             self.n_arms = len(arm_ids)
         self.total_n_obs_all_arms = 0
-        self.total_n_obs_per_arm = np.zeros(self.n_arms)
-        self.total_sum_reward_per_arm = np.zeros(self.n_arms)
+        self.total_n_obs_per_arm = torch.zeros(self.n_arms)
+        self.total_sum_reward_per_arm = torch.zeros(self.n_arms)
 
     def add_batch_observations(
         self,
-        n_obs_per_arm: Union[np.ndarray, Sequence],
-        sum_reward_per_arm: Union[np.ndarray, Sequence],
+        n_obs_per_arm: Tensor,
+        sum_reward_per_arm: Tensor,
         arm_ids: Optional[List[Union[str, int]]] = None,
     ):
-        if not isinstance(n_obs_per_arm, np.ndarray):
-            n_obs_per_arm = np.array(n_obs_per_arm)
-        if not isinstance(sum_reward_per_arm, np.ndarray):
-            sum_reward_per_arm = np.array(sum_reward_per_arm)
+        if not isinstance(n_obs_per_arm, Tensor):
+            n_obs_per_arm = torch.tensor(n_obs_per_arm, dtype=torch.float)
+        if not isinstance(sum_reward_per_arm, Tensor):
+            sum_reward_per_arm = torch.tensor(sum_reward_per_arm, dtype=torch.float)
         if arm_ids is None or arm_ids == self.arm_ids:
             # assume that the observations are for all arms in the default order
             arm_ids = self.arm_ids
@@ -86,10 +79,10 @@ class BaseUCB(ABC):
             arm_idxs = _get_arm_indices(self.arm_ids, arm_ids)
 
             # put elements from the batch in the positions specified by `arm_ids` (missing arms will be zero)
-            n_obs_per_arm = _place_values_at_indeces(
+            n_obs_per_arm = _place_values_at_indices(
                 n_obs_per_arm, arm_idxs, self.n_arms
             )
-            sum_reward_per_arm = _place_values_at_indeces(
+            sum_reward_per_arm = _place_values_at_indices(
                 sum_reward_per_arm, arm_idxs, self.n_arms
             )
 
@@ -104,7 +97,7 @@ class BaseUCB(ABC):
         self.total_sum_reward_per_arm[arm_idx] += reward
         self.total_n_obs_all_arms += 1
 
-    def get_avg_reward_values(self) -> np.ndarray:
+    def get_avg_reward_values(self) -> Tensor:
         return self.total_sum_reward_per_arm / self.total_n_obs_per_arm
 
     def get_action(self) -> Union[str, int]:
@@ -115,26 +108,26 @@ class BaseUCB(ABC):
             int: The integer ID of the chosen action
         """
         ucb_scores = self.get_ucb_scores()
-        return self.arm_ids[np.argmax(ucb_scores)]
+        return self.arm_ids[torch.argmax(ucb_scores)]
 
     @classmethod
     def get_ucb_scores_from_batch(
         cls,
-        n_obs_per_arm: Union[np.ndarray, Sequence],
-        sum_reward_per_arm: Union[np.ndarray, Sequence],
+        n_obs_per_arm: Tensor,
+        sum_reward_per_arm: Tensor,
         *args,
         **kwargs,
-    ) -> np.ndarray:
+    ) -> Tensor:
         """
         A utility method used to create the bandit, feed in a batch of observations and get the UCB scores in one function call
 
         Args:
-            n_obs_per_arm (Union[np.ndarray, Sequence]): An array of counts of per-arm numbers of observations
-            sum_reward_per_arm (Union[np.ndarray, Sequence]): An array of sums of rewards for each arm
+            n_obs_per_arm (Tensor): An array of counts of per-arm numbers of observations
+            sum_reward_per_arm (Tensor): An array of sums of rewards for each arm
             (additional arguments can be provided for specific concrete class implementations)
 
         Returns:
-            np.ndarray: Array of per-arm UCB scores
+            Tensor: Array of per-arm UCB scores
         """
         n_arms = len(n_obs_per_arm)
         b = cls(n_arms=n_arms)
@@ -152,31 +145,8 @@ class BaseUCB(ABC):
         )
         return f"UCB({self.n_arms} arms; {t}"
 
-    def _to_dict(self):
-        d = {k: getattr(self, k) for k in self._fields_for_saving}
-        return {k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in d.items()}
-
-    def to_json(self):
-        return json.dumps(self._to_dict(), indent=4, sort_keys=True)
-
-    @classmethod
-    def _from_dict(cls, d: Dict):
-        if sorted(cls._fields_for_saving) != sorted(d.keys()):
-            raise ValueError(
-                f"Keys {sorted(cls._fields_for_saving)} don't match expected fields {sorted(d.keys())}"
-            )
-        o = cls(arm_ids=d["arm_ids"])
-        for k, v in d.items():
-            if k != "arm_ids":
-                if isinstance(v, list):
-                    v = np.array(v)
-                setattr(o, k, v)
-        return o
-
-    @classmethod
-    def from_json(cls, j: str):
-        d = json.loads(j)
-        return cls._from_dict(d)
+    def forward(self):
+        return self.get_ucb_scores()
 
 
 class UCB1(BaseUCB):
@@ -191,12 +161,18 @@ class UCB1(BaseUCB):
         UCB_i = AVG([rewards_i]) + SQRT(2*LN(T)/N_i)
 
         Returns:
-            np.ndarray: An array of UCB scores (one per arm)
+            Tensor: An array of UCB scores (one per arm)
         """
         avg_rewards = self.get_avg_reward_values()
-        log_t_over_ni = np.log(self.total_n_obs_all_arms) / self.total_n_obs_per_arm
-        ucb = avg_rewards + np.sqrt(2 * log_t_over_ni)
-        return np.where(self.total_n_obs_per_arm > 0, ucb, np.inf)
+        log_t_over_ni = (
+            math.log(self.total_n_obs_all_arms + 1) / self.total_n_obs_per_arm
+        )
+        ucb = avg_rewards + torch.sqrt(2 * log_t_over_ni)
+        return torch.where(
+            self.total_n_obs_per_arm > 0,
+            ucb,
+            torch.tensor(torch.inf, dtype=torch.float),
+        )
 
 
 class UCBTuned(BaseUCB):
@@ -205,9 +181,9 @@ class UCBTuned(BaseUCB):
     Biggest difference from basic UCB is that per-arm reward variance is estimated.
     """
 
-    _fields_for_saving = BaseUCB._fields_for_saving + [
-        "total_sum_reward_squared_per_arm"
-    ]
+    # _fields_for_saving = BaseUCB._fields_for_saving + [
+    #     "total_sum_reward_squared_per_arm"
+    # ]
 
     def __init__(
         self,
@@ -215,30 +191,32 @@ class UCBTuned(BaseUCB):
         arm_ids: Optional[List[Union[str, int]]] = None,
     ):
         super(UCBTuned, self).__init__(n_arms=n_arms, arm_ids=arm_ids)
-        self.total_sum_reward_squared_per_arm = np.zeros(self.n_arms)
+        self.total_sum_reward_squared_per_arm = torch.zeros(self.n_arms)
 
     def add_batch_observations(
         self,
-        n_obs_per_arm: Union[np.ndarray, Sequence],
-        sum_reward_per_arm: Union[np.ndarray, Sequence],
-        sum_reward_squared_per_arm: Union[np.ndarray, Sequence],
+        n_obs_per_arm: Tensor,
+        sum_reward_per_arm: Tensor,
+        sum_reward_squared_per_arm: Tensor,
         arm_ids: Optional[List[Union[str, int]]] = None,
     ):
         """
         Add information about arm rewards in a batched form.
 
         Args:
-            n_obs_per_arm (Union[np.ndarray, Sequence]): An array of counts of per-arm numbers of observations
-            sum_reward_per_arm (Union[np.ndarray, Sequence]): An array of sums of rewards for each arm
-            sum_reward_squared_per_arm (Union[np.ndarray, Sequence]): An array of sums of squares of rewards for each arm
+            n_obs_per_arm (Tensor): An array of counts of per-arm numbers of observations
+            sum_reward_per_arm (Tensor): An array of sums of rewards for each arm
+            sum_reward_squared_per_arm (Tensor): An array of sums of squares of rewards for each arm
             arm_ids (Optional[List[Union[str, int]]]): A list of ids of arms in the same order as the elements of previous arrays
         """
         assert len(sum_reward_per_arm) == len(sum_reward_squared_per_arm)
         super().add_batch_observations(
             n_obs_per_arm, sum_reward_per_arm, arm_ids=arm_ids
         )
-        if not isinstance(sum_reward_per_arm, np.ndarray):
-            sum_reward_squared_per_arm = np.array(sum_reward_squared_per_arm)
+        if not isinstance(sum_reward_per_arm, Tensor):
+            sum_reward_squared_per_arm = torch.tensor(
+                sum_reward_squared_per_arm, dtype=torch.float
+            )
 
         if arm_ids is None or arm_ids == self.arm_ids:
             # assume that the observations are for all arms in the default order
@@ -253,7 +231,7 @@ class UCBTuned(BaseUCB):
             arm_idxs = _get_arm_indices(self.arm_ids, arm_ids)
 
             # put elements from the batch in the positions specified by `arm_ids` (missing arms will be zero)
-            sum_reward_squared_per_arm = _place_values_at_indeces(
+            sum_reward_squared_per_arm = _place_values_at_indices(
                 sum_reward_squared_per_arm, arm_idxs, self.n_arms
             )
 
@@ -271,7 +249,7 @@ class UCBTuned(BaseUCB):
         arm_idx = self.arm_ids.index(arm_id)
         self.total_sum_reward_squared_per_arm[arm_idx] += reward ** 2
 
-    def get_ucb_scores(self) -> np.ndarray:
+    def get_ucb_scores(self) -> Tensor:
         """
         Get per-arm UCB scores. The formula is
         UCB_i = AVG([rewards_i]) + SQRT(LN(T)/N_i * V_i)
@@ -280,26 +258,32 @@ class UCBTuned(BaseUCB):
         Nore that we don't apply the min(1/4, ...) operator to the variance because this bandit is meant for non-Bernoulli applications as well
 
         Returns:
-            np.ndarray: An array of UCB scores (one per arm)
+            Tensor: An array of UCB scores (one per arm)
         """
         avg_rewards = self.get_avg_reward_values()
-        log_t_over_ni = np.log(self.total_n_obs_all_arms) / self.total_n_obs_per_arm
+        log_t_over_ni = (
+            math.log(self.total_n_obs_all_arms + 1) / self.total_n_obs_per_arm
+        )
         per_arm_var_est = (
             self.total_sum_reward_squared_per_arm / self.total_n_obs_per_arm
             - avg_rewards ** 2
-            + np.sqrt(
+            + torch.sqrt(
                 2 * log_t_over_ni
             )  # additional term to make the estimate conservative (unlikely to underestimate)
         )
-        ucb = avg_rewards + np.sqrt(log_t_over_ni * per_arm_var_est)
-        return np.where(self.total_n_obs_per_arm > 0, ucb, np.inf)
+        ucb = avg_rewards + torch.sqrt(log_t_over_ni * per_arm_var_est)
+        return torch.where(
+            self.total_n_obs_per_arm > 0,
+            ucb,
+            torch.tensor(torch.inf, dtype=torch.float),
+        )
 
 
 class UCBTunedBernoulli(UCBTuned):
     def add_batch_observations(
         self,
-        n_obs_per_arm: Union[np.ndarray, Sequence],
-        num_success_per_arm: Union[np.ndarray, Sequence],
+        n_obs_per_arm: Tensor,
+        num_success_per_arm: Tensor,
         arm_ids: Optional[List[Union[str, int]]] = None,
     ):
         """
@@ -307,8 +291,8 @@ class UCBTunedBernoulli(UCBTuned):
         Because of the Bernoulli assumption, we don't need to provide the squared rewards separately
 
         Args:
-            n_obs_per_arm (Union[np.ndarray, Sequence]): An array of counts of per-arm numbers of observations
-            num_success_per_arm (Union[np.ndarray, Sequence]): An array of counts of per-arm numbers of successes
+            n_obs_per_arm (Tensor): An array of counts of per-arm numbers of observations
+            num_success_per_arm (Tensor): An array of counts of per-arm numbers of successes
         """
         super().add_batch_observations(
             n_obs_per_arm, num_success_per_arm, num_success_per_arm, arm_ids=arm_ids
@@ -327,23 +311,29 @@ class MetricUCB(BaseUCB):
         UCB_i = AVG([rewards_i]) + SQRT(AVG([rewards_i]) * LN(T+1)/N_i) + LN(T+1)/N_i
 
         Returns:
-            np.ndarray: An array of UCB scores (one per arm)
+            Tensor: An array of UCB scores (one per arm)
         """
         avg_rewards = self.get_avg_reward_values()
-        log_t_over_ni = np.log(self.total_n_obs_all_arms + 1) / self.total_n_obs_per_arm
-        ucb = avg_rewards + np.sqrt(avg_rewards * log_t_over_ni) + log_t_over_ni
-        return np.where(self.total_n_obs_per_arm > 0, ucb, np.inf)
+        log_t_over_ni = (
+            math.log(self.total_n_obs_all_arms + 1) / self.total_n_obs_per_arm
+        )
+        ucb = avg_rewards + torch.sqrt(avg_rewards * log_t_over_ni) + log_t_over_ni
+        return torch.where(
+            self.total_n_obs_per_arm > 0,
+            ucb,
+            torch.tensor(torch.inf, dtype=torch.float),
+        )
 
 
 def get_bernoulli_tuned_ucb_scores(n_obs_per_arm, num_success_per_arm):
     # a minimalistic function that implements Tuned UCB for Bernoulli bandit
     avg_rewards = n_obs_per_arm / num_success_per_arm
-    log_t_over_ni = np.log(np.sum(n_obs_per_arm)) / num_success_per_arm
+    log_t_over_ni = torch.log(torch.sum(n_obs_per_arm)) / num_success_per_arm
     per_arm_var_est = (
         avg_rewards
         - avg_rewards ** 2
-        + np.sqrt(
+        + torch.sqrt(
             2 * log_t_over_ni
         )  # additional term to make the estimate conservative (unlikely to underestimate)
     )
-    return avg_rewards + np.sqrt(log_t_over_ni * per_arm_var_est)
+    return avg_rewards + torch.sqrt(log_t_over_ni * per_arm_var_est)
