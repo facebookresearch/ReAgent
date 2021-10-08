@@ -61,10 +61,7 @@ def get_Q(
     # that means we can aggregate on the max reward
     # then reshape it to (BATCH_SIZE, ACT_DIM)
     max_acc_reward = (
-        # pyre-fixme[16]: `Tuple` has no attribute `values`.
-        torch.max(acc_reward, dim=2)
-        .values.detach()
-        .reshape(batch_size, num_action)
+        torch.max(acc_reward, dim=2).values.detach().reshape(batch_size, num_action)
     )
 
     return max_acc_reward
