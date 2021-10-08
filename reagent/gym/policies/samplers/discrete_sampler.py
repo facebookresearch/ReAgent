@@ -160,7 +160,7 @@ class EpsilonGreedyActionSampler(Sampler):
         greedy_prob = 1 - self.epsilon + rand_prob
         p[argmax] = greedy_prob.squeeze()
 
-        p[~valid_actions_ind] = 0.0  # pyre-ignore
+        p[~valid_actions_ind] = 0.0
 
         assert torch.isclose(p.sum(1) == torch.ones(p.shape[0]))
 

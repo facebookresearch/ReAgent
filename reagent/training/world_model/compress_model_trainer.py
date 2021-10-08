@@ -110,7 +110,6 @@ class CompressModelTrainer(ReAgentLightningModule):
         mse = F.mse_loss(compress_model_output, target)
 
         with torch.no_grad():
-            # pyre-fixme[16]: `Tuple` has no attribute `indices`.
             target_action = torch.max(target, dim=1).indices
             model_action = torch.max(compress_model_output, dim=1).indices
             accuracy = torch.mean((target_action == model_action).float())
