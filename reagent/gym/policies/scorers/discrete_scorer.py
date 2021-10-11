@@ -16,18 +16,16 @@ NEG_INF = float("-inf")
 
 def apply_possible_actions_mask(
     scores: torch.Tensor,
-    possible_actions_mask: Optional[np.ndarray] = None,
+    possible_actions_mask: Optional[torch.Tensor] = None,
     invalid_score: float = NEG_INF,
 ) -> torch.Tensor:
     if possible_actions_mask is None:
         return scores
-    possible_actions_mask = torch.tensor(
-        possible_actions_mask, dtype=torch.bool
-    ).unsqueeze(0)
+    possible_actions_mask = possible_actions_mask.unsqueeze(0)
     assert (
         scores.shape == possible_actions_mask.shape
     ), f"{scores.shape} != {possible_actions_mask.shape}"
-    scores[~possible_actions_mask] = invalid_score
+    scores[~possible_actions_mask] = invalid_score  # pyre-ignore[16]
     return scores
 
 
@@ -35,7 +33,7 @@ def discrete_dqn_scorer(q_network: ModelBase) -> Scorer:
     @torch.no_grad()
     def score(
         preprocessed_obs: rlt.FeatureData,
-        possible_actions_mask: Optional[np.ndarray] = None,
+        possible_actions_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         q_network.eval()
         scores = q_network(preprocessed_obs)
@@ -54,7 +52,7 @@ def discrete_dqn_serving_scorer(q_network: torch.nn.Module) -> Scorer:
     @torch.no_grad()
     def score(
         state: rlt.ServingFeatureData,
-        possible_actions_mask: Optional[np.ndarray] = None,
+        possible_actions_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         action_names, q_values = q_network(*state)
         q_values = apply_possible_actions_mask(q_values, possible_actions_mask)

@@ -122,7 +122,7 @@ class Sampler(ABC):
 
 
 # From preprocessed observation, produce scores for sampler to select action
-DiscreteScorer = Callable[[Any, Optional[np.ndarray]], Any]
+DiscreteScorer = Callable[[Any, Optional[torch.Tensor]], Any]
 ContinuousScorer = Callable[[Any], Any]
 Scorer = Union[DiscreteScorer, ContinuousScorer]
 

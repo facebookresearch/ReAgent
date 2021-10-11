@@ -42,7 +42,7 @@ class DiscreteRandomPolicy(Policy):
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
     def act(
-        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[torch.Tensor] = None
     ) -> rlt.ActorOutput:
         """Act randomly regardless of the observation."""
         # pyre-fixme[35]: Target cannot be annotated.
@@ -81,7 +81,7 @@ class MultiDiscreteRandomPolicy(Policy):
 
     # TODO: consider possible_actions_mask
     def act(
-        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[torch.Tensor] = None
     ) -> rlt.ActorOutput:
         # pyre-fixme[35]: Target cannot be annotated.
         obs: torch.Tensor = obs.float_features
@@ -129,7 +129,7 @@ class ContinuousRandomPolicy(Policy):
             raise NotImplementedError(f"action_space is {type(action_space)}")
 
     def act(
-        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[torch.Tensor] = None
     ) -> rlt.ActorOutput:
         """Act randomly regardless of the observation."""
         # pyre-fixme[35]: Target cannot be annotated.

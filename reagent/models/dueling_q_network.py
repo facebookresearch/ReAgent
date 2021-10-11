@@ -100,7 +100,7 @@ class DuelingQNetwork(ModelBase):
     def forward(
         self,
         state: rlt.FeatureData,
-        possible_actions_mask: Optional[Union[torch.Tensor, np.ndarray]] = None,
+        possible_actions_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         value, raw_advantage, advantage, q_value = self._get_values(state)
 
@@ -114,8 +114,6 @@ class DuelingQNetwork(ModelBase):
                 a = advantage[:, i]
                 _log_histogram_and_mean(f"{self._name}/{i}", "advantage", a)
         if possible_actions_mask is not None:
-            if isinstance(possible_actions_mask, np.ndarray):
-                possible_actions_mask = torch.tensor(possible_actions_mask)
             # subtract huge value from impossible actions to force their probabilities to 0
             q_value = (
                 q_value + (1 - possible_actions_mask.float()) * INVALID_ACTION_CONSTANT
