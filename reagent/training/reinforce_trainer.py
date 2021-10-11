@@ -57,6 +57,11 @@ class ReinforceTrainer(ReAgentLightningModule):
         else:
             self.value_net = None
 
+    def _check_input(self, training_batch: rlt.PolicyGradientInput):
+        assert training_batch.reward.ndim == 1
+        if self.off_policy:
+            assert training_batch.log_prob.ndim == 1
+
     def configure_optimizers(self):
         optimizers = []
         # value net optimizer
@@ -74,6 +79,7 @@ class ReinforceTrainer(ReAgentLightningModule):
         return optimizers
 
     def train_step_gen(self, training_batch: rlt.PolicyGradientInput, batch_idx: int):
+        self._check_input(training_batch)
         actions = training_batch.action
         rewards = training_batch.reward.detach()
         scorer_inputs = []
@@ -106,10 +112,9 @@ class ReinforceTrainer(ReAgentLightningModule):
             offset_reinforcement = offset_reinforcement - baselines
 
         if self.off_policy:
-            target_propensity = self.sampler.log_prob(scores, actions).float()
             characteristic_eligibility = torch.exp(
                 torch.clamp(
-                    target_propensity - training_batch.log_prob,
+                    characteristic_eligibility - training_batch.log_prob,
                     max=math.log(float(self.clip_param)),
                 )
             ).float()
