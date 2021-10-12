@@ -23,6 +23,7 @@ class Agent:
         post_episode_callback: Optional[PostEpisode] = None,
         obs_preprocessor=_id,
         action_extractor=_id,
+        device: Optional[torch.device] = None,
     ):
         """
         The Agent orchestrates the interactions on our RL components, given
@@ -34,11 +35,13 @@ class Agent:
             post_step: called after env.step(action).
                 Default post_step is to do nothing.
         """
+        device = device or torch.device("cpu")
         self.policy = policy
         self.obs_preprocessor = obs_preprocessor
         self.action_extractor = action_extractor
         self.post_transition_callback = post_transition_callback
         self.post_episode_callback = post_episode_callback
+        self.device = device
 
     @classmethod
     def create_for_env(
@@ -70,6 +73,7 @@ class Agent:
             policy,
             obs_preprocessor=obs_preprocessor,
             action_extractor=action_extractor,
+            device=device,
             **kwargs,
         )
 
@@ -103,6 +107,10 @@ class Agent:
         """Act on a single observation"""
         # preprocess and convert to batch data
         preprocessed_obs = self.obs_preprocessor(obs)
+        if possible_actions_mask is not None:
+            possible_actions_mask = torch.tensor(
+                possible_actions_mask, device=self.device
+            )
 
         # store intermediate actor output for post_step
         actor_output = self.policy.act(preprocessed_obs, possible_actions_mask)

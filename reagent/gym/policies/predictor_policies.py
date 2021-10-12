@@ -90,7 +90,7 @@ class DiscreteDQNPredictorPolicy(Policy):
     def act(
         self,
         obs: Union[rlt.ServingFeatureData, Tuple[torch.Tensor, torch.Tensor]],
-        possible_actions_mask: Optional[np.ndarray],
+        possible_actions_mask: Optional[torch.Tensor],
     ) -> rlt.ActorOutput:
         """Input is either state_with_presence, or
         ServingFeatureData (in the case of sparse features)"""
@@ -117,7 +117,7 @@ class ActorPredictorPolicy(Policy):
     def act(
         self,
         obs: Union[rlt.ServingFeatureData, Tuple[torch.Tensor, torch.Tensor]],
-        possible_actions_mask: Optional[np.ndarray] = None,
+        possible_actions_mask: Optional[torch.Tensor] = None,
     ) -> rlt.ActorOutput:
         """Input is either state_with_presence, or
         ServingFeatureData (in the case of sparse features)"""
