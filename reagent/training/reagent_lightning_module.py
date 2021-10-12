@@ -55,10 +55,7 @@ class ReAgentLightningModule(pl.LightningModule):
         return self._reporter
 
     def set_clean_stop(self, clean_stop: bool):
-        if clean_stop:
-            self._cleanly_stopped = torch.ones(1)
-        else:
-            self._cleanly_stopped = torch.zeros(1)
+        self._cleanly_stopped[0] = int(clean_stop)
 
     def increase_next_stopping_epochs(self, num_epochs: int):
         self._next_stopping_epoch += num_epochs
