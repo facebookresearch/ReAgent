@@ -44,12 +44,10 @@ class FullyConnectedDQN(FloatFeatureFullyConnected):
     def forward(
         self,
         state: rlt.FeatureData,
-        possible_actions_mask: Optional[Union[torch.Tensor, np.ndarray]] = None,
+        possible_actions_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         x = super().forward(state=state)
         if possible_actions_mask is not None:
-            if isinstance(possible_actions_mask, np.ndarray):
-                possible_actions_mask = torch.tensor(possible_actions_mask)
             # subtract huge value from impossible actions to force their probabilities to 0
             x = x + (1 - possible_actions_mask.float()) * INVALID_ACTION_CONSTANT
         return x

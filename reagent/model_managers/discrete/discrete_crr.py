@@ -47,7 +47,7 @@ class ActorPolicyWrapper(Policy):
     #  its type `no_grad` is not callable.
     @torch.no_grad()
     def act(
-        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[torch.Tensor] = None
     ) -> rlt.ActorOutput:
         self.actor_network.eval()
         output = self.actor_network(obs)

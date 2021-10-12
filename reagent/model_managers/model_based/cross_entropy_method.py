@@ -34,7 +34,7 @@ class CEMPolicy(Policy):
 
     # TODO: consider possible_actions_mask
     def act(
-        self, obs: rlt.FeatureData, possible_actions_mask: Optional[np.ndarray] = None
+        self, obs: rlt.FeatureData, possible_actions_mask: Optional[torch.Tensor] = None
     ) -> rlt.ActorOutput:
         greedy = self.cem_planner_network(obs)
         if self.discrete_action:

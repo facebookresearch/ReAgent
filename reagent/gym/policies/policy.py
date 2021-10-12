@@ -3,8 +3,8 @@
 
 from typing import Any, Optional
 
-import numpy as np
 import reagent.core.types as rlt
+import torch
 from reagent.gym.types import Sampler, Scorer
 
 
@@ -22,7 +22,7 @@ class Policy:
         self.sampler = sampler
 
     def act(
-        self, obs: Any, possible_actions_mask: Optional[np.ndarray] = None
+        self, obs: Any, possible_actions_mask: Optional[torch.Tensor] = None
     ) -> rlt.ActorOutput:
         """
         Performs the composition described above.
