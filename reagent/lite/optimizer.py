@@ -284,7 +284,7 @@ class RandomSearchOptimizer(ComboOptimizerBase):
                 sampled_sol[k] = torch.randint(num_choices, (batch_size,))
             else:
                 weight = self.sampling_weights[k]
-                sampled_sol[k] = torch.tensor(
+                sampled_sol[k] = torch.from_numpy(
                     np.random.choice(num_choices, batch_size, replace=True, p=weight)
                 )
         return sampled_sol
