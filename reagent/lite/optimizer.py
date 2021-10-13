@@ -15,7 +15,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from nevergrad.parametrization.choice import Choice
 
-
 logger = logging.getLogger(__name__)
 
 ANNEAL_RATE = 0.9997
@@ -1089,3 +1088,153 @@ class BayesianOptimizer(ComboOptimizerBase):
         else:
             raise NotImplementedError()
         return acquisition_reward.view(-1)
+
+
+class BayesianMLPEnsemblerOptimizer(BayesianOptimizer):
+    """
+    Bayessian Optimizer with ensemble of mlp networks, random mutation, and ITS.
+    The Method is motivated by the BANANAS optimization method, White, 2019.
+    https://arxiv.org/abs/1910.11858.
+
+    The mutation rate (temp) is starting from start_temp and is decreasing over time
+    with anneal_rate. It's lowest possible value is min_temp.
+    Thus, initially the algorithm explores mutations with a higer mutation rate (more variables are randomly mutated).
+    As time passes, the algorithm exploits the best solutions recorded so far (less variables are mutated).
+
+    Args:
+        param (ng.p.Dict): a nevergrad dictionary for specifying input choices
+
+        obj_func (Callable[[Dict[str, torch.Tensor]], torch.Tensor]):
+            a function which consumes sampled solutions and returns
+            rewards as tensors of shape (batch_size, 1).
+
+            The input dictionary has choice names as the key and sampled choice
+            indices as the value (of shape (batch_size, ))
+
+        acq_type (str): type of acquisition function.
+
+        mutation_type (str): type of mutation, e.g., random.
+
+        num_mutations (int): number of best solutions recorded so far that will be mutated.
+
+        num_ensemble (int): number of predictors.
+
+        start_temp (float): initial temperature (ratio) for mutation, e.g., with 1.0 all variables will be initally mutated.
+
+        min_temp (float): lowest temperature (ratio) for mutation, e.g., with 0.0 no mutation will occur.
+    """
+
+    def __init__(
+        self,
+        param: ng.p.Dict,
+        start_temp: float = 1.0,
+        min_temp: float = 0.0,
+        obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]] = None,
+        acq_type: str = "its",
+        mutation_type: str = "random",
+        anneal_rate: float = ANNEAL_RATE,
+        num_mutations: int = 50,
+        epochs: int = 1,
+        learning_rate: float = LEARNING_RATE,
+        batch_size: int = BATCH_SIZE,
+        obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
+        model_dim: int = 128,
+        num_ensemble: int = 5,
+    ) -> None:
+        self.temp = start_temp
+        self.num_mutations = num_mutations
+        self.epochs = epochs
+        self.learning_rate = learning_rate
+        self.model_dim = model_dim
+        self.num_ensemble = num_ensemble
+        self.input_dim = 0
+        self.predictor = None
+        super().__init__(
+            param,
+            start_temp,
+            min_temp,
+            obj_func,
+            acq_type,
+            mutation_type,
+            anneal_rate,
+            batch_size,
+            obj_exp_offset_scale,
+        )
+
+    def _init(self) -> None:
+        # initial population
+        sampled_solutions = {}
+        for k, param in self.param.items():
+            if isinstance(param, ng.p.Choice):
+                num_choices = len(param.choices)
+                self.input_dim += num_choices
+                sampled_solutions[k] = torch.randint(num_choices, (self.num_mutations,))
+            else:
+                raise NotImplementedError()
+        # predictor
+        self.predictor = []
+        for _ in range(self.num_ensemble):
+            model = nn.Sequential(
+                *[
+                    nn.Linear(self.input_dim, self.model_dim),
+                    nn.LeakyReLU(),
+                    nn.Linear(self.model_dim, self.model_dim),
+                    nn.LeakyReLU(),
+                    nn.Linear(self.model_dim, 1),
+                ]
+            )
+            for p in model.parameters():
+                if p.dim() > 1:
+                    nn.init.xavier_uniform_(p)
+            self.predictor.append(model)
+
+        sampled_reward, _ = self.obj_func(sampled_solutions)
+        sampled_reward = sampled_reward.detach()
+        self._maintain_best_solutions(sampled_solutions, sampled_reward)
+        self.update_predictor(sampled_solutions, sampled_reward)
+
+    def sample_internal(
+        self,
+        batch_size: Optional[int] = None,
+    ) -> Tuple[Dict[str, torch.Tensor]]:
+        batch_size = batch_size or self.batch_size
+        mutated_solutions = self.sample(self.num_mutations, self.temp)
+        _, indices = torch.sort(
+            self.acquisition(self.acq_type, mutated_solutions, self.predictor), dim=0
+        )
+        sampled_solutions = {}
+        for key in sorted(self.param.keys()):
+            sampled_solutions[key] = mutated_solutions[key][indices[:batch_size]]
+        self.last_sample_internal_res = sampled_solutions
+        return (sampled_solutions,)
+
+    def update_predictor(
+        self, sampled_solutions: Dict[str, torch.Tensor], sampled_reward: torch.Tensor
+    ) -> List[float]:
+        x = sol_to_tensors(sampled_solutions, self.param)
+        y = sampled_reward
+        losses = []
+        for model in self.predictor:
+            model.train()
+            optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
+            for _ in range(self.epochs):
+                pred = model(x)
+                loss = F.mse_loss(pred, y)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+            losses.append(loss.detach())
+            model.eval()
+        return np.mean(losses)
+
+    def update_params(self, reward: torch.Tensor):
+        self.temp = np.maximum(self.temp * self.anneal_rate, self.min_temp)
+        self.last_sample_internal_res = None
+
+    def _optimize_step(self) -> Tuple:
+        sampled_solutions = self.sample_internal(self.batch_size)[0]
+        sampled_reward, _ = self.obj_func(sampled_solutions)
+        sampled_reward = sampled_reward.detach()
+        loss = self.update_predictor(sampled_solutions, sampled_reward)
+        self.update_params(sampled_reward)
+        return sampled_solutions, sampled_reward, loss
