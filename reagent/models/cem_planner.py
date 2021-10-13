@@ -233,7 +233,6 @@ class CEMPlannerNetwork(nn.Module):
         # TODO: Warmstarts means and vars using previous solutions (T48841404)
         mean = (self.action_upper_bounds + self.action_lower_bounds) / 2
         var = (self.action_upper_bounds - self.action_lower_bounds) ** 2 / 16
-        # pyre-fixme[29]: `truncnorm_gen` is not a function.
         normal_sampler = stats.truncnorm(
             -2, 2, loc=np.zeros_like(mean), scale=np.ones_like(mean)
         )
