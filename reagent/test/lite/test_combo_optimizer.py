@@ -4,6 +4,7 @@ import random
 import unittest
 from collections import defaultdict
 from typing import Dict
+from unittest.mock import Mock
 
 import nevergrad as ng
 import numpy as np
@@ -15,7 +16,9 @@ from reagent.lite.optimizer import (
     QLearningOptimizer,
     NeverGradOptimizer,
     RandomSearchOptimizer,
+    BayesianOptimizer,
     GREEDY_TEMP,
+    sol_to_tensors,
 )
 
 # nevergrad performs a little worse in the test environment
@@ -534,3 +537,67 @@ class TestComboOptimizer(unittest.TestCase):
         assert np.mean(qlearning_res) < np.mean(
             pg_res
         ), f"In this setting. qlearning should be better than policy gradient over {repeat} repeats"
+
+    def test_sol_to_tensors(self):
+        input_param = discrete_input_param()
+        sampled_sol = {
+            "choice1": torch.tensor([0, 1, 2]),
+            "choice2": torch.tensor([1, 2, 0]),
+            "choice3": torch.tensor([0, 1, 0]),
+            "choice4": torch.tensor([4, 3, 2]),
+            "choice5": torch.tensor([1, 2, 3]),
+        }
+        tensor = torch.FloatTensor(
+            [
+                [1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
+            ]
+        )
+        sampled_tensor = sol_to_tensors(sampled_sol, input_param)
+        self.assertTrue(torch.all(tensor == sampled_tensor))
+
+    def test_bayesian_optimizer_its_random_mutation_discrete(self):
+        acq_type = "its"
+        mutation_type = "random"
+        input_param = discrete_input_param()
+        gt_net = create_ground_truth_net(input_param)
+        obj_func = create_discrete_choice_obj_func(input_param, gt_net)
+        optimizer = BayesianOptimizer(
+            param=input_param,
+            obj_func=obj_func,
+            start_temp=1.0,
+            min_temp=0.0,
+            acq_type=acq_type,
+            mutation_type=mutation_type,
+        )
+        sampled_solution = {
+            "choice1": torch.tensor([0]),
+            "choice2": torch.tensor([1]),
+            "choice3": torch.tensor([0]),
+            "choice4": torch.tensor([1]),
+            "choice5": torch.tensor([0]),
+        }
+        optimizer._maintain_best_solutions(sampled_solution, torch.tensor([0.0]))
+        # mutation
+        np.random.choice = Mock(return_value=np.array(["choice1"]))
+        torch.randint = Mock(return_value=torch.tensor([1]))
+        mutated_solution = {
+            "choice1": torch.tensor([1]),
+            "choice2": torch.tensor([1]),
+            "choice3": torch.tensor([0]),
+            "choice4": torch.tensor([1]),
+            "choice5": torch.tensor([0]),
+        }
+        sampled_sol = optimizer.sample(1, 1 / len(input_param))
+        self.assertEqual(sampled_sol, mutated_solution)
+        # acquisition
+        predictor = [
+            create_ground_truth_net(input_param),
+            create_ground_truth_net(input_param),
+        ]
+        acq_reward = torch.tensor([-2.5])
+        torch.normal = Mock(return_value=acq_reward)
+        self.assertEqual(
+            optimizer.acquisition("its", mutated_solution, predictor), acq_reward
+        )

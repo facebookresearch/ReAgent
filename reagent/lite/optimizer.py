@@ -5,6 +5,7 @@ import abc
 import heapq
 import logging
 from collections import defaultdict, deque
+from math import floor
 from typing import Callable, Dict, Tuple, Optional, List, Any
 
 import nevergrad as ng
@@ -69,6 +70,20 @@ def obj_func_scaler(
 
 def _num_of_params(model: nn.Module) -> int:
     return len(torch.cat([p.flatten() for p in model.parameters()]))
+
+
+def sol_to_tensors(
+    sampled_sol: Dict[str, torch.Tensor], input_param: ng.p.Dict
+) -> torch.Tensor:
+    one_hot = [
+        # pyre-fixme[16]: `Parameter` has no attribute `choices`.
+        F.one_hot(sampled_sol[k], num_classes=len(input_param[k].choices)).type(
+            torch.FloatTensor
+        )
+        for k in sorted(sampled_sol.keys())
+    ]
+    batch_tensors = torch.cat(one_hot, dim=-1)
+    return batch_tensors
 
 
 class BestResultsQueue:
@@ -284,9 +299,12 @@ class RandomSearchOptimizer(ComboOptimizerBase):
                 sampled_sol[k] = torch.randint(num_choices, (batch_size,))
             else:
                 weight = self.sampling_weights[k]
-                sampled_sol[k] = torch.tensor(
-                    np.random.choice(num_choices, batch_size, replace=True, p=weight)
-                )
+                arr = np.random.choice(num_choices, batch_size, replace=True, p=weight)
+                if arr:
+                    sampled_sol[k] = torch.tensor(arr)
+                # sampled_sol[k] = torch.from_numpy(
+                #     np.random.choice(num_choices, batch_size, replace=True, p=weight)
+                # )
         return sampled_sol
 
     def sample_internal(
@@ -963,3 +981,114 @@ class QLearningOptimizer(ComboOptimizerBase):
         )
         self.update_params(sampled_scaled_reward)
         return sampled_solutions, sampled_reward
+
+
+class BayesianOptimizer(ComboOptimizerBase):
+    """
+    Bayessian Optimization with mutation optimization and acquisition function.
+    The method is motivated from BANANAS, White, 2020.
+    https://arxiv.org/abs/1910.11858
+
+    In this method, the searching is based on mutation over the current best solutions.
+    Acquisition function, e.g., its estimates the expected imrpovement.
+
+    Args:
+        param (ng.p.Dict): a nevergrad dictionary for specifying input choices
+
+        obj_func (Callable[[Dict[str, torch.Tensor]], torch.Tensor]):
+            a function which consumes sampled solutions and returns
+            rewards as tensors of shape (batch_size, 1).
+
+            The input dictionary has choice names as the key and sampled choice
+            indices as the value (of shape (batch_size, ))
+
+        acq_type (str): type of acquisition function.
+
+        mutation_type (str): type of mutation, e.g., random.
+
+        temp (float): percentage of mutation - how many variables will be mutated.
+
+    """
+
+    def __init__(
+        self,
+        param: ng.p.Dict,
+        start_temp: float,
+        min_temp: float,
+        obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]] = None,
+        acq_type: str = "its",
+        mutation_type: str = "random",
+        anneal_rate: float = ANNEAL_RATE,
+        batch_size: int = BATCH_SIZE,
+        obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
+    ) -> None:
+        self.start_temp = start_temp
+        self.min_temp = min_temp
+        self.temp = start_temp
+        self.acq_type = acq_type
+        self.mutation_type = mutation_type
+        self.anneal_rate = anneal_rate
+        super().__init__(
+            param,
+            obj_func,
+            batch_size,
+            obj_exp_offset_scale,
+        )
+
+    def sample(
+        self, batch_size: int, temp: Optional[float] = None
+    ) -> Dict[str, torch.Tensor]:
+        """
+        Applies a type of mutation, e.g., random mutation, on the best solutions recorded so far.
+        For example, with random mutation, variables are randomly selected,
+        and their values are randomly set with respect to their domains.
+        """
+        assert temp is not None, "temp is needed for Bayesian Optimizer"
+        best_solutions = self.best_solutions(batch_size)
+        batch_size = len(best_solutions)
+        sampled_sol = [sol for _, sol in best_solutions]
+        sampled_solutions = {}
+        for k in sorted(self.param.keys()):
+            sampled_solutions[k] = torch.cat([sol[k].reshape(1) for sol in sampled_sol])
+        if self.mutation_type == "random":
+            mutated_keys = [
+                np.random.choice(
+                    sorted(self.param.keys()),
+                    floor(temp * len(self.param)),
+                    replace=False,
+                )
+                for _ in range(batch_size)
+            ]
+            mutated_solutions = {}
+            for key in sorted(self.param.keys()):
+                mutated_solutions[key] = sampled_solutions[key].clone()
+                indices = torch.tensor(
+                    [idx for idx, k in enumerate(mutated_keys) if key in k]
+                )
+                if len(indices):
+                    mutated_solutions[key][indices] = torch.randint(
+                        # pyre-fixme[16]: `Parameter` has no attribute `choices`.
+                        len(self.param[key].choices),
+                        (len(indices),),
+                    )
+        else:
+            raise NotImplementedError()
+        return mutated_solutions
+
+    def acquisition(
+        self,
+        acq_type: str,
+        sampled_sol: Dict[str, torch.Tensor],
+        predictor: List[nn.Module],
+    ) -> torch.Tensor:
+        assert predictor is not None
+        batch_tensors = sol_to_tensors(sampled_sol, self.param)
+        if acq_type == "its":
+            with torch.no_grad():
+                predictions = torch.stack([net(batch_tensors) for net in predictor])
+                acquisition_reward = torch.normal(
+                    torch.mean(predictions, dim=0), torch.std(predictions, dim=0)
+                )
+        else:
+            raise NotImplementedError()
+        return acquisition_reward.view(-1)
