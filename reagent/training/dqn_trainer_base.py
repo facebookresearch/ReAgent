@@ -121,6 +121,14 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
             == training_batch.next_action.shape[1]
             == self.num_actions
         )
+        if torch.logical_and(
+            training_batch.possible_next_actions_mask.float().sum(dim=1) == 0,
+            training_batch.not_terminal.squeeze().bool(),
+        ).any():
+            # make sure there's no non-terminal state with no possible next actions
+            raise ValueError(
+                "No possible next actions. Should the environment have terminated?"
+            )
 
     @property
     def num_actions(self) -> int:
