@@ -109,7 +109,7 @@ class MABAlgo(torch.nn.Module, ABC):
         Returns:
             int: The integer ID of the chosen action
         """
-        scores = self.forward()
+        scores = self()  # calling forward() under the hood
         return self.arm_ids[torch.argmax(scores)]
 
     def reset(self):
@@ -149,3 +149,27 @@ class MABAlgo(torch.nn.Module, ABC):
             n_obs_per_arm, sum_reward_per_arm, sum_reward_squared_per_arm
         )
         return b()
+
+
+class RandomActionsAlgo(MABAlgo):
+    """
+    A MAB algorithm which samples actions uniformly at random
+    """
+
+    def forward(self) -> Tensor:
+        return torch.rand(self.n_arms)
+
+
+class GreedyAlgo(MABAlgo):
+    """
+    Greedy algorithm, which always chooses the best arm played so far
+    Arms that haven't been played yet are given priority by assigning inf score
+    Ties are resolved in favor of the arm with the smallest index.
+    """
+
+    def forward(self) -> Tensor:
+        return torch.where(
+            self.total_n_obs_per_arm > 0,
+            self.get_avg_reward_values(),
+            torch.tensor(float("inf")),
+        )

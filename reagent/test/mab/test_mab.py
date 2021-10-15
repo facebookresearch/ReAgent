@@ -9,6 +9,12 @@ from reagent.mab.mab_algorithm import (
     get_arm_indices,
     place_values_at_indices,
 )
+from reagent.mab.simulation import (
+    BernoilliMAB,
+    single_evaluation_bandit_algo,
+    multiple_evaluations_bandit_algo,
+    compare_bandit_algos,
+)
 from reagent.mab.thompson_sampling import (
     BaseThompsonSampling,
     NormalGammaThompson,
@@ -247,3 +253,60 @@ class TestMAB(unittest.TestCase):
             n_success_per_arm.numpy(),
             b.total_sum_reward_squared_per_arm[1:].numpy(),
         )
+
+
+class TestSimulation(unittest.TestCase):
+    def test_single_evaluation(self):
+        bandit = BernoilliMAB(100, torch.tensor([0.3, 0.5]))
+        algo = UCB1(n_arms=2)
+        regret_trajectory = single_evaluation_bandit_algo(bandit, algo)
+
+        self.assertIsInstance(regret_trajectory, np.ndarray)
+        self.assertEqual(regret_trajectory.shape, (bandit.max_steps,))
+
+        # make sure regret is non-decreasing
+        self.assertGreaterEqual(np.diff(regret_trajectory, prepend=0).min(), 0)
+
+    def test_multiple_evaluations_bandit_algo(self):
+        max_steps = 20
+        regret_trajectory = multiple_evaluations_bandit_algo(
+            algo_cls=UCB1,
+            bandit_cls=BernoilliMAB,
+            n_bandits=3,
+            max_steps=max_steps,
+            algo_kwargs={"n_arms": 2},
+            bandit_kwargs={"probs": torch.Tensor([0.3, 0.5])},
+        )
+
+        self.assertIsInstance(regret_trajectory, np.ndarray)
+        self.assertEqual(regret_trajectory.shape, (max_steps,))
+
+        # make sure regret is non-decreasing
+        self.assertGreaterEqual(np.diff(regret_trajectory, prepend=0).min(), 0)
+
+    def test_compare_bandit_algos(self):
+        max_steps = 1000
+        algo_clss = [UCB1, MetricUCB]
+        algo_names, regret_trajectories = compare_bandit_algos(
+            algo_clss=algo_clss,
+            bandit_cls=BernoilliMAB,
+            n_bandits=5,
+            max_steps=max_steps,
+            algo_kwargs={"n_arms": 2},
+            bandit_kwargs={"probs": torch.Tensor([0.1, 0.2])},
+        )
+
+        self.assertEqual(len(algo_names), len(algo_clss))
+        self.assertEqual(len(regret_trajectories), len(algo_clss))
+
+        self.assertListEqual(algo_names, ["UCB1", "MetricUCB"])
+
+        for traj in regret_trajectories:
+            self.assertIsInstance(traj, np.ndarray)
+            self.assertEqual(traj.shape, (max_steps,))
+
+            # make sure regret is non-decreasing
+            self.assertGreaterEqual(np.diff(traj, prepend=0).min(), 0)
+
+        # UCB1 should be much worse than MetricUCB in this setting
+        self.assertGreater(regret_trajectories[0][-1], regret_trajectories[1][-1])
