@@ -108,8 +108,6 @@ class CEMPlannerNetwork(nn.Module):
             self.orig_action_upper = torch.tensor(action_upper_bounds)
             self.orig_action_lower = torch.tensor(action_lower_bounds)
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def forward(self, state: rlt.FeatureData):
         assert state.float_features.shape == (1, self.state_dim)
@@ -117,8 +115,6 @@ class CEMPlannerNetwork(nn.Module):
             return self.discrete_planning(state)
         return self.continuous_planning(state)
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def acc_rewards_of_one_solution(
         self, init_state: torch.Tensor, solution: torch.Tensor, solution_idx: int
@@ -169,8 +165,6 @@ class CEMPlannerNetwork(nn.Module):
 
         return np.sum(reward_matrix, axis=1)
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def acc_rewards_of_all_solutions(
         self, state: rlt.FeatureData, solutions: torch.Tensor
@@ -192,8 +186,6 @@ class CEMPlannerNetwork(nn.Module):
             )
         return acc_reward_vec
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def sample_reward_next_state_terminal(
         self, state: rlt.FeatureData, action: rlt.FeatureData, mem_net: MemoryNetwork
@@ -226,8 +218,6 @@ class CEMPlannerNetwork(nn.Module):
         )
         return np.minimum(np.minimum((lb_dist / 2) ** 2, (ub_dist / 2) ** 2), var)
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def continuous_planning(self, state: rlt.FeatureData) -> torch.Tensor:
         # TODO: Warmstarts means and vars using previous solutions (T48841404)
@@ -276,8 +266,6 @@ class CEMPlannerNetwork(nn.Module):
             prev_max=self.orig_action_upper,
         )
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def discrete_planning(self, state: rlt.FeatureData) -> Tuple[int, np.ndarray]:
         # For discrete actions, we use random shoots to get the best next action
@@ -295,6 +283,8 @@ class CEMPlannerNetwork(nn.Module):
 
         first_action_tally = np.zeros(self.action_dim)
         reward_tally = np.zeros(self.action_dim)
+        # pyre-fixme[6]: Expected `Iterable[Variable[_T2]]` for 2nd param but got
+        #  `float`.
         for action_seq, acc_reward in zip(random_action_seqs, acc_rewards):
             first_action = action_seq[0]
             first_action_tally[first_action] += 1

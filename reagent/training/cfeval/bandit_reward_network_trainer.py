@@ -57,8 +57,6 @@ class BanditRewardNetTrainer(ReAgentLightningModule):
         predicted_reward = model_rewards_all_actions.gather(1, logged_action_idxs)
         return predicted_reward
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def _compute_unweighted_loss(
         self, predicted_reward: torch.Tensor, target_reward: torch.Tensor

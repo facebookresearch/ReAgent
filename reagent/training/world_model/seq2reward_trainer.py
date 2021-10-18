@@ -16,8 +16,6 @@ from reagent.training.utils import gen_permutations
 logger = logging.getLogger(__name__)
 
 
-# pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-#  its type `no_grad` is not callable.
 @torch.no_grad()
 def get_step_prediction(
     step_predict_network: FullyConnectedNetwork, training_batch: rlt.MemoryNetworkInput
@@ -28,8 +26,6 @@ def get_step_prediction(
     return step_probability
 
 
-# pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-#  its type `no_grad` is not callable.
 @torch.no_grad()
 def get_Q(
     seq2reward_network: Seq2RewardNetwork,

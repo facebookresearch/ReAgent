@@ -128,8 +128,6 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
             state.repeat_interleave(slate_size, dim=0), slate.as_feature_data()
         ).view(batch_size, slate_size)
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def _get_maxq_next_action(self, next_state: rlt.FeatureData) -> torch.Tensor:
         """Get the next action list based on the slate optimization strategy."""

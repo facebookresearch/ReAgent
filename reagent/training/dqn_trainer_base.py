@@ -135,8 +135,6 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         assert self._actions is not None, "Not a discrete action DQN"
         return len(self._actions)
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def boost_rewards(
         self, rewards: torch.Tensor, actions: torch.Tensor

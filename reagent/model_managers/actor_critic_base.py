@@ -50,10 +50,6 @@ class ActorPolicyWrapper(Policy):
     def __init__(self, actor_network):
         self.actor_network = actor_network
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def act(
         self, obs: rlt.FeatureData, possible_actions_mask: Optional[torch.Tensor] = None

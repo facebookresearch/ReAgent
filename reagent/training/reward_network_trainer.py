@@ -107,8 +107,6 @@ class RewardNetTrainer(ReAgentLightningModule):
         assert target_reward is not None
         return target_reward
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def _compute_unweighted_loss(
         self, predicted_reward: torch.Tensor, target_reward: torch.Tensor

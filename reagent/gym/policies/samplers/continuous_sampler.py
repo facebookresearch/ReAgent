@@ -20,8 +20,6 @@ class GaussianSampler(Sampler):
         log_prob = torch.sum(log_prob - squash_correction, dim=1)
         return action, log_prob
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def sample_action(self, scores: GaussianSamplerScore) -> rlt.ActorOutput:
         self.actor_network.eval()
@@ -42,9 +40,8 @@ class GaussianSampler(Sampler):
         log_prob = torch.sum(log_prob - squash_correction, dim=1)
         return log_prob
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
+    # pyre-fixme[14]: `log_prob` overrides method defined in `Sampler` inconsistently.
     def log_prob(
         self, scores: GaussianSamplerScore, squashed_action: torch.Tensor
     ) -> torch.Tensor:

@@ -117,6 +117,8 @@ class Seq2SlateTeacherForcingTrainer(ReAgentLightningModule):
 
         edp_g = EvaluationDataPage.create_from_tensors_seq2slate(
             seq2slate_net,
+            # pyre-fixme[6]: Expected `Module` for 2nd param but got
+            #  `Optional[nn.Module]`.
             self.reward_network,
             batch,
             eval_greedy=True,
@@ -124,6 +126,8 @@ class Seq2SlateTeacherForcingTrainer(ReAgentLightningModule):
 
         edp_ng = EvaluationDataPage.create_from_tensors_seq2slate(
             seq2slate_net,
+            # pyre-fixme[6]: Expected `Module` for 2nd param but got
+            #  `Optional[nn.Module]`.
             self.reward_network,
             batch,
             eval_greedy=False,

@@ -103,8 +103,6 @@ class Seq2SlateSimulationTrainer(Seq2SlateTrainer):
             seq2slate_net.max_src_seq_len * (seq2slate_net.max_src_seq_len - 1) / 2
         )
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def _simulated_training_input(self, training_input: rlt.PreprocessedRankingInput):
         device = training_input.state.float_features.device

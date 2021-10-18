@@ -45,8 +45,6 @@ class SoftmaxActionSampler(Sampler):
     ) -> torch.distributions.Categorical:
         return torch.distributions.Categorical(logits=scores / self.temperature)
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def sample_action(self, scores: torch.Tensor) -> rlt.ActorOutput:
         assert (
@@ -96,8 +94,6 @@ class GreedyActionSampler(Sampler):
         # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
         return scores.argmax(dim=1)
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def sample_action(self, scores: torch.Tensor) -> rlt.ActorOutput:
 
@@ -109,8 +105,6 @@ class GreedyActionSampler(Sampler):
             action=action, log_prob=torch.zeros_like(raw_action, dtype=torch.float)
         )
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def log_prob(self, scores: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
         greedy_indices = self._get_greedy_indices(scores)

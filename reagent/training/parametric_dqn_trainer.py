@@ -79,8 +79,6 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
 
         return optimizers
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def get_detached_model_outputs(
         self, state, action
