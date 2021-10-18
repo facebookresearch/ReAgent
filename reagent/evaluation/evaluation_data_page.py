@@ -86,8 +86,6 @@ class EvaluationDataPage(rlt.TensorDataClass):
             raise NotImplementedError(f"training_input type: {type(tdb)}")
 
     @classmethod
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def create_from_tensors_seq2slate(
         cls,
@@ -181,8 +179,6 @@ class EvaluationDataPage(rlt.TensorDataClass):
         )
 
     @classmethod
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def create_from_tensors_parametric_dqn(
         cls,
@@ -304,8 +300,6 @@ class EvaluationDataPage(rlt.TensorDataClass):
         )
 
     @classmethod
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def create_from_tensors_dqn(
         cls,
@@ -331,6 +325,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
         num_actions = trainer.num_actions
         action_mask = actions.float()
 
+        # pyre-fixme[6]: Expected `Tensor` for 2nd param but got `FeatureData`.
         rewards = trainer.boost_rewards(rewards, actions)
         # pyre-fixme[29]: `Union[nn.Module, torch.Tensor]` is not a function.
         model_values = trainer.q_network_cpe(states)[:, 0:num_actions]

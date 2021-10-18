@@ -84,8 +84,6 @@ class DiscreteDQNPredictorPolicy(Policy):
             q_network=DiscreteDqnPredictorUnwrapper(wrapped_dqn_predictor)
         )
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def act(
         self,
@@ -111,8 +109,6 @@ class ActorPredictorPolicy(Policy):
     def __init__(self, predictor):
         self.predictor = predictor
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def act(
         self,

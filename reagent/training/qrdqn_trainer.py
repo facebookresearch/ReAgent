@@ -201,8 +201,6 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
 
         yield self.soft_update_result()
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def boost_rewards(
         self, rewards: torch.Tensor, actions: torch.Tensor
@@ -223,8 +221,6 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
     def huber(self, x):
         return torch.where(x.abs() < 1, 0.5 * x.pow(2), x.abs() - 0.5)
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def get_detached_model_outputs(
         self, state: rlt.FeatureData

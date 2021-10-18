@@ -187,8 +187,6 @@ class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
         result = self.soft_update_result()
         yield result
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def boost_rewards(
         self, rewards: torch.Tensor, actions: torch.Tensor

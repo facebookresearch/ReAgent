@@ -49,8 +49,6 @@ class TestNoSoftUpdteEmbedding(unittest.TestCase):
 
         npt.assert_array_equal(target_param, param)
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def _soft_update(self, network, target_network, tau) -> None:
         """Target network update logic as defined in DDPG paper

@@ -220,8 +220,6 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
         ).value
         self._test_synthetic_reward_net_builder_continuous_actions(builder)
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def _test_synthetic_reward_net_builder_continuous_actions(
         self, builder: SyntheticRewardNetBuilder

@@ -665,6 +665,8 @@ class Seq2RewardWithPreprocessor(DiscreteDqnWithPreprocessor):
         ).reshape(batch_size, -1)
         # shape: batch_size, num_action
         max_acc_reward = get_Q(
+            # pyre-fixme[6]: Expected `Seq2RewardNetwork` for 1st param but got
+            #  `ModelBase`.
             self.model,
             state_first_step,
             self.all_permut,
@@ -709,6 +711,8 @@ class Seq2RewardPlanShortSeqWithPreprocessor(DiscreteDqnWithPreprocessor):
         max_acc_reward = torch.cat(
             [
                 get_Q(
+                    # pyre-fixme[6]: Expected `Seq2RewardNetwork` for 1st param but
+                    #  got `ModelBase`.
                     self.model,
                     state_first_step,
                     self.all_permut[i + 1],

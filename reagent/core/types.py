@@ -278,8 +278,6 @@ class DocList(TensorDataClass):
         if self.value is None:
             self.value = self.float_features.new_ones(self.float_features.shape[:2])
 
-    # pyre-fixme[56]: Decorator `torch.no_grad(...)` could not be called, because
-    #  its type `no_grad` is not callable.
     @torch.no_grad()
     def select_slate(self, action: torch.Tensor):
         row_idx = torch.repeat_interleave(
