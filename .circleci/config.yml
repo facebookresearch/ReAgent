@@ -369,6 +369,18 @@ jobs:
       - run_unittest:
           tox_env: circleci_lite_api_unittest
 
+  mab_unittest:
+    machine:
+      image: ubuntu-1604:202101-01
+    resource_class: small
+    steps:
+      - checkout_merge
+      - pip_install:
+          install_gym: false
+          is_ubuntu_gpu: false
+      - run_unittest:
+          tox_env: circleci_mab_unittest
+
   sac_pendulum_e2e:
     machine:
       image: ubuntu-1604:202101-01
@@ -430,6 +442,7 @@ workflows:
   build:
     jobs:
       - lite_api_unittest
+      - mab_unittest
       - ranking_unittest
       - training_unittest
       - prediction_unittest
