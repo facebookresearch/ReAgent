@@ -24,13 +24,11 @@ from reagent.mab.thompson_sampling import (
 from reagent.mab.ucb import (
     BaseUCB,
     MetricUCB,
-    UCBTuned,
     UCB1,
 )
 
 ALL_UCB_ALGOS = [
     ["MetricUCB", MetricUCB],
-    ["UCBTuned", UCBTuned],
     ["UCB1", UCB1],
 ]
 
