@@ -115,9 +115,9 @@ class MABAlgo(torch.nn.Module, ABC):
         self.total_n_obs_per_arm += n_obs_per_arm
         self.total_sum_reward_per_arm += sum_reward_per_arm
         self.total_sum_reward_squared_per_arm += sum_reward_squared_per_arm
-        self.total_n_obs_all_arms += int(n_obs_per_arm.sum())
+        self.total_n_obs_all_arms += int(n_obs_per_arm.sum().item())
 
-    def add_single_observation(self, arm_id: int, reward: float):
+    def add_single_observation(self, arm_id: str, reward: float):
         """
         Add a single observation (arm played, reward) to the bandit
 
@@ -139,7 +139,7 @@ class MABAlgo(torch.nn.Module, ABC):
         Returns:
             int: The integer ID of the chosen action
         """
-        scores = self.forward()
+        scores = self()  # calling forward() under the hood
         return self.arm_ids[torch.argmax(scores)]
 
     def reset(self):
@@ -174,8 +174,39 @@ class MABAlgo(torch.nn.Module, ABC):
             Tensor: Array of per-arm scores
         """
         n_arms = len(n_obs_per_arm)
-        b = cls(n_arms=n_arms)
+        b = cls(n_arms=n_arms)  # pyre-ignore[45]
         b.add_batch_observations(
             n_obs_per_arm, sum_reward_per_arm, sum_reward_squared_per_arm
         )
         return b()
+
+    def __repr__(self):
+        t = ", ".join(
+            f"{v:.3f} ({int(n)})"
+            for v, n in zip(self.get_avg_reward_values(), self.total_n_obs_per_arm)
+        )
+        return f"{type(self).__name__}({self.n_arms} arms; {t}"
+
+
+class RandomActionsAlgo(MABAlgo):
+    """
+    A MAB algorithm which samples actions uniformly at random
+    """
+
+    def forward(self) -> Tensor:
+        return torch.rand(self.n_arms)
+
+
+class GreedyAlgo(MABAlgo):
+    """
+    Greedy algorithm, which always chooses the best arm played so far
+    Arms that haven't been played yet are given priority by assigning inf score
+    Ties are resolved in favor of the arm with the smallest index.
+    """
+
+    def forward(self) -> Tensor:
+        return torch.where(
+            self.total_n_obs_per_arm > 0,
+            self.get_avg_reward_values(),
+            torch.tensor(float("inf")),
+        )

@@ -15,13 +15,6 @@ class BaseUCB(MABAlgo, ABC):
     def get_ucb_scores(self):
         pass
 
-    def __repr__(self):
-        t = ", ".join(
-            f"{v:.3f} ({int(n)})"
-            for v, n in zip(self.get_avg_reward_values(), self.total_n_obs_per_arm)
-        )
-        return f"UCB({self.n_arms} arms; {t}"
-
     def forward(self):
         return self.get_ucb_scores()
 
