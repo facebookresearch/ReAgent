@@ -122,7 +122,7 @@ class ModelManager:
 
         reporter = self.get_reporter()
         trainer_module.set_reporter(reporter)
-        assert data_module
+        assert data_module is not None
 
         lightning_trainer = train_eval_lightning(
             train_dataset=train_dataset,
