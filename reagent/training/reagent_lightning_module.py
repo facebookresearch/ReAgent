@@ -128,8 +128,6 @@ class ReAgentLightningModule(pl.LightningModule):
         return ret
 
     def optimizers(self, use_pl_optimizer: bool = True):
-        # pyre-fixme[6]: Expected `typing_extensions.Literal[True]` for 1st param
-        #  but got `bool`.
         o = super().optimizers(use_pl_optimizer)
         if isinstance(o, list):
             return o
