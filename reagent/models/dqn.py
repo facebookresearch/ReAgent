@@ -33,12 +33,13 @@ class FullyConnectedDQN(FloatFeatureFullyConnected):
             state_dim=state_dim,
             output_dim=action_dim,
             sizes=sizes,
-            activations=activations + [output_activation],
+            activations=activations,
             num_atoms=num_atoms,
             use_batch_norm=use_batch_norm,
             dropout_ratio=dropout_ratio,
             normalized_output=normalized_output,
             use_layer_norm=use_layer_norm,
+            output_activation=output_activation,
         )
         self.action_dim = self.output_dim
 
