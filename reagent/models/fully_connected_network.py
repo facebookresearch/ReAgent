@@ -132,6 +132,7 @@ class FloatFeatureFullyConnected(ModelBase):
         sizes,
         activations,
         *,
+        output_activation: str = "linear",
         num_atoms: Optional[int] = None,
         use_batch_norm: bool = False,
         dropout_ratio: float = 0.0,
@@ -151,7 +152,7 @@ class FloatFeatureFullyConnected(ModelBase):
         self.num_atoms = num_atoms
         self.fc = FullyConnectedNetwork(
             [state_dim] + sizes + [output_dim * (num_atoms or 1)],
-            activations + ["linear"],
+            activations + [output_activation],
             use_batch_norm=use_batch_norm,
             dropout_ratio=dropout_ratio,
             normalize_output=normalized_output,
