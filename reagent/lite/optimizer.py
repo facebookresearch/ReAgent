@@ -218,6 +218,10 @@ class ComboOptimizerBase:
     def indices_to_raw_choices(
         self, sampled_sol: Dict[str, torch.Tensor]
     ) -> List[Dict[str, str]]:
+        if not sampled_sol:
+            # empty sampled_sol
+            return [{} for _ in range(self.batch_size)]
+
         batch_size = list(sampled_sol.values())[0].shape[0]
         sampled_sol_i_vals = []
         for i in range(batch_size):
