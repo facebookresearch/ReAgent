@@ -378,3 +378,203 @@ class FixedLengthSequenceDenseNormalization:
         data = self.dense_normalization(data)
         self.slate_view.slate_size = self.fixed_length_sequences.expected_length
         return self.slate_view(data)
+
+
+class AppendConstant:
+    """
+    Append a column of constant value at the beginning of the specified dimension
+    Can be used to add a column of "1" to the Linear Regression input data to capture intercept/bias
+    """
+
+    def __init__(self, keys: List[str], dim: int = -1, const: float = 1.0):
+        self.keys = keys
+        self.dim = dim
+        self.const = const
+
+    def __call__(self, data):
+        for k in self.keys:
+            value = data[k]
+            extra_col = self.const * torch.ones(value.shape[:-1]).unsqueeze(-1)
+            data[k] = torch.cat((extra_col, value), dim=self.dim)
+        return data
+
+
+class UnsqueezeRepeat:
+    """
+    This transform adds an extra dimension to the tensor and repeats
+        the tensor along that dimension
+    """
+
+    def __init__(self, keys: List[str], dim: int, num_repeat: int = 1):
+        self.keys = keys
+        self.dim = dim
+        self.num_repeat = num_repeat
+
+    def __call__(self, data):
+        for k in self.keys:
+            data[k] = data[k].unsqueeze(self.dim)
+            if self.num_repeat != 1:
+                repeat_counters = [1 for _ in range(data[k].ndim)]
+                repeat_counters[self.dim] = self.num_repeat
+                data[k] = data[k].repeat(*repeat_counters)
+        return data
+
+
+def _get_product_features(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    """
+    Get outer product of 2 tensors along the last dimension.
+    All dimensions except last are preserved. The last dimension is replaced
+        with flattened outer products of last-dimension-vectors from input tensors
+
+    This is a vectorized implementation of (for 2D case):
+    for i in range(x.shape[0]):
+        out[i, :] = torch.outer(x[i, :], y[i, :]).flatten()
+
+    For 2D inputs:
+        Input shapes:
+            x: (batch, feature_dim_x)
+            y: (batch, feature_dim_y)
+        Output shape:
+            (batch, feature_dim_x*feature_dim_y)
+    """
+    return torch.einsum("...i,...j->...ij", (x, y)).flatten(start_dim=-2)
+
+
+class OuterProduct:
+    """
+    This transform creates a tensor with an outer product of elements of 2 tensors.
+    The outer product is stored under the new key.
+    The 2 input tensors might be dropped, depending on input arguments
+    """
+
+    def __init__(
+        self,
+        key1: str,
+        key2: str,
+        output_key: str,
+        drop_inputs: bool = False,
+    ):
+        self.key1 = key1
+        self.key2 = key2
+        self.output_key = output_key
+        self.drop_inputs = drop_inputs
+
+    def __call__(self, data):
+        x = data[self.key1]
+        y = data[self.key2]
+        prod = _get_product_features(x, y)
+        data[self.output_key] = prod
+        if self.drop_inputs:
+            del data[self.key1], data[self.key2]
+        return data
+
+
+class GetEye:
+    """
+    Place a diagonal tensor into the data dictionary
+    """
+
+    def __init__(self, key: str, size: int):
+        self.key = key
+        self.size = size
+
+    def __call__(self, data):
+        x = torch.eye(self.size)
+        data[self.key] = x
+        return data
+
+
+def _broadcast_tensors_for_cat(
+    tensors: List[torch.Tensor], dim: int
+) -> List[torch.Tensor]:
+    """
+    Broadcast all tensors so that they could be concatenated along the specific dim.
+    The tensor shapes have to be broadcastable (after the concatenation dim is taken out)
+
+    Example:
+    Input tensors of shapes [(10,3,5), (1,3,3)] (dim=2) would get broadcasted to [(10,3,5), (10,3,3)],
+        so that they could be concatenated along the last dim.
+    """
+    if dim >= 0:
+        dims = [dim] * len(tensors)
+    else:
+        dims = [t.ndim + dim for t in tensors]
+    shapes = [list(t.shape) for t in tensors]
+    for s, d in zip(shapes, dims):
+        s.pop(d)
+    shapes_except_cat_dim = [tuple(s) for s in shapes]
+    broadcast_shape = torch.broadcast_shapes(*shapes_except_cat_dim)
+    final_shapes = [list(broadcast_shape) for t in tensors]
+    for s, t, d in zip(final_shapes, tensors, dims):
+        s.insert(d, t.shape[dim])
+    final_shapes = [tuple(s) for s in final_shapes]
+    return [t.expand(s) for t, s in zip(tensors, final_shapes)]
+
+
+class Cat:
+    """
+    This transform concatenates the tensors along a specified dim
+    """
+
+    def __init__(
+        self, input_keys: List[str], output_key: str, dim: int, broadcast: bool = True
+    ):
+        self.input_keys = input_keys
+        self.output_key = output_key
+        self.dim = dim
+        self.broadcast = broadcast
+
+    def __call__(self, data):
+        tensors = []
+        for k in self.input_keys:
+            tensors.append(data[k])
+        if self.broadcast:
+            tensors = _broadcast_tensors_for_cat(tensors, self.dim)
+        data[self.output_key] = torch.cat(tensors, dim=self.dim)
+        return data
+
+
+class Rename:
+    """
+    Change key names
+    """
+
+    def __init__(self, old_names: List[str], new_names: List[str]):
+        self.old_names = old_names
+        self.new_names = new_names
+
+    def __call__(self, data):
+        new_data = dict(data)
+        for o, n in zip(self.old_names, self.new_names):
+            new_data[n] = new_data.pop(o)
+        return new_data
+
+
+class Filter:
+    """
+    Remove some keys from the dict.
+    Can specify keep_keys (they will be kept) or remove_keys (they will be removed)
+    """
+
+    def __init__(
+        self,
+        *,
+        keep_keys: Optional[List[str]] = None,
+        remove_keys: Optional[List[str]] = None,
+    ):
+        assert (keep_keys is None) != (remove_keys is None)
+        self.keep_keys = keep_keys
+        self.remove_keys = remove_keys
+
+    def __call__(self, data):
+        if self.keep_keys:
+            new_data = {}
+            for k in self.keep_keys:
+                if k in data:
+                    new_data[k] = data[k]
+        else:
+            new_data = dict(data)
+            for k in self.remove_keys:
+                if k in new_data:
+                    del new_data[k]
+        return new_data

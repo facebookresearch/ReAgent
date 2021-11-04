@@ -4,7 +4,7 @@ from io import BytesIO
 import numpy as np
 import numpy.testing as npt
 import torch
-from parameterized import parameterized
+from parameterized.parameterized import parameterized
 from reagent.mab.mab_algorithm import (
     get_arm_indices,
     place_values_at_indices,

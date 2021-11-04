@@ -5,6 +5,7 @@ from reagent.core.configuration import make_config_class
 from reagent.core.types import BaseDataClass
 
 from .c51_trainer import C51Trainer
+from .cb.linucb_trainer import LinUCBTrainer
 from .discrete_crr_trainer import DiscreteCRRTrainer
 from .dqn_trainer import DQNTrainer
 from .parametric_dqn_trainer import ParametricDQNTrainer
@@ -159,4 +160,14 @@ class ReinforceTrainerParameters:
     ],
 )
 class PPOTrainerParameters:
+    pass
+
+
+@make_config_class(
+    LinUCBTrainer.__init__,
+    blocklist=[
+        "policy",
+    ],
+)
+class LinUCBTrainerParameters:
     pass

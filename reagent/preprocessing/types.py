@@ -38,3 +38,4 @@ class InputColumn(object):
     EXTRAS = "extras"
     SCORES = "scores"
     VALID_STEP = "valid_step"
+    WEIGHT = "weight"
