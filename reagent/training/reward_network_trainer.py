@@ -39,7 +39,13 @@ def _get_loss_function(
     elif loss_fn == LossFunction.BCELoss:
         torch_fn = torch.nn.BCELoss(reduction=reduction_type)
 
-    def wrapper_loss_fn(pred, target, weight):
+    def wrapper_loss_fn(pred, target, weight, batch):
+        if loss_fn == LossFunction.BCELoss:
+            valid_step = batch.valid_step
+            assert valid_step is not None
+            pred = pred / valid_step
+            target = target / valid_step
+
         loss = torch_fn(pred, target)
 
         if weighted_by_inverse_propensity:
@@ -109,10 +115,16 @@ class RewardNetTrainer(ReAgentLightningModule):
 
     @torch.no_grad()
     def _compute_unweighted_loss(
-        self, predicted_reward: torch.Tensor, target_reward: torch.Tensor
+        self,
+        predicted_reward: torch.Tensor,
+        target_reward: torch.Tensor,
+        batch: rlt.PreprocessedRankingInput,
     ):
         return self.loss_fn(
-            predicted_reward, target_reward, weight=torch.ones_like(predicted_reward)
+            predicted_reward,
+            target_reward,
+            weight=torch.ones_like(predicted_reward),
+            batch=batch,
         )
 
     def train_step_gen(
@@ -127,14 +139,15 @@ class RewardNetTrainer(ReAgentLightningModule):
             and len(target_reward.shape) == 2
             and target_reward.shape[1] == 1
         )
-        loss = self.loss_fn(predicted_reward, target_reward, weight)
+
+        loss = self.loss_fn(predicted_reward, target_reward, weight, training_batch)
 
         detached_loss = loss.detach().cpu()
         self.reporter.log(loss=detached_loss)
 
         if weight is not None:
             unweighted_loss = self._compute_unweighted_loss(
-                predicted_reward, target_reward
+                predicted_reward, target_reward, training_batch
             )
             self.reporter.log(unweighted_loss=unweighted_loss)
 
@@ -155,13 +168,14 @@ class RewardNetTrainer(ReAgentLightningModule):
         self.reporter.log(eval_pred_rewards=pred_reward.flatten().detach().cpu())
 
         weight = self._get_sample_weight(batch)
-        loss = self.loss_fn(pred_reward, reward, weight)
+
+        loss = self.loss_fn(pred_reward, reward, weight, batch)
 
         detached_loss = loss.detach().cpu()
         self.reporter.log(eval_loss=detached_loss)
 
         if weight is not None:
-            unweighted_loss = self._compute_unweighted_loss(pred_reward, reward)
+            unweighted_loss = self._compute_unweighted_loss(pred_reward, reward, batch)
             self.reporter.log(eval_unweighted_loss=unweighted_loss)
 
         return detached_loss.item()

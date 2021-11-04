@@ -20,13 +20,16 @@ from reagent.optimizer.union import Optimizer__Union
 from reagent.optimizer.union import classes
 from reagent.reporting.reward_network_reporter import RewardNetworkReporter
 from reagent.training import RewardNetTrainer
+from reagent.training.reward_network_trainer import LossFunction
 from torch.utils.data import DataLoader
 
 
 logger = logging.getLogger(__name__)
 
 
-def create_data(state_dim, action_dim, seq_len, batch_size, num_batches):
+def create_data(
+    state_dim, action_dim, seq_len, batch_size, num_batches, binary_reward=False
+):
     SCALE = 2
     # reward is a linear function of (state, action)
     weight = SCALE * torch.randn(state_dim + action_dim)
@@ -41,6 +44,8 @@ def create_data(state_dim, action_dim, seq_len, batch_size, num_batches):
         reward_matrix = torch.matmul(
             torch.cat((state, action), dim=2), weight
         ).transpose(0, 1)
+        if binary_reward:
+            reward_matrix = torch.sigmoid(reward_matrix)
         mask = torch.arange(seq_len).repeat(batch_size, 1)
         mask = (mask >= (seq_len - valid_step)).float()
         reward = (reward_matrix * mask).sum(dim=1).reshape(-1, 1)
@@ -196,6 +201,47 @@ class TestSyntheticRewardTraining(unittest.TestCase):
             weight, data = create_data(
                 state_dim, action_dim, seq_len, batch_size, num_batches
             )
+        avg_eval_loss = train_and_eval(trainer, data)
+        return avg_eval_loss
+
+    def test_single_step_parametric_binary_reward(self):
+        """
+        Reward at each step is a linear function of present state and action.
+        However, we can only observe aggregated reward at the last step
+
+        This model will fail to learn when ground-truth reward is a function of
+        multiple steps' states and actions.
+        """
+        state_dim = 10
+        action_dim = 2
+        seq_len = 5
+        batch_size = 512
+        num_batches = 5000
+        sizes = [256, 128]
+        activations = ["relu", "relu"]
+        last_layer_activation = "sigmoid"
+        reward_net = SyntheticRewardNet(
+            SingleStepSyntheticRewardNet(
+                state_dim=state_dim,
+                action_dim=action_dim,
+                sizes=sizes,
+                activations=activations,
+                last_layer_activation=last_layer_activation,
+            )
+        )
+        optimizer = Optimizer__Union(Adam=classes["Adam"]())
+        trainer = RewardNetTrainer(
+            reward_net, optimizer, loss_type=LossFunction.BCELoss
+        )
+        trainer.set_reporter(
+            RewardNetworkReporter(
+                trainer.loss_type,
+                str(reward_net),
+            )
+        )
+        weight, data = create_data(
+            state_dim, action_dim, seq_len, batch_size, num_batches, binary_reward=True
+        )
         avg_eval_loss = train_and_eval(trainer, data)
         return avg_eval_loss
 
