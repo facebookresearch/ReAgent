@@ -532,3 +532,144 @@ class TestTransforms(unittest.TestCase):
         a_out_223 = torch.tensor([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
         self.assertEqual(out["a"].shape, torch.Size([2, 2, 3]))
         self.assertDictOfTensorEqual({"a": a_out_223}, out)
+
+    def _check_same_keys(self, dict_a, dict_b):
+        self.assertSetEqual(set(dict_a.keys()), set(dict_b.keys()))
+
+    def test_AppendConstant(self):
+        data = {
+            "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
+            "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
+        }
+        t = transforms.AppendConstant(["a"], const=1.5)
+        t_data = t(data)
+        self._check_same_keys(data, t_data)
+        self.assertTorchTensorEqual(data["b"], t_data["b"])
+        self.assertTorchTensorEqual(
+            t_data["a"], torch.tensor([[1.5, 9.0, 4.5], [1.5, 3.4, 3.9]])
+        )
+
+    def test_UnsqueezeRepeat(self):
+        data = {
+            "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
+            "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
+        }
+        t = transforms.UnsqueezeRepeat(["a"], dim=1, num_repeat=3)
+        t_data = t(data)
+        self._check_same_keys(data, t_data)
+        self.assertTorchTensorEqual(data["b"], t_data["b"])
+        self.assertTorchTensorEqual(
+            t_data["a"],
+            torch.tensor(
+                [
+                    [[9.0, 4.5], [9.0, 4.5], [9.0, 4.5]],
+                    [[3.4, 3.9], [3.4, 3.9], [3.4, 3.9]],
+                ]
+            ),
+        )
+
+    def test_OuterProduct(self):
+        data = {
+            "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
+            "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
+        }
+        t = transforms.OuterProduct("a", "b", "ab")
+        t_data = t(data)
+        # make sure original data was left unmodified
+        self.assertTorchTensorEqual(data["a"], t_data["a"])
+        self.assertTorchTensorEqual(data["b"], t_data["b"])
+
+        expected_out = torch.empty(2, 4)
+        for i in range(2):
+            expected_out[i, :] = torch.outer(
+                data["a"][i, :].flatten(), data["b"][i, :].flatten()
+            ).flatten()
+        self.assertTorchTensorEqual(t_data["ab"], expected_out)
+
+    def test_GetEye(self):
+        data = {
+            "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
+            "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
+        }
+        t = transforms.GetEye("c", 4)
+        t_data = t(data)
+        # make sure original data was left unmodified
+        self.assertTorchTensorEqual(data["a"], t_data["a"])
+        self.assertTorchTensorEqual(data["b"], t_data["b"])
+
+        self.assertTorchTensorEqual(t_data["c"], torch.eye(4))
+
+    def test_Cat(self):
+        data = {
+            "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
+            "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
+        }
+        t = transforms.Cat(["a", "b"], "c", 0)
+        t_data = t(data)
+        # make sure original data was left unmodified
+        self.assertTorchTensorEqual(data["a"], t_data["a"])
+        self.assertTorchTensorEqual(data["b"], t_data["b"])
+
+        self.assertTorchTensorEqual(t_data["c"], torch.cat([data["a"], data["b"]], 0))
+
+    def test_Rename(self):
+        data = {
+            "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
+            "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
+        }
+        t = transforms.Rename(["a"], ["aa"])
+        t_data = t(data)
+        # make sure original data was left unmodified
+        self.assertTorchTensorEqual(data["b"], t_data["b"])
+
+        self.assertTorchTensorEqual(t_data["aa"], data["a"])
+
+    def test_Filter(self):
+        data = {
+            "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
+            "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
+        }
+        t = transforms.Filter(keep_keys=["a"])
+        t_data = t(data)
+        # make sure original data was left unmodified
+        self.assertTorchTensorEqual(data["a"], t_data["a"])
+        self.assertListEqual(sorted(t_data.keys()), ["a"])
+
+        t = transforms.Filter(remove_keys=["b"])
+        t_data = t(data)
+        # make sure original data was left unmodified
+        self.assertTorchTensorEqual(data["a"], t_data["a"])
+        self.assertListEqual(sorted(t_data.keys()), ["a"])
+
+    def test_broadcast_tensors_for_cat(self):
+        tensors = [
+            torch.tensor([[3.0, 4.0, 5.0], [4.5, 4.3, 5.9]]),
+            torch.tensor([[2.0, 9.0, 8.0]]),
+        ]
+        broadcasted_tensors = transforms._broadcast_tensors_for_cat(tensors, 1)
+        self.assertTorchTensorEqual(broadcasted_tensors[0], tensors[0])
+        self.assertTorchTensorEqual(broadcasted_tensors[1], tensors[1].repeat(2, 1))
+
+        tensors = [
+            torch.empty(10, 2, 5),
+            torch.empty(1, 2, 3),
+        ]
+        broadcasted_tensors = transforms._broadcast_tensors_for_cat(tensors, -1)
+        self.assertEqual(tuple(broadcasted_tensors[0].shape), (10, 2, 5))
+        self.assertEqual(tuple(broadcasted_tensors[1].shape), (10, 2, 3))
+
+        tensors = [
+            torch.empty(1, 1, 5),
+            torch.empty(10, 3, 1),
+        ]
+        broadcasted_tensors = transforms._broadcast_tensors_for_cat(tensors, 1)
+        self.assertEqual(tuple(broadcasted_tensors[0].shape), (10, 1, 5))
+        self.assertEqual(tuple(broadcasted_tensors[1].shape), (10, 3, 5))
+
+        tensors = [
+            torch.empty(1, 3, 5, 1),
+            torch.empty(10, 3, 1, 4),
+        ]
+        broadcasted_tensors = transforms._broadcast_tensors_for_cat(tensors, 0)
+        self.assertEqual(tuple(broadcasted_tensors[0].shape), (1, 3, 5, 4))
+        self.assertEqual(tuple(broadcasted_tensors[1].shape), (10, 3, 5, 4))

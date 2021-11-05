@@ -6,7 +6,7 @@ import logging
 
 # The dataclasses in this file should be vanilla dataclass to have minimal overhead
 from dataclasses import dataclass, field
-from typing import Dict, List, NamedTuple, Optional, Tuple, Union
+from typing import Dict, List, NamedTuple, Optional, Tuple, Union, Final
 
 # Triggering registration to registries
 import reagent.core.result_types  # noqa
@@ -1069,3 +1069,39 @@ class FrechetSortConfig:
     equiv_len: int
     topk: Optional[int] = None
     log_scores: bool = True
+
+
+@dataclass
+class CBInput(TensorDataClass):
+    context_action_features: torch.Tensor
+    action: Final[Optional[torch.Tensor]] = None
+    reward: Final[Optional[torch.Tensor]] = None
+    log_prob: Final[Optional[torch.Tensor]] = None
+    weight: Final[Optional[torch.Tensor]] = None
+
+    @classmethod
+    def input_prototype(
+        cls,
+        context_dim: int = 2,
+        batch_size: int = 10,
+        action_features_dim: int = 3,
+        num_actions: int = 4,
+    ) -> "CBInput":
+        return cls(
+            context_action_features=torch.randn(
+                batch_size, num_actions, action_features_dim
+            )
+        )
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, torch.Tensor]) -> "CBInput":
+        return cls(
+            context_action_features=d["context_action_features"],
+            action=d.get("action", None),
+            reward=d.get("reward", None),
+            log_prob=d.get("log_prob", None),
+            weight=d.get("weight", None),
+        )
+
+    def __len__(self) -> int:
+        return self.context_action_features.shape[0]
