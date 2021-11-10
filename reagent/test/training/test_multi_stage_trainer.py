@@ -163,7 +163,7 @@ class TestMultiStageTrainer(unittest.TestCase):
             make_dataset(input_dim, test_size),
             batch_size=5,
         )
-        trainer.test(test_dataloaders=test_dataloader)
+        trainer.test(dataloaders=test_dataloader)
         print(f"stage1 {stage1._call_count}")
         print(f"stage2 {stage2._call_count}")
         self.assertEqual(stage1._call_count["train"], 60)
