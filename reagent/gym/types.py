@@ -137,7 +137,7 @@ PostStep = Callable[[Transition], None]
 
 """ Called after end of episode
 """
-PostEpisode = Callable[[Trajectory], None]
+PostEpisode = Callable[[Trajectory, Dict], None]
 
 
 @dataclass

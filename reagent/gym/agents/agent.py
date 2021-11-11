@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union, Dict
 
 import numpy as np
 import torch
@@ -124,7 +124,7 @@ class Agent:
         if self.post_transition_callback is not None:
             self.post_transition_callback(transition)
 
-    def post_episode(self, trajectory: Trajectory):
+    def post_episode(self, trajectory: Trajectory, info: Dict):
         """to be called after step(action)"""
         if self.post_episode_callback is not None:
-            self.post_episode_callback(trajectory)
+            self.post_episode_callback(trajectory, info)
