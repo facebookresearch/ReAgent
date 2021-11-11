@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath("../"))
 
 
 project = "ReAgent"
-copyright = "2019, Facebook Inc."
+copyright = "2021, Meta Platforms, Inc."
 author = "ReAgent Team"
 
 # The full version, including alpha/beta/rc tags
