@@ -112,8 +112,8 @@ commands:
       - run:
           name: Save coverage results
           command: |
-            coverage report
-            coverage xml
+            coverage report -i
+            coverage xml -i
             bash <(curl -s https://codecov.io/bash)
       - run:
           name: Save test results
