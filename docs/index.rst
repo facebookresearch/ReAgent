@@ -87,14 +87,21 @@ Table of Contents
 .. toctree::
     :caption: Package Reference
 
-    Evaluation <api/ml.rl.evaluation>
-    Models <api/ml.rl.models>
-    Prediction <api/ml.rl.prediction>
-    Preprocessing <api/ml.rl.preprocessing>
-    Readers <api/ml.rl.readers>
-    Simulators <api/ml.rl.simulators>
-    Training <api/ml.rl.training>
-    Workflow <api/ml.rl.workflow>
+    Core <api/reagent.core>
+    Data <api/reagent.data>
+    Gym <api/reagent.gym>
+    Evaluation <api/reagent.evaluation>
+    Lite <api/reagent.lite>
+    MAB <api/reagent.mab>
+    Model Managers <api/reagent.model_managers>
+    Model Utils <api/reagent.model_utils>
+    Net Builders <api/reagent.net_builder>
+    Optimizers <api/reagent.optimizer>
+    Models <api/reagent.models>
+    Prediction <api/reagent.prediction>
+    Preprocessing <api/reagent.preprocessing>
+    Training <api/reagent.training>
+    Workflow <api/reagent.workflow>
     All Modules <api/modules>
 
 .. toctree::
