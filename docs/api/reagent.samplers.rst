@@ -1,22 +1,21 @@
-ml.rl.simulators package
+reagent.samplers package
 ========================
 
 Submodules
 ----------
 
-ml.rl.simulators.recsim module
-------------------------------
+reagent.samplers.frechet module
+-------------------------------
 
-.. automodule:: ml.rl.simulators.recsim
+.. automodule:: reagent.samplers.frechet
    :members:
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 
-.. automodule:: ml.rl.simulators
+.. automodule:: reagent.samplers
    :members:
    :undoc-members:
    :show-inheritance:

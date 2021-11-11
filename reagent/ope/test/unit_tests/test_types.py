@@ -279,7 +279,7 @@ class TestValues(unittest.TestCase):
 
 
 class TestDistribution(unittest.TestCase):
-    class TestIntKeyDistribution(Distribution[int]):
+    class TestIntKeyDistribution(Distribution):
         def _new_key(self, k: int):
             return k
 
