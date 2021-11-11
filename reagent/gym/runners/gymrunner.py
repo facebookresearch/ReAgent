@@ -33,9 +33,10 @@ def run_episode(
     possible_actions_mask = env.possible_actions_mask
     terminal = False
     num_steps = 0
+    info = {}
     while not terminal:
         action, log_prob = agent.act(obs, possible_actions_mask)
-        next_obs, reward, terminal, _ = env.step(action)
+        next_obs, reward, terminal, info = env.step(action)
         next_possible_actions_mask = env.possible_actions_mask
         if max_steps is not None and num_steps >= (max_steps - 1):
             terminal = True
@@ -57,7 +58,7 @@ def run_episode(
         obs = next_obs
         possible_actions_mask = next_possible_actions_mask
         num_steps += 1
-    agent.post_episode(trajectory)
+    agent.post_episode(trajectory, info)
     return trajectory
 
 
