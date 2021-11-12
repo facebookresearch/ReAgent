@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>reagent.gym package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="reagent.gym.agents package" href="reagent.gym.agents.html" />
-    <link rel="prev" title="reagent.evaluation package" href="reagent.evaluation.html" /> 
+    <link rel="prev" title="reagent.data package" href="reagent.data.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,159 +36,143 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">reagent.gym package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Gym</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.agents.html">reagent.gym.agents package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.datasets.html">reagent.gym.datasets package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.envs.html">reagent.gym.envs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.policies.html">reagent.gym.policies package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.preprocessors.html">reagent.gym.preprocessors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.runners.html">reagent.gym.runners package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.tests.html">reagent.gym.tests package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.gym.normalizers">reagent.gym.normalizers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.gym.types">reagent.gym.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.gym.utils">reagent.gym.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.gym">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
 </ul>
-</li>
-</ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-          <li><a href="modules.html">reagent</a> &raquo;</li>
-        
-          <li><a href="reagent.html">reagent package</a> &raquo;</li>
-        
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
       <li>reagent.gym package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/reagent.gym.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-gym-package">
-<h1>reagent.gym package<a class="headerlink" href="#reagent-gym-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="reagent-gym-package">
+<h1>reagent.gym package<a class="headerlink" href="#reagent-gym-package" title="Permalink to this headline"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="reagent.gym.agents.html">reagent.gym.agents package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.agents.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.agents.html#reagent-gym-agents-agent-module">reagent.gym.agents.agent module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.agents.html#reagent-gym-agents-post-step-module">reagent.gym.agents.post_step module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.agents.html#module-reagent.gym.agents.agent">reagent.gym.agents.agent module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.agents.html#module-reagent.gym.agents.post_step">reagent.gym.agents.post_step module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.agents.html#module-reagent.gym.agents">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.datasets.html">reagent.gym.datasets package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.datasets.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.datasets.html#module-reagent.gym.datasets.episodic_dataset">reagent.gym.datasets.episodic_dataset module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.datasets.html#module-reagent.gym.datasets.replay_buffer_dataset">reagent.gym.datasets.replay_buffer_dataset module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.datasets.html#module-reagent.gym.datasets">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="reagent.gym.envs.html">reagent.gym.envs package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.envs.dynamics.html">reagent.gym.envs.dynamics package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.dynamics.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.dynamics.html#module-reagent.gym.envs.dynamics.linear_dynamics">reagent.gym.envs.dynamics.linear_dynamics module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.dynamics.html#module-reagent.gym.envs.dynamics">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.envs.functionality.html">reagent.gym.envs.functionality package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.functionality.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.functionality.html#module-reagent.gym.envs.functionality.possible_actions_mask_tester">reagent.gym.envs.functionality.possible_actions_mask_tester module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.functionality.html#module-reagent.gym.envs.functionality">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.envs.pomdp.html">reagent.gym.envs.pomdp package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.pomdp.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.pomdp.html#module-reagent.gym.envs.pomdp.pocman">reagent.gym.envs.pomdp.pocman module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.pomdp.html#module-reagent.gym.envs.pomdp.state_embed_env">reagent.gym.envs.pomdp.state_embed_env module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.pomdp.html#module-reagent.gym.envs.pomdp.string_game">reagent.gym.envs.pomdp.string_game module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.pomdp.html#module-reagent.gym.envs.pomdp.string_game_v1">reagent.gym.envs.pomdp.string_game_v1 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.pomdp.html#module-reagent.gym.envs.pomdp">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.envs.wrappers.html">reagent.gym.envs.wrappers package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.wrappers.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.wrappers.html#module-reagent.gym.envs.wrappers.recsim">reagent.gym.envs.wrappers.recsim module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.wrappers.html#module-reagent.gym.envs.wrappers.simple_minigrid">reagent.gym.envs.wrappers.simple_minigrid module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.wrappers.html#module-reagent.gym.envs.wrappers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#reagent-gym-envs-changing-arms-module">reagent.gym.envs.changing_arms module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.env_factory">reagent.gym.envs.env_factory module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.changing_arms">reagent.gym.envs.changing_arms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.env_wrapper">reagent.gym.envs.env_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.gym">reagent.gym.envs.gym module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.oracle_pvm">reagent.gym.envs.oracle_pvm module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.recsim">reagent.gym.envs.recsim module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.simple_minigrid">reagent.gym.envs.simple_minigrid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.toy_vm">reagent.gym.envs.toy_vm module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.utils">reagent.gym.envs.utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs">Module contents</a></li>
 </ul>
@@ -239,7 +190,7 @@
 <li class="toctree-l3"><a class="reference internal" href="reagent.gym.policies.scorers.html">reagent.gym.policies.scorers package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.scorers.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers.continuous_scorer">reagent.gym.policies.scorers.continuous_scorer module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.scorers.html#reagent-gym-policies-scorers-discrete-scorer-module">reagent.gym.policies.scorers.discrete_scorer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers.discrete_scorer">reagent.gym.policies.scorers.discrete_scorer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers.slate_q_scorer">reagent.gym.policies.scorers.slate_q_scorer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.scorers.html#module-reagent.gym.policies.scorers">Module contents</a></li>
 </ul>
@@ -248,23 +199,22 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies.policy">reagent.gym.policies.policy module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#reagent-gym-policies-predictor-policies-module">reagent.gym.policies.predictor_policies module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#reagent-gym-policies-random-policies-module">reagent.gym.policies.random_policies module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies.predictor_policies">reagent.gym.policies.predictor_policies module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies.random_policies">reagent.gym.policies.random_policies module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="reagent.gym.preprocessors.html">reagent.gym.preprocessors package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#reagent-gym-preprocessors-default-preprocessors-module">reagent.gym.preprocessors.default_preprocessors module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#reagent-gym-preprocessors-default-serving-preprocessors-module">reagent.gym.preprocessors.default_serving_preprocessors module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#reagent-gym-preprocessors-replay-buffer-inserters-module">reagent.gym.preprocessors.replay_buffer_inserters module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#reagent-gym-preprocessors-trainer-preprocessor-module">reagent.gym.preprocessors.trainer_preprocessor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#module-reagent.gym.preprocessors.default_preprocessors">reagent.gym.preprocessors.default_preprocessors module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#module-reagent.gym.preprocessors.replay_buffer_inserters">reagent.gym.preprocessors.replay_buffer_inserters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#module-reagent.gym.preprocessors.trainer_preprocessor">reagent.gym.preprocessors.trainer_preprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.preprocessors.html#module-reagent.gym.preprocessors">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="reagent.gym.runners.html">reagent.gym.runners package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.runners.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.runners.html#reagent-gym-runners-gymrunner-module">reagent.gym.runners.gymrunner module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.runners.html#module-reagent.gym.runners.gymrunner">reagent.gym.runners.gymrunner module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.runners.html#module-reagent.gym.runners">Module contents</a></li>
 </ul>
 </li>
@@ -272,172 +222,348 @@
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="reagent.gym.tests.preprocessors.html">reagent.gym.tests.preprocessors package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#reagent-gym-tests-preprocessors-test-default-preprocessors-module">reagent.gym.tests.preprocessors.test_default_preprocessors module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#reagent-gym-tests-preprocessors-test-replay-buffer-inserters-module">reagent.gym.tests.preprocessors.test_replay_buffer_inserters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#module-reagent.gym.tests.preprocessors.test_default_preprocessors">reagent.gym.tests.preprocessors.test_default_preprocessors module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#module-reagent.gym.tests.preprocessors.test_replay_buffer_inserters">reagent.gym.tests.preprocessors.test_replay_buffer_inserters module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#module-reagent.gym.tests.preprocessors">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#reagent-gym-tests-test-gym-module">reagent.gym.tests.test_gym module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#reagent-gym-tests-test-gym-offline-module">reagent.gym.tests.test_gym_offline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests.test_gym">reagent.gym.tests.test_gym module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests.test_gym_datasets">reagent.gym.tests.test_gym_datasets module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests.test_gym_offline">reagent.gym.tests.test_gym_offline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests.test_gym_replay_buffer">reagent.gym.tests.test_gym_replay_buffer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests.test_linear_dynamics">reagent.gym.tests.test_linear_dynamics module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests.test_pomdp">reagent.gym.tests.test_pomdp module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#reagent-gym-tests-test-seq2reward-model-module">reagent.gym.tests.test_seq2reward_model module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#reagent-gym-tests-test-world-model-module">reagent.gym.tests.test_world_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests.test_world_model">reagent.gym.tests.test_world_model module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.html#module-reagent.gym.tests">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </div>
-</div>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.gym.types">
-<span id="reagent-gym-types-module"></span><h2>reagent.gym.types module<a class="headerlink" href="#module-reagent.gym.types" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.gym.types.GaussianSamplerScore">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.types.</code><code class="sig-name descname">GaussianSamplerScore</code><span class="sig-paren">(</span><em class="sig-param">loc: torch.Tensor</em>, <em class="sig-param">scale_log: torch.Tensor</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.GaussianSamplerScore" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="reagent.html#reagent.base_dataclass.BaseDataClass" title="reagent.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.base_dataclass.BaseDataClass</span></code></a></p>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.gym.normalizers">
+<span id="reagent-gym-normalizers-module"></span><h2>reagent.gym.normalizers module<a class="headerlink" href="#module-reagent.gym.normalizers" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.normalizers.discrete_action_normalizer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.normalizers.</span></span><span class="sig-name descname"><span class="pre">discrete_action_normalizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feats</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.normalizers.discrete_action_normalizer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.normalizers.normalizer_helper">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.normalizers.</span></span><span class="sig-name descname"><span class="pre">normalizer_helper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.normalizers.normalizer_helper" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.normalizers.only_continuous_action_normalizer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.normalizers.</span></span><span class="sig-name descname"><span class="pre">only_continuous_action_normalizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.normalizers.only_continuous_action_normalizer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.normalizers.only_continuous_normalizer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.normalizers.</span></span><span class="sig-name descname"><span class="pre">only_continuous_normalizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.normalizers.only_continuous_normalizer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.gym.types">
+<span id="reagent-gym-types-module"></span><h2>reagent.gym.types module<a class="headerlink" href="#module-reagent.gym.types" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.types.GaussianSamplerScore">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.types.</span></span><span class="sig-name descname"><span class="pre">GaussianSamplerScore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_log</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.GaussianSamplerScore" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.base_dataclass.BaseDataClass" title="reagent.core.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.base_dataclass.BaseDataClass</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.types.GaussianSamplerScore.loc">
+<span class="sig-name descname"><span class="pre">loc</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.gym.types.GaussianSamplerScore.loc" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.types.GaussianSamplerScore.scale_log">
+<span class="sig-name descname"><span class="pre">scale_log</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.gym.types.GaussianSamplerScore.scale_log" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
-<dl class="class">
-<dt id="reagent.gym.types.Sampler">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.types.</code><code class="sig-name descname">Sampler</code><a class="headerlink" href="#reagent.gym.types.Sampler" title="Permalink to this definition">¶</a></dt>
+<dl class="py data">
+<dt class="sig sig-object py" id="reagent.gym.types.PostStep">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.types.</span></span><span class="sig-name descname"><span class="pre">PostStep</span></span><a class="headerlink" href="#reagent.gym.types.PostStep" title="Permalink to this definition"></a></dt>
+<dd><p>Called after end of episode</p>
+<p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<a class="reference internal" href="#reagent.gym.types.Transition" title="reagent.gym.types.Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.types.Transition</span></code></a>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.types.Sampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.types.</span></span><span class="sig-name descname"><span class="pre">Sampler</span></span><a class="headerlink" href="#reagent.gym.types.Sampler" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
 <p>Given scores, select the action.</p>
-<dl class="method">
-<dt id="reagent.gym.types.Sampler.log_prob">
-<em class="property">abstract </em><code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param">scores: Any</em>, <em class="sig-param">action: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.gym.types.Sampler.log_prob" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.types.Sampler.log_prob">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.gym.types.Sampler.log_prob" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.types.Sampler.sample_action">
-<em class="property">abstract </em><code class="sig-name descname">sample_action</code><span class="sig-paren">(</span><em class="sig-param">scores: Any</em><span class="sig-paren">)</span> &#x2192; reagent.types.ActorOutput<a class="headerlink" href="#reagent.gym.types.Sampler.sample_action" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.types.Sampler.sample_action">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sample_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.ActorOutput" title="reagent.core.types.ActorOutput"><span class="pre">reagent.core.types.ActorOutput</span></a></span></span><a class="headerlink" href="#reagent.gym.types.Sampler.sample_action" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.types.Sampler.update">
-<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#reagent.gym.types.Sampler.update" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.types.Sampler.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.gym.types.Sampler.update" title="Permalink to this definition"></a></dt>
 <dd><p>Call to update internal parameters (e.g. decay epsilon)</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="data">
-<dt id="reagent.gym.types.TrainerPreprocessor">
-<code class="sig-prename descclassname">reagent.gym.types.</code><code class="sig-name descname">TrainerPreprocessor</code><em class="property"> = typing.Callable[[typing.Any], reagent.types.PreprocessedTrainingBatch]</em><a class="headerlink" href="#reagent.gym.types.TrainerPreprocessor" title="Permalink to this definition">¶</a></dt>
+<dl class="py data">
+<dt class="sig sig-object py" id="reagent.gym.types.TrainerPreprocessor">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.types.</span></span><span class="sig-name descname"><span class="pre">TrainerPreprocessor</span></span><a class="headerlink" href="#reagent.gym.types.TrainerPreprocessor" title="Permalink to this definition"></a></dt>
 <dd><p>Called after env.step(action)
 Args: (state, action, reward, terminal, log_prob)</p>
+<p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>]</p>
 </dd></dl>
 
-<dl class="class">
-<dt id="reagent.gym.types.Trajectory">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.types.</code><code class="sig-name descname">Trajectory</code><span class="sig-paren">(</span><em class="sig-param">transitions: List[reagent.gym.types.Transition] = &lt;factory&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Trajectory" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="reagent.html#reagent.base_dataclass.BaseDataClass" title="reagent.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.base_dataclass.BaseDataClass</span></code></a></p>
-<dl class="method">
-<dt id="reagent.gym.types.Trajectory.add_transition">
-<code class="sig-name descname">add_transition</code><span class="sig-paren">(</span><em class="sig-param">transition: reagent.gym.types.Transition</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Trajectory.add_transition" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.types.Trajectory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.types.</span></span><span class="sig-name descname"><span class="pre">Trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions:</span> <span class="pre">List[reagent.gym.types.Transition]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Trajectory" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.base_dataclass.BaseDataClass" title="reagent.core.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.base_dataclass.BaseDataClass</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.types.Trajectory.add_transition">
+<span class="sig-name descname"><span class="pre">add_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.gym.types.Transition" title="reagent.gym.types.Transition"><span class="pre">reagent.gym.types.Transition</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Trajectory.add_transition" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.types.Trajectory.calculate_cumulative_reward">
-<code class="sig-name descname">calculate_cumulative_reward</code><span class="sig-paren">(</span><em class="sig-param">gamma: float = 1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Trajectory.calculate_cumulative_reward" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.types.Trajectory.calculate_cumulative_reward">
+<span class="sig-name descname"><span class="pre">calculate_cumulative_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Trajectory.calculate_cumulative_reward" title="Permalink to this definition"></a></dt>
 <dd><p>Return (discounted) sum of rewards.</p>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="class">
-<dt id="reagent.gym.types.Transition">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.types.</code><code class="sig-name descname">Transition</code><span class="sig-paren">(</span><em class="sig-param">mdp_id: int, sequence_number: int, observation: Any, action: Any, reward: float, terminal: bool, log_prob: Union[float, NoneType] = None, possible_actions: Union[List[int], NoneType] = None, possible_actions_mask: Union[List[int], NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Transition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="reagent.html#reagent.base_dataclass.BaseDataClass" title="reagent.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.base_dataclass.BaseDataClass</span></code></a></p>
-<dl class="method">
-<dt id="reagent.gym.types.Transition.asdict">
-<code class="sig-name descname">asdict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Transition.asdict" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.types.Trajectory.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Trajectory.to_dict" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="reagent.gym.types.Transition.log_prob">
-<code class="sig-name descname">log_prob</code><em class="property"> = None</em><a class="headerlink" href="#reagent.gym.types.Transition.log_prob" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.gym.types.Transition.possible_actions">
-<code class="sig-name descname">possible_actions</code><em class="property"> = None</em><a class="headerlink" href="#reagent.gym.types.Transition.possible_actions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.gym.types.Transition.possible_actions_mask">
-<code class="sig-name descname">possible_actions_mask</code><em class="property"> = None</em><a class="headerlink" href="#reagent.gym.types.Transition.possible_actions_mask" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.types.Trajectory.transitions">
+<span class="sig-name descname"><span class="pre">transitions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.gym.types.Transition" title="reagent.gym.types.Transition"><span class="pre">reagent.gym.types.Transition</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.gym.types.Trajectory.transitions" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="reagent.gym.types.get_optional_fields">
-<code class="sig-prename descclassname">reagent.gym.types.</code><code class="sig-name descname">get_optional_fields</code><span class="sig-paren">(</span><em class="sig-param">cls</em><span class="sig-paren">)</span> &#x2192; List[str]<a class="headerlink" href="#reagent.gym.types.get_optional_fields" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.types.Transition">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.types.</span></span><span class="sig-name descname"><span class="pre">Transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mdp_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_prob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_actions_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Transition" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.base_dataclass.BaseDataClass" title="reagent.core.base_dataclass.BaseDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.base_dataclass.BaseDataClass</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.types.Transition.action">
+<span class="sig-name descname"><span class="pre">action</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></em><a class="headerlink" href="#reagent.gym.types.Transition.action" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.types.Transition.asdict">
+<span class="sig-name descname"><span class="pre">asdict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.types.Transition.asdict" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.types.Transition.info">
+<span class="sig-name descname"><span class="pre">info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.types.Transition.info" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.types.Transition.log_prob">
+<span class="sig-name descname"><span class="pre">log_prob</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.types.Transition.log_prob" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.types.Transition.mdp_id">
+<span class="sig-name descname"><span class="pre">mdp_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.gym.types.Transition.mdp_id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.types.Transition.observation">
+<span class="sig-name descname"><span class="pre">observation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></em><a class="headerlink" href="#reagent.gym.types.Transition.observation" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.types.Transition.possible_actions_mask">
+<span class="sig-name descname"><span class="pre">possible_actions_mask</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.types.Transition.possible_actions_mask" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.types.Transition.reward">
+<span class="sig-name descname"><span class="pre">reward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#reagent.gym.types.Transition.reward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.types.Transition.sequence_number">
+<span class="sig-name descname"><span class="pre">sequence_number</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.gym.types.Transition.sequence_number" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.types.Transition.terminal">
+<span class="sig-name descname"><span class="pre">terminal</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.gym.types.Transition.terminal" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.types.get_optional_fields">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.types.</span></span><span class="sig-name descname"><span class="pre">get_optional_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.types.get_optional_fields" title="Permalink to this definition"></a></dt>
 <dd><p>return list of optional annotated fields</p>
 </dd></dl>
 
-</div>
-<div class="section" id="reagent-gym-utils-module">
-<h2>reagent.gym.utils module<a class="headerlink" href="#reagent-gym-utils-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.gym">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.gym" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</section>
+<section id="module-reagent.gym.utils">
+<span id="reagent-gym-utils-module"></span><h2>reagent.gym.utils module<a class="headerlink" href="#module-reagent.gym.utils" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.utils.build_action_normalizer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.utils.</span></span><span class="sig-name descname"><span class="pre">build_action_normalizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.utils.build_action_normalizer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.utils.build_normalizer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.utils.</span></span><span class="sig-name descname"><span class="pre">build_normalizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.utils.build_normalizer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.utils.build_state_normalizer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.utils.</span></span><span class="sig-name descname"><span class="pre">build_state_normalizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.utils.build_state_normalizer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.utils.create_df_from_replay_buffer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.utils.</span></span><span class="sig-name descname"><span class="pre">create_df_from_replay_buffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_domain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.ProblemDomain" title="reagent.core.parameters.ProblemDomain"><span class="pre">reagent.core.parameters.ProblemDomain</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">desired_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#reagent.gym.utils.create_df_from_replay_buffer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.utils.feature_transform">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.utils.</span></span><span class="sig-name descname"><span class="pre">feature_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_elem_transform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_next_with_multi_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replace_when_terminal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.utils.feature_transform" title="Permalink to this definition"></a></dt>
+<dd><p>feature_transform is a method on a single row.
+We assume features is List[features] (batch of features).
+This can also be called for next_features with multi_steps which we assume
+to be List[List[features]]. First List is denoting that it’s a batch,
+second List is denoting that a single row consists of a list of features.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.utils.fill_replay_buffer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.utils.</span></span><span class="sig-name descname"><span class="pre">fill_replay_buffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_buffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.replay_memory.html#reagent.replay_memory.circular_replay_buffer.ReplayBuffer" title="reagent.replay_memory.circular_replay_buffer.ReplayBuffer"><span class="pre">reagent.replay_memory.circular_replay_buffer.ReplayBuffer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">desired_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.agents.html#reagent.gym.agents.agent.Agent" title="reagent.gym.agents.agent.Agent"><span class="pre">reagent.gym.agents.agent.Agent</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.utils.fill_replay_buffer" title="Permalink to this definition"></a></dt>
+<dd><p>Fill replay buffer with transitions until size reaches desired_size.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.utils.set_seed">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.utils.</span></span><span class="sig-name descname"><span class="pre">set_seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">gym.core.Env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.utils.set_seed" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.utils.validate_mdp_ids_seq_nums">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.utils.</span></span><span class="sig-name descname"><span class="pre">validate_mdp_ids_seq_nums</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.utils.validate_mdp_ids_seq_nums" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.gym">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.gym" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.Agent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.</span></span><span class="sig-name descname"><span class="pre">Agent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">policy:</span> <span class="pre">reagent.gym.policies.policy.Policy,</span> <span class="pre">post_transition_callback:</span> <span class="pre">Optional[Callable[[reagent.gym.types.Transition],</span> <span class="pre">None]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">post_episode_callback:</span> <span class="pre">Optional[Callable[[reagent.gym.types.Trajectory],</span> <span class="pre">None]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">obs_preprocessor=&lt;function</span> <span class="pre">_id&gt;,</span> <span class="pre">action_extractor=&lt;function</span> <span class="pre">_id&gt;,</span> <span class="pre">device:</span> <span class="pre">Optional[torch.device]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.Agent" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.Agent.act">
+<span class="sig-name descname"><span class="pre">act</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_actions_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.Agent.act" title="Permalink to this definition"></a></dt>
+<dd><p>Act on a single observation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.Agent.create_for_env">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_for_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.gym.policies.html#reagent.gym.policies.policy.Policy" title="reagent.gym.policies.policy.Policy"><span class="pre">reagent.gym.policies.policy.Policy</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.device</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_extractor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.Agent.create_for_env" title="Permalink to this definition"></a></dt>
+<dd><p>If <cite>policy</cite> is not given, we will try to create a random policy</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.Agent.create_for_env_with_serving_policy">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_for_env_with_serving_policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">serving_policy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.policies.html#reagent.gym.policies.policy.Policy" title="reagent.gym.policies.policy.Policy"><span class="pre">reagent.gym.policies.policy.Policy</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_extractor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.Agent.create_for_env_with_serving_policy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.Agent.post_episode">
+<span class="sig-name descname"><span class="pre">post_episode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajectory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.gym.types.Trajectory" title="reagent.gym.types.Trajectory"><span class="pre">reagent.gym.types.Trajectory</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.Agent.post_episode" title="Permalink to this definition"></a></dt>
+<dd><p>to be called after step(action)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.Agent.post_step">
+<span class="sig-name descname"><span class="pre">post_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.gym.types.Transition" title="reagent.gym.types.Transition"><span class="pre">reagent.gym.types.Transition</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.Agent.post_step" title="Permalink to this definition"></a></dt>
+<dd><p>to be called after step(action)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.Gym">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.</span></span><span class="sig-name descname"><span class="pre">Gym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_max_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.Gym" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.Gym.env_name">
+<span class="sig-name descname"><span class="pre">env_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#reagent.gym.Gym.env_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.Gym.make">
+<span class="sig-name descname"><span class="pre">make</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">gym.core.Env</span></span></span><a class="headerlink" href="#reagent.gym.Gym.make" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.Gym.obs_preprocessor">
+<span class="sig-name descname"><span class="pre">obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.Gym.obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.Gym.serving_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">serving_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.Gym.serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.Gym.set_max_steps">
+<span class="sig-name descname"><span class="pre">set_max_steps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.Gym.set_max_steps" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reagent.gym.agents.html" class="btn btn-neutral float-right" title="reagent.gym.agents package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reagent.evaluation.html" class="btn btn-neutral float-left" title="reagent.evaluation package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.data.html" class="btn btn-neutral float-left" title="reagent.data package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.gym.agents.html" class="btn btn-neutral float-right" title="reagent.gym.agents package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

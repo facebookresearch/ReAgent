@@ -12,7 +12,6 @@ reagent.ope.datasets.logged\_dataset module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

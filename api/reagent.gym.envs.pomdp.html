@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>reagent.gym.envs.pomdp package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.gym.envs.wrappers package" href="reagent.gym.envs.wrappers.html" />
+    <link rel="prev" title="reagent.gym.envs.functionality package" href="reagent.gym.envs.functionality.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reagent.gym.html">Gym</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.gym.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.agents.html">reagent.gym.agents package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.datasets.html">reagent.gym.datasets package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="reagent.gym.envs.html">reagent.gym.envs package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="reagent.gym.envs.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.changing_arms">reagent.gym.envs.changing_arms module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.env_wrapper">reagent.gym.envs.env_wrapper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.gym">reagent.gym.envs.gym module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.oracle_pvm">reagent.gym.envs.oracle_pvm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.recsim">reagent.gym.envs.recsim module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.toy_vm">reagent.gym.envs.toy_vm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs.utils">reagent.gym.envs.utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.envs.html#module-reagent.gym.envs">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.policies.html">reagent.gym.policies package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.preprocessors.html">reagent.gym.preprocessors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.runners.html">reagent.gym.runners package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.tests.html">reagent.gym.tests package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.normalizers">reagent.gym.normalizers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.types">reagent.gym.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.utils">reagent.gym.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="reagent.gym.html">reagent.gym package</a> &raquo;</li>
+          <li><a href="reagent.gym.envs.html">reagent.gym.envs package</a> &raquo;</li>
+      <li>reagent.gym.envs.pomdp package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/reagent.gym.envs.pomdp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="reagent-gym-envs-pomdp-package">
+<h1>reagent.gym.envs.pomdp package<a class="headerlink" href="#reagent-gym-envs-pomdp-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.gym.envs.pomdp.pocman">
+<span id="reagent-gym-envs-pomdp-pocman-module"></span><h2>reagent.gym.envs.pomdp.pocman module<a class="headerlink" href="#module-reagent.gym.envs.pomdp.pocman" title="Permalink to this headline"></a></h2>
+<p>Pocman environment first introduced in Monte-Carlo Planning in Large POMDPs by
+Silver and Veness, 2010:
+<a class="reference external" href="https://papers.nips.cc/paper/4031-monte-carlo-planning-in-large-pomdps.pdf">https://papers.nips.cc/paper/4031-monte-carlo-planning-in-large-pomdps.pdf</a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Action">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.pomdp.pocman.</span></span><span class="sig-name descname"><span class="pre">Action</span></span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Action" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Action.DOWN">
+<span class="sig-name descname"><span class="pre">DOWN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Action.DOWN" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Action.LEFT">
+<span class="sig-name descname"><span class="pre">LEFT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Action.LEFT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Action.RIGHT">
+<span class="sig-name descname"><span class="pre">RIGHT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Action.RIGHT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Action.UP">
+<span class="sig-name descname"><span class="pre">UP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Action.UP" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Element">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.pomdp.pocman.</span></span><span class="sig-name descname"><span class="pre">Element</span></span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Element" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Element.CLEAR_WALK_WAY">
+<span class="sig-name descname"><span class="pre">CLEAR_WALK_WAY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Element.CLEAR_WALK_WAY" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Element.FOOD_PELLET">
+<span class="sig-name descname"><span class="pre">FOOD_PELLET</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Element.FOOD_PELLET" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Element.POWER">
+<span class="sig-name descname"><span class="pre">POWER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Element.POWER" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Element.WALL">
+<span class="sig-name descname"><span class="pre">WALL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Element.WALL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Ghost">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.pomdp.pocman.</span></span><span class="sig-name descname"><span class="pre">Ghost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghost_range</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Ghost" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Ghost.home">
+<span class="sig-name descname"><span class="pre">home</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#reagent.gym.envs.pomdp.pocman.Position" title="reagent.gym.envs.pomdp.pocman.Position"><span class="pre">reagent.gym.envs.pomdp.pocman.Position</span></a></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Ghost.home" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Ghost.max_x">
+<span class="sig-name descname"><span class="pre">max_x</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Ghost.max_x" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Ghost.max_y">
+<span class="sig-name descname"><span class="pre">max_y</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Ghost.max_y" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Ghost.move">
+<span class="sig-name descname"><span class="pre">move</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent_in_power</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Ghost.move" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Ghost.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Ghost.reset" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Ghost.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Ghost.update" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.InternalState">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.pomdp.pocman.</span></span><span class="sig-name descname"><span class="pre">InternalState</span></span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.InternalState" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.PocManEnv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.pomdp.pocman.</span></span><span class="sig-name descname"><span class="pre">PocManEnv</span></span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.PocManEnv" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.Env</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.PocManEnv.next_pos">
+<span class="sig-name descname"><span class="pre">next_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.PocManEnv.next_pos" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.PocManEnv.print_action">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">print_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.PocManEnv.print_action" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.PocManEnv.print_internal_state">
+<span class="sig-name descname"><span class="pre">print_internal_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.PocManEnv.print_internal_state" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.PocManEnv.print_ob">
+<span class="sig-name descname"><span class="pre">print_ob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ob</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.PocManEnv.print_ob" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.PocManEnv.random_action">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_action</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.PocManEnv.random_action" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.PocManEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.PocManEnv.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the environment to an initial state and returns an initial
+observation.</p>
+<p>Note that this function should not reset the environment’s random
+number generator(s); random variables in the environment’s state should
+be sampled independently between multiple calls to <cite>reset()</cite>. In other
+words, each call of <cite>reset()</cite> should yield an environment suitable for
+a new episode, independent of previous episodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the initial observation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.PocManEnv.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.PocManEnv.seed" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the seed for this env’s random number generator(s).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some environments use multiple pseudorandom number generators.
+We want to capture all such seeds used in order to ensure that
+there aren’t accidental correlations between multiple generators.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Returns the list of seeds used in this env’s random</dt><dd><p>number generators. The first value in the list should be the
+“main” seed, or the value which a reproducer should pass to
+‘seed’. Often, the main seed equals the provided ‘seed’, but
+this won’t be true if seed=None, for example.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list&lt;bigint&gt;</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.PocManEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.PocManEnv.step" title="Permalink to this definition"></a></dt>
+<dd><p>Run one timestep of the environment’s dynamics. When end of
+episode is reached, you are responsible for calling <cite>reset()</cite>
+to reset this environment’s state.</p>
+<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>object</em>) – an action provided by the agent</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>agent’s observation of the current environment
+reward (float) : amount of reward returned after previous action
+done (bool): whether the episode has ended, in which case further step() calls will return undefined results
+info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Position">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.pomdp.pocman.</span></span><span class="sig-name descname"><span class="pre">Position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Position" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<p>The index at the left up corner is (0, 0);
+The index at the right bottom corner is (height-1, width-1)</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Position.x">
+<span class="sig-name descname"><span class="pre">x</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Position.x" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.Position.y">
+<span class="sig-name descname"><span class="pre">y</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.Position.y" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.manhattan_distance">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.pomdp.pocman.</span></span><span class="sig-name descname"><span class="pre">manhattan_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.manhattan_distance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.opposite_direction">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.pomdp.pocman.</span></span><span class="sig-name descname"><span class="pre">opposite_direction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.opposite_direction" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.pocman.select_maze">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.pomdp.pocman.</span></span><span class="sig-name descname"><span class="pre">select_maze</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maze</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.pocman.select_maze" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.gym.envs.pomdp.state_embed_env">
+<span id="reagent-gym-envs-pomdp-state-embed-env-module"></span><h2>reagent.gym.envs.pomdp.state_embed_env module<a class="headerlink" href="#module-reagent.gym.envs.pomdp.state_embed_env" title="Permalink to this headline"></a></h2>
+<p>This file shows an example of using embedded states to feed to RL models in
+partially observable environments (POMDPs). Embedded states are generated by a world
+model which learns how to encode past n observations into a low-dimension
+vector.Embedded states improve performance in POMDPs compared to just using
+one-step observations as states because they encode more historical information
+than one-step observations.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.state_embed_env.StateEmbedEnvironment">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.pomdp.state_embed_env.</span></span><span class="sig-name descname"><span class="pre">StateEmbedEnvironment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gym_env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">mdnrnn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.world_model.MemoryNetwork" title="reagent.models.world_model.MemoryNetwork"><span class="pre">reagent.models.world_model.MemoryNetwork</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_embed_seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_min_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_max_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.state_embed_env.StateEmbedEnvironment" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.Env</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.state_embed_env.StateEmbedEnvironment.embed_state">
+<span class="sig-name descname"><span class="pre">embed_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.state_embed_env.StateEmbedEnvironment.embed_state" title="Permalink to this definition"></a></dt>
+<dd><p>Embed state after either reset() or step()</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.state_embed_env.StateEmbedEnvironment.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.state_embed_env.StateEmbedEnvironment.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the environment to an initial state and returns an initial
+observation.</p>
+<p>Note that this function should not reset the environment’s random
+number generator(s); random variables in the environment’s state should
+be sampled independently between multiple calls to <cite>reset()</cite>. In other
+words, each call of <cite>reset()</cite> should yield an environment suitable for
+a new episode, independent of previous episodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the initial observation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.state_embed_env.StateEmbedEnvironment.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.state_embed_env.StateEmbedEnvironment.seed" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the seed for this env’s random number generator(s).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some environments use multiple pseudorandom number generators.
+We want to capture all such seeds used in order to ensure that
+there aren’t accidental correlations between multiple generators.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Returns the list of seeds used in this env’s random</dt><dd><p>number generators. The first value in the list should be the
+“main” seed, or the value which a reproducer should pass to
+‘seed’. Often, the main seed equals the provided ‘seed’, but
+this won’t be true if seed=None, for example.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list&lt;bigint&gt;</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.state_embed_env.StateEmbedEnvironment.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.state_embed_env.StateEmbedEnvironment.step" title="Permalink to this definition"></a></dt>
+<dd><p>Run one timestep of the environment’s dynamics. When end of
+episode is reached, you are responsible for calling <cite>reset()</cite>
+to reset this environment’s state.</p>
+<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>object</em>) – an action provided by the agent</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>agent’s observation of the current environment
+reward (float) : amount of reward returned after previous action
+done (bool): whether the episode has ended, in which case further step() calls will return undefined results
+info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.gym.envs.pomdp.string_game">
+<span id="reagent-gym-envs-pomdp-string-game-module"></span><h2>reagent.gym.envs.pomdp.string_game module<a class="headerlink" href="#module-reagent.gym.envs.pomdp.string_game" title="Permalink to this headline"></a></h2>
+<p>The agent can observe a character at one time. But the
+reward is given based on last n (n&gt;1) steps’ observation (a string).
+In this environment, the agent can observe a character (“A”, “B”) at
+each time step, but the reward it receives actually depends on past 3 steps:
+if the agent observes “ABB” in the past 3 steps, it receives +5 reward; if the
+agent observes “BBB”, it receives -5 reward; otherwise, the agent receives 0.
+The action is the next character the agent wants to reveal, and the next state
+is exactly the action just taken (i.e., the transition function only depends on
+the action). Each episode is limited to 6 steps. Therefore, the optimal policy
+is to choose actions “ABBABB” in sequence which results to +10 reward.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game.StringGameEnv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.pomdp.string_game.</span></span><span class="sig-name descname"><span class="pre">StringGameEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game.StringGameEnv" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.Env</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game.StringGameEnv.get_observation">
+<span class="sig-name descname"><span class="pre">get_observation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game.StringGameEnv.get_observation" title="Permalink to this definition"></a></dt>
+<dd><p>The function you can write to customize transitions. In this
+specific environment, the next state is exactly the latest action taken.
+The initial observation is all zeros.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game.StringGameEnv.get_reward">
+<span class="sig-name descname"><span class="pre">get_reward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game.StringGameEnv.get_reward" title="Permalink to this definition"></a></dt>
+<dd><p>The function you can write to customize rewards. In this
+specific environment, the reward only depends on action history</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game.StringGameEnv.print_action">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">print_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game.StringGameEnv.print_action" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game.StringGameEnv.print_internal_state">
+<span class="sig-name descname"><span class="pre">print_internal_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game.StringGameEnv.print_internal_state" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game.StringGameEnv.print_ob">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">print_ob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ob</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game.StringGameEnv.print_ob" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game.StringGameEnv.random_action">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_action</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game.StringGameEnv.random_action" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game.StringGameEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game.StringGameEnv.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the environment to an initial state and returns an initial
+observation.</p>
+<p>Note that this function should not reset the environment’s random
+number generator(s); random variables in the environment’s state should
+be sampled independently between multiple calls to <cite>reset()</cite>. In other
+words, each call of <cite>reset()</cite> should yield an environment suitable for
+a new episode, independent of previous episodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the initial observation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game.StringGameEnv.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game.StringGameEnv.seed" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the seed for this env’s random number generator(s).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some environments use multiple pseudorandom number generators.
+We want to capture all such seeds used in order to ensure that
+there aren’t accidental correlations between multiple generators.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Returns the list of seeds used in this env’s random</dt><dd><p>number generators. The first value in the list should be the
+“main” seed, or the value which a reproducer should pass to
+‘seed’. Often, the main seed equals the provided ‘seed’, but
+this won’t be true if seed=None, for example.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list&lt;bigint&gt;</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game.StringGameEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game.StringGameEnv.step" title="Permalink to this definition"></a></dt>
+<dd><p>Run one timestep of the environment’s dynamics. When end of
+episode is reached, you are responsible for calling <cite>reset()</cite>
+to reset this environment’s state.</p>
+<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>object</em>) – an action provided by the agent</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>agent’s observation of the current environment
+reward (float) : amount of reward returned after previous action
+done (bool): whether the episode has ended, in which case further step() calls will return undefined results
+info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.gym.envs.pomdp.string_game_v1">
+<span id="reagent-gym-envs-pomdp-string-game-v1-module"></span><h2>reagent.gym.envs.pomdp.string_game_v1 module<a class="headerlink" href="#module-reagent.gym.envs.pomdp.string_game_v1" title="Permalink to this headline"></a></h2>
+<p>A game with a stochastic length of the MDP but no longer than 3.</p>
+<p>An agent can choose one character to reveal (either “A” or “B”) as the action,
+and the next state is exactly the action just taken (i.e., the transition
+function only depends on the action). Each episode is limited to 3 steps.</p>
+<p>There is some probability to terminate at any step (but the agent must terminate if
+making 3 steps)
+If the current state is “A”, the agent has 0.5 probability to make to the next step.
+If the current state is “B”, the agent has 0.9 probability to make to the next step.
+The reward is given at the terminal state, based on the accumulated observation (a string).</p>
+<dl class="simple">
+<dt>If the agent observes “AAA” (survive the first 2 steps and terminate at the last step</dt><dd><p>no matter what action taken), it receives +5 reward.</p>
+</dd>
+</dl>
+<p>If the agent observes “BA” (survive the first step and terminate at the second step),
+it receives +4 reward.
+For all other scenarios, the agent receives 0 reward.</p>
+<p>If we plan for 3 steps ahead from the beginning, “A” is the better action to take first.
+If we plan with consideration of termination probabilities, “B” is better. Because:
+The expected Q-value of “A” = 0.5 * 0 + 0.5 * max(0.5 * 0 + 0.5 * max(5, 0), 0) = 1.25
+The expected Q-value of “B” = 0.1 * 0 + 0.9 * max(0.5 * 4 + 0.5 * max(0, 0), 0) = 1.8</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.pomdp.string_game_v1.</span></span><span class="sig-name descname"><span class="pre">StringGameEnvV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.Env</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.get_observation">
+<span class="sig-name descname"><span class="pre">get_observation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.get_observation" title="Permalink to this definition"></a></dt>
+<dd><p>The function you can write to customize transitions. In this
+specific environment, the next state is exactly the latest action taken.
+The initial observation is all zeros.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.get_reward">
+<span class="sig-name descname"><span class="pre">get_reward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.get_reward" title="Permalink to this definition"></a></dt>
+<dd><p>The function you can write to customize rewards. In this
+specific environment, the reward only depends on action history</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.print_action">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">print_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.print_action" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.print_internal_state">
+<span class="sig-name descname"><span class="pre">print_internal_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.print_internal_state" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.print_ob">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">print_ob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ob</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.print_ob" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.random_action">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_action</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.random_action" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the environment to an initial state and returns an initial
+observation.</p>
+<p>Note that this function should not reset the environment’s random
+number generator(s); random variables in the environment’s state should
+be sampled independently between multiple calls to <cite>reset()</cite>. In other
+words, each call of <cite>reset()</cite> should yield an environment suitable for
+a new episode, independent of previous episodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the initial observation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.sample_terminal">
+<span class="sig-name descname"><span class="pre">sample_terminal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.sample_terminal" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.seed" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the seed for this env’s random number generator(s).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some environments use multiple pseudorandom number generators.
+We want to capture all such seeds used in order to ensure that
+there aren’t accidental correlations between multiple generators.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Returns the list of seeds used in this env’s random</dt><dd><p>number generators. The first value in the list should be the
+“main” seed, or the value which a reproducer should pass to
+‘seed’. Often, the main seed equals the provided ‘seed’, but
+this won’t be true if seed=None, for example.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list&lt;bigint&gt;</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.pomdp.string_game_v1.StringGameEnvV1.step" title="Permalink to this definition"></a></dt>
+<dd><p>Run one timestep of the environment’s dynamics. When end of
+episode is reached, you are responsible for calling <cite>reset()</cite>
+to reset this environment’s state.</p>
+<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>object</em>) – an action provided by the agent</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>agent’s observation of the current environment
+reward (float) : amount of reward returned after previous action
+done (bool): whether the episode has ended, in which case further step() calls will return undefined results
+info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.gym.envs.pomdp">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.gym.envs.pomdp" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.gym.envs.functionality.html" class="btn btn-neutral float-left" title="reagent.gym.envs.functionality package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.gym.envs.wrappers.html" class="btn btn-neutral float-right" title="reagent.gym.envs.wrappers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

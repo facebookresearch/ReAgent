@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>reagent.lite package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.mab package" href="reagent.mab.html" />
+    <link rel="prev" title="reagent.evaluation.feature_importance package" href="reagent.evaluation.feature_importance.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Lite</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.lite.optimizer">reagent.lite.optimizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.lite">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>reagent.lite package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/reagent.lite.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="reagent-lite-package">
+<h1>reagent.lite package<a class="headerlink" href="#reagent-lite-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.lite.optimizer">
+<span id="reagent-lite-optimizer-module"></span><h2>reagent.lite.optimizer module<a class="headerlink" href="#module-reagent.lite.optimizer" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.BayesianMLPEnsemblerOptimizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">BayesianMLPEnsemblerOptimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">nevergrad.parametrization.container.Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'its'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anneal_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.9997</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_mutations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_exp_offset_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_ensemble</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.BayesianMLPEnsemblerOptimizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.lite.optimizer.BayesianOptimizer" title="reagent.lite.optimizer.BayesianOptimizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.lite.optimizer.BayesianOptimizer</span></code></a></p>
+<p>Bayessian Optimizer with ensemble of mlp networks, random mutation, and ITS.
+The Method is motivated by the BANANAS optimization method, White, 2019.
+<a class="reference external" href="https://arxiv.org/abs/1910.11858">https://arxiv.org/abs/1910.11858</a>.</p>
+<p>The mutation rate (temp) is starting from start_temp and is decreasing over time
+with anneal_rate. It’s lowest possible value is min_temp.
+Thus, initially the algorithm explores mutations with a higer mutation rate (more variables are randomly mutated).
+As time passes, the algorithm exploits the best solutions recorded so far (less variables are mutated).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param</strong> (<em>ng.p.Dict</em>) – a nevergrad dictionary for specifying input choices</p></li>
+<li><p><strong>obj_func</strong> (<em>Callable</em><em>[</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – <p>a function which consumes sampled solutions and returns
+rewards as tensors of shape (batch_size, 1).</p>
+<p>The input dictionary has choice names as the key and sampled choice
+indices as the value (of shape (batch_size, ))</p>
+</p></li>
+<li><p><strong>acq_type</strong> (<em>str</em>) – type of acquisition function.</p></li>
+<li><p><strong>mutation_type</strong> (<em>str</em>) – type of mutation, e.g., random.</p></li>
+<li><p><strong>num_mutations</strong> (<em>int</em>) – number of best solutions recorded so far that will be mutated.</p></li>
+<li><p><strong>num_ensemble</strong> (<em>int</em>) – number of predictors.</p></li>
+<li><p><strong>start_temp</strong> (<em>float</em>) – initial temperature (ratio) for mutation, e.g., with 1.0 all variables will be initally mutated.</p></li>
+<li><p><strong>min_temp</strong> (<em>float</em>) – lowest temperature (ratio) for mutation, e.g., with 0.0 no mutation will occur.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.BayesianMLPEnsemblerOptimizer.sample_internal">
+<span class="sig-name descname"><span class="pre">sample_internal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.BayesianMLPEnsemblerOptimizer.sample_internal" title="Permalink to this definition"></a></dt>
+<dd><p>Record and return sampled solutions and any other important
+information for learning.</p>
+<p>It samples self.batch_size number of solutions, unless batch_size is provided.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.BayesianMLPEnsemblerOptimizer.update_params">
+<span class="sig-name descname"><span class="pre">update_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.BayesianMLPEnsemblerOptimizer.update_params" title="Permalink to this definition"></a></dt>
+<dd><p>Update model parameters by reward. Reward is objective function
+values evaluated on the solutions sampled by sample_internal()</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.BayesianMLPEnsemblerOptimizer.update_predictor">
+<span class="sig-name descname"><span class="pre">update_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampled_solutions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampled_reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.BayesianMLPEnsemblerOptimizer.update_predictor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.BayesianOptimizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">BayesianOptimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">nevergrad.parametrization.container.Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acq_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'its'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anneal_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.9997</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_exp_offset_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.BayesianOptimizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.lite.optimizer.ComboOptimizerBase" title="reagent.lite.optimizer.ComboOptimizerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.lite.optimizer.ComboOptimizerBase</span></code></a></p>
+<p>Bayessian Optimization with mutation optimization and acquisition function.
+The method is motivated from BANANAS, White, 2020.
+<a class="reference external" href="https://arxiv.org/abs/1910.11858">https://arxiv.org/abs/1910.11858</a></p>
+<p>In this method, the searching is based on mutation over the current best solutions.
+Acquisition function, e.g., its estimates the expected imrpovement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param</strong> (<em>ng.p.Dict</em>) – a nevergrad dictionary for specifying input choices</p></li>
+<li><p><strong>obj_func</strong> (<em>Callable</em><em>[</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – <p>a function which consumes sampled solutions and returns
+rewards as tensors of shape (batch_size, 1).</p>
+<p>The input dictionary has choice names as the key and sampled choice
+indices as the value (of shape (batch_size, ))</p>
+</p></li>
+<li><p><strong>acq_type</strong> (<em>str</em>) – type of acquisition function.</p></li>
+<li><p><strong>mutation_type</strong> (<em>str</em>) – type of mutation, e.g., random.</p></li>
+<li><p><strong>temp</strong> (<em>float</em>) – percentage of mutation - how many variables will be mutated.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.BayesianOptimizer.acquisition">
+<span class="sig-name descname"><span class="pre">acquisition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">acq_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampled_sol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.BayesianOptimizer.acquisition" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.BayesianOptimizer.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.BayesianOptimizer.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Applies a type of mutation, e.g., random mutation, on the best solutions recorded so far.
+For example, with random mutation, variables are randomly selected,
+and their values are randomly set with respect to their domains.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.BestResultsQueue">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">BestResultsQueue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.BestResultsQueue" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Maintain the <cite>max_len</cite> lowest numbers</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.BestResultsQueue.insert">
+<span class="sig-name descname"><span class="pre">insert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.BestResultsQueue.insert" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.BestResultsQueue.topk">
+<span class="sig-name descname"><span class="pre">topk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.BestResultsQueue.topk" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.ComboOptimizerBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">ComboOptimizerBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">nevergrad.parametrization.container.Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_exp_offset_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.ComboOptimizerBase" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.ComboOptimizerBase.best_solutions">
+<span class="sig-name descname"><span class="pre">best_solutions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.ComboOptimizerBase.best_solutions" title="Permalink to this definition"></a></dt>
+<dd><p>k solutions with the smallest rewards
+Return is a list of tuples (reward, solution)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.ComboOptimizerBase.indices_to_raw_choices">
+<span class="sig-name descname"><span class="pre">indices_to_raw_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampled_sol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.ComboOptimizerBase.indices_to_raw_choices" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.ComboOptimizerBase.optimize_step">
+<span class="sig-name descname"><span class="pre">optimize_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.ComboOptimizerBase.optimize_step" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.ComboOptimizerBase.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.ComboOptimizerBase.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Return sampled solutions, keyed by parameter names.
+For discrete parameters, the values are choice indices;
+For continuous parameters, the values are sampled float vectors.</p>
+<p>This function is usually called after learning is done.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.ComboOptimizerBase.sample_internal">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sample_internal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.ComboOptimizerBase.sample_internal" title="Permalink to this definition"></a></dt>
+<dd><p>Record and return sampled solutions and any other important
+information for learning.</p>
+<p>It samples self.batch_size number of solutions, unless batch_size is provided.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.ComboOptimizerBase.update_params">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">update_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.ComboOptimizerBase.update_params" title="Permalink to this definition"></a></dt>
+<dd><p>Update model parameters by reward. Reward is objective function
+values evaluated on the solutions sampled by sample_internal()</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.GumbelSoftmaxOptimizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">GumbelSoftmaxOptimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">nevergrad.parametrization.container.Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anneal_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.9997</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_params_within_optimizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.GumbelSoftmaxOptimizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.lite.optimizer.LogitBasedComboOptimizerBase" title="reagent.lite.optimizer.LogitBasedComboOptimizerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.lite.optimizer.LogitBasedComboOptimizerBase</span></code></a></p>
+<p>Minimize a differentiable objective function which takes in categorical inputs.
+The method is based on Categorical Reparameterization with Gumbel-Softmax,
+Jang, Gu, &amp; Poole, 2016. <a class="reference external" href="https://arxiv.org/abs/1611.01144">https://arxiv.org/abs/1611.01144</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param</strong> (<em>ng.p.Dict</em>) – a nevergrad dictionary for specifying input choices</p></li>
+<li><p><strong>obj_func</strong> (<em>Callable</em><em>[</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – <p>an analytical function which consumes sampled solutions and returns
+rewards as tensors of shape (batch_size, 1).</p>
+<p>The input dictionary has choice names as the key and sampled gumbel-softmax
+distributions of shape (batch_size, num_choices) as the value</p>
+</p></li>
+<li><p><strong>start_temp</strong> – starting temperature</p></li>
+<li><p><strong>min_temp</strong> – minimal temperature (towards the end of learning) for sampling gumbel-softmax</p></li>
+<li><p><strong>update_params_within_optimizer</strong> (<em>bool</em>) – If False, skip updating parameters within this
+Optimizer. The Gumbel-softmax parameters will be updated in external systems.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ng_param</span> <span class="o">=</span> <span class="n">ng</span><span class="o">.</span><span class="n">p</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">choice1</span><span class="o">=</span><span class="n">ng</span><span class="o">.</span><span class="n">p</span><span class="o">.</span><span class="n">Choice</span><span class="p">([</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">]))</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">obj_func</span><span class="p">(</span><span class="n">sampled_sol</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+<span class="gp">... </span>    <span class="c1"># best action is &quot;red&quot;</span>
+<span class="gp">... </span>    <span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">sampled_sol</span><span class="p">[</span><span class="s1">&#39;choice1&#39;</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.</span><span class="p">]]))</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">reward</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">GumbelSoftmaxOptimizer</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">ng_param</span><span class="p">,</span> <span class="n">obj_func</span><span class="p">,</span> <span class="n">anneal_rate</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.1</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">30</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">res</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">optimize_step</span><span class="p">()</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="s1">&#39;choice1&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.GumbelSoftmaxOptimizer.sample_internal">
+<span class="sig-name descname"><span class="pre">sample_internal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.GumbelSoftmaxOptimizer.sample_internal" title="Permalink to this definition"></a></dt>
+<dd><p>Record and return sampled solutions and any other important
+information for learning.</p>
+<p>It samples self.batch_size number of solutions, unless batch_size is provided.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.GumbelSoftmaxOptimizer.update_params">
+<span class="sig-name descname"><span class="pre">update_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.GumbelSoftmaxOptimizer.update_params" title="Permalink to this definition"></a></dt>
+<dd><p>Update model parameters by reward. Reward is objective function
+values evaluated on the solutions sampled by sample_internal()</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.LogitBasedComboOptimizerBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">LogitBasedComboOptimizerBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">nevergrad.parametrization.container.Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anneal_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.9997</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_exp_offset_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.LogitBasedComboOptimizerBase" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.lite.optimizer.ComboOptimizerBase" title="reagent.lite.optimizer.ComboOptimizerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.lite.optimizer.ComboOptimizerBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.LogitBasedComboOptimizerBase.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.LogitBasedComboOptimizerBase.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Return sampled solutions, keyed by parameter names.
+For discrete parameters, the values are choice indices;
+For continuous parameters, the values are sampled float vectors.</p>
+<p>This function is usually called after learning is done.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.NeverGradOptimizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">NeverGradOptimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">nevergrad.parametrization.container.Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimated_budgets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.NeverGradOptimizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.lite.optimizer.ComboOptimizerBase" title="reagent.lite.optimizer.ComboOptimizerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.lite.optimizer.ComboOptimizerBase</span></code></a></p>
+<p>Minimize a black-box function using NeverGrad, Rapin &amp; Teytaud, 2018.
+<a class="reference external" href="https://facebookresearch.github.io/nevergrad/">https://facebookresearch.github.io/nevergrad/</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param</strong> (<em>ng.p.Dict</em>) – a nevergrad dictionary for specifying input choices</p></li>
+<li><p><strong>estimated_budgets</strong> (<em>int</em>) – estimated number of budgets (objective evaluation
+times) for nevergrad to perform auto tuning.</p></li>
+<li><p><strong>obj_func</strong> (<em>Callable</em><em>[</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – <p>a function which consumes sampled solutions and returns
+rewards as tensors of shape (batch_size, 1).</p>
+<p>The input dictionary has choice names as the key and sampled choice
+indices as the value (of shape (batch_size, ))</p>
+</p></li>
+<li><p><strong>optimizer_name</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – ng optimizer to be used specifically
+All possible nevergrad optimizers are available at:
+<a class="reference external" href="https://facebookresearch.github.io/nevergrad/optimization.html#choosing-an-optimizer">https://facebookresearch.github.io/nevergrad/optimization.html#choosing-an-optimizer</a>.
+If not specified, we use the meta optimizer NGOpt</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ng_param</span> <span class="o">=</span> <span class="n">ng</span><span class="o">.</span><span class="n">p</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">choice1</span><span class="o">=</span><span class="n">ng</span><span class="o">.</span><span class="n">p</span><span class="o">.</span><span class="n">Choice</span><span class="p">([</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">]))</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">obj_func</span><span class="p">(</span><span class="n">sampled_sol</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+<span class="gp">... </span>    <span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">BATCH_SIZE</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="c1"># the best action is &quot;red&quot;</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">sampled_sol</span><span class="p">[</span><span class="s1">&#39;choice1&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">reward</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">reward</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">estimated_budgets</span> <span class="o">=</span> <span class="mi">40</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">NeverGradOptimizer</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">ng_param</span><span class="p">,</span> <span class="n">estimated_budgets</span><span class="p">,</span> <span class="n">obj_func</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">res</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">optimize_step</span><span class="p">()</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">best_reward</span><span class="p">,</span> <span class="n">best_choice</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">best_solutions</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">best_reward</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">best_choice</span><span class="p">[</span><span class="s1">&#39;choice1&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.NeverGradOptimizer.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.NeverGradOptimizer.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Return sampled solutions, keyed by parameter names.
+For discrete parameters, the values are choice indices;
+For continuous parameters, the values are sampled float vectors.</p>
+<p>This function is usually called after learning is done.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.NeverGradOptimizer.sample_internal">
+<span class="sig-name descname"><span class="pre">sample_internal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.NeverGradOptimizer.sample_internal" title="Permalink to this definition"></a></dt>
+<dd><p>Return sampled solutions in two formats.
+(1) our own format, which is a dictionary and consistent with other optimizers.</p>
+<blockquote>
+<div><p>The dictionary has choice names as the key and sampled choice indices as the
+value (of shape (batch_size, ))</p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>nevergrad format returned by optimizer.ask()</p></li>
+</ol>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.NeverGradOptimizer.update_params">
+<span class="sig-name descname"><span class="pre">update_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.NeverGradOptimizer.update_params" title="Permalink to this definition"></a></dt>
+<dd><p>Update model parameters by reward. Reward is objective function
+values evaluated on the solutions sampled by sample_internal()</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.PolicyGradientOptimizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">PolicyGradientOptimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">nevergrad.parametrization.container.Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anneal_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.9997</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_exp_offset_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.PolicyGradientOptimizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.lite.optimizer.LogitBasedComboOptimizerBase" title="reagent.lite.optimizer.LogitBasedComboOptimizerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.lite.optimizer.LogitBasedComboOptimizerBase</span></code></a></p>
+<p>Minimize a black-box objective function which takes in categorical inputs.
+The method is based on REINFORCE, Williams, 1992.
+<a class="reference external" href="https://link.springer.com/article/10.1007/BF00992696">https://link.springer.com/article/10.1007/BF00992696</a></p>
+<p>In this method, the action distribution is a joint distribution of multiple
+<em>independent</em> softmax distributions, each corresponding to one discrete
+choice type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param</strong> (<em>ng.p.Dict</em>) – a nevergrad dictionary for specifying input choices</p></li>
+<li><p><strong>obj_func</strong> (<em>Callable</em><em>[</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – <p>a function which consumes sampled solutions and returns
+rewards as tensors of shape (batch_size, 1).</p>
+<p>The input dictionary has choice names as the key and sampled choice
+indices as the value (of shape (batch_size, ))</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">16</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ng_param</span> <span class="o">=</span> <span class="n">ng</span><span class="o">.</span><span class="n">p</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">choice1</span><span class="o">=</span><span class="n">ng</span><span class="o">.</span><span class="n">p</span><span class="o">.</span><span class="n">Choice</span><span class="p">([</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">]))</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">obj_func</span><span class="p">(</span><span class="n">sampled_sol</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+<span class="gp">... </span>    <span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">BATCH_SIZE</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="c1"># the best action is &quot;red&quot;</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">sampled_sol</span><span class="p">[</span><span class="s1">&#39;choice1&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">reward</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">reward</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">PolicyGradientOptimizer</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">ng_param</span><span class="p">,</span> <span class="n">obj_func</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.1</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">30</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="n">res</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">optimize_step</span><span class="p">()</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">best_reward</span><span class="p">,</span> <span class="n">best_choice</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">best_solutions</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">best_reward</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">best_choice</span><span class="p">[</span><span class="s1">&#39;choice1&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="s1">&#39;choice1&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.PolicyGradientOptimizer.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.PolicyGradientOptimizer.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Return sampled solutions, keyed by parameter names.
+For discrete parameters, the values are choice indices;
+For continuous parameters, the values are sampled float vectors.</p>
+<p>This function is usually called after learning is done.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.PolicyGradientOptimizer.sample_internal">
+<span class="sig-name descname"><span class="pre">sample_internal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.PolicyGradientOptimizer.sample_internal" title="Permalink to this definition"></a></dt>
+<dd><p>Record and return sampled solutions and any other important
+information for learning.</p>
+<p>It samples self.batch_size number of solutions, unless batch_size is provided.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.PolicyGradientOptimizer.update_params">
+<span class="sig-name descname"><span class="pre">update_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.PolicyGradientOptimizer.update_params" title="Permalink to this definition"></a></dt>
+<dd><p>Update model parameters by reward. Reward is objective function
+values evaluated on the solutions sampled by sample_internal()</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.QLearningOptimizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">QLearningOptimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">nevergrad.parametrization.container.Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anneal_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.9997</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_exp_offset_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_batches_per_learning</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.QLearningOptimizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.lite.optimizer.ComboOptimizerBase" title="reagent.lite.optimizer.ComboOptimizerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.lite.optimizer.ComboOptimizerBase</span></code></a></p>
+<p>Treat the problem of minimizing a black-box function as a sequential decision problem,
+and solve it by Deep Q-Learning. See “Human-Level Control through Deep Reinforcement
+Learning”, Mnih et al., 2015. <a class="reference external" href="https://www.nature.com/articles/nature14236">https://www.nature.com/articles/nature14236</a>.</p>
+<p>In each episode step, Q-learning makes a decision for one categorical input. The reward
+is given only at the end of the episode, which is the value of the black-box function
+at the input determined by the choices made at all steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param</strong> (<em>ng.p.Dict</em>) – a nevergrad dictionary for specifying input choices</p></li>
+<li><p><strong>start_temp</strong> (<em>float</em>) – the starting exploration rate in epsilon-greedy sampling</p></li>
+<li><p><strong>min_temp</strong> (<em>float</em>) – the minimal exploration rate in epsilon-greedy</p></li>
+<li><p><strong>obj_func</strong> (<em>Callable</em><em>[</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – <p>a function which consumes sampled solutions and returns
+rewards as tensors of shape (batch_size, 1).</p>
+<p>The input dictionary has choice names as the key and sampled choice
+indices as the value (of shape (batch_size, ))</p>
+</p></li>
+<li><p><strong>model_dim</strong> (<em>int</em>) – hidden layer size for the q-network: input -&gt; model_dim -&gt; model_dim -&gt; output</p></li>
+<li><p><strong>num_batches_per_learning</strong> (<em>int</em>) – the number of batches sampled from replay buffer
+for q-learning.</p></li>
+<li><p><strong>replay_size</strong> (<em>int</em>) – the maximum batches held in the replay buffer. Note, a problem instance of n
+choices will generate n batches in the replay buffer.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ng_param</span> <span class="o">=</span> <span class="n">ng</span><span class="o">.</span><span class="n">p</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">choice1</span><span class="o">=</span><span class="n">ng</span><span class="o">.</span><span class="n">p</span><span class="o">.</span><span class="n">Choice</span><span class="p">([</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">]))</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">obj_func</span><span class="p">(</span><span class="n">sampled_sol</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+<span class="gp">... </span>    <span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">BATCH_SIZE</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="c1"># the best action is &quot;red&quot;</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">sampled_sol</span><span class="p">[</span><span class="s1">&#39;choice1&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">reward</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">reward</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">QLearningOptimizer</span><span class="p">(</span><span class="n">ng_param</span><span class="p">,</span> <span class="n">obj_func</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">res</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">optimize_step</span><span class="p">()</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">best_reward</span><span class="p">,</span> <span class="n">best_choice</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">best_solutions</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">best_reward</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">best_choice</span><span class="p">[</span><span class="s1">&#39;choice1&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="s1">&#39;choice1&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.QLearningOptimizer.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.QLearningOptimizer.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Return sampled solutions, keyed by parameter names.
+For discrete parameters, the values are choice indices;
+For continuous parameters, the values are sampled float vectors.</p>
+<p>This function is usually called after learning is done.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.QLearningOptimizer.sample_internal">
+<span class="sig-name descname"><span class="pre">sample_internal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.QLearningOptimizer.sample_internal" title="Permalink to this definition"></a></dt>
+<dd><p>Record and return sampled solutions and any other important
+information for learning.</p>
+<p>It samples self.batch_size number of solutions, unless batch_size is provided.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.QLearningOptimizer.update_params">
+<span class="sig-name descname"><span class="pre">update_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.QLearningOptimizer.update_params" title="Permalink to this definition"></a></dt>
+<dd><p>Update model parameters by reward. Reward is objective function
+values evaluated on the solutions sampled by sample_internal()</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.RandomSearchOptimizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">RandomSearchOptimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">nevergrad.parametrization.container.Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.RandomSearchOptimizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.lite.optimizer.ComboOptimizerBase" title="reagent.lite.optimizer.ComboOptimizerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.lite.optimizer.ComboOptimizerBase</span></code></a></p>
+<p>Find the best solution to minimize a black-box function by random search</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param</strong> (<em>ng.p.Dict</em>) – a nevergrad dictionary for specifying input choices</p></li>
+<li><p><strong>obj_func</strong> (<em>Callable</em><em>[</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – <p>a function which consumes sampled solutions and returns
+rewards as tensors of shape (batch_size, 1).</p>
+<p>The input dictionary has choice names as the key and sampled choice
+indices as the value (of shape (batch_size, ))</p>
+</p></li>
+<li><p><strong>sampling_weights</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>np.ndarray</em><em>]</em><em>]</em>) – Instead of uniform sampling, we sample solutions with preferred
+weights. Key: choice name, value: sampling weights</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ng_param</span> <span class="o">=</span> <span class="n">ng</span><span class="o">.</span><span class="n">p</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">choice1</span><span class="o">=</span><span class="n">ng</span><span class="o">.</span><span class="n">p</span><span class="o">.</span><span class="n">Choice</span><span class="p">([</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">]))</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">obj_func</span><span class="p">(</span><span class="n">sampled_sol</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+<span class="gp">... </span>    <span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">BATCH_SIZE</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="c1"># the best action is &quot;red&quot;</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">sampled_sol</span><span class="p">[</span><span class="s1">&#39;choice1&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">reward</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">reward</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">RandomSearchOptimizer</span><span class="p">(</span><span class="n">ng_param</span><span class="p">,</span> <span class="n">obj_func</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">res</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">optimize_step</span><span class="p">()</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">best_reward</span><span class="p">,</span> <span class="n">best_choice</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">best_solutions</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">best_reward</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">best_choice</span><span class="p">[</span><span class="s1">&#39;choice1&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.RandomSearchOptimizer.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.RandomSearchOptimizer.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Return sampled solutions, keyed by parameter names.
+For discrete parameters, the values are choice indices;
+For continuous parameters, the values are sampled float vectors.</p>
+<p>This function is usually called after learning is done.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.RandomSearchOptimizer.sample_internal">
+<span class="sig-name descname"><span class="pre">sample_internal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.RandomSearchOptimizer.sample_internal" title="Permalink to this definition"></a></dt>
+<dd><p>Record and return sampled solutions and any other important
+information for learning.</p>
+<p>It samples self.batch_size number of solutions, unless batch_size is provided.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.RandomSearchOptimizer.update_params">
+<span class="sig-name descname"><span class="pre">update_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.lite.optimizer.RandomSearchOptimizer.update_params" title="Permalink to this definition"></a></dt>
+<dd><p>Update model parameters by reward. Reward is objective function
+values evaluated on the solutions sampled by sample_internal()</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.gumbel_softmax">
+<span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">gumbel_softmax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.gumbel_softmax" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.obj_func_scaler">
+<span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">obj_func_scaler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_offset_and_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.obj_func_scaler" title="Permalink to this definition"></a></dt>
+<dd><p>Scale objective functions to make optimizers get out of local minima more easily.</p>
+<p>The scaling formula is: exp((reward - offset) / scale)</p>
+<p>if obj_exp_offset_scale is None, do not scale the obj_function (i.e., reward == scaled_reward)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.sample_from_logits">
+<span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">sample_from_logits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keyed_logits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.nn.parameter.Parameter</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.lite.optimizer.sample_from_logits" title="Permalink to this definition"></a></dt>
+<dd><p>Return sampled solutions and sampled log probabilities</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.sample_gumbel">
+<span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">sample_gumbel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-20</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.sample_gumbel" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.shuffle_exp_replay">
+<span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">shuffle_exp_replay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exp_replay</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.shuffle_exp_replay" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.lite.optimizer.sol_to_tensors">
+<span class="sig-prename descclassname"><span class="pre">reagent.lite.optimizer.</span></span><span class="sig-name descname"><span class="pre">sol_to_tensors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampled_sol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">nevergrad.parametrization.container.Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.lite.optimizer.sol_to_tensors" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.lite">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.lite" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.evaluation.feature_importance.html" class="btn btn-neutral float-left" title="reagent.evaluation.feature_importance package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.mab.html" class="btn btn-neutral float-right" title="reagent.mab package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

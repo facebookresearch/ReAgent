@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    reagent.gym.policies.samplers
    reagent.gym.policies.scorers
@@ -35,7 +36,6 @@ reagent.gym.policies.random\_policies module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

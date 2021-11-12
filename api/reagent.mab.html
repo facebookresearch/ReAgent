@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>reagent.mab package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.model_managers package" href="reagent.model_managers.html" />
+    <link rel="prev" title="reagent.lite package" href="reagent.lite.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">MAB</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.mab.ucb">reagent.mab.ucb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.mab">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>reagent.mab package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/reagent.mab.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="reagent-mab-package">
+<h1>reagent.mab package<a class="headerlink" href="#reagent-mab-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.mab.ucb">
+<span id="reagent-mab-ucb-module"></span><h2>reagent.mab.ucb module<a class="headerlink" href="#module-reagent.mab.ucb" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">BaseUCB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Base class for UCB-like Multi-Armed Bandits (MAB)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.add_batch_observations">
+<span class="sig-name descname"><span class="pre">add_batch_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_obs_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.add_batch_observations" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.add_single_observation">
+<span class="sig-name descname"><span class="pre">add_single_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arm_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.add_single_observation" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.get_action">
+<span class="sig-name descname"><span class="pre">get_action</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.get_action" title="Permalink to this definition"></a></dt>
+<dd><p>Get the id of the action chosen by the UCB algorithm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The integer ID of the chosen action</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.get_avg_reward_values">
+<span class="sig-name descname"><span class="pre">get_avg_reward_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.get_avg_reward_values" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.get_ucb_scores">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_ucb_scores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.get_ucb_scores" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.get_ucb_scores_from_batch">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_ucb_scores_from_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_obs_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.get_ucb_scores_from_batch" title="Permalink to this definition"></a></dt>
+<dd><p>A utility method used to create the bandit, feed in a batch of observations and get the UCB scores in one function call</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_obs_per_arm</strong> (<em>Tensor</em>) – An array of counts of per-arm numbers of observations</p></li>
+<li><p><strong>sum_reward_per_arm</strong> (<em>Tensor</em>) – An array of sums of rewards for each arm</p></li>
+<li><p><strong>implementations</strong><strong>)</strong> (<em>(</em><em>additional arguments can be provided for specific concrete class</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Array of per-arm UCB scores</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.ucb.MetricUCB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">MetricUCB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.MetricUCB" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.mab.ucb.BaseUCB" title="reagent.mab.ucb.BaseUCB"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.ucb.BaseUCB</span></code></a></p>
+<p>This is an improvement over UCB1 which uses a more precise confidence radius, especially for small expected rewards.
+Reference: <a class="reference external" href="https://arxiv.org/pdf/0809.4882.pdf">https://arxiv.org/pdf/0809.4882.pdf</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.MetricUCB.get_ucb_scores">
+<span class="sig-name descname"><span class="pre">get_ucb_scores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.MetricUCB.get_ucb_scores" title="Permalink to this definition"></a></dt>
+<dd><p>Get per-arm UCB scores. The formula is
+UCB_i = AVG([rewards_i]) + SQRT(AVG([rewards_i]) * LN(T+1)/N_i) + LN(T+1)/N_i</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>An array of UCB scores (one per arm)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.mab.ucb.MetricUCB.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.ucb.MetricUCB.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.ucb.UCB1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">UCB1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCB1" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.mab.ucb.BaseUCB" title="reagent.mab.ucb.BaseUCB"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.ucb.BaseUCB</span></code></a></p>
+<p>Canonical implementation of UCB1
+Reference: <a class="reference external" href="https://www.cs.bham.ac.uk/internal/courses/robotics/lectures/ucb1.pdf">https://www.cs.bham.ac.uk/internal/courses/robotics/lectures/ucb1.pdf</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.UCB1.get_ucb_scores">
+<span class="sig-name descname"><span class="pre">get_ucb_scores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCB1.get_ucb_scores" title="Permalink to this definition"></a></dt>
+<dd><p>Get per-arm UCB scores. The formula is
+UCB_i = AVG([rewards_i]) + SQRT(2*LN(T)/N_i)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>An array of UCB scores (one per arm)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.mab.ucb.UCB1.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.ucb.UCB1.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTuned">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">UCBTuned</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCBTuned" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.mab.ucb.BaseUCB" title="reagent.mab.ucb.BaseUCB"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.ucb.BaseUCB</span></code></a></p>
+<p>Implementation of the UCB-Tuned algorithm from Section 4 of  <a class="reference external" href="https://link.springer.com/content/pdf/10.1023/A:1013689704352.pdf">https://link.springer.com/content/pdf/10.1023/A:1013689704352.pdf</a>
+Biggest difference from basic UCB is that per-arm reward variance is estimated.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTuned.add_batch_observations">
+<span class="sig-name descname"><span class="pre">add_batch_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_obs_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_squared_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCBTuned.add_batch_observations" title="Permalink to this definition"></a></dt>
+<dd><p>Add information about arm rewards in a batched form.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_obs_per_arm</strong> (<em>Tensor</em>) – An array of counts of per-arm numbers of observations</p></li>
+<li><p><strong>sum_reward_per_arm</strong> (<em>Tensor</em>) – An array of sums of rewards for each arm</p></li>
+<li><p><strong>sum_reward_squared_per_arm</strong> (<em>Tensor</em>) – An array of sums of squares of rewards for each arm</p></li>
+<li><p><strong>arm_ids</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>Union</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em><em>]</em><em>]</em>) – A list of ids of arms in the same order as the elements of previous arrays</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTuned.add_single_observation">
+<span class="sig-name descname"><span class="pre">add_single_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arm_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCBTuned.add_single_observation" title="Permalink to this definition"></a></dt>
+<dd><p>Add a single observation (arm played, reward) to the bandit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arm_id</strong> (<em>int</em>) – Which arm was played</p></li>
+<li><p><strong>reward</strong> (<em>float</em>) – Reward renerated by the arm</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTuned.get_ucb_scores">
+<span class="sig-name descname"><span class="pre">get_ucb_scores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.ucb.UCBTuned.get_ucb_scores" title="Permalink to this definition"></a></dt>
+<dd><p>Get per-arm UCB scores. The formula is
+UCB_i = AVG([rewards_i]) + SQRT(LN(T)/N_i * V_i)
+where V_i is a conservative variance estimate of arm i:</p>
+<blockquote>
+<div><p>V_i = AVG([rewards_i**2]) - AVG([rewards_i])**2 + sqrt(2ln(t) / n_i)</p>
+</div></blockquote>
+<p>Nore that we don’t apply the min(1/4, …) operator to the variance because this bandit is meant for non-Bernoulli applications as well</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>An array of UCB scores (one per arm)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTuned.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.ucb.UCBTuned.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTunedBernoulli">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">UCBTunedBernoulli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCBTunedBernoulli" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.mab.ucb.UCBTuned" title="reagent.mab.ucb.UCBTuned"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.ucb.UCBTuned</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTunedBernoulli.add_batch_observations">
+<span class="sig-name descname"><span class="pre">add_batch_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_obs_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_success_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCBTunedBernoulli.add_batch_observations" title="Permalink to this definition"></a></dt>
+<dd><p>Add a batch of observations to the UCBTuned bandit, assuming Bernoulli distribution of rewards.
+Because of the Bernoulli assumption, we don’t need to provide the squared rewards separately</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_obs_per_arm</strong> (<em>Tensor</em>) – An array of counts of per-arm numbers of observations</p></li>
+<li><p><strong>num_success_per_arm</strong> (<em>Tensor</em>) – An array of counts of per-arm numbers of successes</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTunedBernoulli.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.ucb.UCBTunedBernoulli.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.mab.ucb.get_bernoulli_tuned_ucb_scores">
+<span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">get_bernoulli_tuned_ucb_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_obs_per_arm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_success_per_arm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.get_bernoulli_tuned_ucb_scores" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.mab">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.mab" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.lite.html" class="btn btn-neutral float-left" title="reagent.lite package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.model_managers.html" class="btn btn-neutral float-right" title="reagent.model_managers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

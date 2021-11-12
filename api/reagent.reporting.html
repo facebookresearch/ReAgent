@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>reagent.reporting package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.samplers package" href="reagent.samplers.html" />
+    <link rel="prev" title="reagent.replay_memory package" href="reagent.replay_memory.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="reagent.core.html">reagent.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.data.html">reagent.data package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.lite.html">reagent.lite package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.mab.html">reagent.mab package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.model_managers.html">reagent.model_managers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.model_utils.html">reagent.model_utils package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.net_builder.html">reagent.net_builder package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.publishers.html">reagent.publishers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">reagent.reporting package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.samplers.html">reagent.samplers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.scripts.html">reagent.scripts package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.validators.html">reagent.validators package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">reagent</a> &raquo;</li>
+          <li><a href="reagent.html">reagent package</a> &raquo;</li>
+      <li>reagent.reporting package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/reagent.reporting.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="reagent-reporting-package">
+<h1>reagent.reporting package<a class="headerlink" href="#reagent-reporting-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.reporting.actor_critic_reporter">
+<span id="reagent-reporting-actor-critic-reporter-module"></span><h2>reagent.reporting.actor_critic_reporter module<a class="headerlink" href="#module-reagent.reporting.actor_critic_reporter" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.actor_critic_reporter.ActorCriticReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.actor_critic_reporter.</span></span><span class="sig-name descname"><span class="pre">ActorCriticReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report_interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.actor_critic_reporter.ActorCriticReporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.reporting.actor_critic_reporter.ActorCriticReporter.aggregating_observers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">aggregating_observers</span></span><a class="headerlink" href="#reagent.reporting.actor_critic_reporter.ActorCriticReporter.aggregating_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.actor_critic_reporter.ActorCriticReporter.generate_training_report">
+<span class="sig-name descname"><span class="pre">generate_training_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.training_reports.ActorCriticTrainingReport" title="reagent.workflow.training_reports.ActorCriticTrainingReport"><span class="pre">reagent.workflow.training_reports.ActorCriticTrainingReport</span></a></span></span><a class="headerlink" href="#reagent.reporting.actor_critic_reporter.ActorCriticReporter.generate_training_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.reporting.actor_critic_reporter.ActorCriticReporter.value_list_observers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value_list_observers</span></span><a class="headerlink" href="#reagent.reporting.actor_critic_reporter.ActorCriticReporter.value_list_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.reporting.compound_reporter">
+<span id="reagent-reporting-compound-reporter-module"></span><h2>reagent.reporting.compound_reporter module<a class="headerlink" href="#module-reagent.reporting.compound_reporter" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.compound_reporter.CompoundReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.compound_reporter.</span></span><span class="sig-name descname"><span class="pre">CompoundReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reporters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.result_registries.TrainingReport" title="reagent.core.result_registries.TrainingReport"><span class="pre">reagent.core.result_registries.TrainingReport</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.compound_reporter.CompoundReporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.compound_reporter.CompoundReporter.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.compound_reporter.CompoundReporter.flush" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.compound_reporter.CompoundReporter.generate_training_report">
+<span class="sig-name descname"><span class="pre">generate_training_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.result_registries.TrainingReport" title="reagent.core.result_registries.TrainingReport"><span class="pre">reagent.core.result_registries.TrainingReport</span></a></span></span><a class="headerlink" href="#reagent.reporting.compound_reporter.CompoundReporter.generate_training_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.compound_reporter.CompoundReporter.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.reporting.compound_reporter.CompoundReporter.log" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.compound_reporter.CompoundReporter.set_flush_function">
+<span class="sig-name descname"><span class="pre">set_flush_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flush_function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.compound_reporter.CompoundReporter.set_flush_function" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.reporting.discrete_crr_reporter">
+<span id="reagent-reporting-discrete-crr-reporter-module"></span><h2>reagent.reporting.discrete_crr_reporter module<a class="headerlink" href="#module-reagent.reporting.discrete_crr_reporter" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.discrete_crr_reporter.DiscreteCRRReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.discrete_crr_reporter.</span></span><span class="sig-name descname"><span class="pre">DiscreteCRRReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report_interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_action_distribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recent_window_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.discrete_crr_reporter.DiscreteCRRReporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.discrete_crr_reporter.DiscreteCRRReporter.generate_training_report">
+<span class="sig-name descname"><span class="pre">generate_training_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.training_reports.DQNTrainingReport" title="reagent.workflow.training_reports.DQNTrainingReport"><span class="pre">reagent.workflow.training_reports.DQNTrainingReport</span></a></span></span><a class="headerlink" href="#reagent.reporting.discrete_crr_reporter.DiscreteCRRReporter.generate_training_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.reporting.discrete_dqn_reporter">
+<span id="reagent-reporting-discrete-dqn-reporter-module"></span><h2>reagent.reporting.discrete_dqn_reporter module<a class="headerlink" href="#module-reagent.reporting.discrete_dqn_reporter" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.discrete_dqn_reporter.DiscreteDQNReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.discrete_dqn_reporter.</span></span><span class="sig-name descname"><span class="pre">DiscreteDQNReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report_interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_action_distribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recent_window_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.discrete_dqn_reporter.DiscreteDQNReporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.discrete_dqn_reporter.DiscreteDQNReporter.generate_training_report">
+<span class="sig-name descname"><span class="pre">generate_training_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.training_reports.DQNTrainingReport" title="reagent.workflow.training_reports.DQNTrainingReport"><span class="pre">reagent.workflow.training_reports.DQNTrainingReport</span></a></span></span><a class="headerlink" href="#reagent.reporting.discrete_dqn_reporter.DiscreteDQNReporter.generate_training_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.reporting.parametric_dqn_reporter">
+<span id="reagent-reporting-parametric-dqn-reporter-module"></span><h2>reagent.reporting.parametric_dqn_reporter module<a class="headerlink" href="#module-reagent.reporting.parametric_dqn_reporter" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.parametric_dqn_reporter.ParametricDQNReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.parametric_dqn_reporter.</span></span><span class="sig-name descname"><span class="pre">ParametricDQNReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report_interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.parametric_dqn_reporter.ParametricDQNReporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.parametric_dqn_reporter.ParametricDQNReporter.generate_training_report">
+<span class="sig-name descname"><span class="pre">generate_training_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.training_reports.ParametricDQNTrainingReport" title="reagent.workflow.training_reports.ParametricDQNTrainingReport"><span class="pre">reagent.workflow.training_reports.ParametricDQNTrainingReport</span></a></span></span><a class="headerlink" href="#reagent.reporting.parametric_dqn_reporter.ParametricDQNReporter.generate_training_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.reporting.reporter_base">
+<span id="reagent-reporting-reporter-base-module"></span><h2>reagent.reporting.reporter_base module<a class="headerlink" href="#module-reagent.reporting.reporter_base" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.reporter_base.ReporterBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.reporter_base.</span></span><span class="sig-name descname"><span class="pre">ReporterBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value_list_observers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.observers.ValueListObserver" title="reagent.core.observers.ValueListObserver"><span class="pre">reagent.core.observers.ValueListObserver</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregating_observers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.observers.IntervalAggregatingObserver" title="reagent.core.observers.IntervalAggregatingObserver"><span class="pre">reagent.core.observers.IntervalAggregatingObserver</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.reporter_base.ReporterBase" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.observers.CompositeObserver" title="reagent.core.observers.CompositeObserver"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.observers.CompositeObserver</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.reporter_base.ReporterBase.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.reporter_base.ReporterBase.flush" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.reporter_base.ReporterBase.generate_training_report">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">generate_training_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.result_registries.TrainingReport" title="reagent.core.result_registries.TrainingReport"><span class="pre">reagent.core.result_registries.TrainingReport</span></a></span></span><a class="headerlink" href="#reagent.reporting.reporter_base.ReporterBase.generate_training_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.reporter_base.ReporterBase.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.reporting.reporter_base.ReporterBase.log" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.reporting.reward_network_reporter">
+<span id="reagent-reporting-reward-network-reporter-module"></span><h2>reagent.reporting.reward_network_reporter module<a class="headerlink" href="#module-reagent.reporting.reward_network_reporter" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.reward_network_reporter.RewardNetworkReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.reward_network_reporter.</span></span><span class="sig-name descname"><span class="pre">RewardNetworkReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reward_network_trainer.LossFunction" title="reagent.training.reward_network_trainer.LossFunction"><span class="pre">reagent.training.reward_network_trainer.LossFunction</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report_interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.reward_network_reporter.RewardNetworkReporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.reporting.reward_network_reporter.RewardNetworkReporter.aggregating_observers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">aggregating_observers</span></span><a class="headerlink" href="#reagent.reporting.reward_network_reporter.RewardNetworkReporter.aggregating_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.reward_network_reporter.RewardNetworkReporter.update_best_model">
+<span class="sig-name descname"><span class="pre">update_best_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.reward_network_reporter.RewardNetworkReporter.update_best_model" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.reporting.reward_network_reporter.RewardNetworkReporter.value_list_observers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value_list_observers</span></span><a class="headerlink" href="#reagent.reporting.reward_network_reporter.RewardNetworkReporter.value_list_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.reporting.seq2reward_reporter">
+<span id="reagent-reporting-seq2reward-reporter-module"></span><h2>reagent.reporting.seq2reward_reporter module<a class="headerlink" href="#module-reagent.reporting.seq2reward_reporter" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.seq2reward_reporter.Seq2RewardCompressReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.seq2reward_reporter.</span></span><span class="sig-name descname"><span class="pre">Seq2RewardCompressReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report_interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.seq2reward_reporter.Seq2RewardCompressReporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.reporting.seq2reward_reporter.Seq2RewardReporter" title="reagent.reporting.seq2reward_reporter.Seq2RewardReporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.reporting.seq2reward_reporter.Seq2RewardReporter</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.reporting.seq2reward_reporter.Seq2RewardCompressReporter.aggregating_observers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">aggregating_observers</span></span><a class="headerlink" href="#reagent.reporting.seq2reward_reporter.Seq2RewardCompressReporter.aggregating_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.seq2reward_reporter.Seq2RewardReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.seq2reward_reporter.</span></span><span class="sig-name descname"><span class="pre">Seq2RewardReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report_interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.seq2reward_reporter.Seq2RewardReporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.reporting.seq2reward_reporter.Seq2RewardReporter.aggregating_observers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">aggregating_observers</span></span><a class="headerlink" href="#reagent.reporting.seq2reward_reporter.Seq2RewardReporter.aggregating_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.seq2reward_reporter.Seq2RewardReporter.generate_training_report">
+<span class="sig-name descname"><span class="pre">generate_training_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.training_reports.Seq2RewardTrainingReport" title="reagent.workflow.training_reports.Seq2RewardTrainingReport"><span class="pre">reagent.workflow.training_reports.Seq2RewardTrainingReport</span></a></span></span><a class="headerlink" href="#reagent.reporting.seq2reward_reporter.Seq2RewardReporter.generate_training_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.reporting.seq2reward_reporter.Seq2RewardReporter.value_list_observers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value_list_observers</span></span><a class="headerlink" href="#reagent.reporting.seq2reward_reporter.Seq2RewardReporter.value_list_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.reporting.slate_q_reporter">
+<span id="reagent-reporting-slate-q-reporter-module"></span><h2>reagent.reporting.slate_q_reporter module<a class="headerlink" href="#module-reagent.reporting.slate_q_reporter" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.slate_q_reporter.SlateQReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.slate_q_reporter.</span></span><span class="sig-name descname"><span class="pre">SlateQReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report_interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.slate_q_reporter.SlateQReporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.reporting.slate_q_reporter.SlateQReporter.aggregating_observers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">aggregating_observers</span></span><a class="headerlink" href="#reagent.reporting.slate_q_reporter.SlateQReporter.aggregating_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.slate_q_reporter.SlateQReporter.generate_training_report">
+<span class="sig-name descname"><span class="pre">generate_training_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.training_reports.SlateQTrainingReport" title="reagent.workflow.training_reports.SlateQTrainingReport"><span class="pre">reagent.workflow.training_reports.SlateQTrainingReport</span></a></span></span><a class="headerlink" href="#reagent.reporting.slate_q_reporter.SlateQReporter.generate_training_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.reporting.slate_q_reporter.SlateQReporter.value_list_observers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value_list_observers</span></span><a class="headerlink" href="#reagent.reporting.slate_q_reporter.SlateQReporter.value_list_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.reporting.td3_reporter">
+<span id="reagent-reporting-td3-reporter-module"></span><h2>reagent.reporting.td3_reporter module<a class="headerlink" href="#module-reagent.reporting.td3_reporter" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.td3_reporter.TD3Reporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.td3_reporter.</span></span><span class="sig-name descname"><span class="pre">TD3Reporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report_interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.td3_reporter.TD3Reporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.reporting.actor_critic_reporter.ActorCriticReporter" title="reagent.reporting.actor_critic_reporter.ActorCriticReporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.reporting.actor_critic_reporter.ActorCriticReporter</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.reporting.td3_reporter.TD3Reporter.aggregating_observers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">aggregating_observers</span></span><a class="headerlink" href="#reagent.reporting.td3_reporter.TD3Reporter.aggregating_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.reporting.world_model_reporter">
+<span id="reagent-reporting-world-model-reporter-module"></span><h2>reagent.reporting.world_model_reporter module<a class="headerlink" href="#module-reagent.reporting.world_model_reporter" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.world_model_reporter.WorldModelReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.world_model_reporter.</span></span><span class="sig-name descname"><span class="pre">WorldModelReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report_interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.world_model_reporter.WorldModelReporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.reporting.world_model_reporter.WorldModelReporter.aggregating_observers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">aggregating_observers</span></span><a class="headerlink" href="#reagent.reporting.world_model_reporter.WorldModelReporter.aggregating_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.world_model_reporter.WorldModelReporter.generate_training_report">
+<span class="sig-name descname"><span class="pre">generate_training_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.training_reports.WorldModelTrainingReport" title="reagent.workflow.training_reports.WorldModelTrainingReport"><span class="pre">reagent.workflow.training_reports.WorldModelTrainingReport</span></a></span></span><a class="headerlink" href="#reagent.reporting.world_model_reporter.WorldModelReporter.generate_training_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.reporting.world_model_reporter.WorldModelReporter.value_list_observers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value_list_observers</span></span><a class="headerlink" href="#reagent.reporting.world_model_reporter.WorldModelReporter.value_list_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.reporting">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.reporting" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.CompoundReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.</span></span><span class="sig-name descname"><span class="pre">CompoundReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reporters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.result_registries.TrainingReport" title="reagent.core.result_registries.TrainingReport"><span class="pre">reagent.core.result_registries.TrainingReport</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.CompoundReporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.reporting.reporter_base.ReporterBase" title="reagent.reporting.reporter_base.ReporterBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.reporting.reporter_base.ReporterBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.CompoundReporter.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.CompoundReporter.flush" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.CompoundReporter.generate_training_report">
+<span class="sig-name descname"><span class="pre">generate_training_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.result_registries.TrainingReport" title="reagent.core.result_registries.TrainingReport"><span class="pre">reagent.core.result_registries.TrainingReport</span></a></span></span><a class="headerlink" href="#reagent.reporting.CompoundReporter.generate_training_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.CompoundReporter.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.reporting.CompoundReporter.log" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.CompoundReporter.set_flush_function">
+<span class="sig-name descname"><span class="pre">set_flush_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flush_function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.CompoundReporter.set_flush_function" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.reporting.ReporterBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.reporting.</span></span><span class="sig-name descname"><span class="pre">ReporterBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value_list_observers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.observers.ValueListObserver" title="reagent.core.observers.ValueListObserver"><span class="pre">reagent.core.observers.ValueListObserver</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregating_observers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.observers.IntervalAggregatingObserver" title="reagent.core.observers.IntervalAggregatingObserver"><span class="pre">reagent.core.observers.IntervalAggregatingObserver</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.ReporterBase" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.observers.CompositeObserver" title="reagent.core.observers.CompositeObserver"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.observers.CompositeObserver</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.ReporterBase.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.reporting.ReporterBase.flush" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.ReporterBase.generate_training_report">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">generate_training_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.result_registries.TrainingReport" title="reagent.core.result_registries.TrainingReport"><span class="pre">reagent.core.result_registries.TrainingReport</span></a></span></span><a class="headerlink" href="#reagent.reporting.ReporterBase.generate_training_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.reporting.ReporterBase.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.reporting.ReporterBase.log" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.replay_memory.html" class="btn btn-neutral float-left" title="reagent.replay_memory package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.samplers.html" class="btn btn-neutral float-right" title="reagent.samplers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

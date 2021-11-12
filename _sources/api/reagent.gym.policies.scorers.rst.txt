@@ -28,7 +28,6 @@ reagent.gym.policies.scorers.slate\_q\_scorer module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

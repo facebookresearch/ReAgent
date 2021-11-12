@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>reagent.gym.tests package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="reagent.gym.tests.preprocessors package" href="reagent.gym.tests.preprocessors.html" />
     <link rel="prev" title="reagent.gym.runners package" href="reagent.gym.runners.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,277 +36,659 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
-<li class="toctree-l4 current"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reagent.gym.html">Gym</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.gym.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.agents.html">reagent.gym.agents package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.datasets.html">reagent.gym.datasets package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.envs.html">reagent.gym.envs package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.policies.html">reagent.gym.policies package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.preprocessors.html">reagent.gym.preprocessors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.runners.html">reagent.gym.runners package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">reagent.gym.tests package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.tests.test_gym">reagent.gym.tests.test_gym module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.tests.test_gym_datasets">reagent.gym.tests.test_gym_datasets module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.tests.test_gym_offline">reagent.gym.tests.test_gym_offline module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.tests.test_gym_replay_buffer">reagent.gym.tests.test_gym_replay_buffer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.tests.test_linear_dynamics">reagent.gym.tests.test_linear_dynamics module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.tests.test_pomdp">reagent.gym.tests.test_pomdp module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.tests.test_world_model">reagent.gym.tests.test_world_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.tests">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.normalizers">reagent.gym.normalizers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.types">reagent.gym.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.utils">reagent.gym.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym">Module contents</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-          <li><a href="modules.html">reagent</a> &raquo;</li>
-        
-          <li><a href="reagent.html">reagent package</a> &raquo;</li>
-        
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="reagent.gym.html">reagent.gym package</a> &raquo;</li>
-        
       <li>reagent.gym.tests package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/reagent.gym.tests.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-gym-tests-package">
-<h1>reagent.gym.tests package<a class="headerlink" href="#reagent-gym-tests-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="reagent-gym-tests-package">
+<h1>reagent.gym.tests package<a class="headerlink" href="#reagent-gym-tests-package" title="Permalink to this headline"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="reagent.gym.tests.preprocessors.html">reagent.gym.tests.preprocessors package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#reagent-gym-tests-preprocessors-test-default-preprocessors-module">reagent.gym.tests.preprocessors.test_default_preprocessors module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#reagent-gym-tests-preprocessors-test-replay-buffer-inserters-module">reagent.gym.tests.preprocessors.test_replay_buffer_inserters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#module-reagent.gym.tests.preprocessors.test_default_preprocessors">reagent.gym.tests.preprocessors.test_default_preprocessors module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#module-reagent.gym.tests.preprocessors.test_replay_buffer_inserters">reagent.gym.tests.preprocessors.test_replay_buffer_inserters module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reagent.gym.tests.preprocessors.html#module-reagent.gym.tests.preprocessors">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </div>
-</div>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-gym-tests-test-gym-module">
-<h2>reagent.gym.tests.test_gym module<a class="headerlink" href="#reagent-gym-tests-test-gym-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-gym-tests-test-gym-offline-module">
-<h2>reagent.gym.tests.test_gym_offline module<a class="headerlink" href="#reagent-gym-tests-test-gym-offline-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.gym.tests.test_linear_dynamics">
-<span id="reagent-gym-tests-test-linear-dynamics-module"></span><h2>reagent.gym.tests.test_linear_dynamics module<a class="headerlink" href="#module-reagent.gym.tests.test_linear_dynamics" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.tests.test_linear_dynamics.</code><code class="sig-name descname">TestLinearDynamicsEnvironment</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
-<dl class="method">
-<dt id="reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment.run_n_episodes">
-<code class="sig-name descname">run_n_episodes</code><span class="sig-paren">(</span><em class="sig-param">env</em>, <em class="sig-param">num_episodes</em>, <em class="sig-param">policy</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment.run_n_episodes" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.gym.tests.test_gym">
+<span id="reagent-gym-tests-test-gym-module"></span><h2>reagent.gym.tests.test_gym module<a class="headerlink" href="#module-reagent.gym.tests.test_gym" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_gym.</span></span><span class="sig-name descname"><span class="pre">TestGym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.test.base.horizon_test_base.HorizonTestBase</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_online_episode_gym_cpu">
+<span class="sig-name descname"><span class="pre">test_online_episode_gym_cpu</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_online_episode_gym_cpu" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment.setUp">
-<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment.setUp" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_online_episode_gym_cpu_0_REINFORCE_Cartpole_online">
+<span class="sig-name descname"><span class="pre">test_online_episode_gym_cpu_0_REINFORCE_Cartpole_online</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_online_episode_gym_cpu_0_REINFORCE_Cartpole_online" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_online_episode_gym_cpu_1_PPO_Cartpole_online">
+<span class="sig-name descname"><span class="pre">test_online_episode_gym_cpu_1_PPO_Cartpole_online</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_online_episode_gym_cpu_1_PPO_Cartpole_online" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_1</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_0_Discrete_CRR_Cartpole">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_1_0_Discrete_CRR_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_0_Discrete_CRR_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_1_Discrete_DQN_Cartpole">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_1_1_Discrete_DQN_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_1_Discrete_DQN_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_2_Discrete_C51_Cartpole">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_1_2_Discrete_C51_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_2_Discrete_C51_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_3_Discrete_QR_Cartpole">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_1_3_Discrete_QR_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_3_Discrete_QR_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_4_Discrete_DQN_Open_Gridworld">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_1_4_Discrete_DQN_Open_Gridworld</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_4_Discrete_DQN_Open_Gridworld" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_5_SAC_Pendulum">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_1_5_SAC_Pendulum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_5_SAC_Pendulum" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_6_Continuous_CRR_Pendulum">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_1_6_Continuous_CRR_Pendulum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_6_Continuous_CRR_Pendulum" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_7_TD3_Pendulum">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_1_7_TD3_Pendulum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_1_7_TD3_Pendulum" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_2</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_0_Parametric_DQN_Cartpole">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_2_0_Parametric_DQN_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_0_Parametric_DQN_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_1_Parametric_SARSA_Cartpole">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_2_1_Parametric_SARSA_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_1_Parametric_SARSA_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_2_SlateQ_RecSim">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_2_2_SlateQ_RecSim</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_2_SlateQ_RecSim" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_3_SlateQ_RecSim_with_Discount_Scaled_by_Time_Diff">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_2_3_SlateQ_RecSim_with_Discount_Scaled_by_Time_Diff</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_3_SlateQ_RecSim_with_Discount_Scaled_by_Time_Diff" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_4_SlateQ_RecSim_multi_selection">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_2_4_SlateQ_RecSim_multi_selection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_4_SlateQ_RecSim_multi_selection" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_5_SlateQ_RecSim_multi_selection_average_by_current_slate_size">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_2_5_SlateQ_RecSim_multi_selection_average_by_current_slate_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_5_SlateQ_RecSim_multi_selection_average_by_current_slate_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_6_PossibleActionsMask_DQN">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_cpu_2_6_PossibleActionsMask_DQN</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_cpu_2_6_PossibleActionsMask_DQN" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_1</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_0_Discrete_CRR_Cartpole">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_1_0_Discrete_CRR_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_0_Discrete_CRR_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_1_Discrete_DQN_Cartpole">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_1_1_Discrete_DQN_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_1_Discrete_DQN_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_2_Discrete_C51_Cartpole">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_1_2_Discrete_C51_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_2_Discrete_C51_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_3_Discrete_QR_Cartpole">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_1_3_Discrete_QR_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_3_Discrete_QR_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_4_Discrete_DQN_Open_Gridworld">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_1_4_Discrete_DQN_Open_Gridworld</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_4_Discrete_DQN_Open_Gridworld" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_5_SAC_Pendulum">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_1_5_SAC_Pendulum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_5_SAC_Pendulum" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_6_Continuous_CRR_Pendulum">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_1_6_Continuous_CRR_Pendulum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_6_Continuous_CRR_Pendulum" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_7_TD3_Pendulum">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_1_7_TD3_Pendulum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_1_7_TD3_Pendulum" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_2</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_0_Parametric_DQN_Cartpole">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_2_0_Parametric_DQN_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_0_Parametric_DQN_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_1_Parametric_SARSA_Cartpole">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_2_1_Parametric_SARSA_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_1_Parametric_SARSA_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_2_SlateQ_RecSim">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_2_2_SlateQ_RecSim</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_2_SlateQ_RecSim" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_3_SlateQ_RecSim_with_Discount_Scaled_by_Time_Diff">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_2_3_SlateQ_RecSim_with_Discount_Scaled_by_Time_Diff</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_3_SlateQ_RecSim_with_Discount_Scaled_by_Time_Diff" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_4_SlateQ_RecSim_multi_selection">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_2_4_SlateQ_RecSim_multi_selection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_4_SlateQ_RecSim_multi_selection" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_5_SlateQ_RecSim_multi_selection_average_by_current_slate_size">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_2_5_SlateQ_RecSim_multi_selection_average_by_current_slate_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_5_SlateQ_RecSim_multi_selection_average_by_current_slate_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_6_PossibleActionsMask_DQN">
+<span class="sig-name descname"><span class="pre">test_replay_buffer_gym_gpu_2_6_PossibleActionsMask_DQN</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.TestGym.test_replay_buffer_gym_gpu_2_6_PossibleActionsMask_DQN" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.eval_policy">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_gym.</span></span><span class="sig-name descname"><span class="pre">eval_policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">serving_policy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.policies.html#reagent.gym.policies.policy.Policy" title="reagent.gym.policies.policy.Policy"><span class="pre">reagent.gym.policies.policy.Policy</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_eval_episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serving</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#reagent.gym.tests.test_gym.eval_policy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.identity_collate">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_gym.</span></span><span class="sig-name descname"><span class="pre">identity_collate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.identity_collate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.run_test_online_episode">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_gym.</span></span><span class="sig-name descname"><span class="pre">run_test_online_episode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.Env__Union" title="reagent.gym.envs.Env__Union"><span class="pre">reagent.gym.envs.Env__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.union.ModelManager__Union" title="reagent.model_managers.union.ModelManager__Union"><span class="pre">reagent.model_managers.union.ModelManager__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_train_episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passing_score_bar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_eval_episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.run_test_online_episode" title="Permalink to this definition"></a></dt>
+<dd><p>Run an online learning test. At the end of each episode training is run on the trajectory.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym.run_test_replay_buffer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_gym.</span></span><span class="sig-name descname"><span class="pre">run_test_replay_buffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.Env__Union" title="reagent.gym.envs.Env__Union"><span class="pre">reagent.gym.envs.Env__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.union.ModelManager__Union" title="reagent.model_managers.union.ModelManager__Union"><span class="pre">reagent.model_managers.union.ModelManager__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_memory_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_every_ts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_after_ts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_train_episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passing_score_bar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_eval_episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minibatch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym.run_test_replay_buffer" title="Permalink to this definition"></a></dt>
+<dd><p>Run an online learning test with a replay buffer. The replay buffer is pre-filled, then the training starts.
+Each transition is added to the replay buffer immediately after it takes place.</p>
+</dd></dl>
+
+</section>
+<section id="module-reagent.gym.tests.test_gym_datasets">
+<span id="reagent-gym-tests-test-gym-datasets-module"></span><h2>reagent.gym.tests.test_gym_datasets module<a class="headerlink" href="#module-reagent.gym.tests.test_gym_datasets" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_datasets.TestEpisodicDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_gym_datasets.</span></span><span class="sig-name descname"><span class="pre">TestEpisodicDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_datasets.TestEpisodicDataset" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_datasets.TestEpisodicDataset.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_datasets.TestEpisodicDataset.setUp" title="Permalink to this definition"></a></dt>
 <dd><p>Hook method for setting up the test fixture before exercising it.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment.test_random_vs_lqr">
-<code class="sig-name descname">test_random_vs_lqr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment.test_random_vs_lqr" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_datasets.TestEpisodicDataset.test_episodic_dataset">
+<span class="sig-name descname"><span class="pre">test_episodic_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_datasets.TestEpisodicDataset.test_episodic_dataset" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.gym.tests.test_gym_offline">
+<span id="reagent-gym-tests-test-gym-offline-module"></span><h2>reagent.gym.tests.test_gym_offline module<a class="headerlink" href="#module-reagent.gym.tests.test_gym_offline" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_offline.TestGymOffline">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_gym_offline.</span></span><span class="sig-name descname"><span class="pre">TestGymOffline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_offline.TestGymOffline" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.test.base.horizon_test_base.HorizonTestBase</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_cpu">
+<span class="sig-name descname"><span class="pre">test_gym_offline_cpu</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_cpu" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_cpu_0_CEM_Cartpole">
+<span class="sig-name descname"><span class="pre">test_gym_offline_cpu_0_CEM_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_cpu_0_CEM_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_cpu_1_CEM_Single_World_Model_Linear_Dynamics">
+<span class="sig-name descname"><span class="pre">test_gym_offline_cpu_1_CEM_Single_World_Model_Linear_Dynamics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_cpu_1_CEM_Single_World_Model_Linear_Dynamics" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_cpu_2_CEM_Many_World_Models_Linear_Dynamics">
+<span class="sig-name descname"><span class="pre">test_gym_offline_cpu_2_CEM_Many_World_Models_Linear_Dynamics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_cpu_2_CEM_Many_World_Models_Linear_Dynamics" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_gpu">
+<span class="sig-name descname"><span class="pre">test_gym_offline_gpu</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_gpu" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_gpu_0_CEM_Cartpole">
+<span class="sig-name descname"><span class="pre">test_gym_offline_gpu_0_CEM_Cartpole</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_gpu_0_CEM_Cartpole" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_gpu_1_CEM_Single_World_Model_Linear_Dynamics">
+<span class="sig-name descname"><span class="pre">test_gym_offline_gpu_1_CEM_Single_World_Model_Linear_Dynamics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_gpu_1_CEM_Single_World_Model_Linear_Dynamics" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_gpu_2_CEM_Many_World_Models_Linear_Dynamics">
+<span class="sig-name descname"><span class="pre">test_gym_offline_gpu_2_CEM_Many_World_Models_Linear_Dynamics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_offline.TestGymOffline.test_gym_offline_gpu_2_CEM_Many_World_Models_Linear_Dynamics" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_offline.evaluate_cem">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_gym_offline.</span></span><span class="sig-name descname"><span class="pre">evaluate_cem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manager</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_eval_episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_offline.evaluate_cem" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_offline.identity_collate">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_gym_offline.</span></span><span class="sig-name descname"><span class="pre">identity_collate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_offline.identity_collate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_offline.run_test_offline">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_gym_offline.</span></span><span class="sig-name descname"><span class="pre">run_test_offline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.union.ModelManager__Union" title="reagent.model_managers.union.ModelManager__Union"><span class="pre">reagent.model_managers.union.ModelManager__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_memory_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_batches_per_epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_train_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passing_score_bar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_eval_episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minibatch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_offline.run_test_offline" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.gym.tests.test_gym_replay_buffer">
+<span id="reagent-gym-tests-test-gym-replay-buffer-module"></span><h2>reagent.gym.tests.test_gym_replay_buffer module<a class="headerlink" href="#module-reagent.gym.tests.test_gym_replay_buffer" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_replay_buffer.TestEnv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_gym_replay_buffer.</span></span><span class="sig-name descname"><span class="pre">TestEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_replay_buffer.TestEnv" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.gym.envs.wrappers.html#reagent.gym.envs.wrappers.simple_minigrid.SimpleObsWrapper" title="reagent.gym.envs.wrappers.simple_minigrid.SimpleObsWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.envs.wrappers.simple_minigrid.SimpleObsWrapper</span></code></a></p>
+<p>Wrap Gym environment in TestEnv to save the MiniGrid’s
+observation, action, reward and terminal in a list so that
+we can check if replay buffer is working correctly</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_replay_buffer.TestEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_replay_buffer.TestEnv.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the environment to an initial state and returns an initial
+observation.</p>
+<p>Note that this function should not reset the environment’s random
+number generator(s); random variables in the environment’s state should
+be sampled independently between multiple calls to <cite>reset()</cite>. In other
+words, each call of <cite>reset()</cite> should yield an environment suitable for
+a new episode, independent of previous episodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the initial observation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_replay_buffer.TestEnv.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_replay_buffer.TestEnv.seed" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the seed for this env’s random number generator(s).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some environments use multiple pseudorandom number generators.
+We want to capture all such seeds used in order to ensure that
+there aren’t accidental correlations between multiple generators.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Returns the list of seeds used in this env’s random</dt><dd><p>number generators. The first value in the list should be the
+“main” seed, or the value which a reproducer should pass to
+‘seed’. Often, the main seed equals the provided ‘seed’, but
+this won’t be true if seed=None, for example.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list&lt;bigint&gt;</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_replay_buffer.TestEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_replay_buffer.TestEnv.step" title="Permalink to this definition"></a></dt>
+<dd><p>Run one timestep of the environment’s dynamics. When end of
+episode is reached, you are responsible for calling <cite>reset()</cite>
+to reset this environment’s state.</p>
+<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>object</em>) – an action provided by the agent</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>agent’s observation of the current environment
+reward (float) : amount of reward returned after previous action
+done (bool): whether the episode has ended, in which case further step() calls will return undefined results
+info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_replay_buffer.TestGymReplayBuffer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_gym_replay_buffer.</span></span><span class="sig-name descname"><span class="pre">TestGymReplayBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_replay_buffer.TestGymReplayBuffer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.test.base.horizon_test_base.HorizonTestBase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_gym_replay_buffer.TestGymReplayBuffer.test_create_df_from_replay_buffer">
+<span class="sig-name descname"><span class="pre">test_create_df_from_replay_buffer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_gym_replay_buffer.TestGymReplayBuffer.test_create_df_from_replay_buffer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.gym.tests.test_linear_dynamics">
+<span id="reagent-gym-tests-test-linear-dynamics-module"></span><h2>reagent.gym.tests.test_linear_dynamics module<a class="headerlink" href="#module-reagent.gym.tests.test_linear_dynamics" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_linear_dynamics.</span></span><span class="sig-name descname"><span class="pre">TestLinearDynamicsEnvironment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment.run_n_episodes">
+<span class="sig-name descname"><span class="pre">run_n_episodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_episodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment.run_n_episodes" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment.setUp" title="Permalink to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment.test_random_vs_lqr">
+<span class="sig-name descname"><span class="pre">test_random_vs_lqr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_linear_dynamics.TestLinearDynamicsEnvironment.test_random_vs_lqr" title="Permalink to this definition"></a></dt>
 <dd><p>Test random actions vs. a LQR controller. LQR controller should perform
 much better than random actions in the linear dynamics environment.</p>
 </dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.gym.tests.test_pomdp">
-<span id="reagent-gym-tests-test-pomdp-module"></span><h2>reagent.gym.tests.test_pomdp module<a class="headerlink" href="#module-reagent.gym.tests.test_pomdp" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.gym.tests.test_pomdp.TestPOMDPEnvironment">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.tests.test_pomdp.</code><code class="sig-name descname">TestPOMDPEnvironment</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_pomdp.TestPOMDPEnvironment" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-reagent.gym.tests.test_pomdp">
+<span id="reagent-gym-tests-test-pomdp-module"></span><h2>reagent.gym.tests.test_pomdp module<a class="headerlink" href="#module-reagent.gym.tests.test_pomdp" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_pomdp.TestPOMDPEnvironment">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_pomdp.</span></span><span class="sig-name descname"><span class="pre">TestPOMDPEnvironment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_pomdp.TestPOMDPEnvironment" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
-<dl class="method">
-<dt id="reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.setUp">
-<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.setUp" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.setUp" title="Permalink to this definition"></a></dt>
 <dd><p>Hook method for setting up the test fixture before exercising it.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.test_pocman">
-<code class="sig-name descname">test_pocman</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.test_pocman" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.test_pocman">
+<span class="sig-name descname"><span class="pre">test_pocman</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.test_pocman" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.test_string_game">
-<code class="sig-name descname">test_string_game</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.test_string_game" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.test_string_game">
+<span class="sig-name descname"><span class="pre">test_string_game</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.test_string_game" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.test_string_game_v1">
+<span class="sig-name descname"><span class="pre">test_string_game_v1</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_pomdp.TestPOMDPEnvironment.test_string_game_v1" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="reagent-gym-tests-test-seq2reward-model-module">
-<h2>reagent.gym.tests.test_seq2reward_model module<a class="headerlink" href="#reagent-gym-tests-test-seq2reward-model-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-gym-tests-test-world-model-module">
-<h2>reagent.gym.tests.test_world_model module<a class="headerlink" href="#reagent-gym-tests-test-world-model-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.gym.tests">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.gym.tests" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</section>
+<section id="module-reagent.gym.tests.test_world_model">
+<span id="reagent-gym-tests-test-world-model-module"></span><h2>reagent.gym.tests.test_world_model module<a class="headerlink" href="#module-reagent.gym.tests.test_world_model" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_world_model.TestWorldModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_world_model.</span></span><span class="sig-name descname"><span class="pre">TestWorldModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_world_model.TestWorldModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.test.base.horizon_test_base.HorizonTestBase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_world_model.TestWorldModel.test_mdnrnn">
+<span class="sig-name descname"><span class="pre">test_mdnrnn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_world_model.TestWorldModel.test_mdnrnn" title="Permalink to this definition"></a></dt>
+<dd><p>Test MDNRNN feature importance and feature sensitivity.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_world_model.TestWorldModel.test_world_model">
+<span class="sig-name descname"><span class="pre">test_world_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_world_model.TestWorldModel.test_world_model" title="Permalink to this definition"></a></dt>
+<dd><p>Train DQN on POMDP given features from world model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_world_model.TestWorldModel.verify_result">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">verify_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_top_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_world_model.TestWorldModel.verify_result" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_world_model.calculate_feature_importance">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_world_model.</span></span><span class="sig-name descname"><span class="pre">calculate_feature_importance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">gym.core.Env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.world_model.html#reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer" title="reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer"><span class="pre">reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.MemoryNetworkInput" title="reagent.core.types.MemoryNetworkInput"><span class="pre">reagent.core.types.MemoryNetworkInput</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_world_model.calculate_feature_importance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_world_model.calculate_feature_sensitivity">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_world_model.</span></span><span class="sig-name descname"><span class="pre">calculate_feature_sensitivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.world_model.html#reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer" title="reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer"><span class="pre">reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.MemoryNetworkInput" title="reagent.core.types.MemoryNetworkInput"><span class="pre">reagent.core.types.MemoryNetworkInput</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_world_model.calculate_feature_sensitivity" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_world_model.create_embed_rl_dataset">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_world_model.</span></span><span class="sig-name descname"><span class="pre">create_embed_rl_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.world_model.MemoryNetwork" title="reagent.models.world_model.MemoryNetwork"><span class="pre">reagent.models.world_model.MemoryNetwork</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_state_embed_transitions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_world_model.create_embed_rl_dataset" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_world_model.train_mdnrnn">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_world_model.</span></span><span class="sig-name descname"><span class="pre">train_mdnrnn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.world_model.html#reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer" title="reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer"><span class="pre">reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_preprocessor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_train_transitions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_train_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_replay_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_world_model.train_mdnrnn" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_world_model.train_mdnrnn_and_compute_feature_stats">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_world_model.</span></span><span class="sig-name descname"><span class="pre">train_mdnrnn_and_compute_feature_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.union.ModelManager__Union" title="reagent.model_managers.union.ModelManager__Union"><span class="pre">reagent.model_managers.union.ModelManager__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_train_transitions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_test_transitions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_train_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saved_mdnrnn_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_world_model.train_mdnrnn_and_compute_feature_stats" title="Permalink to this definition"></a></dt>
+<dd><p>Train MDNRNN Memory Network and compute feature importance/sensitivity.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.tests.test_world_model.train_mdnrnn_and_train_on_embedded_env">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.tests.test_world_model.</span></span><span class="sig-name descname"><span class="pre">train_mdnrnn_and_train_on_embedded_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.union.ModelManager__Union" title="reagent.model_managers.union.ModelManager__Union"><span class="pre">reagent.model_managers.union.ModelManager__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_embedding_train_transitions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_embedding_train_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.union.ModelManager__Union" title="reagent.model_managers.union.ModelManager__Union"><span class="pre">reagent.model_managers.union.ModelManager__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_state_embed_transitions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_agent_train_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_agent_eval_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passing_score_bar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saved_mdnrnn_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.tests.test_world_model.train_mdnrnn_and_train_on_embedded_env" title="Permalink to this definition"></a></dt>
+<dd><p>Train an agent on embedded states by the MDNRNN.</p>
+</dd></dl>
+
+</section>
+<section id="module-reagent.gym.tests">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.gym.tests" title="Permalink to this headline"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reagent.gym.tests.preprocessors.html" class="btn btn-neutral float-right" title="reagent.gym.tests.preprocessors package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reagent.gym.runners.html" class="btn btn-neutral float-left" title="reagent.gym.runners package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.gym.runners.html" class="btn btn-neutral float-left" title="reagent.gym.runners package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.gym.tests.preprocessors.html" class="btn btn-neutral float-right" title="reagent.gym.tests.preprocessors package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

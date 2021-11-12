@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>reagent.gym.policies.scorers package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="reagent.gym.preprocessors package" href="reagent.gym.preprocessors.html" />
     <link rel="prev" title="reagent.gym.policies.samplers package" href="reagent.gym.policies.samplers.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,220 +36,187 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
-<li class="toctree-l4 current"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reagent.gym.html">Gym</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.gym.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.agents.html">reagent.gym.agents package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.datasets.html">reagent.gym.datasets package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.envs.html">reagent.gym.envs package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="reagent.gym.policies.html">reagent.gym.policies package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="reagent.gym.policies.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies.policy">reagent.gym.policies.policy module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies.predictor_policies">reagent.gym.policies.predictor_policies module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies.random_policies">reagent.gym.policies.random_policies module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.preprocessors.html">reagent.gym.preprocessors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.runners.html">reagent.gym.runners package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.tests.html">reagent.gym.tests package</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.normalizers">reagent.gym.normalizers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.types">reagent.gym.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.utils">reagent.gym.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-          <li><a href="modules.html">reagent</a> &raquo;</li>
-        
-          <li><a href="reagent.html">reagent package</a> &raquo;</li>
-        
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="reagent.gym.html">reagent.gym package</a> &raquo;</li>
-        
           <li><a href="reagent.gym.policies.html">reagent.gym.policies package</a> &raquo;</li>
-        
       <li>reagent.gym.policies.scorers package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/reagent.gym.policies.scorers.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-gym-policies-scorers-package">
-<h1>reagent.gym.policies.scorers package<a class="headerlink" href="#reagent-gym-policies-scorers-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.gym.policies.scorers.continuous_scorer">
-<span id="reagent-gym-policies-scorers-continuous-scorer-module"></span><h2>reagent.gym.policies.scorers.continuous_scorer module<a class="headerlink" href="#module-reagent.gym.policies.scorers.continuous_scorer" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="reagent.gym.policies.scorers.continuous_scorer.sac_scorer">
-<code class="sig-prename descclassname">reagent.gym.policies.scorers.continuous_scorer.</code><code class="sig-name descname">sac_scorer</code><span class="sig-paren">(</span><em class="sig-param">actor_network: reagent.models.base.ModelBase</em><span class="sig-paren">)</span> &#x2192; Callable[[Any], Any]<a class="headerlink" href="#reagent.gym.policies.scorers.continuous_scorer.sac_scorer" title="Permalink to this definition">¶</a></dt>
+             
+  <section id="reagent-gym-policies-scorers-package">
+<h1>reagent.gym.policies.scorers package<a class="headerlink" href="#reagent-gym-policies-scorers-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.gym.policies.scorers.continuous_scorer">
+<span id="reagent-gym-policies-scorers-continuous-scorer-module"></span><h2>reagent.gym.policies.scorers.continuous_scorer module<a class="headerlink" href="#module-reagent.gym.policies.scorers.continuous_scorer" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.policies.scorers.continuous_scorer.sac_scorer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.scorers.continuous_scorer.</span></span><span class="sig-name descname"><span class="pre">sac_scorer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.policies.scorers.continuous_scorer.sac_scorer" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="reagent-gym-policies-scorers-discrete-scorer-module">
-<h2>reagent.gym.policies.scorers.discrete_scorer module<a class="headerlink" href="#reagent-gym-policies-scorers-discrete-scorer-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.gym.policies.scorers.slate_q_scorer">
-<span id="reagent-gym-policies-scorers-slate-q-scorer-module"></span><h2>reagent.gym.policies.scorers.slate_q_scorer module<a class="headerlink" href="#module-reagent.gym.policies.scorers.slate_q_scorer" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="reagent.gym.policies.scorers.slate_q_scorer.slate_q_scorer">
-<code class="sig-prename descclassname">reagent.gym.policies.scorers.slate_q_scorer.</code><code class="sig-name descname">slate_q_scorer</code><span class="sig-paren">(</span><em class="sig-param">num_candidates: int</em>, <em class="sig-param">q_network: reagent.models.base.ModelBase</em><span class="sig-paren">)</span> &#x2192; Callable[[Any], Any]<a class="headerlink" href="#reagent.gym.policies.scorers.slate_q_scorer.slate_q_scorer" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-reagent.gym.policies.scorers.discrete_scorer">
+<span id="reagent-gym-policies-scorers-discrete-scorer-module"></span><h2>reagent.gym.policies.scorers.discrete_scorer module<a class="headerlink" href="#module-reagent.gym.policies.scorers.discrete_scorer" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.policies.scorers.discrete_scorer.apply_possible_actions_mask">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.scorers.discrete_scorer.</span></span><span class="sig-name descname"><span class="pre">apply_possible_actions_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_actions_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invalid_score</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-</span> <span class="pre">inf</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.gym.policies.scorers.discrete_scorer.apply_possible_actions_mask" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="module-reagent.gym.policies.scorers">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.gym.policies.scorers" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.policies.scorers.discrete_scorer.discrete_dqn_scorer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.scorers.discrete_scorer.</span></span><span class="sig-name descname"><span class="pre">discrete_dqn_scorer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.policies.scorers.discrete_scorer.discrete_dqn_scorer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.policies.scorers.discrete_scorer.discrete_dqn_serving_scorer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.scorers.discrete_scorer.</span></span><span class="sig-name descname"><span class="pre">discrete_dqn_serving_scorer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.policies.scorers.discrete_scorer.discrete_dqn_serving_scorer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.policies.scorers.discrete_scorer.get_parametric_input">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.scorers.discrete_scorer.</span></span><span class="sig-name descname"><span class="pre">get_parametric_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_num_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.policies.scorers.discrete_scorer.get_parametric_input" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.policies.scorers.discrete_scorer.parametric_dqn_scorer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.scorers.discrete_scorer.</span></span><span class="sig-name descname"><span class="pre">parametric_dqn_scorer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_num_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.policies.scorers.discrete_scorer.parametric_dqn_scorer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.policies.scorers.discrete_scorer.parametric_dqn_serving_scorer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.scorers.discrete_scorer.</span></span><span class="sig-name descname"><span class="pre">parametric_dqn_serving_scorer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_num_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.policies.scorers.discrete_scorer.parametric_dqn_serving_scorer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.gym.policies.scorers.slate_q_scorer">
+<span id="reagent-gym-policies-scorers-slate-q-scorer-module"></span><h2>reagent.gym.policies.scorers.slate_q_scorer module<a class="headerlink" href="#module-reagent.gym.policies.scorers.slate_q_scorer" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.policies.scorers.slate_q_scorer.slate_q_scorer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.scorers.slate_q_scorer.</span></span><span class="sig-name descname"><span class="pre">slate_q_scorer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_candidates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.policies.scorers.slate_q_scorer.slate_q_scorer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.policies.scorers.slate_q_scorer.slate_q_serving_scorer">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.scorers.slate_q_scorer.</span></span><span class="sig-name descname"><span class="pre">slate_q_serving_scorer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_candidates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.policies.scorers.slate_q_scorer.slate_q_serving_scorer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.gym.policies.scorers">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.gym.policies.scorers" title="Permalink to this headline"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reagent.gym.preprocessors.html" class="btn btn-neutral float-right" title="reagent.gym.preprocessors package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reagent.gym.policies.samplers.html" class="btn btn-neutral float-left" title="reagent.gym.policies.samplers package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.gym.policies.samplers.html" class="btn btn-neutral float-left" title="reagent.gym.policies.samplers package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.gym.preprocessors.html" class="btn btn-neutral float-right" title="reagent.gym.preprocessors package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

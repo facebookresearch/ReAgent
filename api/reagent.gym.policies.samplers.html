@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>reagent.gym.policies.samplers package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="reagent.gym.policies.scorers package" href="reagent.gym.policies.scorers.html" />
     <link rel="prev" title="reagent.gym.policies package" href="reagent.gym.policies.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,173 +36,123 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
-<li class="toctree-l4 current"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reagent.gym.html">Gym</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.gym.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.agents.html">reagent.gym.agents package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.datasets.html">reagent.gym.datasets package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.envs.html">reagent.gym.envs package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="reagent.gym.policies.html">reagent.gym.policies package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="reagent.gym.policies.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies.policy">reagent.gym.policies.policy module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies.predictor_policies">reagent.gym.policies.predictor_policies module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies.random_policies">reagent.gym.policies.random_policies module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.policies.html#module-reagent.gym.policies">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.preprocessors.html">reagent.gym.preprocessors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.runners.html">reagent.gym.runners package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.tests.html">reagent.gym.tests package</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.normalizers">reagent.gym.normalizers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.types">reagent.gym.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.utils">reagent.gym.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-          <li><a href="modules.html">reagent</a> &raquo;</li>
-        
-          <li><a href="reagent.html">reagent package</a> &raquo;</li>
-        
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="reagent.gym.html">reagent.gym package</a> &raquo;</li>
-        
           <li><a href="reagent.gym.policies.html">reagent.gym.policies package</a> &raquo;</li>
-        
       <li>reagent.gym.policies.samplers package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/reagent.gym.policies.samplers.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-gym-policies-samplers-package">
-<h1>reagent.gym.policies.samplers package<a class="headerlink" href="#reagent-gym-policies-samplers-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.gym.policies.samplers.continuous_sampler">
-<span id="reagent-gym-policies-samplers-continuous-sampler-module"></span><h2>reagent.gym.policies.samplers.continuous_sampler module<a class="headerlink" href="#module-reagent.gym.policies.samplers.continuous_sampler" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.gym.policies.samplers.continuous_sampler.GaussianSampler">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.policies.samplers.continuous_sampler.</code><code class="sig-name descname">GaussianSampler</code><span class="sig-paren">(</span><em class="sig-param">actor_network</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.policies.samplers.continuous_sampler.GaussianSampler" title="Permalink to this definition">¶</a></dt>
+             
+  <section id="reagent-gym-policies-samplers-package">
+<h1>reagent.gym.policies.samplers package<a class="headerlink" href="#reagent-gym-policies-samplers-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.gym.policies.samplers.continuous_sampler">
+<span id="reagent-gym-policies-samplers-continuous-sampler-module"></span><h2>reagent.gym.policies.samplers.continuous_sampler module<a class="headerlink" href="#module-reagent.gym.policies.samplers.continuous_sampler" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.continuous_sampler.GaussianSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.samplers.continuous_sampler.</span></span><span class="sig-name descname"><span class="pre">GaussianSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor_network</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.policies.samplers.continuous_sampler.GaussianSampler" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="reagent.gym.html#reagent.gym.types.Sampler" title="reagent.gym.types.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.types.Sampler</span></code></a></p>
-<dl class="method">
-<dt id="reagent.gym.policies.samplers.continuous_sampler.GaussianSampler.log_prob">
-<code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param">scores: reagent.gym.types.GaussianSamplerScore</em>, <em class="sig-param">squashed_action: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.gym.policies.samplers.continuous_sampler.GaussianSampler.log_prob" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.continuous_sampler.GaussianSampler.log_prob">
+<span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.html#reagent.gym.types.GaussianSamplerScore" title="reagent.gym.types.GaussianSamplerScore"><span class="pre">reagent.gym.types.GaussianSamplerScore</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">squashed_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.continuous_sampler.GaussianSampler.log_prob" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.policies.samplers.continuous_sampler.GaussianSampler.sample_action">
-<code class="sig-name descname">sample_action</code><span class="sig-paren">(</span><em class="sig-param">scores: reagent.gym.types.GaussianSamplerScore</em><span class="sig-paren">)</span> &#x2192; reagent.types.ActorOutput<a class="headerlink" href="#reagent.gym.policies.samplers.continuous_sampler.GaussianSampler.sample_action" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.continuous_sampler.GaussianSampler.sample_action">
+<span class="sig-name descname"><span class="pre">sample_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.html#reagent.gym.types.GaussianSamplerScore" title="reagent.gym.types.GaussianSamplerScore"><span class="pre">reagent.gym.types.GaussianSamplerScore</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.ActorOutput" title="reagent.core.types.ActorOutput"><span class="pre">reagent.core.types.ActorOutput</span></a></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.continuous_sampler.GaussianSampler.sample_action" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.gym.policies.samplers.discrete_sampler">
-<span id="reagent-gym-policies-samplers-discrete-sampler-module"></span><h2>reagent.gym.policies.samplers.discrete_sampler module<a class="headerlink" href="#module-reagent.gym.policies.samplers.discrete_sampler" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.policies.samplers.discrete_sampler.</code><code class="sig-name descname">EpsilonGreedyActionSampler</code><span class="sig-paren">(</span><em class="sig-param">epsilon: float</em>, <em class="sig-param">epsilon_decay: float = 1.0</em>, <em class="sig-param">minimum_epsilon: float = 0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-reagent.gym.policies.samplers.discrete_sampler">
+<span id="reagent-gym-policies-samplers-discrete-sampler-module"></span><h2>reagent.gym.policies.samplers.discrete_sampler module<a class="headerlink" href="#module-reagent.gym.policies.samplers.discrete_sampler" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.samplers.discrete_sampler.</span></span><span class="sig-name descname"><span class="pre">EpsilonGreedyActionSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon_decay</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum_epsilon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="reagent.gym.html#reagent.gym.types.Sampler" title="reagent.gym.types.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.types.Sampler</span></code></a></p>
 <p>Epsilon-Greedy Policy</p>
 <p>With probability epsilon, a random action is sampled. Otherwise,
@@ -243,138 +160,137 @@ the highest scoring (greedy) action is chosen.</p>
 <p>Call update() to decay the amount of exploration by lowering
 <cite>epsilon</cite> by a factor of <cite>epsilon_decay</cite> (&lt;=1) until we reach
 <cite>minimum_epsilon</cite></p>
-<dl class="method">
-<dt id="reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler.log_prob">
-<code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param">scores: torch.Tensor</em>, <em class="sig-param">action: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler.log_prob" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler.log_prob">
+<span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler.log_prob" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler.sample_action">
-<code class="sig-name descname">sample_action</code><span class="sig-paren">(</span><em class="sig-param">scores: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; reagent.types.ActorOutput<a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler.sample_action" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler.sample_action">
+<span class="sig-name descname"><span class="pre">sample_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.ActorOutput" title="reagent.core.types.ActorOutput"><span class="pre">reagent.core.types.ActorOutput</span></a></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler.sample_action" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler.update">
-<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler.update" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.EpsilonGreedyActionSampler.update" title="Permalink to this definition"></a></dt>
 <dd><p>Call to update internal parameters (e.g. decay epsilon)</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.policies.samplers.discrete_sampler.</code><code class="sig-name descname">GreedyActionSampler</code><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.samplers.discrete_sampler.</span></span><span class="sig-name descname"><span class="pre">GreedyActionSampler</span></span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="reagent.gym.html#reagent.gym.types.Sampler" title="reagent.gym.types.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.types.Sampler</span></code></a></p>
 <p>Return the highest scoring action.</p>
-<dl class="method">
-<dt id="reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler.log_prob">
-<code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param">scores: torch.Tensor</em>, <em class="sig-param">action: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler.log_prob" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler.log_prob">
+<span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler.log_prob" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler.sample_action">
-<code class="sig-name descname">sample_action</code><span class="sig-paren">(</span><em class="sig-param">scores: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; reagent.types.ActorOutput<a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler.sample_action" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler.sample_action">
+<span class="sig-name descname"><span class="pre">sample_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.ActorOutput" title="reagent.core.types.ActorOutput"><span class="pre">reagent.core.types.ActorOutput</span></a></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler.sample_action" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.policies.samplers.discrete_sampler.</code><code class="sig-name descname">SoftmaxActionSampler</code><span class="sig-paren">(</span><em class="sig-param">temperature: float = 1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.samplers.discrete_sampler.</span></span><span class="sig-name descname"><span class="pre">SoftmaxActionSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_decay</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum_temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="reagent.gym.html#reagent.gym.types.Sampler" title="reagent.gym.types.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.types.Sampler</span></code></a></p>
 <p>Softmax sampler.
 Equation: <a class="reference external" href="http://incompleteideas.net/book/first/ebook/node17.html">http://incompleteideas.net/book/first/ebook/node17.html</a>
-The action scores are logits.</p>
+The action scores are logits.
+Supports decaying the temperature over time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>temperature</strong> – A measure of how uniformly random the distribution looks.
-The higher the temperature, the more uniform the sampling.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>temperature</strong> – A measure of how uniformly random the distribution looks.
+The higher the temperature, the more uniform the sampling.</p></li>
+<li><p><strong>temperature_decay</strong> – A multiplier by which temperature is reduced at each .update() call</p></li>
+<li><p><strong>minimum_temperature</strong> – Minimum temperature, below which the temperature is not decayed further</p></li>
+</ul>
 </dd>
 </dl>
-<dl class="method">
-<dt id="reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler.log_prob">
-<code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param">scores: torch.Tensor</em>, <em class="sig-param">action: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler.log_prob" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler.entropy">
+<span class="sig-name descname"><span class="pre">entropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler.entropy" title="Permalink to this definition"></a></dt>
+<dd><p>Returns average policy entropy. Simple unweighted average across the batch.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler.log_prob">
+<span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler.log_prob" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler.sample_action">
-<code class="sig-name descname">sample_action</code><span class="sig-paren">(</span><em class="sig-param">scores: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; reagent.types.ActorOutput<a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler.sample_action" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler.sample_action">
+<span class="sig-name descname"><span class="pre">sample_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.ActorOutput" title="reagent.core.types.ActorOutput"><span class="pre">reagent.core.types.ActorOutput</span></a></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler.sample_action" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.discrete_sampler.SoftmaxActionSampler.update" title="Permalink to this definition"></a></dt>
+<dd><p>Call to update internal parameters (e.g. decay epsilon)</p>
+</dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.gym.policies.samplers.top_k_sampler">
-<span id="reagent-gym-policies-samplers-top-k-sampler-module"></span><h2>reagent.gym.policies.samplers.top_k_sampler module<a class="headerlink" href="#module-reagent.gym.policies.samplers.top_k_sampler" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.gym.policies.samplers.top_k_sampler.TopKSampler">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.policies.samplers.top_k_sampler.</code><code class="sig-name descname">TopKSampler</code><span class="sig-paren">(</span><em class="sig-param">k: int</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.policies.samplers.top_k_sampler.TopKSampler" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-reagent.gym.policies.samplers.top_k_sampler">
+<span id="reagent-gym-policies-samplers-top-k-sampler-module"></span><h2>reagent.gym.policies.samplers.top_k_sampler module<a class="headerlink" href="#module-reagent.gym.policies.samplers.top_k_sampler" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.top_k_sampler.TopKSampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.policies.samplers.top_k_sampler.</span></span><span class="sig-name descname"><span class="pre">TopKSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.policies.samplers.top_k_sampler.TopKSampler" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="reagent.gym.html#reagent.gym.types.Sampler" title="reagent.gym.types.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.types.Sampler</span></code></a></p>
-<dl class="method">
-<dt id="reagent.gym.policies.samplers.top_k_sampler.TopKSampler.log_prob">
-<code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param">scores: torch.Tensor</em>, <em class="sig-param">action: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.gym.policies.samplers.top_k_sampler.TopKSampler.log_prob" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.top_k_sampler.TopKSampler.log_prob">
+<span class="sig-name descname"><span class="pre">log_prob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.top_k_sampler.TopKSampler.log_prob" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.policies.samplers.top_k_sampler.TopKSampler.sample_action">
-<code class="sig-name descname">sample_action</code><span class="sig-paren">(</span><em class="sig-param">scores: torch.Tensor</em><span class="sig-paren">)</span> &#x2192; reagent.types.ActorOutput<a class="headerlink" href="#reagent.gym.policies.samplers.top_k_sampler.TopKSampler.sample_action" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.policies.samplers.top_k_sampler.TopKSampler.sample_action">
+<span class="sig-name descname"><span class="pre">sample_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.ActorOutput" title="reagent.core.types.ActorOutput"><span class="pre">reagent.core.types.ActorOutput</span></a></span></span><a class="headerlink" href="#reagent.gym.policies.samplers.top_k_sampler.TopKSampler.sample_action" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.gym.policies.samplers">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.gym.policies.samplers" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</section>
+<section id="module-reagent.gym.policies.samplers">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.gym.policies.samplers" title="Permalink to this headline"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reagent.gym.policies.scorers.html" class="btn btn-neutral float-right" title="reagent.gym.policies.scorers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reagent.gym.policies.html" class="btn btn-neutral float-left" title="reagent.gym.policies package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.gym.policies.html" class="btn btn-neutral float-left" title="reagent.gym.policies package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.gym.policies.scorers.html" class="btn btn-neutral float-right" title="reagent.gym.policies.scorers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

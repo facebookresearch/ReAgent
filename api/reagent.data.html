@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>reagent.data package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.gym package" href="reagent.gym.html" />
+    <link rel="prev" title="reagent.core package" href="reagent.core.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.data.data_fetcher">reagent.data.data_fetcher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.data.manual_data_module">reagent.data.manual_data_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.data.oss_data_fetcher">reagent.data.oss_data_fetcher module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.data.reagent_data_module">reagent.data.reagent_data_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.data.spark_utils">reagent.data.spark_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.data">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>reagent.data package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/reagent.data.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="reagent-data-package">
+<h1>reagent.data package<a class="headerlink" href="#reagent-data-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.data.data_fetcher">
+<span id="reagent-data-data-fetcher-module"></span><h2>reagent.data.data_fetcher module<a class="headerlink" href="#module-reagent.data.data_fetcher" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.data.data_fetcher.DataFetcher">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.data.data_fetcher.</span></span><span class="sig-name descname"><span class="pre">DataFetcher</span></span><a class="headerlink" href="#reagent.data.data_fetcher.DataFetcher" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.data_fetcher.DataFetcher.query_data">
+<span class="sig-name descname"><span class="pre">query_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">discrete_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_possible_actions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_reward_expression</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a></span></span><a class="headerlink" href="#reagent.data.data_fetcher.DataFetcher.query_data" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.data_fetcher.DataFetcher.query_data_synthetic_reward">
+<span class="sig-name descname"><span class="pre">query_data_synthetic_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">discrete_action_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a></span></span><a class="headerlink" href="#reagent.data.data_fetcher.DataFetcher.query_data_synthetic_reward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.data.manual_data_module">
+<span id="reagent-data-manual-data-module-module"></span><h2>reagent.data.manual_data_module module<a class="headerlink" href="#module-reagent.data.manual_data_module" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.data.manual_data_module.</span></span><span class="sig-name descname"><span class="pre">ManualDataModule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.data.reagent_data_module.ReAgentDataModule" title="reagent.data.reagent_data_module.ReAgentDataModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.data.reagent_data_module.ReAgentDataModule</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule.build_batch_preprocessor">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_batch_preprocessor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.batch_preprocessor.BatchPreprocessor" title="reagent.preprocessing.batch_preprocessor.BatchPreprocessor"><span class="pre">reagent.preprocessing.batch_preprocessor.BatchPreprocessor</span></a></span></span><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule.build_batch_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule.get_dataloader">
+<span class="sig-name descname"><span class="pre">get_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">identity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Default'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule.get_dataloader" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule.get_normalization_data_map">
+<span class="sig-name descname"><span class="pre">get_normalization_data_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule.get_normalization_data_map" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule.model_manager">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">model_manager</span></span><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule.model_manager" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule.prepare_data">
+<span class="sig-name descname"><span class="pre">prepare_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule.prepare_data" title="Permalink to this definition"></a></dt>
+<dd><p>Use this to download and prepare data.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>DO NOT set state to the model (use <cite>setup</cite> instead)
+since this is NOT called on every GPU in DDP/TPU</p>
+</div>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="c1"># good</span>
+    <span class="n">download_data</span><span class="p">()</span>
+    <span class="n">tokenize</span><span class="p">()</span>
+    <span class="n">etc</span><span class="p">()</span>
+
+    <span class="c1"># bad</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">=</span> <span class="n">data_split</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">some_state</span> <span class="o">=</span> <span class="n">some_other_state</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In DDP prepare_data can be called in two ways (using Trainer(prepare_data_per_node)):</p>
+<ol class="arabic simple">
+<li><p>Once per node. This is the default and is only called on LOCAL_RANK=0.</p></li>
+<li><p>Once in total. Only called on GLOBAL_RANK=0.</p></li>
+</ol>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># DEFAULT</span>
+<span class="c1"># called once per node on LOCAL_RANK=0 of that node</span>
+<span class="n">Trainer</span><span class="p">(</span><span class="n">prepare_data_per_node</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># call on GLOBAL_RANK=0 (great for shared file systems)</span>
+<span class="n">Trainer</span><span class="p">(</span><span class="n">prepare_data_per_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">prepare_data_per_node</span></code> with the trainer flag is deprecated and will be removed in v1.7.0.
+Please set <code class="docutils literal notranslate"><span class="pre">prepare_data_per_node</span></code> in LightningDataModule or LightningModule directly instead.</p>
+</div>
+<p>This is called before requesting the dataloaders:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">prepare_data</span><span class="p">()</span>
+<span class="n">initialize_distributed</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">stage</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">train_dataloader</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">val_dataloader</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">test_dataloader</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule.query_data">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">query_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_fetcher</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.data.data_fetcher.DataFetcher" title="reagent.data.data_fetcher.DataFetcher"><span class="pre">reagent.data.data_fetcher.DataFetcher</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a></span></span><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule.query_data" title="Permalink to this definition"></a></dt>
+<dd><p>Massage input table into the format expected by the trainer</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule.run_feature_identification">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">run_feature_identification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule.run_feature_identification" title="Permalink to this definition"></a></dt>
+<dd><p>Derive preprocessing parameters from data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule.setup">
+<span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule.setup" title="Permalink to this definition"></a></dt>
+<dd><p>Called at the beginning of fit (train + validate), validate, test, and predict. This is a good hook when
+you need to build models dynamically or adjust something about them. This hook is called on every process
+when using DDP.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>stage</strong> – either <code class="docutils literal notranslate"><span class="pre">'fit'</span></code>, <code class="docutils literal notranslate"><span class="pre">'validate'</span></code>, <code class="docutils literal notranslate"><span class="pre">'test'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'predict'</span></code></p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">LitModel</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">download_data</span><span class="p">()</span>
+        <span class="n">tokenize</span><span class="p">()</span>
+
+        <span class="c1"># don&#39;t do this</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">something</span> <span class="o">=</span> <span class="k">else</span>
+
+    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="n">stage</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Load_data</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">28</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">num_classes</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule.should_generate_eval_dataset">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">should_generate_eval_dataset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule.should_generate_eval_dataset" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule.test_dataloader">
+<span class="sig-name descname"><span class="pre">test_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule.test_dataloader" title="Permalink to this definition"></a></dt>
+<dd><p>Implement one or multiple PyTorch DataLoaders for testing.</p>
+<p>The dataloader you return will not be reloaded unless you set
+<a href="#id1"><span class="problematic" id="id2">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_n_epochs`</span></a> to
+a postive integer.</p>
+<p>For data processing use the following pattern:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>download in <a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.prepare_data" title="reagent.data.manual_data_module.ManualDataModule.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
+<li><p>process and split in <a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.setup" title="reagent.data.manual_data_module.ManualDataModule.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></a></p></li>
+</ul>
+</div></blockquote>
+<p>However, the above are only necessary for distributed processing.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>do not assign state in prepare_data</p>
+</div>
+<ul class="simple">
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
+<li><p>…</p></li>
+<li><p><a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.prepare_data" title="reagent.data.manual_data_module.ManualDataModule.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.setup" title="reagent.data.manual_data_module.ManualDataModule.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.train_dataloader" title="reagent.data.manual_data_module.ManualDataModule.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.val_dataloader" title="reagent.data.manual_data_module.ManualDataModule.val_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">val_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.test_dataloader" title="reagent.data.manual_data_module.ManualDataModule.test_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_dataloader()</span></code></a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lightning adds the correct sampler for distributed and arbitrary hardware.
+There is no need to set it yourself.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.DataLoader</span></code> or a sequence of them specifying testing samples.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                                    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,))])</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;/path/to/mnist/&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
+                    <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">loader</span>
+
+<span class="c1"># can also return multiple dataloaders</span>
+<span class="k">def</span> <span class="nf">test_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">loader_a</span><span class="p">,</span> <span class="n">loader_b</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">loader_n</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you don’t need a test dataset and a <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code>, you don’t need to implement
+this method.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the case where you return multiple test dataloaders, the <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code>
+will have an argument <code class="docutils literal notranslate"><span class="pre">dataloader_idx</span></code> which matches the order here.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule.train_dataloader">
+<span class="sig-name descname"><span class="pre">train_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule.train_dataloader" title="Permalink to this definition"></a></dt>
+<dd><p>Implement one or more PyTorch DataLoaders for training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A collection of <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.DataLoader</span></code> specifying training samples.
+In the case of multiple dataloaders, please see this <span class="xref std std-ref">page</span>.</p>
+</dd>
+</dl>
+<p>The dataloader you return will not be reloaded unless you set
+<a href="#id3"><span class="problematic" id="id4">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_n_epochs`</span></a> to
+a positive integer.</p>
+<p>For data processing use the following pattern:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>download in <a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.prepare_data" title="reagent.data.manual_data_module.ManualDataModule.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
+<li><p>process and split in <a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.setup" title="reagent.data.manual_data_module.ManualDataModule.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></a></p></li>
+</ul>
+</div></blockquote>
+<p>However, the above are only necessary for distributed processing.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>do not assign state in prepare_data</p>
+</div>
+<ul class="simple">
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
+<li><p>…</p></li>
+<li><p><a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.prepare_data" title="reagent.data.manual_data_module.ManualDataModule.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.setup" title="reagent.data.manual_data_module.ManualDataModule.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.train_dataloader" title="reagent.data.manual_data_module.ManualDataModule.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lightning adds the correct sampler for distributed and arbitrary hardware.
+There is no need to set it yourself.</p>
+</div>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># single dataloader</span>
+<span class="k">def</span> <span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                                    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,))])</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;/path/to/mnist/&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
+                    <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">loader</span>
+
+<span class="c1"># multiple dataloaders, return as list</span>
+<span class="k">def</span> <span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">mnist</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">cifar</span> <span class="o">=</span> <span class="n">CIFAR</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">mnist_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">mnist</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">cifar_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">cifar</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="c1"># each batch will be a list of tensors: [batch_mnist, batch_cifar]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">mnist_loader</span><span class="p">,</span> <span class="n">cifar_loader</span><span class="p">]</span>
+
+<span class="c1"># multiple dataloader, return as dict</span>
+<span class="k">def</span> <span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">mnist</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">cifar</span> <span class="o">=</span> <span class="n">CIFAR</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">mnist_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">mnist</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">cifar_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">cifar</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="c1"># each batch will be a dict of tensors: {&#39;mnist&#39;: batch_mnist, &#39;cifar&#39;: batch_cifar}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;mnist&#39;</span><span class="p">:</span> <span class="n">mnist_loader</span><span class="p">,</span> <span class="s1">&#39;cifar&#39;</span><span class="p">:</span> <span class="n">cifar_loader</span><span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.ManualDataModule.val_dataloader">
+<span class="sig-name descname"><span class="pre">val_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.manual_data_module.ManualDataModule.val_dataloader" title="Permalink to this definition"></a></dt>
+<dd><p>Implement one or multiple PyTorch DataLoaders for validation.</p>
+<p>The dataloader you return will not be reloaded unless you set
+<a href="#id5"><span class="problematic" id="id6">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_n_epochs`</span></a> to
+a positive integer.</p>
+<p>It’s recommended that all data downloads and preparation happen in <a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.prepare_data" title="reagent.data.manual_data_module.ManualDataModule.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a>.</p>
+<ul class="simple">
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
+<li><p>…</p></li>
+<li><p><a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.prepare_data" title="reagent.data.manual_data_module.ManualDataModule.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.train_dataloader" title="reagent.data.manual_data_module.ManualDataModule.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.val_dataloader" title="reagent.data.manual_data_module.ManualDataModule.val_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">val_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.manual_data_module.ManualDataModule.test_dataloader" title="reagent.data.manual_data_module.ManualDataModule.test_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_dataloader()</span></code></a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lightning adds the correct sampler for distributed and arbitrary hardware
+There is no need to set it yourself.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.DataLoader</span></code> or a sequence of them specifying validation samples.</p>
+</dd>
+</dl>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">val_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                                    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,))])</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;/path/to/mnist/&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">loader</span>
+
+<span class="c1"># can also return multiple dataloaders</span>
+<span class="k">def</span> <span class="nf">val_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">loader_a</span><span class="p">,</span> <span class="n">loader_b</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">loader_n</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you don’t need a validation dataset and a <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code>, you don’t need to
+implement this method.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the case where you return multiple validation dataloaders, the <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code>
+will have an argument <code class="docutils literal notranslate"><span class="pre">dataloader_idx</span></code> which matches the order here.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.TrainEvalSampleRanges">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.data.manual_data_module.</span></span><span class="sig-name descname"><span class="pre">TrainEvalSampleRanges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_sample_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_sample_range</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.manual_data_module.TrainEvalSampleRanges" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.TrainEvalSampleRanges.eval_sample_range">
+<span class="sig-name descname"><span class="pre">eval_sample_range</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.data.manual_data_module.TrainEvalSampleRanges.eval_sample_range" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.TrainEvalSampleRanges.train_sample_range">
+<span class="sig-name descname"><span class="pre">train_sample_range</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.data.manual_data_module.TrainEvalSampleRanges.train_sample_range" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.collate_and_preprocess">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.manual_data_module.</span></span><span class="sig-name descname"><span class="pre">collate_and_preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.batch_preprocessor.BatchPreprocessor" title="reagent.preprocessing.batch_preprocessor.BatchPreprocessor"><span class="pre">reagent.preprocessing.batch_preprocessor.BatchPreprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.manual_data_module.collate_and_preprocess" title="Permalink to this definition"></a></dt>
+<dd><p>Helper for Petastorm’s DataLoader to preprocess.
+TODO(kaiwenw): parallelize preprocessing by using transform of Petastorm reader
+Should pin memory and preprocess in reader and convert to gpu in collate_fn.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.manual_data_module.get_sample_range">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.manual_data_module.</span></span><span class="sig-name descname"><span class="pre">get_sample_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_cpe_in_training</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.data.manual_data_module.TrainEvalSampleRanges" title="reagent.data.manual_data_module.TrainEvalSampleRanges"><span class="pre">reagent.data.manual_data_module.TrainEvalSampleRanges</span></a></span></span><a class="headerlink" href="#reagent.data.manual_data_module.get_sample_range" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.data.oss_data_fetcher">
+<span id="reagent-data-oss-data-fetcher-module"></span><h2>reagent.data.oss_data_fetcher module<a class="headerlink" href="#module-reagent.data.oss_data_fetcher" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.OssDataFetcher">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">OssDataFetcher</span></span><a class="headerlink" href="#reagent.data.oss_data_fetcher.OssDataFetcher" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.data.data_fetcher.DataFetcher" title="reagent.data.data_fetcher.DataFetcher"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.data.data_fetcher.DataFetcher</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.OssDataFetcher.query_data">
+<span class="sig-name descname"><span class="pre">query_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">discrete_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_possible_actions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_reward_expression</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a></span></span><a class="headerlink" href="#reagent.data.oss_data_fetcher.OssDataFetcher.query_data" title="Permalink to this definition"></a></dt>
+<dd><p>Perform reward calculation, hashing mdp + subsampling and
+other preprocessing such as sparse2dense.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.calc_custom_reward">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">calc_custom_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_reward_expression</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.calc_custom_reward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.calc_reward_multi_steps">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">calc_reward_multi_steps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.calc_reward_multi_steps" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.discrete_action_preprocessing">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">discrete_action_preprocessing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.discrete_action_preprocessing" title="Permalink to this definition"></a></dt>
+<dd><dl>
+<dt>Inputted actions and possible_actions are strings, which isn’t supported</dt><dd><p>for PyTorch Tensors. Here, we represent them with LongType.
+(a) action and next_action are strings, so simply return their position</p>
+<blockquote>
+<div><p>in the action_space (as given by argument actions).</p>
+</div></blockquote>
+<ol class="loweralpha simple" start="2">
+<li><p>possible_actions and possible_next_actions are list of strs, so
+return an existence bitvector of length len(actions), where ith
+index is true iff actions[i] was in the list.</p></li>
+</ol>
+</dd>
+</dl>
+<p>By-product: output not_terminal from preprocessing actions.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.get_distinct_keys">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">get_distinct_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_col_arr_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.get_distinct_keys" title="Permalink to this definition"></a></dt>
+<dd><p>Return list of distinct keys.
+Set is_col_arr_map to be true if column is an array of Maps.
+Otherwise, assume column is a Map.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.hash_mdp_id_and_subsample">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">hash_mdp_id_and_subsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.hash_mdp_id_and_subsample" title="Permalink to this definition"></a></dt>
+<dd><p>Since mdp_id is a string but Pytorch Tensors do not store strings,
+we hash them with crc32, which is treated as a cryptographic hash
+(with range [0, MAX_UINT32-1]). We also perform an optional subsampling
+based on this hash value.
+NOTE: we’re assuming no collisions in this hash! Otherwise, two mdp_ids
+can be indistinguishable after the hash.
+TODO: change this to a deterministic subsample.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.infer_action_names">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">infer_action_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.infer_action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.infer_metrics_names">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">infer_metrics_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.infer_metrics_names" title="Permalink to this definition"></a></dt>
+<dd><p>Infer possible metrics names.
+Assume in multi-step case, metrics is an array of maps.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.infer_states_names">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">infer_states_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.infer_states_names" title="Permalink to this definition"></a></dt>
+<dd><p>Infer possible state names from states and next state features.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.make_existence_bitvector_udf">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">make_existence_bitvector_udf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.make_existence_bitvector_udf" title="Permalink to this definition"></a></dt>
+<dd><p>one-hot encode elements of target depending on their existence in arr.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.make_get_step_udf">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">make_get_step_udf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.make_get_step_udf" title="Permalink to this definition"></a></dt>
+<dd><p>Get step count by taking length of next_states_features array.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.make_next_udf">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">make_next_udf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.make_next_udf" title="Permalink to this definition"></a></dt>
+<dd><p>Generic udf to get next (after multi_steps) item, provided item type.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.make_sparse2dense">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">make_sparse2dense</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.make_sparse2dense" title="Permalink to this definition"></a></dt>
+<dd><p>Given a list of possible keys, convert sparse map to dense array.
+In our example, both value_type is assumed to be a float.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.make_where_udf">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">make_where_udf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.make_where_udf" title="Permalink to this definition"></a></dt>
+<dd><p>Return index of item in arr, and len(arr) if not found.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.misc_column_preprocessing">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">misc_column_preprocessing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.misc_column_preprocessing" title="Permalink to this definition"></a></dt>
+<dd><p>Miscellaneous columns are step, time_diff, sequence_number, not_terminal.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.parametric_action_preprocessing">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">parametric_action_preprocessing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_possible_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.parametric_action_preprocessing" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.rand_string">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">rand_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.rand_string" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.select_relevant_columns">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">select_relevant_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discrete_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_possible_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.select_relevant_columns" title="Permalink to this definition"></a></dt>
+<dd><p>Select all the relevant columns and perform type conversions.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.set_reward_col_as_reward">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">set_reward_col_as_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_reward_expression</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.set_reward_col_as_reward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.state_and_metrics_sparse2dense">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">state_and_metrics_sparse2dense</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.oss_data_fetcher.state_and_metrics_sparse2dense" title="Permalink to this definition"></a></dt>
+<dd><p>Sparse-to-dense preprocessing of Map columns, which are states and metrics.
+For each column of type Map, w/ name X, output two columns.</p>
+<blockquote>
+<div><p>Map values are assumed to be scalar. This process is called sparse-to-dense.
+X = {“state_features”, “next_state_features”, “metrics”}.
+(a) Replace column X with a dense repesentation of the inputted (sparse) map.</p>
+<blockquote>
+<div><p>Dense representation is to concatenate map values into a list.</p>
+</div></blockquote>
+<ol class="loweralpha simple" start="2">
+<li><p>Create new column X_presence, which is a list of same length as (a) and
+the ith entry is 1 iff the key was present in the original map.</p></li>
+</ol>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.oss_data_fetcher.upload_as_parquet">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.oss_data_fetcher.</span></span><span class="sig-name descname"><span class="pre">upload_as_parquet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a></span></span><a class="headerlink" href="#reagent.data.oss_data_fetcher.upload_as_parquet" title="Permalink to this definition"></a></dt>
+<dd><p>Generate a random parquet. Fails if cannot generate a non-existent name.</p>
+</dd></dl>
+
+</section>
+<section id="module-reagent.data.reagent_data_module">
+<span id="reagent-data-reagent-data-module-module"></span><h2>reagent.data.reagent_data_module module<a class="headerlink" href="#module-reagent.data.reagent_data_module" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.data.reagent_data_module.ReAgentDataModule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.data.reagent_data_module.</span></span><span class="sig-name descname"><span class="pre">ReAgentDataModule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.reagent_data_module.ReAgentDataModule" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pytorch_lightning.core.datamodule.LightningDataModule</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.reagent_data_module.ReAgentDataModule.get_normalization_data_map">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_normalization_data_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.data.reagent_data_module.ReAgentDataModule.get_normalization_data_map" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.data.spark_utils">
+<span id="reagent-data-spark-utils-module"></span><h2>reagent.data.spark_utils module<a class="headerlink" href="#module-reagent.data.spark_utils" title="Permalink to this headline"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="reagent.data.spark_utils.SPARK_JAR_FROM_ROOT_DIR">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.spark_utils.</span></span><span class="sig-name descname"><span class="pre">SPARK_JAR_FROM_ROOT_DIR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'preprocessing/target/rl-preprocessing-1.1.jar'</span></em><a class="headerlink" href="#reagent.data.spark_utils.SPARK_JAR_FROM_ROOT_DIR" title="Permalink to this definition"></a></dt>
+<dd><p>SPARK_JAR is abspath to the above jar file.</p>
+<p>Assume file structure
+ReAgent/</p>
+<blockquote>
+<div><p>preprocessing/…
+reagent/…</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.spark_utils.call_spark_class">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.spark_utils.</span></span><span class="sig-name descname"><span class="pre">call_spark_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spark</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.spark_utils.call_spark_class" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.spark_utils.get_spark_session">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.spark_utils.</span></span><span class="sig-name descname"><span class="pre">get_spark_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{'spark.app.name':</span> <span class="pre">'ReAgent',</span> <span class="pre">'spark.driver.extraClassPath':</span> <span class="pre">'/Users/czxttkl/github/ReAgent/preprocessing/target/rl-preprocessing-1.1.jar',</span> <span class="pre">'spark.driver.host':</span> <span class="pre">'127.0.0.1',</span> <span class="pre">'spark.master':</span> <span class="pre">'local[*]',</span> <span class="pre">'spark.sql.catalogImplementation':</span> <span class="pre">'hive',</span> <span class="pre">'spark.sql.execution.arrow.enabled':</span> <span class="pre">'true',</span> <span class="pre">'spark.sql.session.timeZone':</span> <span class="pre">'UTC',</span> <span class="pre">'spark.sql.shuffle.partitions':</span> <span class="pre">'12',</span> <span class="pre">'spark.sql.warehouse.dir':</span> <span class="pre">'/Users/czxttkl/github/ReAgent/docs/spark-warehouse'}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.spark_utils.get_spark_session" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.data.spark_utils.get_table_url">
+<span class="sig-prename descclassname"><span class="pre">reagent.data.spark_utils.</span></span><span class="sig-name descname"><span class="pre">get_table_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#reagent.data.spark_utils.get_table_url" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.data">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.data" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.data.DataFetcher">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.data.</span></span><span class="sig-name descname"><span class="pre">DataFetcher</span></span><a class="headerlink" href="#reagent.data.DataFetcher" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.DataFetcher.query_data">
+<span class="sig-name descname"><span class="pre">query_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">discrete_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_possible_actions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_reward_expression</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a></span></span><a class="headerlink" href="#reagent.data.DataFetcher.query_data" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.DataFetcher.query_data_synthetic_reward">
+<span class="sig-name descname"><span class="pre">query_data_synthetic_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">discrete_action_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a></span></span><a class="headerlink" href="#reagent.data.DataFetcher.query_data_synthetic_reward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.data.</span></span><span class="sig-name descname"><span class="pre">ManualDataModule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.ManualDataModule" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.data.reagent_data_module.ReAgentDataModule" title="reagent.data.reagent_data_module.ReAgentDataModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.data.reagent_data_module.ReAgentDataModule</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule.build_batch_preprocessor">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_batch_preprocessor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.batch_preprocessor.BatchPreprocessor" title="reagent.preprocessing.batch_preprocessor.BatchPreprocessor"><span class="pre">reagent.preprocessing.batch_preprocessor.BatchPreprocessor</span></a></span></span><a class="headerlink" href="#reagent.data.ManualDataModule.build_batch_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule.get_dataloader">
+<span class="sig-name descname"><span class="pre">get_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">identity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Default'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.ManualDataModule.get_dataloader" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule.get_normalization_data_map">
+<span class="sig-name descname"><span class="pre">get_normalization_data_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.data.ManualDataModule.get_normalization_data_map" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule.model_manager">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">model_manager</span></span><a class="headerlink" href="#reagent.data.ManualDataModule.model_manager" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule.prepare_data">
+<span class="sig-name descname"><span class="pre">prepare_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.ManualDataModule.prepare_data" title="Permalink to this definition"></a></dt>
+<dd><p>Use this to download and prepare data.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>DO NOT set state to the model (use <cite>setup</cite> instead)
+since this is NOT called on every GPU in DDP/TPU</p>
+</div>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="c1"># good</span>
+    <span class="n">download_data</span><span class="p">()</span>
+    <span class="n">tokenize</span><span class="p">()</span>
+    <span class="n">etc</span><span class="p">()</span>
+
+    <span class="c1"># bad</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">=</span> <span class="n">data_split</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">some_state</span> <span class="o">=</span> <span class="n">some_other_state</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In DDP prepare_data can be called in two ways (using Trainer(prepare_data_per_node)):</p>
+<ol class="arabic simple">
+<li><p>Once per node. This is the default and is only called on LOCAL_RANK=0.</p></li>
+<li><p>Once in total. Only called on GLOBAL_RANK=0.</p></li>
+</ol>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># DEFAULT</span>
+<span class="c1"># called once per node on LOCAL_RANK=0 of that node</span>
+<span class="n">Trainer</span><span class="p">(</span><span class="n">prepare_data_per_node</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># call on GLOBAL_RANK=0 (great for shared file systems)</span>
+<span class="n">Trainer</span><span class="p">(</span><span class="n">prepare_data_per_node</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">prepare_data_per_node</span></code> with the trainer flag is deprecated and will be removed in v1.7.0.
+Please set <code class="docutils literal notranslate"><span class="pre">prepare_data_per_node</span></code> in LightningDataModule or LightningModule directly instead.</p>
+</div>
+<p>This is called before requesting the dataloaders:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">prepare_data</span><span class="p">()</span>
+<span class="n">initialize_distributed</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">stage</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">train_dataloader</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">val_dataloader</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">test_dataloader</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule.query_data">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">query_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_fetcher</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.data.data_fetcher.DataFetcher" title="reagent.data.data_fetcher.DataFetcher"><span class="pre">reagent.data.data_fetcher.DataFetcher</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a></span></span><a class="headerlink" href="#reagent.data.ManualDataModule.query_data" title="Permalink to this definition"></a></dt>
+<dd><p>Massage input table into the format expected by the trainer</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule.run_feature_identification">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">run_feature_identification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.data.ManualDataModule.run_feature_identification" title="Permalink to this definition"></a></dt>
+<dd><p>Derive preprocessing parameters from data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule.setup">
+<span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.ManualDataModule.setup" title="Permalink to this definition"></a></dt>
+<dd><p>Called at the beginning of fit (train + validate), validate, test, and predict. This is a good hook when
+you need to build models dynamically or adjust something about them. This hook is called on every process
+when using DDP.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>stage</strong> – either <code class="docutils literal notranslate"><span class="pre">'fit'</span></code>, <code class="docutils literal notranslate"><span class="pre">'validate'</span></code>, <code class="docutils literal notranslate"><span class="pre">'test'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'predict'</span></code></p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">LitModel</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">download_data</span><span class="p">()</span>
+        <span class="n">tokenize</span><span class="p">()</span>
+
+        <span class="c1"># don&#39;t do this</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">something</span> <span class="o">=</span> <span class="k">else</span>
+
+    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="n">stage</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Load_data</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">28</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">num_classes</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule.should_generate_eval_dataset">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">should_generate_eval_dataset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.data.ManualDataModule.should_generate_eval_dataset" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule.test_dataloader">
+<span class="sig-name descname"><span class="pre">test_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.ManualDataModule.test_dataloader" title="Permalink to this definition"></a></dt>
+<dd><p>Implement one or multiple PyTorch DataLoaders for testing.</p>
+<p>The dataloader you return will not be reloaded unless you set
+<a href="#id7"><span class="problematic" id="id8">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_n_epochs`</span></a> to
+a postive integer.</p>
+<p>For data processing use the following pattern:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>download in <a class="reference internal" href="#reagent.data.ManualDataModule.prepare_data" title="reagent.data.ManualDataModule.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
+<li><p>process and split in <a class="reference internal" href="#reagent.data.ManualDataModule.setup" title="reagent.data.ManualDataModule.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></a></p></li>
+</ul>
+</div></blockquote>
+<p>However, the above are only necessary for distributed processing.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>do not assign state in prepare_data</p>
+</div>
+<ul class="simple">
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
+<li><p>…</p></li>
+<li><p><a class="reference internal" href="#reagent.data.ManualDataModule.prepare_data" title="reagent.data.ManualDataModule.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.ManualDataModule.setup" title="reagent.data.ManualDataModule.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.ManualDataModule.train_dataloader" title="reagent.data.ManualDataModule.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.ManualDataModule.val_dataloader" title="reagent.data.ManualDataModule.val_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">val_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.ManualDataModule.test_dataloader" title="reagent.data.ManualDataModule.test_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_dataloader()</span></code></a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lightning adds the correct sampler for distributed and arbitrary hardware.
+There is no need to set it yourself.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.DataLoader</span></code> or a sequence of them specifying testing samples.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                                    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,))])</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;/path/to/mnist/&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
+                    <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">loader</span>
+
+<span class="c1"># can also return multiple dataloaders</span>
+<span class="k">def</span> <span class="nf">test_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">loader_a</span><span class="p">,</span> <span class="n">loader_b</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">loader_n</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you don’t need a test dataset and a <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code>, you don’t need to implement
+this method.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the case where you return multiple test dataloaders, the <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code>
+will have an argument <code class="docutils literal notranslate"><span class="pre">dataloader_idx</span></code> which matches the order here.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule.train_dataloader">
+<span class="sig-name descname"><span class="pre">train_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.ManualDataModule.train_dataloader" title="Permalink to this definition"></a></dt>
+<dd><p>Implement one or more PyTorch DataLoaders for training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A collection of <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.DataLoader</span></code> specifying training samples.
+In the case of multiple dataloaders, please see this <span class="xref std std-ref">page</span>.</p>
+</dd>
+</dl>
+<p>The dataloader you return will not be reloaded unless you set
+<a href="#id9"><span class="problematic" id="id10">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_n_epochs`</span></a> to
+a positive integer.</p>
+<p>For data processing use the following pattern:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>download in <a class="reference internal" href="#reagent.data.ManualDataModule.prepare_data" title="reagent.data.ManualDataModule.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
+<li><p>process and split in <a class="reference internal" href="#reagent.data.ManualDataModule.setup" title="reagent.data.ManualDataModule.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></a></p></li>
+</ul>
+</div></blockquote>
+<p>However, the above are only necessary for distributed processing.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>do not assign state in prepare_data</p>
+</div>
+<ul class="simple">
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
+<li><p>…</p></li>
+<li><p><a class="reference internal" href="#reagent.data.ManualDataModule.prepare_data" title="reagent.data.ManualDataModule.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.ManualDataModule.setup" title="reagent.data.ManualDataModule.setup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.ManualDataModule.train_dataloader" title="reagent.data.ManualDataModule.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lightning adds the correct sampler for distributed and arbitrary hardware.
+There is no need to set it yourself.</p>
+</div>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># single dataloader</span>
+<span class="k">def</span> <span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                                    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,))])</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;/path/to/mnist/&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
+                    <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">loader</span>
+
+<span class="c1"># multiple dataloaders, return as list</span>
+<span class="k">def</span> <span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">mnist</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">cifar</span> <span class="o">=</span> <span class="n">CIFAR</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">mnist_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">mnist</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">cifar_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">cifar</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="c1"># each batch will be a list of tensors: [batch_mnist, batch_cifar]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">mnist_loader</span><span class="p">,</span> <span class="n">cifar_loader</span><span class="p">]</span>
+
+<span class="c1"># multiple dataloader, return as dict</span>
+<span class="k">def</span> <span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">mnist</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">cifar</span> <span class="o">=</span> <span class="n">CIFAR</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">mnist_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">mnist</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">cifar_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">cifar</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="c1"># each batch will be a dict of tensors: {&#39;mnist&#39;: batch_mnist, &#39;cifar&#39;: batch_cifar}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;mnist&#39;</span><span class="p">:</span> <span class="n">mnist_loader</span><span class="p">,</span> <span class="s1">&#39;cifar&#39;</span><span class="p">:</span> <span class="n">cifar_loader</span><span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.ManualDataModule.val_dataloader">
+<span class="sig-name descname"><span class="pre">val_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.ManualDataModule.val_dataloader" title="Permalink to this definition"></a></dt>
+<dd><p>Implement one or multiple PyTorch DataLoaders for validation.</p>
+<p>The dataloader you return will not be reloaded unless you set
+<a href="#id11"><span class="problematic" id="id12">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_n_epochs`</span></a> to
+a positive integer.</p>
+<p>It’s recommended that all data downloads and preparation happen in <a class="reference internal" href="#reagent.data.ManualDataModule.prepare_data" title="reagent.data.ManualDataModule.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a>.</p>
+<ul class="simple">
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
+<li><p>…</p></li>
+<li><p><a class="reference internal" href="#reagent.data.ManualDataModule.prepare_data" title="reagent.data.ManualDataModule.prepare_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.ManualDataModule.train_dataloader" title="reagent.data.ManualDataModule.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.ManualDataModule.val_dataloader" title="reagent.data.ManualDataModule.val_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">val_dataloader()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#reagent.data.ManualDataModule.test_dataloader" title="reagent.data.ManualDataModule.test_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_dataloader()</span></code></a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lightning adds the correct sampler for distributed and arbitrary hardware
+There is no need to set it yourself.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.DataLoader</span></code> or a sequence of them specifying validation samples.</p>
+</dd>
+</dl>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">val_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                                    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,))])</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;/path/to/mnist/&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">loader</span>
+
+<span class="c1"># can also return multiple dataloaders</span>
+<span class="k">def</span> <span class="nf">val_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">loader_a</span><span class="p">,</span> <span class="n">loader_b</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">loader_n</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you don’t need a validation dataset and a <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code>, you don’t need to
+implement this method.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the case where you return multiple validation dataloaders, the <code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code>
+will have an argument <code class="docutils literal notranslate"><span class="pre">dataloader_idx</span></code> which matches the order here.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.data.ReAgentDataModule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.data.</span></span><span class="sig-name descname"><span class="pre">ReAgentDataModule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.data.ReAgentDataModule" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pytorch_lightning.core.datamodule.LightningDataModule</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.data.ReAgentDataModule.get_normalization_data_map">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_normalization_data_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.data.ReAgentDataModule.get_normalization_data_map" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.core.html" class="btn btn-neutral float-left" title="reagent.core package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.gym.html" class="btn btn-neutral float-right" title="reagent.gym package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

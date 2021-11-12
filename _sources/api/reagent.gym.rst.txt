@@ -5,8 +5,10 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    reagent.gym.agents
+   reagent.gym.datasets
    reagent.gym.envs
    reagent.gym.policies
    reagent.gym.preprocessors
@@ -15,6 +17,14 @@ Subpackages
 
 Submodules
 ----------
+
+reagent.gym.normalizers module
+------------------------------
+
+.. automodule:: reagent.gym.normalizers
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 reagent.gym.types module
 ------------------------
@@ -31,7 +41,6 @@ reagent.gym.utils module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

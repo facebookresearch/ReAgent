@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>reagent.gym.envs package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="reagent.gym.policies package" href="reagent.gym.policies.html" />
-    <link rel="prev" title="reagent.gym.agents package" href="reagent.gym.agents.html" /> 
+    <link rel="next" title="reagent.gym.envs.dynamics package" href="reagent.gym.envs.dynamics.html" />
+    <link rel="prev" title="reagent.gym.datasets package" href="reagent.gym.datasets.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,280 +36,1228 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
-<li class="toctree-l4 current"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reagent.gym.html">Gym</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.gym.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.agents.html">reagent.gym.agents package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.datasets.html">reagent.gym.datasets package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">reagent.gym.envs package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.envs.changing_arms">reagent.gym.envs.changing_arms module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.envs.env_wrapper">reagent.gym.envs.env_wrapper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.envs.gym">reagent.gym.envs.gym module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.envs.oracle_pvm">reagent.gym.envs.oracle_pvm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.envs.recsim">reagent.gym.envs.recsim module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.envs.toy_vm">reagent.gym.envs.toy_vm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.envs.utils">reagent.gym.envs.utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.gym.envs">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.policies.html">reagent.gym.policies package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.preprocessors.html">reagent.gym.preprocessors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.runners.html">reagent.gym.runners package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.gym.tests.html">reagent.gym.tests package</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.normalizers">reagent.gym.normalizers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.types">reagent.gym.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym.utils">reagent.gym.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.html#module-reagent.gym">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-          <li><a href="modules.html">reagent</a> &raquo;</li>
-        
-          <li><a href="reagent.html">reagent package</a> &raquo;</li>
-        
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="reagent.gym.html">reagent.gym package</a> &raquo;</li>
-        
       <li>reagent.gym.envs package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/reagent.gym.envs.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-gym-envs-package">
-<h1>reagent.gym.envs package<a class="headerlink" href="#reagent-gym-envs-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="reagent-gym-envs-package">
+<h1>reagent.gym.envs package<a class="headerlink" href="#reagent-gym-envs-package" title="Permalink to this headline"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.envs.dynamics.html">reagent.gym.envs.dynamics package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.dynamics.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.dynamics.html#module-reagent.gym.envs.dynamics.linear_dynamics">reagent.gym.envs.dynamics.linear_dynamics module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.dynamics.html#module-reagent.gym.envs.dynamics">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.envs.functionality.html">reagent.gym.envs.functionality package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.functionality.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.functionality.html#module-reagent.gym.envs.functionality.possible_actions_mask_tester">reagent.gym.envs.functionality.possible_actions_mask_tester module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.functionality.html#module-reagent.gym.envs.functionality">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.envs.pomdp.html">reagent.gym.envs.pomdp package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.pomdp.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.pomdp.html#module-reagent.gym.envs.pomdp.pocman">reagent.gym.envs.pomdp.pocman module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.pomdp.html#module-reagent.gym.envs.pomdp.state_embed_env">reagent.gym.envs.pomdp.state_embed_env module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.pomdp.html#module-reagent.gym.envs.pomdp.string_game">reagent.gym.envs.pomdp.string_game module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.pomdp.html#module-reagent.gym.envs.pomdp.string_game_v1">reagent.gym.envs.pomdp.string_game_v1 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.pomdp.html#module-reagent.gym.envs.pomdp">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.envs.wrappers.html">reagent.gym.envs.wrappers package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.wrappers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.wrappers.html#module-reagent.gym.envs.wrappers.recsim">reagent.gym.envs.wrappers.recsim module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.wrappers.html#module-reagent.gym.envs.wrappers.simple_minigrid">reagent.gym.envs.wrappers.simple_minigrid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.gym.envs.wrappers.html#module-reagent.gym.envs.wrappers">Module contents</a></li>
+</ul>
+</li>
+</ul>
 </div>
-<div class="section" id="reagent-gym-envs-changing-arms-module">
-<h2>reagent.gym.envs.changing_arms module<a class="headerlink" href="#reagent-gym-envs-changing-arms-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.gym.envs.env_factory">
-<span id="reagent-gym-envs-env-factory-module"></span><h2>reagent.gym.envs.env_factory module<a class="headerlink" href="#module-reagent.gym.envs.env_factory" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.gym.envs.env_factory.EnvFactory">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.envs.env_factory.</code><code class="sig-name descname">EnvFactory</code><a class="headerlink" href="#reagent.gym.envs.env_factory.EnvFactory" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="reagent.gym.envs.env_factory.EnvFactory.make">
-<em class="property">static </em><code class="sig-name descname">make</code><span class="sig-paren">(</span><em class="sig-param">name: str</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; gym.core.Env<a class="headerlink" href="#reagent.gym.envs.env_factory.EnvFactory.make" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.gym.envs.changing_arms">
+<span id="reagent-gym-envs-changing-arms-module"></span><h2>reagent.gym.envs.changing_arms module<a class="headerlink" href="#module-reagent.gym.envs.changing_arms" title="Permalink to this headline"></a></h2>
+<p>Traditional MAB setup has sequence length = 1 always. In this setup, the
+distributions of the arms rewards changes every round, and the agent is presented
+with some information and control about how the arms will change.
+In particular, the observation includes “mu_changes”, which is the possible changes
+to mu; only the arm picked by agent will have it’s mu_changes reflected.
+This way, the next state depend on (only) the previous state and action;
+hence this a MDP.</p>
+<p>The reward for picking an action is the change in mu corresponding to that arm.
+With following set-up (where ARM_INIT_VALUE = 100 and NUM_ARMS = 5), the
+optimal policy can accumulate a reward of 500 per run.
+Note that if the policy picks an illegal action at any time, the game ends.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArms">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.changing_arms.</span></span><span class="sig-name descname"><span class="pre">ChangingArms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArms" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArms.make">
+<span class="sig-name descname"><span class="pre">make</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">gym.core.Env</span></span></span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArms.make" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArms.normalization_data">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normalization_data</span></span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArms.normalization_data" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArms.num_arms">
+<span class="sig-name descname"><span class="pre">num_arms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArms.num_arms" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArms.obs_preprocessor">
+<span class="sig-name descname"><span class="pre">obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArms.obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArms.serving_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">serving_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.ServingFeatureData" title="reagent.core.types.ServingFeatureData"><span class="pre">reagent.core.types.ServingFeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArms.serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArms.split_state_transform">
+<span class="sig-name descname"><span class="pre">split_state_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elem</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArms.split_state_transform" title="Permalink to this definition"></a></dt>
+<dd><p>For generate data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArms.trainer_preprocessor">
+<span class="sig-name descname"><span class="pre">trainer_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArms.trainer_preprocessor" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArmsEnv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.changing_arms.</span></span><span class="sig-name descname"><span class="pre">ChangingArmsEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_arms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArmsEnv" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.Env</span></code></p>
+<p>This is just the gym environment, without extra functionality</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArmsEnv.action_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArmsEnv.action_space" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArmsEnv.observation_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArmsEnv.observation_space" title="Permalink to this definition"></a></dt>
+<dd><p>It should really be a Dict, but we return them all stacked since it’s
+more convenient for RB.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArmsEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArmsEnv.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the environment to an initial state and returns an initial
+observation.</p>
+<p>Note that this function should not reset the environment’s random
+number generator(s); random variables in the environment’s state should
+be sampled independently between multiple calls to <cite>reset()</cite>. In other
+words, each call of <cite>reset()</cite> should yield an environment suitable for
+a new episode, independent of previous episodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the initial observation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArmsEnv.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArmsEnv.seed" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the seed for this env’s random number generator(s).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some environments use multiple pseudorandom number generators.
+We want to capture all such seeds used in order to ensure that
+there aren’t accidental correlations between multiple generators.</p>
 </div>
-<div class="section" id="module-reagent.gym.envs.recsim">
-<span id="reagent-gym-envs-recsim-module"></span><h2>reagent.gym.envs.recsim module<a class="headerlink" href="#module-reagent.gym.envs.recsim" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.gym.envs.recsim.ValueWrapper">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.envs.recsim.</code><code class="sig-name descname">ValueWrapper</code><span class="sig-paren">(</span><em class="sig-param">env</em>, <em class="sig-param">value_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.ValueWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.ObservationWrapper</span></code></p>
-<dl class="attribute">
-<dt id="reagent.gym.envs.recsim.ValueWrapper.KEY">
-<code class="sig-name descname">KEY</code><em class="property"> = 'value'</em><a class="headerlink" href="#reagent.gym.envs.recsim.ValueWrapper.KEY" title="Permalink to this definition">¶</a></dt>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Returns the list of seeds used in this env’s random</dt><dd><p>number generators. The first value in the list should be the
+“main” seed, or the value which a reproducer should pass to
+‘seed’. Often, the main seed equals the provided ‘seed’, but
+this won’t be true if seed=None, for example.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list&lt;bigint&gt;</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArmsEnv.state">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state</span></span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArmsEnv.state" title="Permalink to this definition"></a></dt>
+<dd><p>State comprises of:
+- initial mus
+- legal_indices mask
+- randomly-generated mu changes</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.ChangingArmsEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.changing_arms.ChangingArmsEnv.step" title="Permalink to this definition"></a></dt>
+<dd><p>Run one timestep of the environment’s dynamics. When end of
+episode is reached, you are responsible for calling <cite>reset()</cite>
+to reset this environment’s state.</p>
+<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>object</em>) – an action provided by the agent</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>agent’s observation of the current environment
+reward (float) : amount of reward returned after previous action
+done (bool): whether the episode has ended, in which case further step() calls will return undefined results
+info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.get_initial_mus">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.changing_arms.</span></span><span class="sig-name descname"><span class="pre">get_initial_mus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_arms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.changing_arms.get_initial_mus" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.envs.recsim.ValueWrapper.observation">
-<code class="sig-name descname">observation</code><span class="sig-paren">(</span><em class="sig-param">obs</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.ValueWrapper.observation" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.get_legal_indices_mask">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.changing_arms.</span></span><span class="sig-name descname"><span class="pre">get_legal_indices_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_arms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.changing_arms.get_legal_indices_mask" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.gym.envs.recsim.ValueWrapper.observation_space">
-<em class="property">property </em><code class="sig-name descname">observation_space</code><a class="headerlink" href="#reagent.gym.envs.recsim.ValueWrapper.observation_space" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.changing_arms.get_mu_changes">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.changing_arms.</span></span><span class="sig-name descname"><span class="pre">get_mu_changes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_arms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.changing_arms.get_mu_changes" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.gym.envs.env_wrapper">
+<span id="reagent-gym-envs-env-wrapper-module"></span><h2>reagent.gym.envs.env_wrapper module<a class="headerlink" href="#module-reagent.gym.envs.env_wrapper" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.env_wrapper.</span></span><span class="sig-name descname"><span class="pre">EnvWrapper</span></span><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.Wrapper</span></code></p>
+<p>Wrapper around it’s environment, to simplify configuration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.REGISTRY">
+<span class="sig-name descname"><span class="pre">REGISTRY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'ChangingArms':</span> <span class="pre">&lt;class</span> <span class="pre">'reagent.gym.envs.changing_arms.ChangingArms'&gt;,</span> <span class="pre">'Gym':</span> <span class="pre">&lt;class</span> <span class="pre">'reagent.gym.envs.gym.Gym'&gt;,</span> <span class="pre">'OraclePVM':</span> <span class="pre">&lt;class</span> <span class="pre">'reagent.gym.envs.oracle_pvm.OraclePVM'&gt;,</span> <span class="pre">'RecSim':</span> <span class="pre">&lt;class</span> <span class="pre">'reagent.gym.envs.recsim.RecSim'&gt;,</span> <span class="pre">'ToyVM':</span> <span class="pre">&lt;class</span> <span class="pre">'reagent.gym.envs.toy_vm.ToyVM'&gt;}</span></em><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.REGISTRY" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.REGISTRY_FROZEN">
+<span class="sig-name descname"><span class="pre">REGISTRY_FROZEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.REGISTRY_FROZEN" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.REGISTRY_NAME">
+<span class="sig-name descname"><span class="pre">REGISTRY_NAME</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'EnvWrapper'</span></em><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.REGISTRY_NAME" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.action_extractor">
+<span class="sig-name descname"><span class="pre">action_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ActorOutput" title="reagent.core.types.ActorOutput"><span class="pre">reagent.core.types.ActorOutput</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.action_extractor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.get_action_extractor">
+<span class="sig-name descname"><span class="pre">get_action_extractor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.get_action_extractor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.get_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">get_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">ctor_args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">ctor_kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.get_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.get_serving_action_extractor">
+<span class="sig-name descname"><span class="pre">get_serving_action_extractor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.get_serving_action_extractor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.get_serving_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">get_serving_obs_preprocessor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.get_serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.make">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">make</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">gym.core.Env</span></span></span><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.make" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.max_steps">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">max_steps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.max_steps" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.obs_preprocessor">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.possible_actions_mask">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">possible_actions_mask</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.possible_actions_mask" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.serving_action_extractor">
+<span class="sig-name descname"><span class="pre">serving_action_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ActorOutput" title="reagent.core.types.ActorOutput"><span class="pre">reagent.core.types.ActorOutput</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.serving_action_extractor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.env_wrapper.EnvWrapper.serving_obs_preprocessor">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">serving_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.ServingFeatureData" title="reagent.core.types.ServingFeatureData"><span class="pre">reagent.core.types.ServingFeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.envs.env_wrapper.EnvWrapper.serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="reagent.gym.envs.recsim.dot_value_fn">
-<code class="sig-prename descclassname">reagent.gym.envs.recsim.</code><code class="sig-name descname">dot_value_fn</code><span class="sig-paren">(</span><em class="sig-param">user</em>, <em class="sig-param">doc</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.dot_value_fn" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-reagent.gym.envs.gym">
+<span id="reagent-gym-envs-gym-module"></span><h2>reagent.gym.envs.gym module<a class="headerlink" href="#module-reagent.gym.envs.gym" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.gym.Gym">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.gym.</span></span><span class="sig-name descname"><span class="pre">Gym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_max_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.gym.Gym" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.gym.Gym.env_name">
+<span class="sig-name descname"><span class="pre">env_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#reagent.gym.envs.gym.Gym.env_name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="module-reagent.gym.envs.simple_minigrid">
-<span id="reagent-gym-envs-simple-minigrid-module"></span><h2>reagent.gym.envs.simple_minigrid module<a class="headerlink" href="#module-reagent.gym.envs.simple_minigrid" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.gym.envs.simple_minigrid.SimpleObsWrapper">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.envs.simple_minigrid.</code><code class="sig-name descname">SimpleObsWrapper</code><span class="sig-paren">(</span><em class="sig-param">env</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.simple_minigrid.SimpleObsWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.ObservationWrapper</span></code></p>
-<p>Encode the agent’s position &amp; direction in a one-hot vector</p>
-<dl class="method">
-<dt id="reagent.gym.envs.simple_minigrid.SimpleObsWrapper.observation">
-<code class="sig-name descname">observation</code><span class="sig-paren">(</span><em class="sig-param">obs</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.simple_minigrid.SimpleObsWrapper.observation" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.gym.Gym.make">
+<span class="sig-name descname"><span class="pre">make</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">gym.core.Env</span></span></span><a class="headerlink" href="#reagent.gym.envs.gym.Gym.make" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.gym.Gym.obs_preprocessor">
+<span class="sig-name descname"><span class="pre">obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.envs.gym.Gym.obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.gym.Gym.serving_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">serving_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.envs.gym.Gym.serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.gym.Gym.set_max_steps">
+<span class="sig-name descname"><span class="pre">set_max_steps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.envs.gym.Gym.set_max_steps" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
+</section>
+<section id="module-reagent.gym.envs.oracle_pvm">
+<span id="reagent-gym-envs-oracle-pvm-module"></span><h2>reagent.gym.envs.oracle_pvm module<a class="headerlink" href="#module-reagent.gym.envs.oracle_pvm" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.OraclePVM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.oracle_pvm.</span></span><span class="sig-name descname"><span class="pre">OraclePVM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_candidates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slate_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample_documents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_selection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_interest_exploration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_feat_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_feat_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.OraclePVM" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.gym.envs.recsim.RecSim" title="reagent.gym.envs.recsim.RecSim"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.envs.recsim.RecSim</span></code></a></p>
+<p>Wrapper over RecSim for simulating (Personalized) VM Tuning.
+The state is the same as for RecSim (user feature + candidate features).
+There are num_weights VM weights to tune, and so action space is a vector
+of length num_weights.
+OraclePVM hides num_weights number of
+(1) score_fns (akin to VM models), that take in</p>
+<blockquote>
+<div><p>user + candidate_i feature and produces a score for candidate_i.</p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>ground_truth_weights, that are used to produce “ground truth”, a.k.a.
+“Oracle”, rankings.</p></li>
+</ol>
+<p>Reward is the Kendall-Tau between ground truth and the ranking created from the
+weights given by action. If the rankings match exactly, the reward is boosted to 3.
+NOTE: This environment only tests if the Agent can learn the hidden ground
+truth weights, which may be far from optimal (in terms of RecSim’s rewards,
+which we’re ignoring). This is easier for unit tests, but in the real world
+we will be trying to learn the optimal weights, and the reward signal would
+reflect that.</p>
+<p>TODO: made environment easier to learn from by not using RecSim.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.OraclePVM.action_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.OraclePVM.action_space" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.OraclePVM.candidate_feat_dim">
+<span class="sig-name descname"><span class="pre">candidate_feat_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.OraclePVM.candidate_feat_dim" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.OraclePVM.is_match">
+<span class="sig-name descname"><span class="pre">is_match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.OraclePVM.is_match" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.OraclePVM.num_weights">
+<span class="sig-name descname"><span class="pre">num_weights</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.OraclePVM.num_weights" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.OraclePVM.obs_preprocessor">
+<span class="sig-name descname"><span class="pre">obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.OraclePVM.obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.OraclePVM.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.OraclePVM.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the environment to an initial state and returns an initial
+observation.</p>
+<p>Note that this function should not reset the environment’s random
+number generator(s); random variables in the environment’s state should
+be sampled independently between multiple calls to <cite>reset()</cite>. In other
+words, each call of <cite>reset()</cite> should yield an environment suitable for
+a new episode, independent of previous episodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the initial observation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.OraclePVM.serving_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">serving_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.OraclePVM.serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.OraclePVM.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.OraclePVM.step" title="Permalink to this definition"></a></dt>
+<dd><p>Run one timestep of the environment’s dynamics. When end of
+episode is reached, you are responsible for calling <cite>reset()</cite>
+to reset this environment’s state.</p>
+<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>object</em>) – an action provided by the agent</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>agent’s observation of the current environment
+reward (float) : amount of reward returned after previous action
+done (bool): whether the episode has ended, in which case further step() calls will return undefined results
+info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.OraclePVM.user_feat_dim">
+<span class="sig-name descname"><span class="pre">user_feat_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.OraclePVM.user_feat_dim" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.get_default_score_fns">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.oracle_pvm.</span></span><span class="sig-name descname"><span class="pre">get_default_score_fns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_weights</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.get_default_score_fns" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.get_ground_truth_weights">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.oracle_pvm.</span></span><span class="sig-name descname"><span class="pre">get_ground_truth_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_weights</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.get_ground_truth_weights" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.oracle_pvm.make_default_score_fn">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.oracle_pvm.</span></span><span class="sig-name descname"><span class="pre">make_default_score_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn_i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.envs.oracle_pvm.make_default_score_fn" title="Permalink to this definition"></a></dt>
+<dd><p>Make ith score_fn (constructor of ith score)</p>
+</dd></dl>
+
+</section>
+<section id="module-reagent.gym.envs.recsim">
+<span id="reagent-gym-envs-recsim-module"></span><h2>reagent.gym.envs.recsim module<a class="headerlink" href="#module-reagent.gym.envs.recsim" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.MulticlickIEvUserModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.recsim.</span></span><span class="sig-name descname"><span class="pre">MulticlickIEvUserModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slate_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choice_model_ctor=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_model_ctor=&lt;class</span> <span class="pre">'recsim.environments.interest_evolution.IEvResponse'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_state_ctor=&lt;class</span> <span class="pre">'recsim.environments.interest_evolution.IEvUserState'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_click_mass=1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_x_intercept=1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_y_intercept=0.3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.MulticlickIEvUserModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">recsim.environments.interest_evolution.IEvUserModel</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.MulticlickIEvUserModel.simulate_response">
+<span class="sig-name descname"><span class="pre">simulate_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">documents</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.MulticlickIEvUserModel.simulate_response" title="Permalink to this definition"></a></dt>
+<dd><p>Simulates the user’s response to a slate of documents with choice model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>documents</strong> – a list of IEvVideo objects</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a list of IEvResponse objects, one for each document</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>responses</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.RecSim">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.recsim.</span></span><span class="sig-name descname"><span class="pre">RecSim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_candidates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slate_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample_documents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_selection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_interest_exploration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.RecSim" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.RecSim.initial_seed">
+<span class="sig-name descname"><span class="pre">initial_seed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#reagent.gym.envs.recsim.RecSim.initial_seed" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.RecSim.is_interest_exploration">
+<span class="sig-name descname"><span class="pre">is_interest_exploration</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#reagent.gym.envs.recsim.RecSim.is_interest_exploration" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.RecSim.make">
+<span class="sig-name descname"><span class="pre">make</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">gym.core.Env</span></span></span><a class="headerlink" href="#reagent.gym.envs.recsim.RecSim.make" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.RecSim.num_candidates">
+<span class="sig-name descname"><span class="pre">num_candidates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.gym.envs.recsim.RecSim.num_candidates" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.RecSim.obs_preprocessor">
+<span class="sig-name descname"><span class="pre">obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.envs.recsim.RecSim.obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.RecSim.resample_documents">
+<span class="sig-name descname"><span class="pre">resample_documents</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.gym.envs.recsim.RecSim.resample_documents" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.RecSim.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.RecSim.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the environment to an initial state and returns an initial
+observation.</p>
+<p>Note that this function should not reset the environment’s random
+number generator(s); random variables in the environment’s state should
+be sampled independently between multiple calls to <cite>reset()</cite>. In other
+words, each call of <cite>reset()</cite> should yield an environment suitable for
+a new episode, independent of previous episodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the initial observation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.RecSim.serving_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">serving_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.RecSim.serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.RecSim.single_selection">
+<span class="sig-name descname"><span class="pre">single_selection</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.gym.envs.recsim.RecSim.single_selection" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.RecSim.slate_size">
+<span class="sig-name descname"><span class="pre">slate_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.gym.envs.recsim.RecSim.slate_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.RecSim.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.RecSim.step" title="Permalink to this definition"></a></dt>
+<dd><p>Run one timestep of the environment’s dynamics. When end of
+episode is reached, you are responsible for calling <cite>reset()</cite>
+to reset this environment’s state.</p>
+<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>object</em>) – an action provided by the agent</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>agent’s observation of the current environment
+reward (float) : amount of reward returned after previous action
+done (bool): whether the episode has ended, in which case further step() calls will return undefined results
+info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.UserState">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.recsim.</span></span><span class="sig-name descname"><span class="pre">UserState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_interests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_budget</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_click_mass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_interact_prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_doc_utility</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_update_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">watched_videos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">impressed_videos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">liked_videos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_penalty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_normalizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_quality_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">document_quality_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.UserState" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">recsim.environments.interest_evolution.IEvUserState</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.UserState.score_document">
+<span class="sig-name descname"><span class="pre">score_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc_obs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.UserState.score_document" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.create_multiclick_environment">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.recsim.</span></span><span class="sig-name descname"><span class="pre">create_multiclick_environment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.create_multiclick_environment" title="Permalink to this definition"></a></dt>
+<dd><p>Creates an interest evolution environment.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.dot_value_fn">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.recsim.</span></span><span class="sig-name descname"><span class="pre">dot_value_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.dot_value_fn" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.recsim.multi_selection_value_fn">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.recsim.</span></span><span class="sig-name descname"><span class="pre">multi_selection_value_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.recsim.multi_selection_value_fn" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.gym.envs.toy_vm">
+<span id="reagent-gym-envs-toy-vm-module"></span><h2>reagent.gym.envs.toy_vm module<a class="headerlink" href="#module-reagent.gym.envs.toy_vm" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.ToyVM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.toy_vm.</span></span><span class="sig-name descname"><span class="pre">ToyVM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slate_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_episode_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.toy_vm.ToyVM" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.ToyVM.action_extractor">
+<span class="sig-name descname"><span class="pre">action_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor_output</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.toy_vm.ToyVM.action_extractor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.ToyVM.initial_seed">
+<span class="sig-name descname"><span class="pre">initial_seed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.envs.toy_vm.ToyVM.initial_seed" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.ToyVM.make">
+<span class="sig-name descname"><span class="pre">make</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.toy_vm.ToyVM.make" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.ToyVM.max_episode_steps">
+<span class="sig-name descname"><span class="pre">max_episode_steps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100</span></em><a class="headerlink" href="#reagent.gym.envs.toy_vm.ToyVM.max_episode_steps" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.ToyVM.obs_preprocessor">
+<span class="sig-name descname"><span class="pre">obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.toy_vm.ToyVM.obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.ToyVM.serving_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">serving_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.toy_vm.ToyVM.serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.ToyVM.slate_size">
+<span class="sig-name descname"><span class="pre">slate_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#reagent.gym.envs.toy_vm.ToyVM.slate_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.ToyVMEnv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.toy_vm.</span></span><span class="sig-name descname"><span class="pre">ToyVMEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slate_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.toy_vm.ToyVMEnv" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">gym.core.Env</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.ToyVMEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.toy_vm.ToyVMEnv.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the environment to an initial state and returns an initial
+observation.</p>
+<p>Note that this function should not reset the environment’s random
+number generator(s); random variables in the environment’s state should
+be sampled independently between multiple calls to <cite>reset()</cite>. In other
+words, each call of <cite>reset()</cite> should yield an environment suitable for
+a new episode, independent of previous episodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the initial observation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.ToyVMEnv.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.toy_vm.ToyVMEnv.seed" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the seed for this env’s random number generator(s).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some environments use multiple pseudorandom number generators.
+We want to capture all such seeds used in order to ensure that
+there aren’t accidental correlations between multiple generators.</p>
 </div>
-<div class="section" id="module-reagent.gym.envs.utils">
-<span id="reagent-gym-envs-utils-module"></span><h2>reagent.gym.envs.utils module<a class="headerlink" href="#module-reagent.gym.envs.utils" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="reagent.gym.envs.utils.register_if_not_exists">
-<code class="sig-prename descclassname">reagent.gym.envs.utils.</code><code class="sig-name descname">register_if_not_exists</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">entry_point</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.utils.register_if_not_exists" title="Permalink to this definition">¶</a></dt>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Returns the list of seeds used in this env’s random</dt><dd><p>number generators. The first value in the list should be the
+“main” seed, or the value which a reproducer should pass to
+‘seed’. Often, the main seed equals the provided ‘seed’, but
+this won’t be true if seed=None, for example.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list&lt;bigint&gt;</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.ToyVMEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.toy_vm.ToyVMEnv.step" title="Permalink to this definition"></a></dt>
+<dd><p>Run one timestep of the environment’s dynamics. When end of
+episode is reached, you are responsible for calling <cite>reset()</cite>
+to reset this environment’s state.</p>
+<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>object</em>) – an action provided by the agent</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>agent’s observation of the current environment
+reward (float) : amount of reward returned after previous action
+done (bool): whether the episode has ended, in which case further step() calls will return undefined results
+info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.random_document">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.toy_vm.</span></span><span class="sig-name descname"><span class="pre">random_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prng</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.toy_vm.random_document" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.simulate_reward">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.toy_vm.</span></span><span class="sig-name descname"><span class="pre">simulate_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">collections.Document</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.random.mtrand.RandomState</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.toy_vm.simulate_reward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.toy_vm.zero_augment">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.toy_vm.</span></span><span class="sig-name descname"><span class="pre">zero_augment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.toy_vm.zero_augment" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.gym.envs.utils">
+<span id="reagent-gym-envs-utils-module"></span><h2>reagent.gym.envs.utils module<a class="headerlink" href="#module-reagent.gym.envs.utils" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.gym.envs.utils.register_if_not_exists">
+<span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.utils.</span></span><span class="sig-name descname"><span class="pre">register_if_not_exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entry_point</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.utils.register_if_not_exists" title="Permalink to this definition"></a></dt>
 <dd><p>Preventing tests from failing trying to re-register environments</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.gym.envs">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.gym.envs" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.gym.envs.EnvFactory">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.gym.envs.</code><code class="sig-name descname">EnvFactory</code><a class="headerlink" href="#reagent.gym.envs.EnvFactory" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="reagent.gym.envs.EnvFactory.make">
-<em class="property">static </em><code class="sig-name descname">make</code><span class="sig-paren">(</span><em class="sig-param">name: str</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; gym.core.Env<a class="headerlink" href="#reagent.gym.envs.EnvFactory.make" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-reagent.gym.envs">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.gym.envs" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.ChangingArms">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.</span></span><span class="sig-name descname"><span class="pre">ChangingArms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.ChangingArms" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.ChangingArms.make">
+<span class="sig-name descname"><span class="pre">make</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">gym.core.Env</span></span></span><a class="headerlink" href="#reagent.gym.envs.ChangingArms.make" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.gym.envs.ChangingArms.normalization_data">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normalization_data</span></span><a class="headerlink" href="#reagent.gym.envs.ChangingArms.normalization_data" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.ChangingArms.num_arms">
+<span class="sig-name descname"><span class="pre">num_arms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#reagent.gym.envs.ChangingArms.num_arms" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.ChangingArms.obs_preprocessor">
+<span class="sig-name descname"><span class="pre">obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.envs.ChangingArms.obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.ChangingArms.serving_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">serving_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.ServingFeatureData" title="reagent.core.types.ServingFeatureData"><span class="pre">reagent.core.types.ServingFeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.envs.ChangingArms.serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.ChangingArms.split_state_transform">
+<span class="sig-name descname"><span class="pre">split_state_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elem</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.ChangingArms.split_state_transform" title="Permalink to this definition"></a></dt>
+<dd><p>For generate data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.ChangingArms.trainer_preprocessor">
+<span class="sig-name descname"><span class="pre">trainer_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.ChangingArms.trainer_preprocessor" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-</div>
-</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.Env__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.</span></span><span class="sig-name descname"><span class="pre">Env__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ChangingArms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.gym.envs.changing_arms.ChangingArms" title="reagent.gym.envs.changing_arms.ChangingArms"><span class="pre">reagent.gym.envs.changing_arms.ChangingArms</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Gym</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.gym.envs.gym.Gym" title="reagent.gym.envs.gym.Gym"><span class="pre">reagent.gym.envs.gym.Gym</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RecSim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.gym.envs.recsim.RecSim" title="reagent.gym.envs.recsim.RecSim"><span class="pre">reagent.gym.envs.recsim.RecSim</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">OraclePVM</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.gym.envs.oracle_pvm.OraclePVM" title="reagent.gym.envs.oracle_pvm.OraclePVM"><span class="pre">reagent.gym.envs.oracle_pvm.OraclePVM</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ToyVM</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.gym.envs.toy_vm.ToyVM" title="reagent.gym.envs.toy_vm.ToyVM"><span class="pre">reagent.gym.envs.toy_vm.ToyVM</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.Env__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.Env__Union.ChangingArms">
+<span class="sig-name descname"><span class="pre">ChangingArms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.gym.envs.changing_arms.ChangingArms" title="reagent.gym.envs.changing_arms.ChangingArms"><span class="pre">reagent.gym.envs.changing_arms.ChangingArms</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.envs.Env__Union.ChangingArms" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.Env__Union.Gym">
+<span class="sig-name descname"><span class="pre">Gym</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.gym.envs.gym.Gym" title="reagent.gym.envs.gym.Gym"><span class="pre">reagent.gym.envs.gym.Gym</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.envs.Env__Union.Gym" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.Env__Union.OraclePVM">
+<span class="sig-name descname"><span class="pre">OraclePVM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.gym.envs.oracle_pvm.OraclePVM" title="reagent.gym.envs.oracle_pvm.OraclePVM"><span class="pre">reagent.gym.envs.oracle_pvm.OraclePVM</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.envs.Env__Union.OraclePVM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.Env__Union.RecSim">
+<span class="sig-name descname"><span class="pre">RecSim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.gym.envs.recsim.RecSim" title="reagent.gym.envs.recsim.RecSim"><span class="pre">reagent.gym.envs.recsim.RecSim</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.envs.Env__Union.RecSim" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.Env__Union.ToyVM">
+<span class="sig-name descname"><span class="pre">ToyVM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.gym.envs.toy_vm.ToyVM" title="reagent.gym.envs.toy_vm.ToyVM"><span class="pre">reagent.gym.envs.toy_vm.ToyVM</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.envs.Env__Union.ToyVM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.Env__Union.make_union_instance">
+<span class="sig-name descname"><span class="pre">make_union_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.Env__Union.make_union_instance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.Gym">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.</span></span><span class="sig-name descname"><span class="pre">Gym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_max_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.Gym" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.Gym.env_name">
+<span class="sig-name descname"><span class="pre">env_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#reagent.gym.envs.Gym.env_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.Gym.make">
+<span class="sig-name descname"><span class="pre">make</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">gym.core.Env</span></span></span><a class="headerlink" href="#reagent.gym.envs.Gym.make" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.Gym.obs_preprocessor">
+<span class="sig-name descname"><span class="pre">obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.envs.Gym.obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.Gym.serving_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">serving_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.gym.envs.Gym.serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.Gym.set_max_steps">
+<span class="sig-name descname"><span class="pre">set_max_steps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.envs.Gym.set_max_steps" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.OraclePVM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.</span></span><span class="sig-name descname"><span class="pre">OraclePVM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_candidates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slate_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample_documents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_selection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_interest_exploration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_feat_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_feat_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.OraclePVM" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.gym.envs.recsim.RecSim" title="reagent.gym.envs.recsim.RecSim"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.envs.recsim.RecSim</span></code></a></p>
+<p>Wrapper over RecSim for simulating (Personalized) VM Tuning.
+The state is the same as for RecSim (user feature + candidate features).
+There are num_weights VM weights to tune, and so action space is a vector
+of length num_weights.
+OraclePVM hides num_weights number of
+(1) score_fns (akin to VM models), that take in</p>
+<blockquote>
+<div><p>user + candidate_i feature and produces a score for candidate_i.</p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>ground_truth_weights, that are used to produce “ground truth”, a.k.a.
+“Oracle”, rankings.</p></li>
+</ol>
+<p>Reward is the Kendall-Tau between ground truth and the ranking created from the
+weights given by action. If the rankings match exactly, the reward is boosted to 3.
+NOTE: This environment only tests if the Agent can learn the hidden ground
+truth weights, which may be far from optimal (in terms of RecSim’s rewards,
+which we’re ignoring). This is easier for unit tests, but in the real world
+we will be trying to learn the optimal weights, and the reward signal would
+reflect that.</p>
+<p>TODO: made environment easier to learn from by not using RecSim.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.gym.envs.OraclePVM.action_space">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#reagent.gym.envs.OraclePVM.action_space" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.OraclePVM.candidate_feat_dim">
+<span class="sig-name descname"><span class="pre">candidate_feat_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#reagent.gym.envs.OraclePVM.candidate_feat_dim" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.OraclePVM.is_match">
+<span class="sig-name descname"><span class="pre">is_match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.OraclePVM.is_match" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.OraclePVM.num_candidates">
+<span class="sig-name descname"><span class="pre">num_candidates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.gym.envs.OraclePVM.num_candidates" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.OraclePVM.num_weights">
+<span class="sig-name descname"><span class="pre">num_weights</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#reagent.gym.envs.OraclePVM.num_weights" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.OraclePVM.obs_preprocessor">
+<span class="sig-name descname"><span class="pre">obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.envs.OraclePVM.obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.OraclePVM.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.OraclePVM.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the environment to an initial state and returns an initial
+observation.</p>
+<p>Note that this function should not reset the environment’s random
+number generator(s); random variables in the environment’s state should
+be sampled independently between multiple calls to <cite>reset()</cite>. In other
+words, each call of <cite>reset()</cite> should yield an environment suitable for
+a new episode, independent of previous episodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the initial observation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.OraclePVM.serving_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">serving_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.OraclePVM.serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.OraclePVM.slate_size">
+<span class="sig-name descname"><span class="pre">slate_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.gym.envs.OraclePVM.slate_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.OraclePVM.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.OraclePVM.step" title="Permalink to this definition"></a></dt>
+<dd><p>Run one timestep of the environment’s dynamics. When end of
+episode is reached, you are responsible for calling <cite>reset()</cite>
+to reset this environment’s state.</p>
+<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>object</em>) – an action provided by the agent</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>agent’s observation of the current environment
+reward (float) : amount of reward returned after previous action
+done (bool): whether the episode has ended, in which case further step() calls will return undefined results
+info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.OraclePVM.user_feat_dim">
+<span class="sig-name descname"><span class="pre">user_feat_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#reagent.gym.envs.OraclePVM.user_feat_dim" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.RecSim">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.</span></span><span class="sig-name descname"><span class="pre">RecSim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_candidates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slate_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resample_documents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_selection</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_interest_exploration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.RecSim" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.RecSim.initial_seed">
+<span class="sig-name descname"><span class="pre">initial_seed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#reagent.gym.envs.RecSim.initial_seed" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.RecSim.is_interest_exploration">
+<span class="sig-name descname"><span class="pre">is_interest_exploration</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#reagent.gym.envs.RecSim.is_interest_exploration" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.RecSim.make">
+<span class="sig-name descname"><span class="pre">make</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">gym.core.Env</span></span></span><a class="headerlink" href="#reagent.gym.envs.RecSim.make" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.RecSim.num_candidates">
+<span class="sig-name descname"><span class="pre">num_candidates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.gym.envs.RecSim.num_candidates" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.RecSim.obs_preprocessor">
+<span class="sig-name descname"><span class="pre">obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></span><a class="headerlink" href="#reagent.gym.envs.RecSim.obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.RecSim.resample_documents">
+<span class="sig-name descname"><span class="pre">resample_documents</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.gym.envs.RecSim.resample_documents" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.RecSim.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.RecSim.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the environment to an initial state and returns an initial
+observation.</p>
+<p>Note that this function should not reset the environment’s random
+number generator(s); random variables in the environment’s state should
+be sampled independently between multiple calls to <cite>reset()</cite>. In other
+words, each call of <cite>reset()</cite> should yield an environment suitable for
+a new episode, independent of previous episodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the initial observation.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.RecSim.serving_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">serving_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.RecSim.serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.RecSim.single_selection">
+<span class="sig-name descname"><span class="pre">single_selection</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.gym.envs.RecSim.single_selection" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.RecSim.slate_size">
+<span class="sig-name descname"><span class="pre">slate_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.gym.envs.RecSim.slate_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.RecSim.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.RecSim.step" title="Permalink to this definition"></a></dt>
+<dd><p>Run one timestep of the environment’s dynamics. When end of
+episode is reached, you are responsible for calling <cite>reset()</cite>
+to reset this environment’s state.</p>
+<p>Accepts an action and returns a tuple (observation, reward, done, info).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>object</em>) – an action provided by the agent</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>agent’s observation of the current environment
+reward (float) : amount of reward returned after previous action
+done (bool): whether the episode has ended, in which case further step() calls will return undefined results
+info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>observation (object)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.gym.envs.ToyVM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.gym.envs.</span></span><span class="sig-name descname"><span class="pre">ToyVM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slate_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_episode_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.ToyVM" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.gym.envs.env_wrapper.EnvWrapper" title="reagent.gym.envs.env_wrapper.EnvWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.envs.env_wrapper.EnvWrapper</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.ToyVM.action_extractor">
+<span class="sig-name descname"><span class="pre">action_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor_output</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.ToyVM.action_extractor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.ToyVM.initial_seed">
+<span class="sig-name descname"><span class="pre">initial_seed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.gym.envs.ToyVM.initial_seed" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.ToyVM.make">
+<span class="sig-name descname"><span class="pre">make</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.ToyVM.make" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.ToyVM.max_episode_steps">
+<span class="sig-name descname"><span class="pre">max_episode_steps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100</span></em><a class="headerlink" href="#reagent.gym.envs.ToyVM.max_episode_steps" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.ToyVM.obs_preprocessor">
+<span class="sig-name descname"><span class="pre">obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.ToyVM.obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.gym.envs.ToyVM.serving_obs_preprocessor">
+<span class="sig-name descname"><span class="pre">serving_obs_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.gym.envs.ToyVM.serving_obs_preprocessor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.gym.envs.ToyVM.slate_size">
+<span class="sig-name descname"><span class="pre">slate_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#reagent.gym.envs.ToyVM.slate_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reagent.gym.policies.html" class="btn btn-neutral float-right" title="reagent.gym.policies package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reagent.gym.agents.html" class="btn btn-neutral float-left" title="reagent.gym.agents package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.gym.datasets.html" class="btn btn-neutral float-left" title="reagent.gym.datasets package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.gym.envs.dynamics.html" class="btn btn-neutral float-right" title="reagent.gym.envs.dynamics package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

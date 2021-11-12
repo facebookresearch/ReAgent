@@ -1,6 +1,15 @@
 reagent.prediction package
 ==========================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   reagent.prediction.ranking
+   reagent.prediction.synthetic_reward
+
 Submodules
 ----------
 
@@ -11,7 +20,6 @@ reagent.prediction.predictor\_wrapper module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

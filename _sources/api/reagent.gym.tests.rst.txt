@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    reagent.gym.tests.preprocessors
 
@@ -19,10 +20,26 @@ reagent.gym.tests.test\_gym module
    :undoc-members:
    :show-inheritance:
 
+reagent.gym.tests.test\_gym\_datasets module
+--------------------------------------------
+
+.. automodule:: reagent.gym.tests.test_gym_datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 reagent.gym.tests.test\_gym\_offline module
 -------------------------------------------
 
 .. automodule:: reagent.gym.tests.test_gym_offline
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.gym.tests.test\_gym\_replay\_buffer module
+--------------------------------------------------
+
+.. automodule:: reagent.gym.tests.test_gym_replay_buffer
    :members:
    :undoc-members:
    :show-inheritance:
@@ -43,14 +60,6 @@ reagent.gym.tests.test\_pomdp module
    :undoc-members:
    :show-inheritance:
 
-reagent.gym.tests.test\_seq2reward\_model module
-------------------------------------------------
-
-.. automodule:: reagent.gym.tests.test_seq2reward_model
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 reagent.gym.tests.test\_world\_model module
 -------------------------------------------
 
@@ -58,7 +67,6 @@ reagent.gym.tests.test\_world\_model module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

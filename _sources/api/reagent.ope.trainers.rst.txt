@@ -20,7 +20,6 @@ reagent.ope.trainers.rl\_tabular\_trainers module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

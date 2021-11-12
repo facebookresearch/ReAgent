@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>reagent.training.gradient_free package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="reagent.training.ranking package" href="reagent.training.ranking.html" />
-    <link rel="prev" title="reagent.training package" href="reagent.training.html" /> 
+    <link rel="prev" title="reagent.training.cfeval package" href="reagent.training.cfeval.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,205 +36,229 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
-<li class="toctree-l4 current"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reagent.training.html">Training</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.training.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="reagent.training.cfeval.html">reagent.training.cfeval package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">reagent.training.gradient_free package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.training.gradient_free.ars_util">reagent.training.gradient_free.ars_util module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.training.gradient_free.es_worker">reagent.training.gradient_free.es_worker module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.training.gradient_free.evolution_pool">reagent.training.gradient_free.evolution_pool module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.training.gradient_free">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.training.ranking.html">reagent.training.ranking package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.training.world_model.html">reagent.training.world_model package</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.c51_trainer">reagent.training.c51_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.cem_trainer">reagent.training.cem_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.discrete_crr_trainer">reagent.training.discrete_crr_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.dqn_trainer">reagent.training.dqn_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.dqn_trainer_base">reagent.training.dqn_trainer_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.imitator_training">reagent.training.imitator_training module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.multi_stage_trainer">reagent.training.multi_stage_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.parameters">reagent.training.parameters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.parametric_dqn_trainer">reagent.training.parametric_dqn_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.ppo_trainer">reagent.training.ppo_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.qrdqn_trainer">reagent.training.qrdqn_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.reagent_lightning_module">reagent.training.reagent_lightning_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.reinforce_trainer">reagent.training.reinforce_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.reward_network_trainer">reagent.training.reward_network_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.rl_trainer_pytorch">reagent.training.rl_trainer_pytorch module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.sac_trainer">reagent.training.sac_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.slate_q_trainer">reagent.training.slate_q_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.td3_trainer">reagent.training.td3_trainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training.utils">reagent.training.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.training.html#module-reagent.training">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-          <li><a href="modules.html">reagent</a> &raquo;</li>
-        
-          <li><a href="reagent.html">reagent package</a> &raquo;</li>
-        
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="reagent.training.html">reagent.training package</a> &raquo;</li>
-        
       <li>reagent.training.gradient_free package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/reagent.training.gradient_free.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-training-gradient-free-package">
-<h1>reagent.training.gradient_free package<a class="headerlink" href="#reagent-training-gradient-free-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-training-gradient-free-es-worker-module">
-<h2>reagent.training.gradient_free.es_worker module<a class="headerlink" href="#reagent-training-gradient-free-es-worker-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-training-gradient-free-evolution-pool-module">
-<h2>reagent.training.gradient_free.evolution_pool module<a class="headerlink" href="#reagent-training-gradient-free-evolution-pool-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+             
+  <section id="reagent-training-gradient-free-package">
+<h1>reagent.training.gradient_free package<a class="headerlink" href="#reagent-training-gradient-free-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.training.gradient_free.ars_util">
+<span id="reagent-training-gradient-free-ars-util-module"></span><h2>reagent.training.gradient_free.ars_util module<a class="headerlink" href="#module-reagent.training.gradient_free.ars_util" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.training.gradient_free.ars_util.ARSOptimizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.training.gradient_free.ars_util.</span></span><span class="sig-name descname"><span class="pre">ARSOptimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_pert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rand_ars_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.training.gradient_free.ars_util.ARSOptimizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>ARSOptimizer is supposed to maximize an objective function</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.training.gradient_free.ars_util.ARSOptimizer.sample_perturbed_params">
+<span class="sig-name descname"><span class="pre">sample_perturbed_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.training.gradient_free.ars_util.ARSOptimizer.sample_perturbed_params" title="Permalink to this definition"></a></dt>
+<dd><p>Return tuples of (pos_param, neg_param)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.training.gradient_free.ars_util.ARSOptimizer.update_ars_params">
+<span class="sig-name descname"><span class="pre">update_ars_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rewards</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.training.gradient_free.ars_util.ARSOptimizer.update_ars_params" title="Permalink to this definition"></a></dt>
+<dd><p>reward should be something like
+[reward_pert1_pos, reward_pert1_neg, reward_pert2_pos, reward_pert2_neg, …]</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.training.gradient_free.es_worker">
+<span id="reagent-training-gradient-free-es-worker-module"></span><h2>reagent.training.gradient_free.es_worker module<a class="headerlink" href="#module-reagent.training.gradient_free.es_worker" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.training.gradient_free.es_worker.EsWorker">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.training.gradient_free.es_worker.</span></span><span class="sig-name descname"><span class="pre">EsWorker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual_pool</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.training.gradient_free.evolution_pool.EvolutionPool" title="reagent.training.gradient_free.evolution_pool.EvolutionPool"><span class="pre">reagent.training.gradient_free.evolution_pool.EvolutionPool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">es_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.EvolutionParameters" title="reagent.core.parameters.EvolutionParameters"><span class="pre">reagent.core.parameters.EvolutionParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_group</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch._C._distributed_c10d.ProcessGroup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.training.gradient_free.es_worker.EsWorker" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.training.gradient_free.es_worker.EsWorker.run_epoch">
+<span class="sig-name descname"><span class="pre">run_epoch</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#reagent.training.gradient_free.es_worker.EsWorker.run_epoch" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.training.gradient_free.evolution_pool">
+<span id="reagent-training-gradient-free-evolution-pool-module"></span><h2>reagent.training.gradient_free.evolution_pool module<a class="headerlink" href="#module-reagent.training.gradient_free.evolution_pool" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.training.gradient_free.evolution_pool.EvolutionPool">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.training.gradient_free.evolution_pool.</span></span><span class="sig-name descname"><span class="pre">EvolutionPool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">es_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.EvolutionParameters" title="reagent.core.parameters.EvolutionParameters"><span class="pre">reagent.core.parameters.EvolutionParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">tensor_sizes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.training.gradient_free.evolution_pool.EvolutionPool" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Handles spawning new individuals from a parent, computing an estimated gradient,
+and applying that gradient to mutate the parent.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.training.gradient_free.evolution_pool.EvolutionPool.apply_global_reward">
+<span class="sig-name descname"><span class="pre">apply_global_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rewards</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">next_iteration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.training.gradient_free.evolution_pool.EvolutionPool.apply_global_reward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.training.gradient_free.evolution_pool.EvolutionPool.compute_all_local_rewards">
+<span class="sig-name descname"><span class="pre">compute_all_local_rewards</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.training.gradient_free.evolution_pool.EvolutionPool.compute_all_local_rewards" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.training.gradient_free.evolution_pool.EvolutionPool.compute_local_reward">
+<span class="sig-name descname"><span class="pre">compute_local_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.training.gradient_free.evolution_pool.EvolutionPool.compute_local_reward" title="Permalink to this definition"></a></dt>
+<dd><p>Given an individual as a list of tensors, return the reward
+of this policy</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.training.gradient_free.evolution_pool.EvolutionPool.populate_children">
+<span class="sig-name descname"><span class="pre">populate_children</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iteration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.training.gradient_free.evolution_pool.EvolutionPool.populate_children" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.training.gradient_free.evolution_pool.OneMaxEvolutionPool">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.training.gradient_free.evolution_pool.</span></span><span class="sig-name descname"><span class="pre">OneMaxEvolutionPool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">es_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.EvolutionParameters" title="reagent.core.parameters.EvolutionParameters"><span class="pre">reagent.core.parameters.EvolutionParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">tensor_sizes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.training.gradient_free.evolution_pool.OneMaxEvolutionPool" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.training.gradient_free.evolution_pool.EvolutionPool" title="reagent.training.gradient_free.evolution_pool.EvolutionPool"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.training.gradient_free.evolution_pool.EvolutionPool</span></code></a></p>
+<p>A simple example of an evolution pool.  The agent gets maximum reward
+as the tensor approaches [inf, -inf, inf, -inf, …]</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.training.gradient_free.evolution_pool.OneMaxEvolutionPool.compute_local_reward">
+<span class="sig-name descname"><span class="pre">compute_local_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">individual</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.training.gradient_free.evolution_pool.OneMaxEvolutionPool.compute_local_reward" title="Permalink to this definition"></a></dt>
+<dd><p>Given an individual as a list of tensors, return the reward
+of this policy</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.training.gradient_free">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.training.gradient_free" title="Permalink to this headline"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reagent.training.ranking.html" class="btn btn-neutral float-right" title="reagent.training.ranking package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reagent.training.html" class="btn btn-neutral float-left" title="reagent.training package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.training.cfeval.html" class="btn btn-neutral float-left" title="reagent.training.cfeval package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.training.ranking.html" class="btn btn-neutral float-right" title="reagent.training.ranking package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

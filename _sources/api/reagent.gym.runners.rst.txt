@@ -12,7 +12,6 @@ reagent.gym.runners.gymrunner module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

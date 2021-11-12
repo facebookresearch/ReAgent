@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>reagent.model_managers.discrete package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.model_managers.model_based package" href="reagent.model_managers.model_based.html" />
+    <link rel="prev" title="reagent.model_managers.actor_critic package" href="reagent.model_managers.actor_critic.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.model_managers.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.actor_critic.html">reagent.model_managers.actor_critic package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">reagent.model_managers.discrete package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.model_managers.discrete.discrete_c51dqn">reagent.model_managers.discrete.discrete_c51dqn module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.model_managers.discrete.discrete_crr">reagent.model_managers.discrete.discrete_crr module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.model_managers.discrete.discrete_dqn">reagent.model_managers.discrete.discrete_dqn module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.model_managers.discrete.discrete_qrdqn">reagent.model_managers.discrete.discrete_qrdqn module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.model_managers.discrete">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.model_based.html">reagent.model_managers.model_based package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.parametric.html">reagent.model_managers.parametric package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.policy_gradient.html">reagent.model_managers.policy_gradient package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.ranking.html">reagent.model_managers.ranking package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.actor_critic_base">reagent.model_managers.actor_critic_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.discrete_dqn_base">reagent.model_managers.discrete_dqn_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.model_manager">reagent.model_managers.model_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.parametric_dqn_base">reagent.model_managers.parametric_dqn_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.slate_q_base">reagent.model_managers.slate_q_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.union">reagent.model_managers.union module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.world_model_base">reagent.model_managers.world_model_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="reagent.model_managers.html">reagent.model_managers package</a> &raquo;</li>
+      <li>reagent.model_managers.discrete package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/reagent.model_managers.discrete.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="reagent-model-managers-discrete-package">
+<h1>reagent.model_managers.discrete package<a class="headerlink" href="#reagent-model-managers-discrete-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.model_managers.discrete.discrete_c51dqn">
+<span id="reagent-model-managers-discrete-discrete-c51dqn-module"></span><h2>reagent.model_managers.discrete.discrete_c51dqn module<a class="headerlink" href="#module-reagent.model_managers.discrete.discrete_c51dqn" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.discrete.discrete_c51dqn.</span></span><span class="sig-name descname"><span class="pre">DiscreteC51DQN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_action_distribution:</span> <span class="pre">Optional[List[float]]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options:</span> <span class="pre">Optional[reagent.workflow.types.ReaderOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_parameters:</span> <span class="pre">reagent.core.parameters.EvaluationParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.C51TrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net_builder:</span> <span class="pre">reagent.net_builder.unions.CategoricalDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpe_net_builder:</span> <span class="pre">reagent.net_builder.unions.CategoricalDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.discrete_dqn_base.DiscreteDQNBase" title="reagent.model_managers.discrete_dqn_base.DiscreteDQNBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.discrete_dqn_base.DiscreteDQNBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.action_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_names</span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.c51_trainer.C51Trainer" title="reagent.training.c51_trainer.C51Trainer"><span class="pre">reagent.training.c51_trainer.C51Trainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.cpe_net_builder">
+<span class="sig-name descname"><span class="pre">cpe_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.CategoricalDQNNetBuilder__Union" title="reagent.net_builder.unions.CategoricalDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.CategoricalDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.cpe_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.net_builder">
+<span class="sig-name descname"><span class="pre">net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.CategoricalDQNNetBuilder__Union" title="reagent.net_builder.unions.CategoricalDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.CategoricalDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.rl_parameters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rl_parameters</span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.rl_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.C51TrainerParameters" title="reagent.training.parameters.C51TrainerParameters"><span class="pre">reagent.training.parameters.C51TrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_c51dqn.DiscreteC51DQN.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.model_managers.discrete.discrete_crr">
+<span id="reagent-model-managers-discrete-discrete-crr-module"></span><h2>reagent.model_managers.discrete.discrete_crr module<a class="headerlink" href="#module-reagent.model_managers.discrete.discrete_crr" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.ActorDQN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.discrete.discrete_crr.</span></span><span class="sig-name descname"><span class="pre">ActorDQN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.ActorDQN" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.models.base.ModelBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.ActorDQN.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.ActorDQN.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.ActorDQN.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.ActorDQN.input_prototype" title="Permalink to this definition"></a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.ActorDQN.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.ActorDQN.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.ActorPolicyWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.discrete.discrete_crr.</span></span><span class="sig-name descname"><span class="pre">ActorPolicyWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor_network</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.ActorPolicyWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.gym.policies.html#reagent.gym.policies.policy.Policy" title="reagent.gym.policies.policy.Policy"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.gym.policies.policy.Policy</span></code></a></p>
+<p>Actor’s forward function is our act</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.ActorPolicyWrapper.act">
+<span class="sig-name descname"><span class="pre">act</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_actions_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.ActorOutput" title="reagent.core.types.ActorOutput"><span class="pre">reagent.core.types.ActorOutput</span></a></span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.ActorPolicyWrapper.act" title="Permalink to this definition"></a></dt>
+<dd><p>Performs the composition described above.
+These are the actions being put into the replay buffer, not necessary
+the actions taken by the environment!</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.discrete.discrete_crr.</span></span><span class="sig-name descname"><span class="pre">DiscreteCRR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_action_distribution:</span> <span class="pre">Optional[List[float]]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options:</span> <span class="pre">Optional[reagent.workflow.types.ReaderOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_parameters:</span> <span class="pre">reagent.core.parameters.EvaluationParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.CRRTrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteActorNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpe_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.discrete_dqn_base.DiscreteDQNBase" title="reagent.model_managers.discrete_dqn_base.DiscreteDQNBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.discrete_dqn_base.DiscreteDQNBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.action_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_names</span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.actor_net_builder">
+<span class="sig-name descname"><span class="pre">actor_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteActorNetBuilder__Union" title="reagent.net_builder.unions.DiscreteActorNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteActorNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.actor_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.build_actor_module">
+<span class="sig-name descname"><span class="pre">build_actor_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.discrete_crr_trainer.DiscreteCRRTrainer" title="reagent.training.discrete_crr_trainer.DiscreteCRRTrainer"><span class="pre">reagent.training.discrete_crr_trainer.DiscreteCRRTrainer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.build_actor_module" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.build_serving_modules">
+<span class="sig-name descname"><span class="pre">build_serving_modules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.build_serving_modules" title="Permalink to this definition"></a></dt>
+<dd><p><cite>actor_dqn</cite> is the actor module wrapped in the DQN predictor wrapper.
+This helps putting the actor in places where DQN predictor wrapper is expected.
+If the policy is greedy, then this wrapper would work.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.discrete_crr_trainer.DiscreteCRRTrainer" title="reagent.training.discrete_crr_trainer.DiscreteCRRTrainer"><span class="pre">reagent.training.discrete_crr_trainer.DiscreteCRRTrainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.cpe_net_builder">
+<span class="sig-name descname"><span class="pre">cpe_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.cpe_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.create_policy">
+<span class="sig-name descname"><span class="pre">create_policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">serving</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.gym.policies.html#reagent.gym.policies.policy.Policy" title="reagent.gym.policies.policy.Policy"><span class="pre">reagent.gym.policies.policy.Policy</span></a></span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.create_policy" title="Permalink to this definition"></a></dt>
+<dd><p>Create online actor critic policy.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.critic_net_builder">
+<span class="sig-name descname"><span class="pre">critic_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.critic_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.eval_parameters">
+<span class="sig-name descname"><span class="pre">eval_parameters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.EvaluationParameters" title="reagent.core.parameters.EvaluationParameters"><span class="pre">reagent.core.parameters.EvaluationParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.eval_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.get_reporter">
+<span class="sig-name descname"><span class="pre">get_reporter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.get_reporter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.rl_parameters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rl_parameters</span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.rl_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.serving_module_names">
+<span class="sig-name descname"><span class="pre">serving_module_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.serving_module_names" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the keys that would be returned in <cite>build_serving_modules()</cite>.
+This method is required because we need to reserve entity IDs for
+these serving modules before we start the training.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_crr.DiscreteCRR.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.CRRTrainerParameters" title="reagent.training.parameters.CRRTrainerParameters"><span class="pre">reagent.training.parameters.CRRTrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_crr.DiscreteCRR.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.model_managers.discrete.discrete_dqn">
+<span id="reagent-model-managers-discrete-discrete-dqn-module"></span><h2>reagent.model_managers.discrete.discrete_dqn module<a class="headerlink" href="#module-reagent.model_managers.discrete.discrete_dqn" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_dqn.DiscreteDQN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.discrete.discrete_dqn.</span></span><span class="sig-name descname"><span class="pre">DiscreteDQN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_action_distribution:</span> <span class="pre">Optional[List[float]]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options:</span> <span class="pre">Optional[reagent.workflow.types.ReaderOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_parameters:</span> <span class="pre">reagent.core.parameters.EvaluationParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.DQNTrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpe_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_dqn.DiscreteDQN" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.discrete_dqn_base.DiscreteDQNBase" title="reagent.model_managers.discrete_dqn_base.DiscreteDQNBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.discrete_dqn_base.DiscreteDQNBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.action_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_names</span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.build_serving_modules">
+<span class="sig-name descname"><span class="pre">build_serving_modules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.build_serving_modules" title="Permalink to this definition"></a></dt>
+<dd><p>Returns TorchScript for serving in production</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.dqn_trainer.DQNTrainer" title="reagent.training.dqn_trainer.DQNTrainer"><span class="pre">reagent.training.dqn_trainer.DQNTrainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.cpe_net_builder">
+<span class="sig-name descname"><span class="pre">cpe_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.cpe_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.get_reporter">
+<span class="sig-name descname"><span class="pre">get_reporter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.get_reporter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.net_builder">
+<span class="sig-name descname"><span class="pre">net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.rl_parameters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rl_parameters</span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.rl_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.serving_module_names">
+<span class="sig-name descname"><span class="pre">serving_module_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.serving_module_names" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the keys that would be returned in <cite>build_serving_modules()</cite>.
+This method is required because we need to reserve entity IDs for
+these serving modules before we start the training.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.DQNTrainerParameters" title="reagent.training.parameters.DQNTrainerParameters"><span class="pre">reagent.training.parameters.DQNTrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_dqn.DiscreteDQN.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.model_managers.discrete.discrete_qrdqn">
+<span id="reagent-model-managers-discrete-discrete-qrdqn-module"></span><h2>reagent.model_managers.discrete.discrete_qrdqn module<a class="headerlink" href="#module-reagent.model_managers.discrete.discrete_qrdqn" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.discrete.discrete_qrdqn.</span></span><span class="sig-name descname"><span class="pre">DiscreteQRDQN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_action_distribution:</span> <span class="pre">Optional[List[float]]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options:</span> <span class="pre">Optional[reagent.workflow.types.ReaderOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_parameters:</span> <span class="pre">reagent.core.parameters.EvaluationParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.QRDQNTrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net_builder:</span> <span class="pre">reagent.net_builder.unions.QRDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpe_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.discrete_dqn_base.DiscreteDQNBase" title="reagent.model_managers.discrete_dqn_base.DiscreteDQNBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.discrete_dqn_base.DiscreteDQNBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.action_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_names</span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.qrdqn_trainer.QRDQNTrainer" title="reagent.training.qrdqn_trainer.QRDQNTrainer"><span class="pre">reagent.training.qrdqn_trainer.QRDQNTrainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.cpe_net_builder">
+<span class="sig-name descname"><span class="pre">cpe_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.cpe_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.net_builder">
+<span class="sig-name descname"><span class="pre">net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.QRDQNNetBuilder__Union" title="reagent.net_builder.unions.QRDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.QRDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.rl_parameters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rl_parameters</span></span><a class="headerlink" href="#reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.rl_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.QRDQNTrainerParameters" title="reagent.training.parameters.QRDQNTrainerParameters"><span class="pre">reagent.training.parameters.QRDQNTrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.discrete_qrdqn.DiscreteQRDQN.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.model_managers.discrete">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.model_managers.discrete" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteC51DQN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.discrete.</span></span><span class="sig-name descname"><span class="pre">DiscreteC51DQN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_action_distribution:</span> <span class="pre">Optional[List[float]]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options:</span> <span class="pre">Optional[reagent.workflow.types.ReaderOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_parameters:</span> <span class="pre">reagent.core.parameters.EvaluationParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.C51TrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net_builder:</span> <span class="pre">reagent.net_builder.unions.CategoricalDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpe_net_builder:</span> <span class="pre">reagent.net_builder.unions.CategoricalDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteC51DQN" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.discrete_dqn_base.DiscreteDQNBase" title="reagent.model_managers.discrete_dqn_base.DiscreteDQNBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.discrete_dqn_base.DiscreteDQNBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteC51DQN.action_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_names</span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteC51DQN.action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteC51DQN.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteC51DQN.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteC51DQN.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.c51_trainer.C51Trainer" title="reagent.training.c51_trainer.C51Trainer"><span class="pre">reagent.training.c51_trainer.C51Trainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteC51DQN.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteC51DQN.cpe_net_builder">
+<span class="sig-name descname"><span class="pre">cpe_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.CategoricalDQNNetBuilder__Union" title="reagent.net_builder.unions.CategoricalDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.CategoricalDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteC51DQN.cpe_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteC51DQN.eval_parameters">
+<span class="sig-name descname"><span class="pre">eval_parameters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">EvaluationParameters</span></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteC51DQN.eval_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteC51DQN.net_builder">
+<span class="sig-name descname"><span class="pre">net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.CategoricalDQNNetBuilder__Union" title="reagent.net_builder.unions.CategoricalDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.CategoricalDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteC51DQN.net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteC51DQN.rl_parameters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rl_parameters</span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteC51DQN.rl_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteC51DQN.state_feature_config_provider">
+<span class="sig-name descname"><span class="pre">state_feature_config_provider</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelFeatureConfigProvider__Union</span></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteC51DQN.state_feature_config_provider" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteC51DQN.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.C51TrainerParameters" title="reagent.training.parameters.C51TrainerParameters"><span class="pre">reagent.training.parameters.C51TrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteC51DQN.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.discrete.</span></span><span class="sig-name descname"><span class="pre">DiscreteCRR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_action_distribution:</span> <span class="pre">Optional[List[float]]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options:</span> <span class="pre">Optional[reagent.workflow.types.ReaderOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_parameters:</span> <span class="pre">reagent.core.parameters.EvaluationParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.CRRTrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteActorNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpe_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.discrete_dqn_base.DiscreteDQNBase" title="reagent.model_managers.discrete_dqn_base.DiscreteDQNBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.discrete_dqn_base.DiscreteDQNBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.action_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_names</span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.actor_net_builder">
+<span class="sig-name descname"><span class="pre">actor_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteActorNetBuilder__Union" title="reagent.net_builder.unions.DiscreteActorNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteActorNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.actor_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.build_actor_module">
+<span class="sig-name descname"><span class="pre">build_actor_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.discrete_crr_trainer.DiscreteCRRTrainer" title="reagent.training.discrete_crr_trainer.DiscreteCRRTrainer"><span class="pre">reagent.training.discrete_crr_trainer.DiscreteCRRTrainer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.build_actor_module" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.build_serving_modules">
+<span class="sig-name descname"><span class="pre">build_serving_modules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.build_serving_modules" title="Permalink to this definition"></a></dt>
+<dd><p><cite>actor_dqn</cite> is the actor module wrapped in the DQN predictor wrapper.
+This helps putting the actor in places where DQN predictor wrapper is expected.
+If the policy is greedy, then this wrapper would work.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.discrete_crr_trainer.DiscreteCRRTrainer" title="reagent.training.discrete_crr_trainer.DiscreteCRRTrainer"><span class="pre">reagent.training.discrete_crr_trainer.DiscreteCRRTrainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.cpe_net_builder">
+<span class="sig-name descname"><span class="pre">cpe_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.cpe_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.create_policy">
+<span class="sig-name descname"><span class="pre">create_policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">serving</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.gym.policies.html#reagent.gym.policies.policy.Policy" title="reagent.gym.policies.policy.Policy"><span class="pre">reagent.gym.policies.policy.Policy</span></a></span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.create_policy" title="Permalink to this definition"></a></dt>
+<dd><p>Create online actor critic policy.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.critic_net_builder">
+<span class="sig-name descname"><span class="pre">critic_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.critic_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.eval_parameters">
+<span class="sig-name descname"><span class="pre">eval_parameters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.EvaluationParameters" title="reagent.core.parameters.EvaluationParameters"><span class="pre">reagent.core.parameters.EvaluationParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.eval_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.get_reporter">
+<span class="sig-name descname"><span class="pre">get_reporter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.get_reporter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.rl_parameters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rl_parameters</span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.rl_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.serving_module_names">
+<span class="sig-name descname"><span class="pre">serving_module_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.serving_module_names" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the keys that would be returned in <cite>build_serving_modules()</cite>.
+This method is required because we need to reserve entity IDs for
+these serving modules before we start the training.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.state_feature_config_provider">
+<span class="sig-name descname"><span class="pre">state_feature_config_provider</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelFeatureConfigProvider__Union</span></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.state_feature_config_provider" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteCRR.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.CRRTrainerParameters" title="reagent.training.parameters.CRRTrainerParameters"><span class="pre">reagent.training.parameters.CRRTrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteCRR.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.discrete.</span></span><span class="sig-name descname"><span class="pre">DiscreteDQN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_action_distribution:</span> <span class="pre">Optional[List[float]]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options:</span> <span class="pre">Optional[reagent.workflow.types.ReaderOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_parameters:</span> <span class="pre">reagent.core.parameters.EvaluationParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.DQNTrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpe_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.discrete_dqn_base.DiscreteDQNBase" title="reagent.model_managers.discrete_dqn_base.DiscreteDQNBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.discrete_dqn_base.DiscreteDQNBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN.action_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_names</span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN.action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN.build_serving_modules">
+<span class="sig-name descname"><span class="pre">build_serving_modules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN.build_serving_modules" title="Permalink to this definition"></a></dt>
+<dd><p>Returns TorchScript for serving in production</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.dqn_trainer.DQNTrainer" title="reagent.training.dqn_trainer.DQNTrainer"><span class="pre">reagent.training.dqn_trainer.DQNTrainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN.cpe_net_builder">
+<span class="sig-name descname"><span class="pre">cpe_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN.cpe_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN.eval_parameters">
+<span class="sig-name descname"><span class="pre">eval_parameters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">EvaluationParameters</span></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN.eval_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN.get_reporter">
+<span class="sig-name descname"><span class="pre">get_reporter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN.get_reporter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN.net_builder">
+<span class="sig-name descname"><span class="pre">net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN.net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN.rl_parameters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rl_parameters</span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN.rl_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN.serving_module_names">
+<span class="sig-name descname"><span class="pre">serving_module_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN.serving_module_names" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the keys that would be returned in <cite>build_serving_modules()</cite>.
+This method is required because we need to reserve entity IDs for
+these serving modules before we start the training.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN.state_feature_config_provider">
+<span class="sig-name descname"><span class="pre">state_feature_config_provider</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelFeatureConfigProvider__Union</span></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN.state_feature_config_provider" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteDQN.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.DQNTrainerParameters" title="reagent.training.parameters.DQNTrainerParameters"><span class="pre">reagent.training.parameters.DQNTrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteDQN.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteQRDQN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.discrete.</span></span><span class="sig-name descname"><span class="pre">DiscreteQRDQN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_action_distribution:</span> <span class="pre">Optional[List[float]]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options:</span> <span class="pre">Optional[reagent.workflow.types.ReaderOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_parameters:</span> <span class="pre">reagent.core.parameters.EvaluationParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.QRDQNTrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net_builder:</span> <span class="pre">reagent.net_builder.unions.QRDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpe_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteQRDQN" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.discrete_dqn_base.DiscreteDQNBase" title="reagent.model_managers.discrete_dqn_base.DiscreteDQNBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.discrete_dqn_base.DiscreteDQNBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteQRDQN.action_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_names</span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteQRDQN.action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteQRDQN.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteQRDQN.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteQRDQN.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.qrdqn_trainer.QRDQNTrainer" title="reagent.training.qrdqn_trainer.QRDQNTrainer"><span class="pre">reagent.training.qrdqn_trainer.QRDQNTrainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteQRDQN.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteQRDQN.cpe_net_builder">
+<span class="sig-name descname"><span class="pre">cpe_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteQRDQN.cpe_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteQRDQN.eval_parameters">
+<span class="sig-name descname"><span class="pre">eval_parameters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">EvaluationParameters</span></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteQRDQN.eval_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteQRDQN.net_builder">
+<span class="sig-name descname"><span class="pre">net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.QRDQNNetBuilder__Union" title="reagent.net_builder.unions.QRDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.QRDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteQRDQN.net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteQRDQN.rl_parameters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rl_parameters</span></span><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteQRDQN.rl_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteQRDQN.state_feature_config_provider">
+<span class="sig-name descname"><span class="pre">state_feature_config_provider</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelFeatureConfigProvider__Union</span></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteQRDQN.state_feature_config_provider" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.discrete.DiscreteQRDQN.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.QRDQNTrainerParameters" title="reagent.training.parameters.QRDQNTrainerParameters"><span class="pre">reagent.training.parameters.QRDQNTrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.discrete.DiscreteQRDQN.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.model_managers.actor_critic.html" class="btn btn-neutral float-left" title="reagent.model_managers.actor_critic package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.model_managers.model_based.html" class="btn btn-neutral float-right" title="reagent.model_managers.model_based package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

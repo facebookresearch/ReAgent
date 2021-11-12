@@ -5,11 +5,20 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    reagent.ope.test.unit_tests
 
 Submodules
 ----------
+
+reagent.ope.test.cartpole module
+--------------------------------
+
+.. automodule:: reagent.ope.test.cartpole
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 reagent.ope.test.envs module
 ----------------------------
@@ -50,7 +59,6 @@ reagent.ope.test.yandex\_web\_search module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

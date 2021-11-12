@@ -12,14 +12,6 @@ reagent.gym.preprocessors.default\_preprocessors module
    :undoc-members:
    :show-inheritance:
 
-reagent.gym.preprocessors.default\_serving\_preprocessors module
-----------------------------------------------------------------
-
-.. automodule:: reagent.gym.preprocessors.default_serving_preprocessors
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 reagent.gym.preprocessors.replay\_buffer\_inserters module
 ----------------------------------------------------------
 
@@ -35,7 +27,6 @@ reagent.gym.preprocessors.trainer\_preprocessor module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

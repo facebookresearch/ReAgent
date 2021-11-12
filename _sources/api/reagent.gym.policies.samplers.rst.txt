@@ -28,7 +28,6 @@ reagent.gym.policies.samplers.top\_k\_sampler module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

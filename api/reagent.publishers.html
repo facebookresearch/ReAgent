@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>reagent.publishers package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.replay_memory package" href="reagent.replay_memory.html" />
+    <link rel="prev" title="reagent.ope.trainers package" href="reagent.ope.trainers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="reagent.core.html">reagent.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.data.html">reagent.data package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.lite.html">reagent.lite package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.mab.html">reagent.mab package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.model_managers.html">reagent.model_managers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.model_utils.html">reagent.model_utils package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.net_builder.html">reagent.net_builder package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">reagent.publishers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.reporting.html">reagent.reporting package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.samplers.html">reagent.samplers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.scripts.html">reagent.scripts package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.validators.html">reagent.validators package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">reagent</a> &raquo;</li>
+          <li><a href="reagent.html">reagent package</a> &raquo;</li>
+      <li>reagent.publishers package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/reagent.publishers.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="reagent-publishers-package">
+<h1>reagent.publishers package<a class="headerlink" href="#reagent-publishers-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.publishers.file_system_publisher">
+<span id="reagent-publishers-file-system-publisher-module"></span><h2>reagent.publishers.file_system_publisher module<a class="headerlink" href="#module-reagent.publishers.file_system_publisher" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.publishers.file_system_publisher.FileSystemPublisher">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.publishers.file_system_publisher.</span></span><span class="sig-name descname"><span class="pre">FileSystemPublisher</span></span><a class="headerlink" href="#reagent.publishers.file_system_publisher.FileSystemPublisher" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+</section>
+<section id="module-reagent.publishers.model_publisher">
+<span id="reagent-publishers-model-publisher-module"></span><h2>reagent.publishers.model_publisher module<a class="headerlink" href="#module-reagent.publishers.model_publisher" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.publishers.model_publisher.ModelPublisher">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.publishers.model_publisher.</span></span><span class="sig-name descname"><span class="pre">ModelPublisher</span></span><a class="headerlink" href="#reagent.publishers.model_publisher.ModelPublisher" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for model publisher. All publishers should subclass from this so that
+they can be registered in the workflows.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.publishers.model_publisher.ModelPublisher.REGISTRY">
+<span class="sig-name descname"><span class="pre">REGISTRY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#reagent.publishers.model_publisher.ModelPublisher.REGISTRY" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.publishers.model_publisher.ModelPublisher.REGISTRY_FROZEN">
+<span class="sig-name descname"><span class="pre">REGISTRY_FROZEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#reagent.publishers.model_publisher.ModelPublisher.REGISTRY_FROZEN" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.publishers.model_publisher.ModelPublisher.REGISTRY_NAME">
+<span class="sig-name descname"><span class="pre">REGISTRY_NAME</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ModelPublisher'</span></em><a class="headerlink" href="#reagent.publishers.model_publisher.ModelPublisher.REGISTRY_NAME" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.publishers.model_publisher.ModelPublisher.do_publish">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">do_publish</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_manager</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.model_manager.ModelManager" title="reagent.model_managers.model_manager.ModelManager"><span class="pre">reagent.model_managers.model_manager.ModelManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RLTrainingOutput" title="reagent.workflow.types.RLTrainingOutput"><span class="pre">reagent.workflow.types.RLTrainingOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurring_workflow_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">child_workflow_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurring_period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.result_registries.PublishingResult" title="reagent.core.result_registries.PublishingResult"><span class="pre">reagent.core.result_registries.PublishingResult</span></a></span></span><a class="headerlink" href="#reagent.publishers.model_publisher.ModelPublisher.do_publish" title="Permalink to this definition"></a></dt>
+<dd><p>This method takes RLTrainingOutput so that it can extract anything it
+might need from it.</p>
+<p>ModelManager is given here so that config can be shared</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.publishers.model_publisher.ModelPublisher.publish">
+<span class="sig-name descname"><span class="pre">publish</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_manager</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.model_manager.ModelManager" title="reagent.model_managers.model_manager.ModelManager"><span class="pre">reagent.model_managers.model_manager.ModelManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RLTrainingOutput" title="reagent.workflow.types.RLTrainingOutput"><span class="pre">reagent.workflow.types.RLTrainingOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurring_workflow_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">child_workflow_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurring_period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.publishers.model_publisher.ModelPublisher.publish" title="Permalink to this definition"></a></dt>
+<dd><p>This method takes RLTrainingOutput so that it can extract anything it
+might need from it.</p>
+<p>ModelManager is given here so that config can be shared</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.publishers.no_publishing">
+<span id="reagent-publishers-no-publishing-module"></span><h2>reagent.publishers.no_publishing module<a class="headerlink" href="#module-reagent.publishers.no_publishing" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.publishers.no_publishing.NoPublishing">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.publishers.no_publishing.</span></span><span class="sig-name descname"><span class="pre">NoPublishing</span></span><a class="headerlink" href="#reagent.publishers.no_publishing.NoPublishing" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.publishers.model_publisher.ModelPublisher" title="reagent.publishers.model_publisher.ModelPublisher"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.publishers.model_publisher.ModelPublisher</span></code></a></p>
+<p>This is an example of how to create a publisher. This publisher performs no
+publishing. In your own publisher, you would want to have <cite>validate()</cite> performs
+some publishing.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.publishers.no_publishing.NoPublishing.do_publish">
+<span class="sig-name descname"><span class="pre">do_publish</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_manager</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.model_manager.ModelManager" title="reagent.model_managers.model_manager.ModelManager"><span class="pre">reagent.model_managers.model_manager.ModelManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RLTrainingOutput" title="reagent.workflow.types.RLTrainingOutput"><span class="pre">reagent.workflow.types.RLTrainingOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurring_workflow_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">child_workflow_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurring_period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.result_types.NoPublishingResults" title="reagent.core.result_types.NoPublishingResults"><span class="pre">reagent.core.result_types.NoPublishingResults</span></a></span></span><a class="headerlink" href="#reagent.publishers.no_publishing.NoPublishing.do_publish" title="Permalink to this definition"></a></dt>
+<dd><p>This method takes RLTrainingOutput so that it can extract anything it
+might need from it.</p>
+<p>ModelManager is given here so that config can be shared</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.publishers.union">
+<span id="reagent-publishers-union-module"></span><h2>reagent.publishers.union module<a class="headerlink" href="#module-reagent.publishers.union" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.publishers.union.ModelPublisher__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.publishers.union.</span></span><span class="sig-name descname"><span class="pre">ModelPublisher__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">NoPublishing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.publishers.no_publishing.NoPublishing" title="reagent.publishers.no_publishing.NoPublishing"><span class="pre">reagent.publishers.no_publishing.NoPublishing</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.publishers.union.ModelPublisher__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.publishers.union.ModelPublisher__Union.NoPublishing">
+<span class="sig-name descname"><span class="pre">NoPublishing</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.publishers.no_publishing.NoPublishing" title="reagent.publishers.no_publishing.NoPublishing"><span class="pre">reagent.publishers.no_publishing.NoPublishing</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.publishers.union.ModelPublisher__Union.NoPublishing" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.publishers.union.ModelPublisher__Union.make_union_instance">
+<span class="sig-name descname"><span class="pre">make_union_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.publishers.union.ModelPublisher__Union.make_union_instance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.publishers">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.publishers" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.ope.trainers.html" class="btn btn-neutral float-left" title="reagent.ope.trainers package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.replay_memory.html" class="btn btn-neutral float-right" title="reagent.replay_memory package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

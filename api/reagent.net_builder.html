@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>reagent.net_builder package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.net_builder.categorical_dqn package" href="reagent.net_builder.categorical_dqn.html" />
+    <link rel="prev" title="reagent.model_utils package" href="reagent.model_utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Net Builders</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reagent.net_builder.categorical_dqn.html">reagent.net_builder.categorical_dqn package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.net_builder.continuous_actor.html">reagent.net_builder.continuous_actor package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.net_builder.discrete_actor.html">reagent.net_builder.discrete_actor package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.net_builder.discrete_dqn.html">reagent.net_builder.discrete_dqn package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.net_builder.parametric_dqn.html">reagent.net_builder.parametric_dqn package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.net_builder.quantile_dqn.html">reagent.net_builder.quantile_dqn package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.net_builder.slate_ranking.html">reagent.net_builder.slate_ranking package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.net_builder.slate_reward.html">reagent.net_builder.slate_reward package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.net_builder.synthetic_reward.html">reagent.net_builder.synthetic_reward package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.net_builder.value.html">reagent.net_builder.value package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.net_builder.categorical_dqn_net_builder">reagent.net_builder.categorical_dqn_net_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.net_builder.continuous_actor_net_builder">reagent.net_builder.continuous_actor_net_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.net_builder.discrete_actor_net_builder">reagent.net_builder.discrete_actor_net_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.net_builder.discrete_dqn_net_builder">reagent.net_builder.discrete_dqn_net_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.net_builder.parametric_dqn_net_builder">reagent.net_builder.parametric_dqn_net_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.net_builder.quantile_dqn_net_builder">reagent.net_builder.quantile_dqn_net_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.net_builder.slate_ranking_net_builder">reagent.net_builder.slate_ranking_net_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.net_builder.slate_reward_net_builder">reagent.net_builder.slate_reward_net_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.net_builder.synthetic_reward_net_builder">reagent.net_builder.synthetic_reward_net_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.net_builder.unions">reagent.net_builder.unions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.net_builder.value_net_builder">reagent.net_builder.value_net_builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.net_builder">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>reagent.net_builder package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/reagent.net_builder.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="reagent-net-builder-package">
+<h1>reagent.net_builder package<a class="headerlink" href="#reagent-net-builder-package" title="Permalink to this headline"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.categorical_dqn.html">reagent.net_builder.categorical_dqn package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.categorical_dqn.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.categorical_dqn.html#module-reagent.net_builder.categorical_dqn.categorical">reagent.net_builder.categorical_dqn.categorical module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.categorical_dqn.html#module-reagent.net_builder.categorical_dqn">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.continuous_actor.html">reagent.net_builder.continuous_actor package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.continuous_actor.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.continuous_actor.html#module-reagent.net_builder.continuous_actor.dirichlet_fully_connected">reagent.net_builder.continuous_actor.dirichlet_fully_connected module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.continuous_actor.html#module-reagent.net_builder.continuous_actor.fully_connected">reagent.net_builder.continuous_actor.fully_connected module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.continuous_actor.html#module-reagent.net_builder.continuous_actor.gaussian_fully_connected">reagent.net_builder.continuous_actor.gaussian_fully_connected module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.continuous_actor.html#module-reagent.net_builder.continuous_actor">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.discrete_actor.html">reagent.net_builder.discrete_actor package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.discrete_actor.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.discrete_actor.html#module-reagent.net_builder.discrete_actor.fully_connected">reagent.net_builder.discrete_actor.fully_connected module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.discrete_actor.html#module-reagent.net_builder.discrete_actor">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.discrete_dqn.html">reagent.net_builder.discrete_dqn package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.discrete_dqn.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.discrete_dqn.html#module-reagent.net_builder.discrete_dqn.dueling">reagent.net_builder.discrete_dqn.dueling module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.discrete_dqn.html#module-reagent.net_builder.discrete_dqn.fully_connected">reagent.net_builder.discrete_dqn.fully_connected module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.discrete_dqn.html#module-reagent.net_builder.discrete_dqn.fully_connected_with_embedding">reagent.net_builder.discrete_dqn.fully_connected_with_embedding module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.discrete_dqn.html#module-reagent.net_builder.discrete_dqn">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.parametric_dqn.html">reagent.net_builder.parametric_dqn package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.parametric_dqn.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.parametric_dqn.html#module-reagent.net_builder.parametric_dqn.fully_connected">reagent.net_builder.parametric_dqn.fully_connected module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.parametric_dqn.html#module-reagent.net_builder.parametric_dqn">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.quantile_dqn.html">reagent.net_builder.quantile_dqn package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.quantile_dqn.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.quantile_dqn.html#module-reagent.net_builder.quantile_dqn.dueling_quantile">reagent.net_builder.quantile_dqn.dueling_quantile module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.quantile_dqn.html#module-reagent.net_builder.quantile_dqn.quantile">reagent.net_builder.quantile_dqn.quantile module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.quantile_dqn.html#module-reagent.net_builder.quantile_dqn">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.slate_ranking.html">reagent.net_builder.slate_ranking package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.slate_ranking.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.slate_ranking.html#module-reagent.net_builder.slate_ranking.slate_ranking_scorer">reagent.net_builder.slate_ranking.slate_ranking_scorer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.slate_ranking.html#module-reagent.net_builder.slate_ranking.slate_ranking_transformer">reagent.net_builder.slate_ranking.slate_ranking_transformer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.slate_ranking.html#module-reagent.net_builder.slate_ranking">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.slate_reward.html">reagent.net_builder.slate_reward package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.slate_reward.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.slate_reward.html#module-reagent.net_builder.slate_reward.slate_reward_gru">reagent.net_builder.slate_reward.slate_reward_gru module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.slate_reward.html#module-reagent.net_builder.slate_reward.slate_reward_transformer">reagent.net_builder.slate_reward.slate_reward_transformer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.slate_reward.html#module-reagent.net_builder.slate_reward">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.synthetic_reward.html">reagent.net_builder.synthetic_reward package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#module-reagent.net_builder.synthetic_reward.ngram_synthetic_reward">reagent.net_builder.synthetic_reward.ngram_synthetic_reward module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#module-reagent.net_builder.synthetic_reward.sequence_synthetic_reward">reagent.net_builder.synthetic_reward.sequence_synthetic_reward module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#module-reagent.net_builder.synthetic_reward.single_step_synthetic_reward">reagent.net_builder.synthetic_reward.single_step_synthetic_reward module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#module-reagent.net_builder.synthetic_reward.transformer_synthetic_reward">reagent.net_builder.synthetic_reward.transformer_synthetic_reward module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#module-reagent.net_builder.synthetic_reward">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.value.html">reagent.net_builder.value package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.value.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.value.html#module-reagent.net_builder.value.fully_connected">reagent.net_builder.value.fully_connected module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.value.html#module-reagent.net_builder.value.seq2reward_rnn">reagent.net_builder.value.seq2reward_rnn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.net_builder.value.html#module-reagent.net_builder.value">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.net_builder.categorical_dqn_net_builder">
+<span id="reagent-net-builder-categorical-dqn-net-builder-module"></span><h2>reagent.net_builder.categorical_dqn_net_builder module<a class="headerlink" href="#module-reagent.net_builder.categorical_dqn_net_builder" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.categorical_dqn_net_builder.CategoricalDQNNetBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.categorical_dqn_net_builder.</span></span><span class="sig-name descname"><span class="pre">CategoricalDQNNetBuilder</span></span><a class="headerlink" href="#reagent.net_builder.categorical_dqn_net_builder.CategoricalDQNNetBuilder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for categorical DQN net builder.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.categorical_dqn_net_builder.CategoricalDQNNetBuilder.build_q_network">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_q_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_atoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></span><a class="headerlink" href="#reagent.net_builder.categorical_dqn_net_builder.CategoricalDQNNetBuilder.build_q_network" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.categorical_dqn_net_builder.CategoricalDQNNetBuilder.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.net_builder.categorical_dqn_net_builder.CategoricalDQNNetBuilder.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.net_builder.continuous_actor_net_builder">
+<span id="reagent-net-builder-continuous-actor-net-builder-module"></span><h2>reagent.net_builder.continuous_actor_net_builder module<a class="headerlink" href="#module-reagent.net_builder.continuous_actor_net_builder" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.continuous_actor_net_builder.ContinuousActorNetBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.continuous_actor_net_builder.</span></span><span class="sig-name descname"><span class="pre">ContinuousActorNetBuilder</span></span><a class="headerlink" href="#reagent.net_builder.continuous_actor_net_builder.ContinuousActorNetBuilder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for continuous actor net builder.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.continuous_actor_net_builder.ContinuousActorNetBuilder.build_actor">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_actor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></span><a class="headerlink" href="#reagent.net_builder.continuous_actor_net_builder.ContinuousActorNetBuilder.build_actor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.continuous_actor_net_builder.ContinuousActorNetBuilder.build_ranking_serving_module">
+<span class="sig-name descname"><span class="pre">build_ranking_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_candidates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.net_builder.continuous_actor_net_builder.ContinuousActorNetBuilder.build_ranking_serving_module" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.continuous_actor_net_builder.ContinuousActorNetBuilder.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">serve_mean_policy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.net_builder.continuous_actor_net_builder.ContinuousActorNetBuilder.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.net_builder.continuous_actor_net_builder.ContinuousActorNetBuilder.default_action_preprocessing">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">default_action_preprocessing</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#reagent.net_builder.continuous_actor_net_builder.ContinuousActorNetBuilder.default_action_preprocessing" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.net_builder.discrete_actor_net_builder">
+<span id="reagent-net-builder-discrete-actor-net-builder-module"></span><h2>reagent.net_builder.discrete_actor_net_builder module<a class="headerlink" href="#module-reagent.net_builder.discrete_actor_net_builder" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.discrete_actor_net_builder.DiscreteActorNetBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.discrete_actor_net_builder.</span></span><span class="sig-name descname"><span class="pre">DiscreteActorNetBuilder</span></span><a class="headerlink" href="#reagent.net_builder.discrete_actor_net_builder.DiscreteActorNetBuilder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for discrete actor net builder.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.discrete_actor_net_builder.DiscreteActorNetBuilder.build_actor">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_actor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></span><a class="headerlink" href="#reagent.net_builder.discrete_actor_net_builder.DiscreteActorNetBuilder.build_actor" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.discrete_actor_net_builder.DiscreteActorNetBuilder.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_feature_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.net_builder.discrete_actor_net_builder.DiscreteActorNetBuilder.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.net_builder.discrete_dqn_net_builder">
+<span id="reagent-net-builder-discrete-dqn-net-builder-module"></span><h2>reagent.net_builder.discrete_dqn_net_builder module<a class="headerlink" href="#module-reagent.net_builder.discrete_dqn_net_builder" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.discrete_dqn_net_builder.DiscreteDQNNetBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.discrete_dqn_net_builder.</span></span><span class="sig-name descname"><span class="pre">DiscreteDQNNetBuilder</span></span><a class="headerlink" href="#reagent.net_builder.discrete_dqn_net_builder.DiscreteDQNNetBuilder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for discrete DQN net builder.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.discrete_dqn_net_builder.DiscreteDQNNetBuilder.build_binary_difference_scorer">
+<span class="sig-name descname"><span class="pre">build_binary_difference_scorer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.net_builder.discrete_dqn_net_builder.DiscreteDQNNetBuilder.build_binary_difference_scorer" title="Permalink to this definition"></a></dt>
+<dd><p>Returns softmax(1) - softmax(0)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.discrete_dqn_net_builder.DiscreteDQNNetBuilder.build_q_network">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_q_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></span><a class="headerlink" href="#reagent.net_builder.discrete_dqn_net_builder.DiscreteDQNNetBuilder.build_q_network" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.discrete_dqn_net_builder.DiscreteDQNNetBuilder.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictor_wrapper_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.net_builder.discrete_dqn_net_builder.DiscreteDQNNetBuilder.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.net_builder.parametric_dqn_net_builder">
+<span id="reagent-net-builder-parametric-dqn-net-builder-module"></span><h2>reagent.net_builder.parametric_dqn_net_builder module<a class="headerlink" href="#module-reagent.net_builder.parametric_dqn_net_builder" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.parametric_dqn_net_builder.ParametricDQNNetBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.parametric_dqn_net_builder.</span></span><span class="sig-name descname"><span class="pre">ParametricDQNNetBuilder</span></span><a class="headerlink" href="#reagent.net_builder.parametric_dqn_net_builder.ParametricDQNNetBuilder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for parametric DQN net builder.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.parametric_dqn_net_builder.ParametricDQNNetBuilder.build_q_network">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_q_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></span><a class="headerlink" href="#reagent.net_builder.parametric_dqn_net_builder.ParametricDQNNetBuilder.build_q_network" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.parametric_dqn_net_builder.ParametricDQNNetBuilder.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.net_builder.parametric_dqn_net_builder.ParametricDQNNetBuilder.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.net_builder.quantile_dqn_net_builder">
+<span id="reagent-net-builder-quantile-dqn-net-builder-module"></span><h2>reagent.net_builder.quantile_dqn_net_builder module<a class="headerlink" href="#module-reagent.net_builder.quantile_dqn_net_builder" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.quantile_dqn_net_builder.QRDQNNetBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.quantile_dqn_net_builder.</span></span><span class="sig-name descname"><span class="pre">QRDQNNetBuilder</span></span><a class="headerlink" href="#reagent.net_builder.quantile_dqn_net_builder.QRDQNNetBuilder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for QRDQN net builder.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.quantile_dqn_net_builder.QRDQNNetBuilder.build_q_network">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_q_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_atoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></span><a class="headerlink" href="#reagent.net_builder.quantile_dqn_net_builder.QRDQNNetBuilder.build_q_network" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.quantile_dqn_net_builder.QRDQNNetBuilder.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.net_builder.quantile_dqn_net_builder.QRDQNNetBuilder.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.net_builder.slate_ranking_net_builder">
+<span id="reagent-net-builder-slate-ranking-net-builder-module"></span><h2>reagent.net_builder.slate_ranking_net_builder module<a class="headerlink" href="#module-reagent.net_builder.slate_ranking_net_builder" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.slate_ranking_net_builder.SlateRankingNetBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.slate_ranking_net_builder.</span></span><span class="sig-name descname"><span class="pre">SlateRankingNetBuilder</span></span><a class="headerlink" href="#reagent.net_builder.slate_ranking_net_builder.SlateRankingNetBuilder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for slate ranking network builder.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.slate_ranking_net_builder.SlateRankingNetBuilder.build_slate_ranking_network">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_slate_ranking_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slate_size</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.net_builder.slate_ranking_net_builder.SlateRankingNetBuilder.build_slate_ranking_network" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.net_builder.slate_reward_net_builder">
+<span id="reagent-net-builder-slate-reward-net-builder-module"></span><h2>reagent.net_builder.slate_reward_net_builder module<a class="headerlink" href="#module-reagent.net_builder.slate_reward_net_builder" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.slate_reward_net_builder.SlateRewardNetBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.slate_reward_net_builder.</span></span><span class="sig-name descname"><span class="pre">SlateRewardNetBuilder</span></span><a class="headerlink" href="#reagent.net_builder.slate_reward_net_builder.SlateRewardNetBuilder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for slate reward network builder.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.slate_reward_net_builder.SlateRewardNetBuilder.build_slate_reward_network">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_slate_reward_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slate_size</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.net_builder.slate_reward_net_builder.SlateRewardNetBuilder.build_slate_reward_network" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.net_builder.slate_reward_net_builder.SlateRewardNetBuilder.expect_slate_wise_reward">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expect_slate_wise_reward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.net_builder.slate_reward_net_builder.SlateRewardNetBuilder.expect_slate_wise_reward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.net_builder.synthetic_reward_net_builder">
+<span id="reagent-net-builder-synthetic-reward-net-builder-module"></span><h2>reagent.net_builder.synthetic_reward_net_builder module<a class="headerlink" href="#module-reagent.net_builder.synthetic_reward_net_builder" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.synthetic_reward_net_builder.SyntheticRewardNetBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.synthetic_reward_net_builder.</span></span><span class="sig-name descname"><span class="pre">SyntheticRewardNetBuilder</span></span><a class="headerlink" href="#reagent.net_builder.synthetic_reward_net_builder.SyntheticRewardNetBuilder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for Synthetic Reward net builder.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.synthetic_reward_net_builder.SyntheticRewardNetBuilder.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synthetic_reward_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discrete_action_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.net_builder.synthetic_reward_net_builder.SyntheticRewardNetBuilder.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a TorchScript predictor module</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.synthetic_reward_net_builder.SyntheticRewardNetBuilder.build_synthetic_reward_network">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_synthetic_reward_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discrete_action_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></span><a class="headerlink" href="#reagent.net_builder.synthetic_reward_net_builder.SyntheticRewardNetBuilder.build_synthetic_reward_network" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.net_builder.unions">
+<span id="reagent-net-builder-unions-module"></span><h2>reagent.net_builder.unions module<a class="headerlink" href="#module-reagent.net_builder.unions" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.CategoricalDQNNetBuilder__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.unions.</span></span><span class="sig-name descname"><span class="pre">CategoricalDQNNetBuilder__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Categorical</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.categorical_dqn.html#reagent.net_builder.categorical_dqn.categorical.Categorical" title="reagent.net_builder.categorical_dqn.categorical.Categorical"><span class="pre">reagent.net_builder.categorical_dqn.categorical.Categorical</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.net_builder.unions.CategoricalDQNNetBuilder__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.CategoricalDQNNetBuilder__Union.Categorical">
+<span class="sig-name descname"><span class="pre">Categorical</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.categorical_dqn.html#reagent.net_builder.categorical_dqn.categorical.Categorical" title="reagent.net_builder.categorical_dqn.categorical.Categorical"><span class="pre">reagent.net_builder.categorical_dqn.categorical.Categorical</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.CategoricalDQNNetBuilder__Union.Categorical" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.ContinuousActorNetBuilder__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.unions.</span></span><span class="sig-name descname"><span class="pre">ContinuousActorNetBuilder__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">FullyConnected</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.continuous_actor.html#reagent.net_builder.continuous_actor.fully_connected.FullyConnected" title="reagent.net_builder.continuous_actor.fully_connected.FullyConnected"><span class="pre">reagent.net_builder.continuous_actor.fully_connected.FullyConnected</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DirichletFullyConnected</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.continuous_actor.html#reagent.net_builder.continuous_actor.dirichlet_fully_connected.DirichletFullyConnected" title="reagent.net_builder.continuous_actor.dirichlet_fully_connected.DirichletFullyConnected"><span class="pre">reagent.net_builder.continuous_actor.dirichlet_fully_connected.DirichletFullyConnected</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GaussianFullyConnected</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.continuous_actor.html#reagent.net_builder.continuous_actor.gaussian_fully_connected.GaussianFullyConnected" title="reagent.net_builder.continuous_actor.gaussian_fully_connected.GaussianFullyConnected"><span class="pre">reagent.net_builder.continuous_actor.gaussian_fully_connected.GaussianFullyConnected</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.net_builder.unions.ContinuousActorNetBuilder__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.ContinuousActorNetBuilder__Union.DirichletFullyConnected">
+<span class="sig-name descname"><span class="pre">DirichletFullyConnected</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.continuous_actor.html#reagent.net_builder.continuous_actor.dirichlet_fully_connected.DirichletFullyConnected" title="reagent.net_builder.continuous_actor.dirichlet_fully_connected.DirichletFullyConnected"><span class="pre">reagent.net_builder.continuous_actor.dirichlet_fully_connected.DirichletFullyConnected</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.ContinuousActorNetBuilder__Union.DirichletFullyConnected" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.ContinuousActorNetBuilder__Union.FullyConnected">
+<span class="sig-name descname"><span class="pre">FullyConnected</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.continuous_actor.html#reagent.net_builder.continuous_actor.fully_connected.FullyConnected" title="reagent.net_builder.continuous_actor.fully_connected.FullyConnected"><span class="pre">reagent.net_builder.continuous_actor.fully_connected.FullyConnected</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.ContinuousActorNetBuilder__Union.FullyConnected" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.ContinuousActorNetBuilder__Union.GaussianFullyConnected">
+<span class="sig-name descname"><span class="pre">GaussianFullyConnected</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.continuous_actor.html#reagent.net_builder.continuous_actor.gaussian_fully_connected.GaussianFullyConnected" title="reagent.net_builder.continuous_actor.gaussian_fully_connected.GaussianFullyConnected"><span class="pre">reagent.net_builder.continuous_actor.gaussian_fully_connected.GaussianFullyConnected</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.ContinuousActorNetBuilder__Union.GaussianFullyConnected" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.DiscreteActorNetBuilder__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.unions.</span></span><span class="sig-name descname"><span class="pre">DiscreteActorNetBuilder__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">FullyConnected</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.discrete_actor.html#reagent.net_builder.discrete_actor.fully_connected.FullyConnected" title="reagent.net_builder.discrete_actor.fully_connected.FullyConnected"><span class="pre">reagent.net_builder.discrete_actor.fully_connected.FullyConnected</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.net_builder.unions.DiscreteActorNetBuilder__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.DiscreteActorNetBuilder__Union.FullyConnected">
+<span class="sig-name descname"><span class="pre">FullyConnected</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.discrete_actor.html#reagent.net_builder.discrete_actor.fully_connected.FullyConnected" title="reagent.net_builder.discrete_actor.fully_connected.FullyConnected"><span class="pre">reagent.net_builder.discrete_actor.fully_connected.FullyConnected</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.DiscreteActorNetBuilder__Union.FullyConnected" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.unions.</span></span><span class="sig-name descname"><span class="pre">DiscreteDQNNetBuilder__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Dueling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.discrete_dqn.html#reagent.net_builder.discrete_dqn.dueling.Dueling" title="reagent.net_builder.discrete_dqn.dueling.Dueling"><span class="pre">reagent.net_builder.discrete_dqn.dueling.Dueling</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FullyConnected</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.discrete_dqn.html#reagent.net_builder.discrete_dqn.fully_connected.FullyConnected" title="reagent.net_builder.discrete_dqn.fully_connected.FullyConnected"><span class="pre">reagent.net_builder.discrete_dqn.fully_connected.FullyConnected</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FullyConnectedWithEmbedding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.discrete_dqn.html#reagent.net_builder.discrete_dqn.fully_connected_with_embedding.FullyConnectedWithEmbedding" title="reagent.net_builder.discrete_dqn.fully_connected_with_embedding.FullyConnectedWithEmbedding"><span class="pre">reagent.net_builder.discrete_dqn.fully_connected_with_embedding.FullyConnectedWithEmbedding</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union.Dueling">
+<span class="sig-name descname"><span class="pre">Dueling</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.discrete_dqn.html#reagent.net_builder.discrete_dqn.dueling.Dueling" title="reagent.net_builder.discrete_dqn.dueling.Dueling"><span class="pre">reagent.net_builder.discrete_dqn.dueling.Dueling</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union.Dueling" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union.FullyConnected">
+<span class="sig-name descname"><span class="pre">FullyConnected</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.discrete_dqn.html#reagent.net_builder.discrete_dqn.fully_connected.FullyConnected" title="reagent.net_builder.discrete_dqn.fully_connected.FullyConnected"><span class="pre">reagent.net_builder.discrete_dqn.fully_connected.FullyConnected</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union.FullyConnected" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union.FullyConnectedWithEmbedding">
+<span class="sig-name descname"><span class="pre">FullyConnectedWithEmbedding</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.discrete_dqn.html#reagent.net_builder.discrete_dqn.fully_connected_with_embedding.FullyConnectedWithEmbedding" title="reagent.net_builder.discrete_dqn.fully_connected_with_embedding.FullyConnectedWithEmbedding"><span class="pre">reagent.net_builder.discrete_dqn.fully_connected_with_embedding.FullyConnectedWithEmbedding</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union.FullyConnectedWithEmbedding" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.ParametricDQNNetBuilder__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.unions.</span></span><span class="sig-name descname"><span class="pre">ParametricDQNNetBuilder__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">FullyConnected</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.parametric_dqn.html#reagent.net_builder.parametric_dqn.fully_connected.FullyConnected" title="reagent.net_builder.parametric_dqn.fully_connected.FullyConnected"><span class="pre">reagent.net_builder.parametric_dqn.fully_connected.FullyConnected</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.net_builder.unions.ParametricDQNNetBuilder__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.ParametricDQNNetBuilder__Union.FullyConnected">
+<span class="sig-name descname"><span class="pre">FullyConnected</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.parametric_dqn.html#reagent.net_builder.parametric_dqn.fully_connected.FullyConnected" title="reagent.net_builder.parametric_dqn.fully_connected.FullyConnected"><span class="pre">reagent.net_builder.parametric_dqn.fully_connected.FullyConnected</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.ParametricDQNNetBuilder__Union.FullyConnected" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.QRDQNNetBuilder__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.unions.</span></span><span class="sig-name descname"><span class="pre">QRDQNNetBuilder__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Quantile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.quantile_dqn.html#reagent.net_builder.quantile_dqn.quantile.Quantile" title="reagent.net_builder.quantile_dqn.quantile.Quantile"><span class="pre">reagent.net_builder.quantile_dqn.quantile.Quantile</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DuelingQuantile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.quantile_dqn.html#reagent.net_builder.quantile_dqn.dueling_quantile.DuelingQuantile" title="reagent.net_builder.quantile_dqn.dueling_quantile.DuelingQuantile"><span class="pre">reagent.net_builder.quantile_dqn.dueling_quantile.DuelingQuantile</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.net_builder.unions.QRDQNNetBuilder__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.QRDQNNetBuilder__Union.DuelingQuantile">
+<span class="sig-name descname"><span class="pre">DuelingQuantile</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.quantile_dqn.html#reagent.net_builder.quantile_dqn.dueling_quantile.DuelingQuantile" title="reagent.net_builder.quantile_dqn.dueling_quantile.DuelingQuantile"><span class="pre">reagent.net_builder.quantile_dqn.dueling_quantile.DuelingQuantile</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.QRDQNNetBuilder__Union.DuelingQuantile" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.QRDQNNetBuilder__Union.Quantile">
+<span class="sig-name descname"><span class="pre">Quantile</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.quantile_dqn.html#reagent.net_builder.quantile_dqn.quantile.Quantile" title="reagent.net_builder.quantile_dqn.quantile.Quantile"><span class="pre">reagent.net_builder.quantile_dqn.quantile.Quantile</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.QRDQNNetBuilder__Union.Quantile" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.SyntheticRewardNetBuilder__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.unions.</span></span><span class="sig-name descname"><span class="pre">SyntheticRewardNetBuilder__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">SingleStepSyntheticReward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#reagent.net_builder.synthetic_reward.single_step_synthetic_reward.SingleStepSyntheticReward" title="reagent.net_builder.synthetic_reward.single_step_synthetic_reward.SingleStepSyntheticReward"><span class="pre">reagent.net_builder.synthetic_reward.single_step_synthetic_reward.SingleStepSyntheticReward</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NGramSyntheticReward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramSyntheticReward" title="reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramSyntheticReward"><span class="pre">reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramSyntheticReward</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NGramConvNetSyntheticReward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramConvNetSyntheticReward" title="reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramConvNetSyntheticReward"><span class="pre">reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramConvNetSyntheticReward</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SequenceSyntheticReward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#reagent.net_builder.synthetic_reward.sequence_synthetic_reward.SequenceSyntheticReward" title="reagent.net_builder.synthetic_reward.sequence_synthetic_reward.SequenceSyntheticReward"><span class="pre">reagent.net_builder.synthetic_reward.sequence_synthetic_reward.SequenceSyntheticReward</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TransformerSyntheticReward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#reagent.net_builder.synthetic_reward.transformer_synthetic_reward.TransformerSyntheticReward" title="reagent.net_builder.synthetic_reward.transformer_synthetic_reward.TransformerSyntheticReward"><span class="pre">reagent.net_builder.synthetic_reward.transformer_synthetic_reward.TransformerSyntheticReward</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.net_builder.unions.SyntheticRewardNetBuilder__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.SyntheticRewardNetBuilder__Union.NGramConvNetSyntheticReward">
+<span class="sig-name descname"><span class="pre">NGramConvNetSyntheticReward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramConvNetSyntheticReward" title="reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramConvNetSyntheticReward"><span class="pre">reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramConvNetSyntheticReward</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.SyntheticRewardNetBuilder__Union.NGramConvNetSyntheticReward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.SyntheticRewardNetBuilder__Union.NGramSyntheticReward">
+<span class="sig-name descname"><span class="pre">NGramSyntheticReward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramSyntheticReward" title="reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramSyntheticReward"><span class="pre">reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramSyntheticReward</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.SyntheticRewardNetBuilder__Union.NGramSyntheticReward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.SyntheticRewardNetBuilder__Union.SequenceSyntheticReward">
+<span class="sig-name descname"><span class="pre">SequenceSyntheticReward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#reagent.net_builder.synthetic_reward.sequence_synthetic_reward.SequenceSyntheticReward" title="reagent.net_builder.synthetic_reward.sequence_synthetic_reward.SequenceSyntheticReward"><span class="pre">reagent.net_builder.synthetic_reward.sequence_synthetic_reward.SequenceSyntheticReward</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.SyntheticRewardNetBuilder__Union.SequenceSyntheticReward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.SyntheticRewardNetBuilder__Union.SingleStepSyntheticReward">
+<span class="sig-name descname"><span class="pre">SingleStepSyntheticReward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#reagent.net_builder.synthetic_reward.single_step_synthetic_reward.SingleStepSyntheticReward" title="reagent.net_builder.synthetic_reward.single_step_synthetic_reward.SingleStepSyntheticReward"><span class="pre">reagent.net_builder.synthetic_reward.single_step_synthetic_reward.SingleStepSyntheticReward</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.SyntheticRewardNetBuilder__Union.SingleStepSyntheticReward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.SyntheticRewardNetBuilder__Union.TransformerSyntheticReward">
+<span class="sig-name descname"><span class="pre">TransformerSyntheticReward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.synthetic_reward.html#reagent.net_builder.synthetic_reward.transformer_synthetic_reward.TransformerSyntheticReward" title="reagent.net_builder.synthetic_reward.transformer_synthetic_reward.TransformerSyntheticReward"><span class="pre">reagent.net_builder.synthetic_reward.transformer_synthetic_reward.TransformerSyntheticReward</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.SyntheticRewardNetBuilder__Union.TransformerSyntheticReward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.ValueNetBuilder__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.unions.</span></span><span class="sig-name descname"><span class="pre">ValueNetBuilder__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">FullyConnected</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.value.html#reagent.net_builder.value.fully_connected.FullyConnected" title="reagent.net_builder.value.fully_connected.FullyConnected"><span class="pre">reagent.net_builder.value.fully_connected.FullyConnected</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Seq2RewardNetBuilder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.value.html#reagent.net_builder.value.seq2reward_rnn.Seq2RewardNetBuilder" title="reagent.net_builder.value.seq2reward_rnn.Seq2RewardNetBuilder"><span class="pre">reagent.net_builder.value.seq2reward_rnn.Seq2RewardNetBuilder</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.net_builder.unions.ValueNetBuilder__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.ValueNetBuilder__Union.FullyConnected">
+<span class="sig-name descname"><span class="pre">FullyConnected</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.value.html#reagent.net_builder.value.fully_connected.FullyConnected" title="reagent.net_builder.value.fully_connected.FullyConnected"><span class="pre">reagent.net_builder.value.fully_connected.FullyConnected</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.ValueNetBuilder__Union.FullyConnected" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.net_builder.unions.ValueNetBuilder__Union.Seq2RewardNetBuilder">
+<span class="sig-name descname"><span class="pre">Seq2RewardNetBuilder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.value.html#reagent.net_builder.value.seq2reward_rnn.Seq2RewardNetBuilder" title="reagent.net_builder.value.seq2reward_rnn.Seq2RewardNetBuilder"><span class="pre">reagent.net_builder.value.seq2reward_rnn.Seq2RewardNetBuilder</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.net_builder.unions.ValueNetBuilder__Union.Seq2RewardNetBuilder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.net_builder.value_net_builder">
+<span id="reagent-net-builder-value-net-builder-module"></span><h2>reagent.net_builder.value_net_builder module<a class="headerlink" href="#module-reagent.net_builder.value_net_builder" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.net_builder.value_net_builder.ValueNetBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.net_builder.value_net_builder.</span></span><span class="sig-name descname"><span class="pre">ValueNetBuilder</span></span><a class="headerlink" href="#reagent.net_builder.value_net_builder.ValueNetBuilder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for value-network builder.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.net_builder.value_net_builder.ValueNetBuilder.build_value_network">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">build_value_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.net_builder.value_net_builder.ValueNetBuilder.build_value_network" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.net_builder">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.net_builder" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.model_utils.html" class="btn btn-neutral float-left" title="reagent.model_utils package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.net_builder.categorical_dqn.html" class="btn btn-neutral float-right" title="reagent.net_builder.categorical_dqn package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

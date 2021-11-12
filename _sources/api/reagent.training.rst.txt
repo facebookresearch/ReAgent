@@ -5,7 +5,9 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
+   reagent.training.cfeval
    reagent.training.gradient_free
    reagent.training.ranking
    reagent.training.world_model
@@ -25,6 +27,14 @@ reagent.training.cem\_trainer module
 ------------------------------------
 
 .. automodule:: reagent.training.cem_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.training.discrete\_crr\_trainer module
+----------------------------------------------
+
+.. automodule:: reagent.training.discrete_crr_trainer
    :members:
    :undoc-members:
    :show-inheritance:
@@ -53,10 +63,10 @@ reagent.training.imitator\_training module
    :undoc-members:
    :show-inheritance:
 
-reagent.training.loss\_reporter module
---------------------------------------
+reagent.training.multi\_stage\_trainer module
+---------------------------------------------
 
-.. automodule:: reagent.training.loss_reporter
+.. automodule:: reagent.training.multi_stage_trainer
    :members:
    :undoc-members:
    :show-inheritance:
@@ -77,6 +87,14 @@ reagent.training.parametric\_dqn\_trainer module
    :undoc-members:
    :show-inheritance:
 
+reagent.training.ppo\_trainer module
+------------------------------------
+
+.. automodule:: reagent.training.ppo_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 reagent.training.qrdqn\_trainer module
 --------------------------------------
 
@@ -85,10 +103,18 @@ reagent.training.qrdqn\_trainer module
    :undoc-members:
    :show-inheritance:
 
-reagent.training.reinforce module
----------------------------------
+reagent.training.reagent\_lightning\_module module
+--------------------------------------------------
 
-.. automodule:: reagent.training.reinforce
+.. automodule:: reagent.training.reagent_lightning_module
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reagent.training.reinforce\_trainer module
+------------------------------------------
+
+.. automodule:: reagent.training.reinforce_trainer
    :members:
    :undoc-members:
    :show-inheritance:
@@ -133,14 +159,6 @@ reagent.training.td3\_trainer module
    :undoc-members:
    :show-inheritance:
 
-reagent.training.trainer module
--------------------------------
-
-.. automodule:: reagent.training.trainer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 reagent.training.utils module
 -----------------------------
 
@@ -148,7 +166,6 @@ reagent.training.utils module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

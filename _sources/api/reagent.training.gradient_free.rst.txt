@@ -4,6 +4,14 @@ reagent.training.gradient\_free package
 Submodules
 ----------
 
+reagent.training.gradient\_free.ars\_util module
+------------------------------------------------
+
+.. automodule:: reagent.training.gradient_free.ars_util
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 reagent.training.gradient\_free.es\_worker module
 -------------------------------------------------
 
@@ -19,7 +27,6 @@ reagent.training.gradient\_free.evolution\_pool module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

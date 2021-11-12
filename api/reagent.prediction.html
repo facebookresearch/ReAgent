@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>reagent.prediction package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="reagent.preprocessing package" href="reagent.preprocessing.html" />
-    <link rel="prev" title="reagent.optimizer package" href="reagent.optimizer.html" /> 
+    <link rel="next" title="reagent.prediction.ranking package" href="reagent.prediction.ranking.html" />
+    <link rel="prev" title="reagent.models package" href="reagent.models.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,200 +36,736 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">reagent.prediction package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Prediction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reagent.prediction.ranking.html">reagent.prediction.ranking package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.prediction.synthetic_reward.html">reagent.prediction.synthetic_reward package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.prediction.predictor_wrapper">reagent.prediction.predictor_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.prediction">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
 </ul>
-</li>
-</ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-          <li><a href="modules.html">reagent</a> &raquo;</li>
-        
-          <li><a href="reagent.html">reagent package</a> &raquo;</li>
-        
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
       <li>reagent.prediction package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/reagent.prediction.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-prediction-package">
-<h1>reagent.prediction package<a class="headerlink" href="#reagent-prediction-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="reagent-prediction-package">
+<h1>reagent.prediction package<a class="headerlink" href="#reagent-prediction-package" title="Permalink to this headline"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.ranking.html">reagent.prediction.ranking package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.prediction.ranking.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.prediction.ranking.html#module-reagent.prediction.ranking.predictor_wrapper">reagent.prediction.ranking.predictor_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.prediction.ranking.html#module-reagent.prediction.ranking">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.synthetic_reward.html">reagent.prediction.synthetic_reward package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.prediction.synthetic_reward.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.prediction.synthetic_reward.html#module-reagent.prediction.synthetic_reward.synthetic_reward_predictor_wrapper">reagent.prediction.synthetic_reward.synthetic_reward_predictor_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.prediction.synthetic_reward.html#module-reagent.prediction.synthetic_reward">Module contents</a></li>
+</ul>
+</li>
+</ul>
 </div>
-<div class="section" id="reagent-prediction-predictor-wrapper-module">
-<h2>reagent.prediction.predictor_wrapper module<a class="headerlink" href="#reagent-prediction-predictor-wrapper-module" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.prediction.predictor_wrapper">
+<span id="reagent-prediction-predictor-wrapper-module"></span><h2>reagent.prediction.predictor_wrapper module<a class="headerlink" href="#module-reagent.prediction.predictor_wrapper" title="Permalink to this headline"></a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ActorPredictorUnwrapper">
+<span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">ActorPredictorUnwrapper</span></span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ActorPredictorUnwrapper" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper" title="reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ActorPredictorWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">ActorPredictorWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor_with_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.prediction.predictor_wrapper.ActorWithPreprocessor" title="reagent.prediction.predictor_wrapper.ActorWithPreprocessor"><span class="pre">reagent.prediction.predictor_wrapper.ActorWithPreprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_feature_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ActorPredictorWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.jit._script.ScriptModule</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ActorPredictorWrapper.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ActorPredictorWrapper.forward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ActorPredictorWrapper.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ActorPredictorWrapper.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ActorWithPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">ActorWithPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_postprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.postprocessor.Postprocessor" title="reagent.preprocessing.postprocessor.Postprocessor"><span class="pre">reagent.preprocessing.postprocessor.Postprocessor</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serve_mean_policy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ActorWithPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.models.base.ModelBase</span></code></a></p>
+<p>This is separate from ActorPredictorWrapper so that we can pass typed inputs
+into the model. This is possible because JIT only traces tensor operation.
+In contrast, JIT scripting needs to compile the code, therefore, it won’t recognize
+any custom Python type.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ActorWithPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ServingFeatureData" title="reagent.core.types.ServingFeatureData"><span class="pre">reagent.core.types.ServingFeatureData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ActorWithPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
 </div>
-<div class="section" id="module-reagent.prediction">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.prediction" title="Permalink to this headline">¶</a></h2>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ActorWithPreprocessor.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ActorWithPreprocessor.input_prototype" title="Permalink to this definition"></a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ActorWithPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ActorWithPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.BinaryDifferenceScorerPredictorWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">BinaryDifferenceScorerPredictorWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary_difference_scorer_with_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.prediction.predictor_wrapper.BinaryDifferenceScorerWithPreprocessor" title="reagent.prediction.predictor_wrapper.BinaryDifferenceScorerWithPreprocessor"><span class="pre">reagent.prediction.predictor_wrapper.BinaryDifferenceScorerWithPreprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.BinaryDifferenceScorerPredictorWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.jit._script.ScriptModule</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.BinaryDifferenceScorerPredictorWrapper.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.BinaryDifferenceScorerPredictorWrapper.forward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.BinaryDifferenceScorerPredictorWrapper.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.BinaryDifferenceScorerPredictorWrapper.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.BinaryDifferenceScorerWithPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">BinaryDifferenceScorerWithPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.BinaryDifferenceScorerWithPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.models.base.ModelBase</span></code></a></p>
+<p>This is separated from DiscreteDqnPredictorWrapper so that we can pass typed inputs
+into the model. This is possible because JIT only traces tensor operation.
+In contrast, JIT scripting needs to compile the code, therefore, it won’t recognize
+any custom Python type.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.BinaryDifferenceScorerWithPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ServingFeatureData" title="reagent.core.types.ServingFeatureData"><span class="pre">reagent.core.types.ServingFeatureData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.BinaryDifferenceScorerWithPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
 </div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.BinaryDifferenceScorerWithPreprocessor.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.BinaryDifferenceScorerWithPreprocessor.input_prototype" title="Permalink to this definition"></a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.BinaryDifferenceScorerWithPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.BinaryDifferenceScorerWithPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.CompressModelWithPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">CompressModelWithPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.CompressModelWithPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor" title="reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.CompressModelWithPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ServingFeatureData" title="reagent.core.types.ServingFeatureData"><span class="pre">reagent.core.types.ServingFeatureData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.CompressModelWithPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
 </div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.CompressModelWithPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.CompressModelWithPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.DiscreteDqnPredictorUnwrapper">
+<span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">DiscreteDqnPredictorUnwrapper</span></span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.DiscreteDqnPredictorUnwrapper" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper" title="reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.DiscreteDqnPredictorWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">DiscreteDqnPredictorWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dqn_with_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor" title="reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor"><span class="pre">reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.DiscreteDqnPredictorWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.jit._script.ScriptModule</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.DiscreteDqnPredictorWrapper.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.DiscreteDqnPredictorWrapper.forward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.DiscreteDqnPredictorWrapper.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.DiscreteDqnPredictorWrapper.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">DiscreteDqnWithPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.models.base.ModelBase</span></code></a></p>
+<p>This is separated from DiscreteDqnPredictorWrapper so that we can pass typed inputs
+into the model. This is possible because JIT only traces tensor operation.
+In contrast, JIT scripting needs to compile the code, therefore, it won’t recognize
+any custom Python type.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ServingFeatureData" title="reagent.core.types.ServingFeatureData"><span class="pre">reagent.core.types.ServingFeatureData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor.input_prototype" title="Permalink to this definition"></a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.LearnVMSlateWithPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">LearnVMSlateWithPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mlp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.LearnVMSlateWithPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.models.base.ModelBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.LearnVMSlateWithPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_vp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_vp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.LearnVMSlateWithPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.LearnVMSlateWithPreprocessor.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.LearnVMSlateWithPreprocessor.input_prototype" title="Permalink to this definition"></a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.LearnVMSlateWithPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.LearnVMSlateWithPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.MDNRNNWithPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">MDNRNNWithPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.MDNRNNWithPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.models.base.ModelBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.MDNRNNWithPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_with_presence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.MDNRNNWithPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.MDNRNNWithPreprocessor.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.MDNRNNWithPreprocessor.input_prototype" title="Permalink to this definition"></a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.MDNRNNWithPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.MDNRNNWithPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.OSSPredictorUnwrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">OSSPredictorUnwrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.OSSPredictorUnwrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.OSSPredictorUnwrapper.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.OSSPredictorUnwrapper.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.OSSPredictorUnwrapper.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.OSSPredictorUnwrapper.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">OSSSparsePredictorUnwrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_with_presence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_id_list_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_id_score_list_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ParametricDqnPredictorUnwrapper">
+<span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">ParametricDqnPredictorUnwrapper</span></span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ParametricDqnPredictorUnwrapper" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#reagent.prediction.predictor_wrapper.OSSPredictorUnwrapper" title="reagent.prediction.predictor_wrapper.OSSPredictorUnwrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.prediction.predictor_wrapper.OSSPredictorUnwrapper</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ParametricDqnPredictorWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">ParametricDqnPredictorWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dqn_with_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.prediction.predictor_wrapper.ParametricDqnWithPreprocessor" title="reagent.prediction.predictor_wrapper.ParametricDqnWithPreprocessor"><span class="pre">reagent.prediction.predictor_wrapper.ParametricDqnWithPreprocessor</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ParametricDqnPredictorWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.jit._script.ScriptModule</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ParametricDqnPredictorWrapper.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ParametricDqnPredictorWrapper.forward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ParametricDqnPredictorWrapper.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ParametricDqnPredictorWrapper.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ParametricDqnWithPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">ParametricDqnWithPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ParametricDqnWithPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.models.base.ModelBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ParametricDqnWithPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_with_presence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_with_presence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ParametricDqnWithPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ParametricDqnWithPreprocessor.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ParametricDqnWithPreprocessor.input_prototype" title="Permalink to this definition"></a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.ParametricDqnWithPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.ParametricDqnWithPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.RankingActorPredictorWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">RankingActorPredictorWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor_with_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.prediction.predictor_wrapper.RankingActorWithPreprocessor" title="reagent.prediction.predictor_wrapper.RankingActorWithPreprocessor"><span class="pre">reagent.prediction.predictor_wrapper.RankingActorWithPreprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_feature_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.RankingActorPredictorWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.jit._script.ScriptModule</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.RankingActorPredictorWrapper.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.RankingActorPredictorWrapper.forward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.RankingActorPredictorWrapper.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.RankingActorPredictorWrapper.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.RankingActorWithPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">RankingActorWithPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_candidates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_postprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.postprocessor.Postprocessor" title="reagent.preprocessing.postprocessor.Postprocessor"><span class="pre">reagent.preprocessing.postprocessor.Postprocessor</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.RankingActorWithPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.models.base.ModelBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.RankingActorWithPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_with_presence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_with_presence_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.RankingActorWithPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.RankingActorWithPreprocessor.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.RankingActorWithPreprocessor.input_prototype" title="Permalink to this definition"></a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.RankingActorWithPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.RankingActorWithPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2RewardPlanShortSeqWithPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">Seq2RewardPlanShortSeqWithPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2RewardPlanShortSeqWithPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor" title="reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2RewardPlanShortSeqWithPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ServingFeatureData" title="reagent.core.types.ServingFeatureData"><span class="pre">reagent.core.types.ServingFeatureData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2RewardPlanShortSeqWithPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2RewardPlanShortSeqWithPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2RewardPlanShortSeqWithPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2RewardWithPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">Seq2RewardWithPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2RewardWithPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor" title="reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.prediction.predictor_wrapper.DiscreteDqnWithPreprocessor</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2RewardWithPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ServingFeatureData" title="reagent.core.types.ServingFeatureData"><span class="pre">reagent.core.types.ServingFeatureData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2RewardWithPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>This serving module only takes in current state.
+We need to simulate all multi-step length action seq’s
+then predict accumulated reward on all those seq’s.
+After that, we categorize all action seq’s by their
+first actions. Then take the maximum reward as the
+predicted categorical reward for that category.
+Return: categorical reward for the first action</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2RewardWithPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2RewardWithPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlatePredictorWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">Seq2SlatePredictorWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq2slate_with_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor" title="reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor"><span class="pre">reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlatePredictorWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.jit._script.ScriptModule</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlatePredictorWrapper.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlatePredictorWrapper.forward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlatePredictorWrapper.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlatePredictorWrapper.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlateRewardWithPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">Seq2SlateRewardWithPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.seq2slate_reward.Seq2SlateRewardNetBase" title="reagent.models.seq2slate_reward.Seq2SlateRewardNetBase"><span class="pre">reagent.models.seq2slate_reward.Seq2SlateRewardNetBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlateRewardWithPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.models.base.ModelBase</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlateRewardWithPreprocessor.candidate_sorted_features">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">candidate_sorted_features</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlateRewardWithPreprocessor.candidate_sorted_features" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlateRewardWithPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_with_presence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_with_presence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlateRewardWithPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlateRewardWithPreprocessor.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlateRewardWithPreprocessor.input_prototype" title="Permalink to this definition"></a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlateRewardWithPreprocessor.state_sorted_features">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state_sorted_features</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlateRewardWithPreprocessor.state_sorted_features" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlateRewardWithPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlateRewardWithPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">Seq2SlateWithPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.seq2slate.Seq2SlateTransformerNet" title="reagent.models.seq2slate.Seq2SlateTransformerNet"><span class="pre">reagent.models.seq2slate.Seq2SlateTransformerNet</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">greedy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor.can_be_traced">
+<span class="sig-name descname"><span class="pre">can_be_traced</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor.can_be_traced" title="Permalink to this definition"></a></dt>
+<dd><p>Whether this module can be serialized by jit.trace.
+In production, we find jit.trace may have faster performance than jit.script.
+The models that can be traced are those don’t have for-loop in inference,
+since we want to deal with inputs of variable lengths. The models that can’t
+be traced are those with iterative decoder, i.e., autoregressive or non-greedy
+frechet-sort.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_with_presence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_with_presence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor.input_prototype" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.Seq2SlateWithPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.SlateRankingPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">SlateRankingPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.SlateRankingPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.models.base.ModelBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.SlateRankingPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_with_presence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_with_presence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.SlateRankingPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.SlateRankingPreprocessor.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.SlateRankingPreprocessor.input_prototype" title="Permalink to this definition"></a></dt>
+<dd><p>This function provides the input for ONNX graph tracing.</p>
+<p>The return value should be what expected by <cite>forward()</cite>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.SlateRankingPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.prediction.predictor_wrapper.SlateRankingPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.serving_to_feature_data">
+<span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">serving_to_feature_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serving</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ServingFeatureData" title="reagent.core.types.ServingFeatureData"><span class="pre">reagent.core.types.ServingFeatureData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dense_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.sparse_preprocessor.SparsePreprocessor" title="reagent.preprocessing.sparse_preprocessor.SparsePreprocessor"><span class="pre">reagent.preprocessing.sparse_preprocessor.SparsePreprocessor</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.FeatureData" title="reagent.core.types.FeatureData"><span class="pre">reagent.core.types.FeatureData</span></a></span></span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.serving_to_feature_data" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.prediction.predictor_wrapper.sparse_input_prototype">
+<span class="sig-prename descclassname"><span class="pre">reagent.prediction.predictor_wrapper.</span></span><span class="sig-name descname"><span class="pre">sparse_input_prototype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.base.ModelBase" title="reagent.models.base.ModelBase"><span class="pre">reagent.models.base.ModelBase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.prediction.predictor_wrapper.sparse_input_prototype" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.prediction">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.prediction" title="Permalink to this headline"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reagent.preprocessing.html" class="btn btn-neutral float-right" title="reagent.preprocessing package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reagent.optimizer.html" class="btn btn-neutral float-left" title="reagent.optimizer package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.models.html" class="btn btn-neutral float-left" title="reagent.models package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.prediction.ranking.html" class="btn btn-neutral float-right" title="reagent.prediction.ranking package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

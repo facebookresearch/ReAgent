@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>reagent.preprocessing package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="reagent.replay_memory package" href="reagent.replay_memory.html" />
-    <link rel="prev" title="reagent.prediction package" href="reagent.prediction.html" /> 
+    <link rel="next" title="reagent.training package" href="reagent.training.html" />
+    <link rel="prev" title="reagent.prediction.synthetic_reward package" href="reagent.prediction.synthetic_reward.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,441 +36,872 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">reagent.preprocessing package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Preprocessing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.preprocessing.batch_preprocessor">reagent.preprocessing.batch_preprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.preprocessing.identify_types">reagent.preprocessing.identify_types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.preprocessing.normalization">reagent.preprocessing.normalization module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.preprocessing.postprocessor">reagent.preprocessing.postprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.preprocessing.preprocessor">reagent.preprocessing.preprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.preprocessing.sparse_preprocessor">reagent.preprocessing.sparse_preprocessor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.preprocessing.sparse_to_dense">reagent.preprocessing.sparse_to_dense module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.preprocessing.transforms">reagent.preprocessing.transforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.preprocessing.types">reagent.preprocessing.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.preprocessing">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
 </ul>
-</li>
-</ul>
-</li>
-</ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-          <li><a href="modules.html">reagent</a> &raquo;</li>
-        
-          <li><a href="reagent.html">reagent package</a> &raquo;</li>
-        
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
       <li>reagent.preprocessing package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/reagent.preprocessing.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-preprocessing-package">
-<h1>reagent.preprocessing package<a class="headerlink" href="#reagent-preprocessing-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-preprocessing-batch-preprocessor-module">
-<h2>reagent.preprocessing.batch_preprocessor module<a class="headerlink" href="#reagent-preprocessing-batch-preprocessor-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.preprocessing.identify_types">
-<span id="reagent-preprocessing-identify-types-module"></span><h2>reagent.preprocessing.identify_types module<a class="headerlink" href="#module-reagent.preprocessing.identify_types" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="reagent.preprocessing.identify_types.identify_type">
-<code class="sig-prename descclassname">reagent.preprocessing.identify_types.</code><code class="sig-name descname">identify_type</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">enum_threshold=100</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.identify_types.identify_type" title="Permalink to this definition">¶</a></dt>
+             
+  <section id="reagent-preprocessing-package">
+<h1>reagent.preprocessing package<a class="headerlink" href="#reagent-preprocessing-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.preprocessing.batch_preprocessor">
+<span id="reagent-preprocessing-batch-preprocessor-module"></span><h2>reagent.preprocessing.batch_preprocessor module<a class="headerlink" href="#module-reagent.preprocessing.batch_preprocessor" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.batch_preprocessor.BatchPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.batch_preprocessor.</span></span><span class="sig-name descname"><span class="pre">BatchPreprocessor</span></span><a class="headerlink" href="#reagent.preprocessing.batch_preprocessor.BatchPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.batch_preprocessor.BatchPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.batch_preprocessor.BatchPreprocessor.training" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.batch_preprocessor.DiscreteDqnBatchPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.batch_preprocessor.</span></span><span class="sig-name descname"><span class="pre">DiscreteDqnBatchPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.batch_preprocessor.DiscreteDqnBatchPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.preprocessing.batch_preprocessor.BatchPreprocessor" title="reagent.preprocessing.batch_preprocessor.BatchPreprocessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.preprocessing.batch_preprocessor.BatchPreprocessor</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.batch_preprocessor.DiscreteDqnBatchPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.DiscreteDqnInput" title="reagent.core.types.DiscreteDqnInput"><span class="pre">reagent.core.types.DiscreteDqnInput</span></a></span></span><a class="headerlink" href="#reagent.preprocessing.batch_preprocessor.DiscreteDqnBatchPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
 </div>
-<div class="section" id="reagent-preprocessing-normalization-module">
-<h2>reagent.preprocessing.normalization module<a class="headerlink" href="#reagent-preprocessing-normalization-module" title="Permalink to this headline">¶</a></h2>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.batch_preprocessor.DiscreteDqnBatchPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.batch_preprocessor.DiscreteDqnBatchPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.batch_preprocessor.ParametricDqnBatchPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.batch_preprocessor.</span></span><span class="sig-name descname"><span class="pre">ParametricDqnBatchPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.batch_preprocessor.ParametricDqnBatchPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.preprocessing.batch_preprocessor.BatchPreprocessor" title="reagent.preprocessing.batch_preprocessor.BatchPreprocessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.preprocessing.batch_preprocessor.BatchPreprocessor</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.batch_preprocessor.ParametricDqnBatchPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.ParametricDqnInput" title="reagent.core.types.ParametricDqnInput"><span class="pre">reagent.core.types.ParametricDqnInput</span></a></span></span><a class="headerlink" href="#reagent.preprocessing.batch_preprocessor.ParametricDqnBatchPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
 </div>
-<div class="section" id="reagent-preprocessing-postprocessor-module">
-<h2>reagent.preprocessing.postprocessor module<a class="headerlink" href="#reagent-preprocessing-postprocessor-module" title="Permalink to this headline">¶</a></h2>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.batch_preprocessor.ParametricDqnBatchPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.batch_preprocessor.ParametricDqnBatchPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.batch_preprocessor.PolicyNetworkBatchPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.batch_preprocessor.</span></span><span class="sig-name descname"><span class="pre">PolicyNetworkBatchPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.preprocessing.preprocessor.Preprocessor" title="reagent.preprocessing.preprocessor.Preprocessor"><span class="pre">reagent.preprocessing.preprocessor.Preprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.batch_preprocessor.PolicyNetworkBatchPreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.preprocessing.batch_preprocessor.BatchPreprocessor" title="reagent.preprocessing.batch_preprocessor.BatchPreprocessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.preprocessing.batch_preprocessor.BatchPreprocessor</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.batch_preprocessor.PolicyNetworkBatchPreprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.PolicyNetworkInput" title="reagent.core.types.PolicyNetworkInput"><span class="pre">reagent.core.types.PolicyNetworkInput</span></a></span></span><a class="headerlink" href="#reagent.preprocessing.batch_preprocessor.PolicyNetworkBatchPreprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
 </div>
-<div class="section" id="reagent-preprocessing-preprocessor-module">
-<h2>reagent.preprocessing.preprocessor module<a class="headerlink" href="#reagent-preprocessing-preprocessor-module" title="Permalink to this headline">¶</a></h2>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.batch_preprocessor.PolicyNetworkBatchPreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.batch_preprocessor.PolicyNetworkBatchPreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.batch_preprocessor.batch_to_device">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.batch_preprocessor.</span></span><span class="sig-name descname"><span class="pre">batch_to_device</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.batch_preprocessor.batch_to_device" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.preprocessing.identify_types">
+<span id="reagent-preprocessing-identify-types-module"></span><h2>reagent.preprocessing.identify_types module<a class="headerlink" href="#module-reagent.preprocessing.identify_types" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.identify_types.identify_type">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.identify_types.</span></span><span class="sig-name descname"><span class="pre">identify_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enum_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.identify_types.identify_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.preprocessing.normalization">
+<span id="reagent-preprocessing-normalization-module"></span><h2>reagent.preprocessing.normalization module<a class="headerlink" href="#module-reagent.preprocessing.normalization" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.normalization.construct_action_scale_tensor">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.normalization.</span></span><span class="sig-name descname"><span class="pre">construct_action_scale_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_norm_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_scale_overrides</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.normalization.construct_action_scale_tensor" title="Permalink to this definition"></a></dt>
+<dd><p>Construct tensors that will rescale each action value on each dimension i
+from [min_serving_value[i], max_serving_value[i]] to [-1, 1] for training.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.normalization.deserialize">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.normalization.</span></span><span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameters_json</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationParameters" title="reagent.core.parameters.NormalizationParameters"><span class="pre">reagent.core.parameters.NormalizationParameters</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.preprocessing.normalization.deserialize" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.normalization.get_feature_config">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.normalization.</span></span><span class="sig-name descname"><span class="pre">get_feature_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">float_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></span><a class="headerlink" href="#reagent.preprocessing.normalization.get_feature_config" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.normalization.get_feature_norm_metadata">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.normalization.</span></span><span class="sig-name descname"><span class="pre">get_feature_norm_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_value_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.normalization.get_feature_norm_metadata" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.normalization.get_feature_start_indices">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.normalization.</span></span><span class="sig-name descname"><span class="pre">get_feature_start_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sorted_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationParameters" title="reagent.core.parameters.NormalizationParameters"><span class="pre">reagent.core.parameters.NormalizationParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.normalization.get_feature_start_indices" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the starting index for each feature in the output feature vector</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.normalization.get_num_output_features">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.normalization.</span></span><span class="sig-name descname"><span class="pre">get_num_output_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationParameters" title="reagent.core.parameters.NormalizationParameters"><span class="pre">reagent.core.parameters.NormalizationParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#reagent.preprocessing.normalization.get_num_output_features" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.normalization.identify_parameter">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.normalization.</span></span><span class="sig-name descname"><span class="pre">identify_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_unique_enum_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantile_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantile_k2_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_box_cox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_quantiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.normalization.identify_parameter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.normalization.no_op_feature">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.normalization.</span></span><span class="sig-name descname"><span class="pre">no_op_feature</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.normalization.no_op_feature" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.normalization.serialize">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.normalization.</span></span><span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.normalization.serialize" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.normalization.serialize_one">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.normalization.</span></span><span class="sig-name descname"><span class="pre">serialize_one</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.normalization.serialize_one" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.normalization.sort_features_by_normalization">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.normalization.</span></span><span class="sig-name descname"><span class="pre">sort_features_by_normalization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationParameters" title="reagent.core.parameters.NormalizationParameters"><span class="pre">reagent.core.parameters.NormalizationParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.preprocessing.normalization.sort_features_by_normalization" title="Permalink to this definition"></a></dt>
+<dd><p>Helper function to return a sorted list from a normalization map.
+Also returns the starting index for each feature type</p>
+</dd></dl>
+
+</section>
+<section id="module-reagent.preprocessing.postprocessor">
+<span id="reagent-preprocessing-postprocessor-module"></span><h2>reagent.preprocessing.postprocessor module<a class="headerlink" href="#module-reagent.preprocessing.postprocessor" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.postprocessor.Postprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.postprocessor.</span></span><span class="sig-name descname"><span class="pre">Postprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationParameters" title="reagent.core.parameters.NormalizationParameters"><span class="pre">reagent.core.parameters.NormalizationParameters</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.postprocessor.Postprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Inverting action</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.postprocessor.Postprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.preprocessing.postprocessor.Postprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
 </div>
-<div class="section" id="module-reagent.preprocessing.sparse_preprocessor">
-<span id="reagent-preprocessing-sparse-preprocessor-module"></span><h2>reagent.preprocessing.sparse_preprocessor module<a class="headerlink" href="#module-reagent.preprocessing.sparse_preprocessor" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.preprocessing.sparse_preprocessor.SparsePreprocessor">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.preprocessing.sparse_preprocessor.</code><code class="sig-name descname">SparsePreprocessor</code><span class="sig-paren">(</span><em class="sig-param">id2name: Dict[int, str], id2mapping: Dict[int, Dict[int, int]], device: torch.device</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.SparsePreprocessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.postprocessor.Postprocessor.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.preprocessing.postprocessor.Postprocessor.input_prototype" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.postprocessor.Postprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.postprocessor.Postprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.preprocessing.preprocessor">
+<span id="reagent-preprocessing-preprocessor-module"></span><h2>reagent.preprocessing.preprocessor module<a class="headerlink" href="#module-reagent.preprocessing.preprocessor" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.preprocessor.Preprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.preprocessor.</span></span><span class="sig-name descname"><span class="pre">Preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationParameters" title="reagent.core.parameters.NormalizationParameters"><span class="pre">reagent.core.parameters.NormalizationParameters</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.device</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.preprocessor.Preprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.preprocessor.Preprocessor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_presence_byte</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.preprocessing.preprocessor.Preprocessor.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Preprocess the input matrix
+:param input tensor</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.preprocessor.Preprocessor.input_prototype">
+<span class="sig-name descname"><span class="pre">input_prototype</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.preprocessing.preprocessor.Preprocessor.input_prototype" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.preprocessor.Preprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.preprocessor.Preprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.preprocessing.sparse_preprocessor">
+<span id="reagent-preprocessing-sparse-preprocessor-module"></span><h2>reagent.preprocessing.sparse_preprocessor module<a class="headerlink" href="#module-reagent.preprocessing.sparse_preprocessor" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.ExplicitMapIDList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.sparse_preprocessor.</span></span><span class="sig-name descname"><span class="pre">ExplicitMapIDList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id2index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.ExplicitMapIDList" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.preprocessing.sparse_preprocessor.MapIDList" title="reagent.preprocessing.sparse_preprocessor.MapIDList"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.preprocessing.sparse_preprocessor.MapIDList</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.ExplicitMapIDList.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.ExplicitMapIDList.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.ExplicitMapIDList.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.ExplicitMapIDList.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.ExplicitMapIDScoreList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.sparse_preprocessor.</span></span><span class="sig-name descname"><span class="pre">ExplicitMapIDScoreList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id2index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.ExplicitMapIDScoreList" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.preprocessing.sparse_preprocessor.MapIDScoreList" title="reagent.preprocessing.sparse_preprocessor.MapIDScoreList"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.preprocessing.sparse_preprocessor.MapIDScoreList</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.ExplicitMapIDScoreList.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.ExplicitMapIDScoreList.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.ExplicitMapIDScoreList.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.ExplicitMapIDScoreList.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.MapIDList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.sparse_preprocessor.</span></span><span class="sig-name descname"><span class="pre">MapIDList</span></span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.MapIDList" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.MapIDList.forward">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.MapIDList.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.MapIDList.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.MapIDList.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.MapIDScoreList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.sparse_preprocessor.</span></span><span class="sig-name descname"><span class="pre">MapIDScoreList</span></span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.MapIDScoreList" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.MapIDScoreList.forward">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.MapIDScoreList.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.MapIDScoreList.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.MapIDScoreList.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.ModuloMapIDList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.sparse_preprocessor.</span></span><span class="sig-name descname"><span class="pre">ModuloMapIDList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modulo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.ModuloMapIDList" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.preprocessing.sparse_preprocessor.MapIDList" title="reagent.preprocessing.sparse_preprocessor.MapIDList"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.preprocessing.sparse_preprocessor.MapIDList</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.ModuloMapIDList.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.ModuloMapIDList.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.ModuloMapIDList.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.ModuloMapIDList.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.ModuloMapIDScoreList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.sparse_preprocessor.</span></span><span class="sig-name descname"><span class="pre">ModuloMapIDScoreList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modulo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.ModuloMapIDScoreList" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.preprocessing.sparse_preprocessor.MapIDScoreList" title="reagent.preprocessing.sparse_preprocessor.MapIDScoreList"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.preprocessing.sparse_preprocessor.MapIDScoreList</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.ModuloMapIDScoreList.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.ModuloMapIDScoreList.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.ModuloMapIDScoreList.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.ModuloMapIDScoreList.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.SparsePreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.sparse_preprocessor.</span></span><span class="sig-name descname"><span class="pre">SparsePreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id2name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name2id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_list_mappers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#reagent.preprocessing.sparse_preprocessor.MapIDList" title="reagent.preprocessing.sparse_preprocessor.MapIDList"><span class="pre">reagent.preprocessing.sparse_preprocessor.MapIDList</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_score_list_mappers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#reagent.preprocessing.sparse_preprocessor.MapIDScoreList" title="reagent.preprocessing.sparse_preprocessor.MapIDScoreList"><span class="pre">reagent.preprocessing.sparse_preprocessor.MapIDScoreList</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.SparsePreprocessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <p>Performs preprocessing for sparse features (i.e. id_list, id_score_list)</p>
 <p>Functionality includes:
 (1) changes keys from feature_id to feature_name, for better debuggability
 (2) maps sparse ids to embedding table indices based on id_mapping
 (3) filters out ids which aren’t in the id2name</p>
-<dl class="method">
-<dt id="reagent.preprocessing.sparse_preprocessor.SparsePreprocessor.preprocess_id_list">
-<code class="sig-name descname">preprocess_id_list</code><span class="sig-paren">(</span><em class="sig-param">id_list: Dict[int, Tuple[torch.Tensor, torch.Tensor]]</em><span class="sig-paren">)</span> &#x2192; Dict[str, Tuple[torch.Tensor, torch.Tensor]]<a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.SparsePreprocessor.preprocess_id_list" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.SparsePreprocessor.preprocess_id_list">
+<span class="sig-name descname"><span class="pre">preprocess_id_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.SparsePreprocessor.preprocess_id_list" title="Permalink to this definition"></a></dt>
 <dd><p>Input: rlt.ServingIdListFeature
 Output: rlt.IdListFeature</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.preprocessing.sparse_preprocessor.SparsePreprocessor.preprocess_id_score_list">
-<code class="sig-name descname">preprocess_id_score_list</code><span class="sig-paren">(</span><em class="sig-param">id_score_list: Dict[int, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]</em><span class="sig-paren">)</span> &#x2192; Dict[str, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]<a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.SparsePreprocessor.preprocess_id_score_list" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.SparsePreprocessor.preprocess_id_score_list">
+<span class="sig-name descname"><span class="pre">preprocess_id_score_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_score_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.SparsePreprocessor.preprocess_id_score_list" title="Permalink to this definition"></a></dt>
 <dd><p>Input: rlt.ServingIdScoreListFeature
 Output: rlt.IdScoreListFeature</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.SparsePreprocessor.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.SparsePreprocessor.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
-<dl class="function">
-<dt id="reagent.preprocessing.sparse_preprocessor.make_sparse_preprocessor">
-<code class="sig-prename descclassname">reagent.preprocessing.sparse_preprocessor.</code><code class="sig-name descname">make_sparse_preprocessor</code><span class="sig-paren">(</span><em class="sig-param">feature_config: reagent.types.ModelFeatureConfig</em>, <em class="sig-param">device: torch.device</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.make_sparse_preprocessor" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_preprocessor.make_sparse_preprocessor">
+<span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.sparse_preprocessor.</span></span><span class="sig-name descname"><span class="pre">make_sparse_preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.make_sparse_preprocessor" title="Permalink to this definition"></a></dt>
 <dd><p>Helper to initialize, for scripting SparsePreprocessor</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="reagent.preprocessing.sparse_preprocessor.map_id_list">
-<code class="sig-prename descclassname">reagent.preprocessing.sparse_preprocessor.</code><code class="sig-name descname">map_id_list</code><span class="sig-paren">(</span><em class="sig-param">raw_values: torch.Tensor, id2index: Dict[int, int]</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.map_id_list" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="reagent.preprocessing.sparse_preprocessor.map_id_score_list">
-<code class="sig-prename descclassname">reagent.preprocessing.sparse_preprocessor.</code><code class="sig-name descname">map_id_score_list</code><span class="sig-paren">(</span><em class="sig-param">raw_keys: torch.Tensor, raw_values: torch.Tensor, id2index: Dict[int, int]</em><span class="sig-paren">)</span> &#x2192; Tuple[torch.Tensor, torch.Tensor]<a class="headerlink" href="#reagent.preprocessing.sparse_preprocessor.map_id_score_list" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="reagent-preprocessing-sparse-to-dense-module">
-<h2>reagent.preprocessing.sparse_to_dense module<a class="headerlink" href="#reagent-preprocessing-sparse-to-dense-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-preprocessing-transforms-module">
-<h2>reagent.preprocessing.transforms module<a class="headerlink" href="#reagent-preprocessing-transforms-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.preprocessing.types">
-<span id="reagent-preprocessing-types-module"></span><h2>reagent.preprocessing.types module<a class="headerlink" href="#module-reagent.preprocessing.types" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.preprocessing.types.InputColumn">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.preprocessing.types.</code><code class="sig-name descname">InputColumn</code><a class="headerlink" href="#reagent.preprocessing.types.InputColumn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.ACTION">
-<code class="sig-name descname">ACTION</code><em class="property"> = 'action'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.ACTION" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.ACTION_PROBABILITY">
-<code class="sig-name descname">ACTION_PROBABILITY</code><em class="property"> = 'action_probability'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.ACTION_PROBABILITY" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.CANDIDATE_FEATURES">
-<code class="sig-name descname">CANDIDATE_FEATURES</code><em class="property"> = 'candidate_features'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.CANDIDATE_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.EXTRAS">
-<code class="sig-name descname">EXTRAS</code><em class="property"> = 'extras'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.EXTRAS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.ITEM_MASK">
-<code class="sig-name descname">ITEM_MASK</code><em class="property"> = 'item_mask'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.ITEM_MASK" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.ITEM_PROBABILITY">
-<code class="sig-name descname">ITEM_PROBABILITY</code><em class="property"> = 'item_probability'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.ITEM_PROBABILITY" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.MDP_ID">
-<code class="sig-name descname">MDP_ID</code><em class="property"> = 'mdp_id'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.MDP_ID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.METRICS">
-<code class="sig-name descname">METRICS</code><em class="property"> = 'metrics'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.METRICS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.NEXT_ACTION">
-<code class="sig-name descname">NEXT_ACTION</code><em class="property"> = 'next_action'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_ACTION" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.NEXT_CANDIDATE_FEATURES">
-<code class="sig-name descname">NEXT_CANDIDATE_FEATURES</code><em class="property"> = 'next_candidate_features'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_CANDIDATE_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.NEXT_ITEM_MASK">
-<code class="sig-name descname">NEXT_ITEM_MASK</code><em class="property"> = 'next_item_mask'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_ITEM_MASK" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.NEXT_ITEM_PROBABILITY">
-<code class="sig-name descname">NEXT_ITEM_PROBABILITY</code><em class="property"> = 'next_item_probability'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_ITEM_PROBABILITY" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.NEXT_STATE_FEATURES">
-<code class="sig-name descname">NEXT_STATE_FEATURES</code><em class="property"> = 'next_state_features'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_STATE_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.NEXT_STATE_ID_LIST_FEATURES">
-<code class="sig-name descname">NEXT_STATE_ID_LIST_FEATURES</code><em class="property"> = 'next_state_id_list_features'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_STATE_ID_LIST_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES">
-<code class="sig-name descname">NEXT_STATE_ID_SCORE_LIST_FEATURES</code><em class="property"> = 'next_state_id_score_list_features'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.NEXT_STATE_SEQUENCE_FEATURES">
-<code class="sig-name descname">NEXT_STATE_SEQUENCE_FEATURES</code><em class="property"> = 'next_state_sequence_features'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_STATE_SEQUENCE_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.NOT_TERMINAL">
-<code class="sig-name descname">NOT_TERMINAL</code><em class="property"> = 'not_terminal'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NOT_TERMINAL" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.POSITION_REWARD">
-<code class="sig-name descname">POSITION_REWARD</code><em class="property"> = 'position_reward'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.POSITION_REWARD" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.POSSIBLE_ACTIONS">
-<code class="sig-name descname">POSSIBLE_ACTIONS</code><em class="property"> = 'possible_actions'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.POSSIBLE_ACTIONS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.POSSIBLE_ACTIONS_MASK">
-<code class="sig-name descname">POSSIBLE_ACTIONS_MASK</code><em class="property"> = 'possible_actions_mask'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.POSSIBLE_ACTIONS_MASK" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.POSSIBLE_NEXT_ACTIONS">
-<code class="sig-name descname">POSSIBLE_NEXT_ACTIONS</code><em class="property"> = 'possible_next_actions'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.POSSIBLE_NEXT_ACTIONS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.POSSIBLE_NEXT_ACTIONS_MASK">
-<code class="sig-name descname">POSSIBLE_NEXT_ACTIONS_MASK</code><em class="property"> = 'possible_next_actions_mask'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.POSSIBLE_NEXT_ACTIONS_MASK" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.REWARD">
-<code class="sig-name descname">REWARD</code><em class="property"> = 'reward'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.REWARD" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.REWARD_MASK">
-<code class="sig-name descname">REWARD_MASK</code><em class="property"> = 'reward_mask'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.REWARD_MASK" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.SEQUENCE_NUMBER">
-<code class="sig-name descname">SEQUENCE_NUMBER</code><em class="property"> = 'sequence_number'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.SEQUENCE_NUMBER" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.SLATE_REWARD">
-<code class="sig-name descname">SLATE_REWARD</code><em class="property"> = 'slate_reward'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.SLATE_REWARD" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.STATE_FEATURES">
-<code class="sig-name descname">STATE_FEATURES</code><em class="property"> = 'state_features'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.STATE_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.STATE_ID_LIST_FEATURES">
-<code class="sig-name descname">STATE_ID_LIST_FEATURES</code><em class="property"> = 'state_id_list_features'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.STATE_ID_LIST_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.STATE_ID_SCORE_LIST_FEATURES">
-<code class="sig-name descname">STATE_ID_SCORE_LIST_FEATURES</code><em class="property"> = 'state_id_score_list_features'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.STATE_ID_SCORE_LIST_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.STATE_SEQUENCE_FEATURES">
-<code class="sig-name descname">STATE_SEQUENCE_FEATURES</code><em class="property"> = 'state_sequence_features'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.STATE_SEQUENCE_FEATURES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.STEP">
-<code class="sig-name descname">STEP</code><em class="property"> = 'step'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.STEP" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.TIME_DIFF">
-<code class="sig-name descname">TIME_DIFF</code><em class="property"> = 'time_diff'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.TIME_DIFF" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.preprocessing.types.InputColumn.TIME_SINCE_FIRST">
-<code class="sig-name descname">TIME_SINCE_FIRST</code><em class="property"> = 'time_since_first'</em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.TIME_SINCE_FIRST" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-reagent.preprocessing.sparse_to_dense">
+<span id="reagent-preprocessing-sparse-to-dense-module"></span><h2>reagent.preprocessing.sparse_to_dense module<a class="headerlink" href="#module-reagent.preprocessing.sparse_to_dense" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_to_dense.PythonSparseToDenseProcessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.sparse_to_dense.</span></span><span class="sig-name descname"><span class="pre">PythonSparseToDenseProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sorted_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_missing_value_to_zero</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.sparse_to_dense.PythonSparseToDenseProcessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.preprocessing.sparse_to_dense.SparseToDenseProcessor" title="reagent.preprocessing.sparse_to_dense.SparseToDenseProcessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.preprocessing.sparse_to_dense.SparseToDenseProcessor</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_to_dense.PythonSparseToDenseProcessor.process">
+<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sparse_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.preprocessing.sparse_to_dense.PythonSparseToDenseProcessor.process" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.preprocessing">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.preprocessing" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_to_dense.SparseToDenseProcessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.sparse_to_dense.</span></span><span class="sig-name descname"><span class="pre">SparseToDenseProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sorted_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_missing_value_to_zero</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.sparse_to_dense.SparseToDenseProcessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_to_dense.StringKeySparseToDenseProcessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.sparse_to_dense.</span></span><span class="sig-name descname"><span class="pre">StringKeySparseToDenseProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sorted_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_missing_value_to_zero</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.sparse_to_dense.StringKeySparseToDenseProcessor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.preprocessing.sparse_to_dense.SparseToDenseProcessor" title="reagent.preprocessing.sparse_to_dense.SparseToDenseProcessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.preprocessing.sparse_to_dense.SparseToDenseProcessor</span></code></a></p>
+<p>We just have this in case the input data is keyed by string</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.preprocessing.sparse_to_dense.StringKeySparseToDenseProcessor.process">
+<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sparse_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.preprocessing.sparse_to_dense.StringKeySparseToDenseProcessor.process" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.preprocessing.transforms">
+<span id="reagent-preprocessing-transforms-module"></span><h2>reagent.preprocessing.transforms module<a class="headerlink" href="#module-reagent.preprocessing.transforms" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.ColumnVector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">ColumnVector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.transforms.ColumnVector" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Ensure that the keys are column vectors</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.Compose">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">Compose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">transforms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.transforms.Compose" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Applies an iterable collection of transform functions</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.DenseNormalization">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">DenseNormalization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.device</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.transforms.DenseNormalization" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Normalize the <cite>keys</cite> using <cite>normalization_data</cite>.
+The keys are expected to be <cite>Tuple[torch.Tensor, torch.Tensor]</cite>,
+where the first element is the value and the second element is the
+presence mask.
+This transform replaces the keys in the input data.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.FixedLengthSequenceDenseNormalization">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">FixedLengthSequenceDenseNormalization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.device</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.transforms.FixedLengthSequenceDenseNormalization" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Combines the FixedLengthSequences, DenseNormalization, and SlateView transforms</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.FixedLengthSequences">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">FixedLengthSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.transforms.FixedLengthSequences" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl>
+<dt>Does two things:</dt><dd><ol class="arabic simple">
+<li><p>makes sure each sequence in the list of keys has the expected fixed length</p></li>
+</ol>
+<p>2. if to_keys is provided, copies the relevant sequence_id to the new key,
+otherwise overwrites the old key</p>
+</dd>
+</dl>
+<p>Expects each data[key] to be <cite>Dict[Int, Tuple[Tensor, T]]</cite>. Where:
+- key is the feature id
+- sequence_id is the key of the dict data[key]
+- The first element of the tuple is the offset for each example, which is expected to be in fixed interval.
+- The second element is the data at each step in the sequence</p>
+<p>This is mainly for FB internal use,
+see fbcode/caffe2/caffe2/fb/proto/io_metadata.thrift
+for the data format extracted from SequenceFeatureMetadata</p>
+<p>NOTE: this is not product between two lists (keys and to_keys);
+it’s setting keys[sequence_id] to to_keys in a parallel way</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.Lambda">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">Lambda</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.transforms.Lambda" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Applies an arbitrary callable transform</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.MapIDListFeatures">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">MapIDListFeatures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_list_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_score_list_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.device</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.transforms.MapIDListFeatures" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Applies a SparsePreprocessor (see sparse_preprocessor.SparsePreprocessor)</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.MaskByPresence">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">MaskByPresence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.transforms.MaskByPresence" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Expect data to be (value, presence) and return value * presence.
+This zeros out values that aren’t present.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.OneHotActions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">OneHotActions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.transforms.OneHotActions" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Keys should be in the set {0,1,2,…,num_actions}, where
+a value equal to num_actions denotes that it’s not valid.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.SelectValuePresenceColumns">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">SelectValuePresenceColumns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.transforms.SelectValuePresenceColumns" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Select columns from value-presence source key</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.SlateView">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">SlateView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slate_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.transforms.SlateView" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Assuming that the keys are flatten fixed-length sequences with length of
+<cite>slate_size</cite>, unflatten it by inserting <cite>slate_size</cite> to the 1st dim.
+I.e., turns the input from the shape of <cite>[B * slate_size, D]</cite> to
+<cite>[B, slate_size, D]</cite>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.StackDenseFixedSizeArray">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">StackDenseFixedSizeArray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.preprocessing.transforms.StackDenseFixedSizeArray" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>If data is a tensor, ensures it has the correct shape. If data is a list of
+(value, presence) discards the presence tensors and concatenates the values
+to output a tensor of shape (batch_size, feature_dim).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.transforms.ValuePresence">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.transforms.</span></span><span class="sig-name descname"><span class="pre">ValuePresence</span></span><a class="headerlink" href="#reagent.preprocessing.transforms.ValuePresence" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>For every key <cite>x</cite>, looks for <cite>x_presence</cite>; if <cite>x_presence</cite> exists,
+replace <cite>x</cite> with tuple of <cite>x</cite> and <cite>x_presence</cite>, delete <cite>x_presence</cite> key</p>
+</dd></dl>
+
+</section>
+<section id="module-reagent.preprocessing.types">
+<span id="reagent-preprocessing-types-module"></span><h2>reagent.preprocessing.types module<a class="headerlink" href="#module-reagent.preprocessing.types" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.preprocessing.types.</span></span><span class="sig-name descname"><span class="pre">InputColumn</span></span><a class="headerlink" href="#reagent.preprocessing.types.InputColumn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.ACTION">
+<span class="sig-name descname"><span class="pre">ACTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'action'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.ACTION" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.ACTION_PROBABILITY">
+<span class="sig-name descname"><span class="pre">ACTION_PROBABILITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'action_probability'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.ACTION_PROBABILITY" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.CANDIDATE_FEATURES">
+<span class="sig-name descname"><span class="pre">CANDIDATE_FEATURES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'candidate_features'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.CANDIDATE_FEATURES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.EXTRAS">
+<span class="sig-name descname"><span class="pre">EXTRAS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'extras'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.EXTRAS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.ITEM_MASK">
+<span class="sig-name descname"><span class="pre">ITEM_MASK</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'item_mask'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.ITEM_MASK" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.ITEM_PROBABILITY">
+<span class="sig-name descname"><span class="pre">ITEM_PROBABILITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'item_probability'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.ITEM_PROBABILITY" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.MDP_ID">
+<span class="sig-name descname"><span class="pre">MDP_ID</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'mdp_id'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.MDP_ID" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.METRICS">
+<span class="sig-name descname"><span class="pre">METRICS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'metrics'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.METRICS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.NEXT_ACTION">
+<span class="sig-name descname"><span class="pre">NEXT_ACTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'next_action'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_ACTION" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.NEXT_CANDIDATE_FEATURES">
+<span class="sig-name descname"><span class="pre">NEXT_CANDIDATE_FEATURES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'next_candidate_features'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_CANDIDATE_FEATURES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.NEXT_ITEM_MASK">
+<span class="sig-name descname"><span class="pre">NEXT_ITEM_MASK</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'next_item_mask'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_ITEM_MASK" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.NEXT_ITEM_PROBABILITY">
+<span class="sig-name descname"><span class="pre">NEXT_ITEM_PROBABILITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'next_item_probability'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_ITEM_PROBABILITY" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.NEXT_STATE_FEATURES">
+<span class="sig-name descname"><span class="pre">NEXT_STATE_FEATURES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'next_state_features'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_STATE_FEATURES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.NEXT_STATE_ID_LIST_FEATURES">
+<span class="sig-name descname"><span class="pre">NEXT_STATE_ID_LIST_FEATURES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'next_state_id_list_features'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_STATE_ID_LIST_FEATURES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES">
+<span class="sig-name descname"><span class="pre">NEXT_STATE_ID_SCORE_LIST_FEATURES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'next_state_id_score_list_features'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.NEXT_STATE_SEQUENCE_FEATURES">
+<span class="sig-name descname"><span class="pre">NEXT_STATE_SEQUENCE_FEATURES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'next_state_sequence_features'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NEXT_STATE_SEQUENCE_FEATURES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.NOT_TERMINAL">
+<span class="sig-name descname"><span class="pre">NOT_TERMINAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'not_terminal'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.NOT_TERMINAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.POSITION_REWARD">
+<span class="sig-name descname"><span class="pre">POSITION_REWARD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'position_reward'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.POSITION_REWARD" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.POSSIBLE_ACTIONS">
+<span class="sig-name descname"><span class="pre">POSSIBLE_ACTIONS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'possible_actions'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.POSSIBLE_ACTIONS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.POSSIBLE_ACTIONS_MASK">
+<span class="sig-name descname"><span class="pre">POSSIBLE_ACTIONS_MASK</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'possible_actions_mask'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.POSSIBLE_ACTIONS_MASK" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.POSSIBLE_NEXT_ACTIONS">
+<span class="sig-name descname"><span class="pre">POSSIBLE_NEXT_ACTIONS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'possible_next_actions'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.POSSIBLE_NEXT_ACTIONS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.POSSIBLE_NEXT_ACTIONS_MASK">
+<span class="sig-name descname"><span class="pre">POSSIBLE_NEXT_ACTIONS_MASK</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'possible_next_actions_mask'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.POSSIBLE_NEXT_ACTIONS_MASK" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.REWARD">
+<span class="sig-name descname"><span class="pre">REWARD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'reward'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.REWARD" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.REWARD_MASK">
+<span class="sig-name descname"><span class="pre">REWARD_MASK</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'reward_mask'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.REWARD_MASK" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.SCORES">
+<span class="sig-name descname"><span class="pre">SCORES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'scores'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.SCORES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.SEQUENCE_NUMBER">
+<span class="sig-name descname"><span class="pre">SEQUENCE_NUMBER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'sequence_number'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.SEQUENCE_NUMBER" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.SLATE_REWARD">
+<span class="sig-name descname"><span class="pre">SLATE_REWARD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'slate_reward'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.SLATE_REWARD" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.STATE_FEATURES">
+<span class="sig-name descname"><span class="pre">STATE_FEATURES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'state_features'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.STATE_FEATURES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.STATE_ID_LIST_FEATURES">
+<span class="sig-name descname"><span class="pre">STATE_ID_LIST_FEATURES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'state_id_list_features'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.STATE_ID_LIST_FEATURES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.STATE_ID_SCORE_LIST_FEATURES">
+<span class="sig-name descname"><span class="pre">STATE_ID_SCORE_LIST_FEATURES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'state_id_score_list_features'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.STATE_ID_SCORE_LIST_FEATURES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.STATE_SEQUENCE_FEATURES">
+<span class="sig-name descname"><span class="pre">STATE_SEQUENCE_FEATURES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'state_sequence_features'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.STATE_SEQUENCE_FEATURES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.STEP">
+<span class="sig-name descname"><span class="pre">STEP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'step'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.STEP" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.TIME_DIFF">
+<span class="sig-name descname"><span class="pre">TIME_DIFF</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'time_diff'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.TIME_DIFF" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.TIME_SINCE_FIRST">
+<span class="sig-name descname"><span class="pre">TIME_SINCE_FIRST</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'time_since_first'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.TIME_SINCE_FIRST" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.preprocessing.types.InputColumn.VALID_STEP">
+<span class="sig-name descname"><span class="pre">VALID_STEP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'valid_step'</span></em><a class="headerlink" href="#reagent.preprocessing.types.InputColumn.VALID_STEP" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.preprocessing">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.preprocessing" title="Permalink to this headline"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reagent.replay_memory.html" class="btn btn-neutral float-right" title="reagent.replay_memory package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reagent.prediction.html" class="btn btn-neutral float-left" title="reagent.prediction package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.prediction.synthetic_reward.html" class="btn btn-neutral float-left" title="reagent.prediction.synthetic_reward package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.training.html" class="btn btn-neutral float-right" title="reagent.training package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

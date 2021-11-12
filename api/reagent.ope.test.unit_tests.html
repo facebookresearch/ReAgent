@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>reagent.ope.test.unit_tests package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="reagent.ope.trainers package" href="reagent.ope.trainers.html" />
     <link rel="prev" title="reagent.ope.test package" href="reagent.ope.test.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,253 +36,388 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="reagent.core.html">reagent.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.data.html">reagent.data package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.lite.html">reagent.lite package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.mab.html">reagent.mab package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.model_managers.html">reagent.model_managers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.model_utils.html">reagent.model_utils package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.net_builder.html">reagent.net_builder package</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.publishers.html">reagent.publishers package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.reporting.html">reagent.reporting package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.samplers.html">reagent.samplers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.scripts.html">reagent.scripts package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.validators.html">reagent.validators package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="modules.html">reagent</a> &raquo;</li>
-        
           <li><a href="reagent.html">reagent package</a> &raquo;</li>
-        
           <li><a href="reagent.ope.html">reagent.ope package</a> &raquo;</li>
-        
           <li><a href="reagent.ope.test.html">reagent.ope.test package</a> &raquo;</li>
-        
       <li>reagent.ope.test.unit_tests package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/reagent.ope.test.unit_tests.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-ope-test-unit-tests-package">
-<h1>reagent.ope.test.unit_tests package<a class="headerlink" href="#reagent-ope-test-unit-tests-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.ope.test.unit_tests.test_slate_estimators">
-<span id="reagent-ope-test-unit-tests-test-slate-estimators-module"></span><h2>reagent.ope.test.unit_tests.test_slate_estimators module<a class="headerlink" href="#module-reagent.ope.test.unit_tests.test_slate_estimators" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.test.unit_tests.test_slate_estimators.</code><code class="sig-name descname">TestEstimator</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator" title="Permalink to this definition">¶</a></dt>
+             
+  <section id="reagent-ope-test-unit-tests-package">
+<h1>reagent.ope.test.unit_tests package<a class="headerlink" href="#reagent-ope-test-unit-tests-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.ope.test.unit_tests.test_contextual_bandit_estimators">
+<span id="reagent-ope-test-unit-tests-test-contextual-bandit-estimators-module"></span><h2>reagent.ope.test.unit_tests.test_contextual_bandit_estimators module<a class="headerlink" href="#module-reagent.ope.test.unit_tests.test_contextual_bandit_estimators" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.ope.test.unit_tests.test_contextual_bandit_estimators.</span></span><span class="sig-name descname"><span class="pre">TestSwitchEstimators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
-<dl class="method">
-<dt id="reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.setUp">
-<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.setUp" title="Permalink to this definition">¶</a></dt>
+<p>These unit tests verify basic properties of the Switch estimators, in that
+when the threshold is low, the model-based DM estimator is used and when the
+threshold is high, the propensity score estimator is used.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.DR_EPSILON">
+<span class="sig-name descname"><span class="pre">DR_EPSILON</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.05</span></em><a class="headerlink" href="#reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.DR_EPSILON" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.NUM_ACTIONS">
+<span class="sig-name descname"><span class="pre">NUM_ACTIONS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.NUM_ACTIONS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.setUp" title="Permalink to this definition"></a></dt>
 <dd><p>Hook method for setting up the test fixture before exercising it.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.test_metrics">
-<code class="sig-name descname">test_metrics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.test_metrics" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.test_switch_dr_equal_to_dm">
+<span class="sig-name descname"><span class="pre">test_switch_dr_equal_to_dm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.test_switch_dr_equal_to_dm" title="Permalink to this definition"></a></dt>
+<dd><p>Switch-DR with tau set at the min value should be equal to DM</p>
+</dd></dl>
 
-<dl class="method">
-<dt id="reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.test_slate_item_probabilities">
-<code class="sig-name descname">test_slate_item_probabilities</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.test_slate_item_probabilities" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.test_switch_dr_equal_to_dr">
+<span class="sig-name descname"><span class="pre">test_switch_dr_equal_to_dr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.test_switch_dr_equal_to_dr" title="Permalink to this definition"></a></dt>
+<dd><p>Switch-DR with tau set at the max value should be equal to DR</p>
+</dd></dl>
 
-<dl class="method">
-<dt id="reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.test_slate_slot_item_probabilities">
-<code class="sig-name descname">test_slate_slot_item_probabilities</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.test_slate_slot_item_probabilities" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.test_switch_equal_to_dm">
+<span class="sig-name descname"><span class="pre">test_switch_equal_to_dm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.test_switch_equal_to_dm" title="Permalink to this definition"></a></dt>
+<dd><p>Switch with tau set at the min value should be equal to DM</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.test_switch_equal_to_ips">
+<span class="sig-name descname"><span class="pre">test_switch_equal_to_ips</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.test_switch_equal_to_ips" title="Permalink to this definition"></a></dt>
+<dd><p>Switch with tau set at the max value should be equal to IPS</p>
+</dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="reagent-ope-test-unit-tests-test-types-module">
-<h2>reagent.ope.test.unit_tests.test_types module<a class="headerlink" href="#reagent-ope-test-unit-tests-test-types-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.ope.test.unit_tests.test_utils">
-<span id="reagent-ope-test-unit-tests-test-utils-module"></span><h2>reagent.ope.test.unit_tests.test_utils module<a class="headerlink" href="#module-reagent.ope.test.unit_tests.test_utils" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.ope.test.unit_tests.test_utils.TestUtils">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.ope.test.unit_tests.test_utils.</code><code class="sig-name descname">TestUtils</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_utils.TestUtils" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-reagent.ope.test.unit_tests.test_slate_estimators">
+<span id="reagent-ope-test-unit-tests-test-slate-estimators-module"></span><h2>reagent.ope.test.unit_tests.test_slate_estimators module<a class="headerlink" href="#module-reagent.ope.test.unit_tests.test_slate_estimators" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.ope.test.unit_tests.test_slate_estimators.</span></span><span class="sig-name descname"><span class="pre">TestEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
-<dl class="method">
-<dt id="reagent.ope.test.unit_tests.test_utils.TestUtils.test_clamper">
-<code class="sig-name descname">test_clamper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_utils.TestUtils.test_clamper" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.setUp" title="Permalink to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.test_metrics">
+<span class="sig-name descname"><span class="pre">test_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.test_metrics" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.ope.test.unit_tests.test_utils.TestUtils.test_running_average">
-<code class="sig-name descname">test_running_average</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_utils.TestUtils.test_running_average" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.test_slate_item_probabilities">
+<span class="sig-name descname"><span class="pre">test_slate_item_probabilities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.test_slate_item_probabilities" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.test_slate_slot_item_probabilities">
+<span class="sig-name descname"><span class="pre">test_slate_slot_item_probabilities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_slate_estimators.TestEstimator.test_slate_slot_item_probabilities" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.ope.test.unit_tests">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.ope.test.unit_tests" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</section>
+<section id="module-reagent.ope.test.unit_tests.test_types">
+<span id="reagent-ope-test-unit-tests-test-types-module"></span><h2>reagent.ope.test.unit_tests.test_types module<a class="headerlink" href="#module-reagent.ope.test.unit_tests.test_types" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestDistribution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.ope.test.unit_tests.test_types.</span></span><span class="sig-name descname"><span class="pre">TestDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestDistribution.TestIntKeyDistribution">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestIntKeyDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">reagent.ope.estimators.types.KeyType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestDistribution.TestIntKeyDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.types.ActionDistribution" title="reagent.ope.estimators.types.ActionDistribution"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.ActionDistribution</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestDistribution.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestDistribution.setUp" title="Permalink to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestDistribution.test_sample">
+<span class="sig-name descname"><span class="pre">test_sample</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestDistribution.test_sample" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestDistribution.test_values">
+<span class="sig-name descname"><span class="pre">test_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestDistribution.test_values" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestTypes">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.ope.test.unit_tests.test_types.</span></span><span class="sig-name descname"><span class="pre">TestTypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestTypes" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestTypes.TestClass">
+<span class="sig-name descname"><span class="pre">TestClass</span></span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestTypes.TestClass" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.types.TypeWrapper" title="reagent.ope.estimators.types.TypeWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.TypeWrapper</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>]]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestTypes.TestType">
+<span class="sig-name descname"><span class="pre">TestType</span></span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestTypes.TestType" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-obj docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestTypes.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestTypes.setUp" title="Permalink to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestTypes.test_float_type">
+<span class="sig-name descname"><span class="pre">test_float_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestTypes.test_float_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestTypes.test_int_type">
+<span class="sig-name descname"><span class="pre">test_int_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestTypes.test_int_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestTypes.test_ndarray_type">
+<span class="sig-name descname"><span class="pre">test_ndarray_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestTypes.test_ndarray_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestTypes.test_tensor_type">
+<span class="sig-name descname"><span class="pre">test_tensor_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestTypes.test_tensor_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestTypes.test_tuple_float_type">
+<span class="sig-name descname"><span class="pre">test_tuple_float_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestTypes.test_tuple_float_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestTypes.test_tuple_int_type">
+<span class="sig-name descname"><span class="pre">test_tuple_int_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestTypes.test_tuple_int_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestValues">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.ope.test.unit_tests.test_types.</span></span><span class="sig-name descname"><span class="pre">TestValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestValues" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestValues.TestIntKeyValues">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestIntKeyValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">reagent.ope.estimators.types.KeyType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestValues.TestIntKeyValues" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.types.Values" title="reagent.ope.estimators.types.Values"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Values</span></code></a>[<a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.types.TypeWrapper" title="reagent.ope.estimators.types.TypeWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.TypeWrapper</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestValues.TestIntType">
+<span class="sig-name descname"><span class="pre">TestIntType</span></span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestValues.TestIntType" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.types.TypeWrapper" title="reagent.ope.estimators.types.TypeWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.TypeWrapper</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestValues.TestTupleFloatKeyValues">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestTupleFloatKeyValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">reagent.ope.estimators.types.KeyType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestValues.TestTupleFloatKeyValues" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.types.Values" title="reagent.ope.estimators.types.Values"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.Values</span></code></a>[<a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.types.TypeWrapper" title="reagent.ope.estimators.types.TypeWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.TypeWrapper</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestValues.TestTupleFloatType">
+<span class="sig-name descname"><span class="pre">TestTupleFloatType</span></span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestValues.TestTupleFloatType" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.types.TypeWrapper" title="reagent.ope.estimators.types.TypeWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.types.TypeWrapper</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestValues.setUp">
+<span class="sig-name descname"><span class="pre">setUp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestValues.setUp" title="Permalink to this definition"></a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestValues.test_conversion">
+<span class="sig-name descname"><span class="pre">test_conversion</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestValues.test_conversion" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestValues.test_copy">
+<span class="sig-name descname"><span class="pre">test_copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestValues.test_copy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestValues.test_indexing">
+<span class="sig-name descname"><span class="pre">test_indexing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestValues.test_indexing" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestValues.test_sort">
+<span class="sig-name descname"><span class="pre">test_sort</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestValues.test_sort" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_types.TestValues.test_unzip">
+<span class="sig-name descname"><span class="pre">test_unzip</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_types.TestValues.test_unzip" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.ope.test.unit_tests.test_utils">
+<span id="reagent-ope-test-unit-tests-test-utils-module"></span><h2>reagent.ope.test.unit_tests.test_utils module<a class="headerlink" href="#module-reagent.ope.test.unit_tests.test_utils" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_utils.TestUtils">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.ope.test.unit_tests.test_utils.</span></span><span class="sig-name descname"><span class="pre">TestUtils</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_utils.TestUtils" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_utils.TestUtils.test_clamper">
+<span class="sig-name descname"><span class="pre">test_clamper</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_utils.TestUtils.test_clamper" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.ope.test.unit_tests.test_utils.TestUtils.test_running_average">
+<span class="sig-name descname"><span class="pre">test_running_average</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.ope.test.unit_tests.test_utils.TestUtils.test_running_average" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.ope.test.unit_tests">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.ope.test.unit_tests" title="Permalink to this headline"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reagent.ope.trainers.html" class="btn btn-neutral float-right" title="reagent.ope.trainers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reagent.ope.test.html" class="btn btn-neutral float-left" title="reagent.ope.test package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.ope.test.html" class="btn btn-neutral float-left" title="reagent.ope.test package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.ope.trainers.html" class="btn btn-neutral float-right" title="reagent.ope.trainers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

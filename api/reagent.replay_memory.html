@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>reagent.replay_memory package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="reagent.training package" href="reagent.training.html" />
-    <link rel="prev" title="reagent.preprocessing package" href="reagent.preprocessing.html" /> 
+    <link rel="next" title="reagent.reporting package" href="reagent.reporting.html" />
+    <link rel="prev" title="reagent.publishers package" href="reagent.publishers.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,156 +36,330 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="reagent.core.html">reagent.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.data.html">reagent.data package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.lite.html">reagent.lite package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.mab.html">reagent.mab package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.model_managers.html">reagent.model_managers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.model_utils.html">reagent.model_utils package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.net_builder.html">reagent.net_builder package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.publishers.html">reagent.publishers package</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">reagent.replay_memory package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.reporting.html">reagent.reporting package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.samplers.html">reagent.samplers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.scripts.html">reagent.scripts package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reagent.validators.html">reagent.validators package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="modules.html">reagent</a> &raquo;</li>
-        
           <li><a href="reagent.html">reagent package</a> &raquo;</li>
-        
       <li>reagent.replay_memory package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/reagent.replay_memory.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-replay-memory-package">
-<h1>reagent.replay_memory package<a class="headerlink" href="#reagent-replay-memory-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.replay_memory.circular_replay_buffer">
-<span id="reagent-replay-memory-circular-replay-buffer-module"></span><h2>reagent.replay_memory.circular_replay_buffer module<a class="headerlink" href="#module-reagent.replay_memory.circular_replay_buffer" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="reagent-replay-memory-package">
+<h1>reagent.replay_memory package<a class="headerlink" href="#reagent-replay-memory-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.replay_memory.circular_replay_buffer">
+<span id="reagent-replay-memory-circular-replay-buffer-module"></span><h2>reagent.replay_memory.circular_replay_buffer module<a class="headerlink" href="#module-reagent.replay_memory.circular_replay_buffer" title="Permalink to this headline"></a></h2>
 <p>The standard DQN replay memory.
 This implementation is an out-of-graph replay memory + in-graph wrapper. It
 supports vanilla n-step updates of the form typically found in the literature,
 i.e. where rewards are accumulated for n steps and the intermediate trajectory
 is not exposed to the agent. This does not allow, for example, performing
 off-policy corrections.</p>
-<dl class="class">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.replay_memory.circular_replay_buffer.</code><code class="sig-name descname">ReplayBuffer</code><span class="sig-paren">(</span><em class="sig-param">observation_shape: Tuple[int, ...], stack_size: int, replay_capacity: int, batch_size: int, return_everything_as_stack: bool = False, return_as_timeline_format: bool = False, update_horizon: int = 1, gamma: float = 0.99, max_sample_attempts: int = 1000, extra_storage_types: Optional[List[reagent.replay_memory.circular_replay_buffer.shape_type]] = None, observation_dtype=numpy.uint8, action_shape: Tuple[int, ...] = (), action_dtype=numpy.int32, reward_shape: Tuple[int, ...] = (), reward_dtype=numpy.float32</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.DenseMetadata">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.replay_memory.circular_replay_buffer.</span></span><span class="sig-name descname"><span class="pre">DenseMetadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.dtype</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.DenseMetadata" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.replay_memory.circular_replay_buffer.ElementMetadata" title="reagent.replay_memory.circular_replay_buffer.ElementMetadata"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.replay_memory.circular_replay_buffer.ElementMetadata</span></code></a></p>
+<p>Internal representation is a torch tensor.
+Batched output is tensor of shape (batch_size, obs_shape, stack_size)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.DenseMetadata.create_from_example">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_from_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">example</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.DenseMetadata.create_from_example" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of the Metadata.
+Given an input example, construct an ElementMetadata for this key <cite>name</cite>.
+Good practice to call self.validate here after initializing metadata.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.DenseMetadata.create_storage">
+<span class="sig-name descname"><span class="pre">create_storage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.DenseMetadata.create_storage" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize the replay buffer with given <cite>capacity</cite>, for this data type.
+I.e. what is the “internal representation” of this data type in the replay buffer?</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.DenseMetadata.dtype">
+<span class="sig-name descname"><span class="pre">dtype</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.dtype</span></em><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.DenseMetadata.dtype" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.DenseMetadata.input_to_storage">
+<span class="sig-name descname"><span class="pre">input_to_storage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.DenseMetadata.input_to_storage" title="Permalink to this definition"></a></dt>
+<dd><p>Convert <cite>input</cite> to the “internal representation” of the replay buffer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.DenseMetadata.sample_to_output">
+<span class="sig-name descname"><span class="pre">sample_to_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.DenseMetadata.sample_to_output" title="Permalink to this definition"></a></dt>
+<dd><p>Convert “internal representation” of replay buffer to <cite>output</cite>.
+Concretely, when we call replay_buffer.sample(…), what do we want the output to look like?</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.DenseMetadata.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.DenseMetadata.shape" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.DenseMetadata.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.DenseMetadata.validate" title="Permalink to this definition"></a></dt>
+<dd><p>Does the input look correct?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.DenseMetadata.zero_example">
+<span class="sig-name descname"><span class="pre">zero_example</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.DenseMetadata.zero_example" title="Permalink to this definition"></a></dt>
+<dd><p>What would an empty <cite>input</cite> example look like?</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ElementMetadata">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.replay_memory.circular_replay_buffer.</span></span><span class="sig-name descname"><span class="pre">ElementMetadata</span></span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ElementMetadata" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ElementMetadata.create_from_example">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_from_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">example</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ElementMetadata.create_from_example" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of the Metadata.
+Given an input example, construct an ElementMetadata for this key <cite>name</cite>.
+Good practice to call self.validate here after initializing metadata.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ElementMetadata.create_storage">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_storage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ElementMetadata.create_storage" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize the replay buffer with given <cite>capacity</cite>, for this data type.
+I.e. what is the “internal representation” of this data type in the replay buffer?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ElementMetadata.input_to_storage">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">input_to_storage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ElementMetadata.input_to_storage" title="Permalink to this definition"></a></dt>
+<dd><p>Convert <cite>input</cite> to the “internal representation” of the replay buffer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ElementMetadata.sample_to_output">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sample_to_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ElementMetadata.sample_to_output" title="Permalink to this definition"></a></dt>
+<dd><p>Convert “internal representation” of replay buffer to <cite>output</cite>.
+Concretely, when we call replay_buffer.sample(…), what do we want the output to look like?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ElementMetadata.validate">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ElementMetadata.validate" title="Permalink to this definition"></a></dt>
+<dd><p>Does the input look correct?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ElementMetadata.zero_example">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">zero_example</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ElementMetadata.zero_example" title="Permalink to this definition"></a></dt>
+<dd><p>What would an empty <cite>input</cite> example look like?</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDListMetadata">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.replay_memory.circular_replay_buffer.</span></span><span class="sig-name descname"><span class="pre">IDListMetadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDListMetadata" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.replay_memory.circular_replay_buffer.ElementMetadata" title="reagent.replay_memory.circular_replay_buffer.ElementMetadata"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.replay_memory.circular_replay_buffer.ElementMetadata</span></code></a></p>
+<p>Internal representation is a np.array of Dict[str, np.array of type int64]
+Output is Dict[str, Tuple[np.array of type int32, np.array of type int64]], same as id_list in FeatureStore.
+The tuple is (offset, ids).
+TODO: implement for stack size &gt; 1</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDListMetadata.create_from_example">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_from_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">example</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDListMetadata.create_from_example" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of the Metadata.
+Given an input example, construct an ElementMetadata for this key <cite>name</cite>.
+Good practice to call self.validate here after initializing metadata.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDListMetadata.create_storage">
+<span class="sig-name descname"><span class="pre">create_storage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDListMetadata.create_storage" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize the replay buffer with given <cite>capacity</cite>, for this data type.
+I.e. what is the “internal representation” of this data type in the replay buffer?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDListMetadata.input_to_storage">
+<span class="sig-name descname"><span class="pre">input_to_storage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDListMetadata.input_to_storage" title="Permalink to this definition"></a></dt>
+<dd><p>Convert <cite>input</cite> to the “internal representation” of the replay buffer.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDListMetadata.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDListMetadata.keys" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDListMetadata.sample_to_output">
+<span class="sig-name descname"><span class="pre">sample_to_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDListMetadata.sample_to_output" title="Permalink to this definition"></a></dt>
+<dd><p>Convert “internal representation” of replay buffer to <cite>output</cite>.
+Concretely, when we call replay_buffer.sample(…), what do we want the output to look like?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDListMetadata.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDListMetadata.validate" title="Permalink to this definition"></a></dt>
+<dd><p>Does the input look correct?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDListMetadata.zero_example">
+<span class="sig-name descname"><span class="pre">zero_example</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDListMetadata.zero_example" title="Permalink to this definition"></a></dt>
+<dd><p>What would an empty <cite>input</cite> example look like?</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.replay_memory.circular_replay_buffer.</span></span><span class="sig-name descname"><span class="pre">IDScoreListMetadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.replay_memory.circular_replay_buffer.ElementMetadata" title="reagent.replay_memory.circular_replay_buffer.ElementMetadata"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.replay_memory.circular_replay_buffer.ElementMetadata</span></code></a></p>
+<p>Internal representation is a np.array of Dict[str, np.array of type int64]
+Output is Dict[str, Tuple[np.array of type int32, np.array of type int64, np.array of type np.float32]], same as id_list in FeatureStore.
+The tuple is (offset, ids, scores).
+TODO: implement for stack size &gt; 1</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.create_from_example">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_from_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">example</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.create_from_example" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of the Metadata.
+Given an input example, construct an ElementMetadata for this key <cite>name</cite>.
+Good practice to call self.validate here after initializing metadata.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.create_storage">
+<span class="sig-name descname"><span class="pre">create_storage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.create_storage" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize the replay buffer with given <cite>capacity</cite>, for this data type.
+I.e. what is the “internal representation” of this data type in the replay buffer?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.input_to_storage">
+<span class="sig-name descname"><span class="pre">input_to_storage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.input_to_storage" title="Permalink to this definition"></a></dt>
+<dd><p>Convert <cite>input</cite> to the “internal representation” of the replay buffer.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.keys" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.sample_to_output">
+<span class="sig-name descname"><span class="pre">sample_to_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.sample_to_output" title="Permalink to this definition"></a></dt>
+<dd><p>Convert “internal representation” of replay buffer to <cite>output</cite>.
+Concretely, when we call replay_buffer.sample(…), what do we want the output to look like?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.validate" title="Permalink to this definition"></a></dt>
+<dd><p>Does the input look correct?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.zero_example">
+<span class="sig-name descname"><span class="pre">zero_example</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.IDScoreListMetadata.zero_example" title="Permalink to this definition"></a></dt>
+<dd><p>What would an empty <cite>input</cite> example look like?</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.replay_memory.circular_replay_buffer.</span></span><span class="sig-name descname"><span class="pre">ReplayBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_capacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_everything_as_stack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_as_timeline_format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_horizon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.99</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A simple Replay Buffer.
 Stores transitions, state, action, reward, next_state, terminal (and any
@@ -232,44 +373,28 @@ at sample time.
 <div><p>int, counter of how many transitions have been added (including
 the blank ones at the beginning of an episode).</p>
 </div></blockquote>
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.add">
-<code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param">observation</em>, <em class="sig-param">action</em>, <em class="sig-param">reward</em>, <em class="sig-param">terminal</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.add" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.add" title="Permalink to this definition"></a></dt>
 <dd><p>Adds a transition to the replay memory.
 This function checks the types and handles the padding at the beginning of
 an episode. Then it calls the _add function.
 Since the next_observation in the transition will be the observation added
 next there is no need to pass it.
-If the replay memory is at capacity the oldest transition will be discarded.
-:param observation: np.array with shape observation_shape.
-:param action: int, the action in the transition.
-:param reward: float, the reward received in the transition.
-:param terminal: np.dtype, acts as a boolean indicating whether the transition</p>
-<blockquote>
-<div><p>was terminal (1) or not (0).</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>*args</strong> – extra contents with shapes and dtypes according to
-extra_storage_types.</p>
-</dd>
-</dl>
+If the replay memory is at capacity the oldest transition will be discarded.</p>
+<p>Only accept kwargs, which must contain observation, action, reward, terminal
+as keys.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.create_from_env">
-<em class="property">classmethod </em><code class="sig-name descname">create_from_env</code><span class="sig-paren">(</span><em class="sig-param">env: gym.core.Env</em>, <em class="sig-param">*</em>, <em class="sig-param">replay_memory_size: int</em>, <em class="sig-param">batch_size: int</em>, <em class="sig-param">stack_size: int = 1</em>, <em class="sig-param">store_log_prob: bool = True</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.create_from_env" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.cursor">
-<code class="sig-name descname">cursor</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.cursor" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.cursor">
+<span class="sig-name descname"><span class="pre">cursor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.cursor" title="Permalink to this definition"></a></dt>
 <dd><p>Index to the location where the next transition will be written.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.get_add_args_signature">
-<code class="sig-name descname">get_add_args_signature</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[reagent.replay_memory.circular_replay_buffer.shape_type]<a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.get_add_args_signature" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.get_add_args_signature">
+<span class="sig-name descname"><span class="pre">get_add_args_signature</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.replay_memory.circular_replay_buffer.ReplayElement" title="reagent.replay_memory.circular_replay_buffer.ReplayElement"><span class="pre">reagent.replay_memory.circular_replay_buffer.ReplayElement</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.get_add_args_signature" title="Permalink to this definition"></a></dt>
 <dd><p>The signature of the add function.
 Note - Derived classes may return a different signature.
 :returns:</p>
@@ -281,52 +406,46 @@ Note - Derived classes may return a different signature.
 </div></blockquote>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.get_storage_signature">
-<code class="sig-name descname">get_storage_signature</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[reagent.replay_memory.circular_replay_buffer.shape_type]<a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.get_storage_signature" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.get_storage_signature">
+<span class="sig-name descname"><span class="pre">get_storage_signature</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.replay_memory.circular_replay_buffer.ReplayElement" title="reagent.replay_memory.circular_replay_buffer.ReplayElement"><span class="pre">reagent.replay_memory.circular_replay_buffer.ReplayElement</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.get_storage_signature" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a default list of elements to be stored in this replay memory.
 Note - Derived classes may return a different signature.
 :returns: list of ReplayElements defining the type of the contents stored.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.get_transition_elements">
-<code class="sig-name descname">get_transition_elements</code><span class="sig-paren">(</span><em class="sig-param">batch_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.get_transition_elements" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a ‘type signature’ for sample_transition_batch.
-:param batch_size: int, number of transitions returned. If None, the default</p>
-<blockquote>
-<div><p>batch_size will be used.</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A namedtuple describing the method’s return type signature.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>signature</p>
-</dd>
-</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.get_transition_elements">
+<span class="sig-name descname"><span class="pre">get_transition_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.get_transition_elements" title="Permalink to this definition"></a></dt>
+<dd><p>Returns element names for sample_transition_batch.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.is_empty">
-<code class="sig-name descname">is_empty</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.is_empty" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.initialize_buffer">
+<span class="sig-name descname"><span class="pre">initialize_buffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.initialize_buffer" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize replay buffer based on first input</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.is_empty">
+<span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.is_empty" title="Permalink to this definition"></a></dt>
 <dd><p>Is the Replay Buffer empty?</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.is_full">
-<code class="sig-name descname">is_full</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.is_full" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.is_full">
+<span class="sig-name descname"><span class="pre">is_full</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.is_full" title="Permalink to this definition"></a></dt>
 <dd><p>Is the Replay Buffer full?</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.is_valid_transition">
-<code class="sig-name descname">is_valid_transition</code><span class="sig-paren">(</span><em class="sig-param">index</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.is_valid_transition" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.is_valid_transition">
+<span class="sig-name descname"><span class="pre">is_valid_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.is_valid_transition" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.load">
-<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">checkpoint_dir</em>, <em class="sig-param">suffix</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.load" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.load" title="Permalink to this definition"></a></dt>
 <dd><p>Restores the object from bundle_dictionary and numpy checkpoints.
 :param checkpoint_dir: str, the directory where to read the numpy checkpointed</p>
 <blockquote>
@@ -342,14 +461,14 @@ Note - Derived classes may return a different signature.
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.sample_all_valid_transitions">
-<code class="sig-name descname">sample_all_valid_transitions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.sample_all_valid_transitions" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.sample_all_valid_transitions">
+<span class="sig-name descname"><span class="pre">sample_all_valid_transitions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.sample_all_valid_transitions" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.sample_index_batch">
-<code class="sig-name descname">sample_index_batch</code><span class="sig-paren">(</span><em class="sig-param">batch_size: int</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.sample_index_batch" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.sample_index_batch">
+<span class="sig-name descname"><span class="pre">sample_index_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.sample_index_batch" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a batch of valid indices sampled uniformly.
 :param batch_size: int, number of indices returned.</p>
 <dl class="field-list simple">
@@ -362,12 +481,12 @@ Note - Derived classes may return a different signature.
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.sample_transition_batch">
-<code class="sig-name descname">sample_transition_batch</code><span class="sig-paren">(</span><em class="sig-param">batch_size=None</em>, <em class="sig-param">indices=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.sample_transition_batch" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.sample_transition_batch">
+<span class="sig-name descname"><span class="pre">sample_transition_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.sample_transition_batch" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a batch of transitions (including any extra contents).
 If get_transition_elements has been overridden and defines elements not
-stored in self._store, an empty array will be returned and it will be
+stored in self._store, None will be returned and it will be
 left to the child class to fill it. For example, for the child class
 PrioritizedReplayBuffer, the contents of the
 sampling_probabilities are stored separately in a sum tree.
@@ -403,9 +522,9 @@ batch. If None, sample the indices uniformly.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.save">
-<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">checkpoint_dir</em>, <em class="sig-param">iteration_number</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.save" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iteration_number</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.save" title="Permalink to this definition"></a></dt>
 <dd><p>Save the ReplayBuffer attributes into a file.
 This method will save all the replay buffer’s state in a single file.
 :param checkpoint_dir: str, the directory where numpy checkpoint files should be</p>
@@ -420,55 +539,57 @@ numpy checkpoint files.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.set_index_valid_status">
-<code class="sig-name descname">set_index_valid_status</code><span class="sig-paren">(</span><em class="sig-param">idx: int</em>, <em class="sig-param">is_valid: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.set_index_valid_status" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.set_index_valid_status">
+<span class="sig-name descname"><span class="pre">set_index_valid_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_valid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.set_index_valid_status" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.size">
-<em class="property">property </em><code class="sig-name descname">size</code><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.size" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayBuffer.size">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer.size" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="attribute">
-<dt id="reagent.replay_memory.circular_replay_buffer.ReplayElement">
-<code class="sig-prename descclassname">reagent.replay_memory.circular_replay_buffer.</code><code class="sig-name descname">ReplayElement</code><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayElement" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.replay_memory.circular_replay_buffer.shape_type</span></code></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.replay_memory.circular_replay_buffer.</span></span><span class="sig-name descname"><span class="pre">ReplayElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayElement" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayElement.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#reagent.replay_memory.circular_replay_buffer.ElementMetadata" title="reagent.replay_memory.circular_replay_buffer.ElementMetadata"><span class="pre">reagent.replay_memory.circular_replay_buffer.ElementMetadata</span></a></em><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayElement.metadata" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 1</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.replay_memory.prioritized_replay_buffer">
-<span id="reagent-replay-memory-prioritized-replay-buffer-module"></span><h2>reagent.replay_memory.prioritized_replay_buffer module<a class="headerlink" href="#module-reagent.replay_memory.prioritized_replay_buffer" title="Permalink to this headline">¶</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.ReplayElement.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.ReplayElement.name" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.replay_memory.circular_replay_buffer.make_replay_element">
+<span class="sig-prename descclassname"><span class="pre">reagent.replay_memory.circular_replay_buffer.</span></span><span class="sig-name descname"><span class="pre">make_replay_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">example</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.circular_replay_buffer.make_replay_element" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.replay_memory.prioritized_replay_buffer">
+<span id="reagent-replay-memory-prioritized-replay-buffer-module"></span><h2>reagent.replay_memory.prioritized_replay_buffer module<a class="headerlink" href="#module-reagent.replay_memory.prioritized_replay_buffer" title="Permalink to this headline"></a></h2>
 <p>An implementation of Prioritized Experience Replay (PER).
 This implementation is based on the paper “Prioritized Experience Replay”
 by Tom Schaul et al. (2015). Many thanks to Tom Schaul, John Quan, and Matteo
 Hessel for providing useful pointers on the algorithm and its implementation.</p>
-<dl class="class">
-<dt id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.replay_memory.prioritized_replay_buffer.</code><code class="sig-name descname">PrioritizedReplayBuffer</code><span class="sig-paren">(</span><em class="sig-param">observation_shape</em>, <em class="sig-param">stack_size</em>, <em class="sig-param">replay_capacity</em>, <em class="sig-param">batch_size</em>, <em class="sig-param">update_horizon=1</em>, <em class="sig-param">gamma=0.99</em>, <em class="sig-param">max_sample_attempts=1000</em>, <em class="sig-param">extra_storage_types=None</em>, <em class="sig-param">observation_dtype=numpy.uint8</em>, <em class="sig-param">action_shape=()</em>, <em class="sig-param">action_dtype=numpy.int32</em>, <em class="sig-param">reward_shape=()</em>, <em class="sig-param">reward_dtype=numpy.float32</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.replay_memory.prioritized_replay_buffer.</span></span><span class="sig-name descname"><span class="pre">PrioritizedReplayBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_capacity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_horizon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.99</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_sample_attempts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer" title="reagent.replay_memory.circular_replay_buffer.ReplayBuffer"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.replay_memory.circular_replay_buffer.ReplayBuffer</span></code></a></p>
 <p>An out-of-graph Replay Buffer for Prioritized Experience Replay.
 See circular_replay_buffer.py for details.</p>
-<dl class="method">
-<dt id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.get_add_args_signature">
-<code class="sig-name descname">get_add_args_signature</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.get_add_args_signature" title="Permalink to this definition">¶</a></dt>
-<dd><p>The signature of the add function.
-The signature is the same as the one for ReplayBuffer, with an
-added priority.
-:returns:</p>
-<blockquote>
-<div><dl class="simple">
-<dt>list of ReplayElements defining the type of the argument signature needed</dt><dd><p>by the add function.</p>
-</dd>
-</dl>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.get_priority">
-<code class="sig-name descname">get_priority</code><span class="sig-paren">(</span><em class="sig-param">indices</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.get_priority" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.get_priority">
+<span class="sig-name descname"><span class="pre">get_priority</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.get_priority" title="Permalink to this definition"></a></dt>
 <dd><p>Fetches the priorities correspond to a batch of memory indices.
 For any memory location not yet used, the corresponding priority is 0.
 :param indices: np.array with dtype int32, of indices in range</p>
@@ -485,27 +606,15 @@ For any memory location not yet used, the corresponding priority is 0.
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.get_transition_elements">
-<code class="sig-name descname">get_transition_elements</code><span class="sig-paren">(</span><em class="sig-param">batch_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.get_transition_elements" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a ‘type signature’ for sample_transition_batch.
-:param batch_size: int, number of transitions returned. If None, the default</p>
-<blockquote>
-<div><p>batch_size will be used.</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A namedtuple describing the method’s return type signature.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>signature</p>
-</dd>
-</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.get_transition_elements">
+<span class="sig-name descname"><span class="pre">get_transition_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.get_transition_elements" title="Permalink to this definition"></a></dt>
+<dd><p>Returns element names for sample_transition_batch.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.sample_index_batch">
-<code class="sig-name descname">sample_index_batch</code><span class="sig-paren">(</span><em class="sig-param">batch_size: int</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.sample_index_batch" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.sample_index_batch">
+<span class="sig-name descname"><span class="pre">sample_index_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.sample_index_batch" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a batch of valid indices sampled as in Schaul et al. (2015).
 :param batch_size: int, number of indices returned.</p>
 <dl class="field-list simple">
@@ -518,9 +627,9 @@ For any memory location not yet used, the corresponding priority is 0.
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.sample_transition_batch">
-<code class="sig-name descname">sample_transition_batch</code><span class="sig-paren">(</span><em class="sig-param">batch_size=None</em>, <em class="sig-param">indices=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.sample_transition_batch" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.sample_transition_batch">
+<span class="sig-name descname"><span class="pre">sample_transition_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.sample_transition_batch" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a batch of transitions with extra storage and the priorities.
 The extra storage are defined through the extra_storage_types constructor
 argument.
@@ -547,9 +656,9 @@ batch. If None, sample the indices uniformly.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.set_priority">
-<code class="sig-name descname">set_priority</code><span class="sig-paren">(</span><em class="sig-param">indices</em>, <em class="sig-param">priorities</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.set_priority" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.set_priority">
+<span class="sig-name descname"><span class="pre">set_priority</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priorities</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.prioritized_replay_buffer.PrioritizedReplayBuffer.set_priority" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the priority of the given elements according to Schaul et al.
 :param indices: np.array with dtype int32, of indices in range</p>
 <blockquote>
@@ -564,15 +673,15 @@ batch. If None, sample the indices uniformly.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.replay_memory.sum_tree">
-<span id="reagent-replay-memory-sum-tree-module"></span><h2>reagent.replay_memory.sum_tree module<a class="headerlink" href="#module-reagent.replay_memory.sum_tree" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-reagent.replay_memory.sum_tree">
+<span id="reagent-replay-memory-sum-tree-module"></span><h2>reagent.replay_memory.sum_tree module<a class="headerlink" href="#module-reagent.replay_memory.sum_tree" title="Permalink to this headline"></a></h2>
 <p>A sum tree data structure.
 Used for prioritized experience replay. See prioritized_replay_buffer.py
 and Schaul et al. (2015).</p>
-<dl class="class">
-<dt id="reagent.replay_memory.sum_tree.SumTree">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.replay_memory.sum_tree.</code><code class="sig-name descname">SumTree</code><span class="sig-paren">(</span><em class="sig-param">capacity: int</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.sum_tree.SumTree" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.replay_memory.sum_tree.SumTree">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.replay_memory.sum_tree.</span></span><span class="sig-name descname"><span class="pre">SumTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.sum_tree.SumTree" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A sum tree data structure for storing replay priorities.
 A sum tree is a complete binary tree whose leaves contain values called
@@ -621,9 +730,9 @@ For conciseness, we allocate arrays as powers of two, and pad the excess
 elements with zero values.
 This is similar to the usual array-based representation of a complete binary
 tree, but is a little more user-friendly.</p>
-<dl class="method">
-<dt id="reagent.replay_memory.sum_tree.SumTree.get">
-<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param">node_index: int</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#reagent.replay_memory.sum_tree.SumTree.get" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.sum_tree.SumTree.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#reagent.replay_memory.sum_tree.SumTree.get" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the value of the leaf node corresponding to the index.
 :param node_index: The index of the leaf node.</p>
 <dl class="field-list simple">
@@ -633,9 +742,9 @@ tree, but is a little more user-friendly.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.sum_tree.SumTree.sample">
-<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param">query_value: Optional[float] = None</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#reagent.replay_memory.sum_tree.SumTree.sample" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.sum_tree.SumTree.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#reagent.replay_memory.sum_tree.SumTree.sample" title="Permalink to this definition"></a></dt>
 <dd><p>Samples an element from the sum tree.
 Each element has probability p_i / sum_j p_j of being picked, where p_i is
 the (positive) value associated with node i (possibly unnormalized).
@@ -652,9 +761,9 @@ the (positive) value associated with node i (possibly unnormalized).
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.sum_tree.SumTree.set">
-<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param">node_index: int</em>, <em class="sig-param">value: float</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#reagent.replay_memory.sum_tree.SumTree.set" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.sum_tree.SumTree.set">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.replay_memory.sum_tree.SumTree.set" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the value of a leaf node and updates internal nodes accordingly.
 This operation takes O(log(capacity)).
 :param node_index: int, the index of the leaf node to be updated.
@@ -670,9 +779,9 @@ sampled.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.sum_tree.SumTree.stratified_sample">
-<code class="sig-name descname">stratified_sample</code><span class="sig-paren">(</span><em class="sig-param">batch_size: int</em><span class="sig-paren">)</span> &#x2192; List[int]<a class="headerlink" href="#reagent.replay_memory.sum_tree.SumTree.stratified_sample" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.sum_tree.SumTree.stratified_sample">
+<span class="sig-name descname"><span class="pre">stratified_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.replay_memory.sum_tree.SumTree.stratified_sample" title="Permalink to this definition"></a></dt>
 <dd><p>Performs stratified sampling using the sum tree.
 Let R be the value at the root (total value of sum tree). This method will
 divide [0, R) into batch_size segments, pick a random number from each of
@@ -691,21 +800,113 @@ is as specified in Schaul et al. (2015).
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.replay_memory.utils">
-<span id="reagent-replay-memory-utils-module"></span><h2>reagent.replay_memory.utils module<a class="headerlink" href="#module-reagent.replay_memory.utils" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="reagent.replay_memory.utils.replay_buffer_to_pre_timeline_df">
-<code class="sig-prename descclassname">reagent.replay_memory.utils.</code><code class="sig-name descname">replay_buffer_to_pre_timeline_df</code><span class="sig-paren">(</span><em class="sig-param">is_discrete_action: bool</em>, <em class="sig-param">replay_buffer: reagent.replay_memory.circular_replay_buffer.ReplayBuffer</em><span class="sig-paren">)</span> &#x2192; pandas.DataFrame<a class="headerlink" href="#reagent.replay_memory.utils.replay_buffer_to_pre_timeline_df" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-reagent.replay_memory.utils">
+<span id="reagent-replay-memory-utils-module"></span><h2>reagent.replay_memory.utils module<a class="headerlink" href="#module-reagent.replay_memory.utils" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.replay_memory.utils.replay_buffer_to_pre_timeline_df">
+<span class="sig-prename descclassname"><span class="pre">reagent.replay_memory.utils.</span></span><span class="sig-name descname"><span class="pre">replay_buffer_to_pre_timeline_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_discrete_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_buffer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer" title="reagent.replay_memory.circular_replay_buffer.ReplayBuffer"><span class="pre">reagent.replay_memory.circular_replay_buffer.ReplayBuffer</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.core.frame.DataFrame</span></span></span><a class="headerlink" href="#reagent.replay_memory.utils.replay_buffer_to_pre_timeline_df" title="Permalink to this definition"></a></dt>
 <dd><p>Format needed for uploading dataset to Hive, and then run timeline.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.replay_memory">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.replay_memory" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.replay_memory.ReplayBuffer">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.replay_memory.</code><code class="sig-name descname">ReplayBuffer</code><span class="sig-paren">(</span><em class="sig-param">observation_shape: Tuple[int, ...], stack_size: int, replay_capacity: int, batch_size: int, return_everything_as_stack: bool = False, return_as_timeline_format: bool = False, update_horizon: int = 1, gamma: float = 0.99, max_sample_attempts: int = 1000, extra_storage_types: Optional[List[reagent.replay_memory.circular_replay_buffer.shape_type]] = None, observation_dtype=numpy.uint8, action_shape: Tuple[int, ...] = (), action_dtype=numpy.int32, reward_shape: Tuple[int, ...] = (), reward_dtype=numpy.float32</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-reagent.replay_memory">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.replay_memory" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.replay_memory.PrioritizedReplayBuffer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.replay_memory.</span></span><span class="sig-name descname"><span class="pre">PrioritizedReplayBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_capacity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_horizon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.99</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_sample_attempts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer" title="reagent.replay_memory.circular_replay_buffer.ReplayBuffer"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.replay_memory.circular_replay_buffer.ReplayBuffer</span></code></a></p>
+<p>An out-of-graph Replay Buffer for Prioritized Experience Replay.
+See circular_replay_buffer.py for details.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.PrioritizedReplayBuffer.get_priority">
+<span class="sig-name descname"><span class="pre">get_priority</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer.get_priority" title="Permalink to this definition"></a></dt>
+<dd><p>Fetches the priorities correspond to a batch of memory indices.
+For any memory location not yet used, the corresponding priority is 0.
+:param indices: np.array with dtype int32, of indices in range</p>
+<blockquote>
+<div><p>[0, replay_capacity).</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>float, the corresponding priorities.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>priorities</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.PrioritizedReplayBuffer.get_transition_elements">
+<span class="sig-name descname"><span class="pre">get_transition_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer.get_transition_elements" title="Permalink to this definition"></a></dt>
+<dd><p>Returns element names for sample_transition_batch.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.PrioritizedReplayBuffer.sample_index_batch">
+<span class="sig-name descname"><span class="pre">sample_index_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer.sample_index_batch" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a batch of valid indices sampled as in Schaul et al. (2015).
+:param batch_size: int, number of indices returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>1D tensor of ints, a batch of valid indices sampled uniformly.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>Exception</strong> – If the batch was not constructed after maximum number of tries.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.PrioritizedReplayBuffer.sample_transition_batch">
+<span class="sig-name descname"><span class="pre">sample_transition_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer.sample_transition_batch" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a batch of transitions with extra storage and the priorities.
+The extra storage are defined through the extra_storage_types constructor
+argument.
+When the transition is terminal next_state_batch has undefined contents.
+:param batch_size: int, number of transitions returned. If None, the default</p>
+<blockquote>
+<div><p>batch_size will be used.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>indices</strong> – None or 1D tensor of ints, the indices of every transition in the
+batch. If None, sample the indices uniformly.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>tuple of np.arrays with the shape and type as in</dt><dd><p>get_transition_elements().</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>transition_batch</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.PrioritizedReplayBuffer.set_priority">
+<span class="sig-name descname"><span class="pre">set_priority</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priorities</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer.set_priority" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the priority of the given elements according to Schaul et al.
+:param indices: np.array with dtype int32, of indices in range</p>
+<blockquote>
+<div><p>[0, replay_capacity).</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>priorities</strong> – float, the corresponding priorities.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.replay_memory.</span></span><span class="sig-name descname"><span class="pre">ReplayBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_capacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_everything_as_stack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_as_timeline_format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_horizon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.99</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A simple Replay Buffer.
 Stores transitions, state, action, reward, next_state, terminal (and any
@@ -719,44 +920,28 @@ at sample time.
 <div><p>int, counter of how many transitions have been added (including
 the blank ones at the beginning of an episode).</p>
 </div></blockquote>
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.add">
-<code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param">observation</em>, <em class="sig-param">action</em>, <em class="sig-param">reward</em>, <em class="sig-param">terminal</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.add" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.add" title="Permalink to this definition"></a></dt>
 <dd><p>Adds a transition to the replay memory.
 This function checks the types and handles the padding at the beginning of
 an episode. Then it calls the _add function.
 Since the next_observation in the transition will be the observation added
 next there is no need to pass it.
-If the replay memory is at capacity the oldest transition will be discarded.
-:param observation: np.array with shape observation_shape.
-:param action: int, the action in the transition.
-:param reward: float, the reward received in the transition.
-:param terminal: np.dtype, acts as a boolean indicating whether the transition</p>
-<blockquote>
-<div><p>was terminal (1) or not (0).</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>*args</strong> – extra contents with shapes and dtypes according to
-extra_storage_types.</p>
-</dd>
-</dl>
+If the replay memory is at capacity the oldest transition will be discarded.</p>
+<p>Only accept kwargs, which must contain observation, action, reward, terminal
+as keys.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.create_from_env">
-<em class="property">classmethod </em><code class="sig-name descname">create_from_env</code><span class="sig-paren">(</span><em class="sig-param">env: gym.core.Env</em>, <em class="sig-param">*</em>, <em class="sig-param">replay_memory_size: int</em>, <em class="sig-param">batch_size: int</em>, <em class="sig-param">stack_size: int = 1</em>, <em class="sig-param">store_log_prob: bool = True</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.create_from_env" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.cursor">
-<code class="sig-name descname">cursor</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.cursor" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.cursor">
+<span class="sig-name descname"><span class="pre">cursor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.cursor" title="Permalink to this definition"></a></dt>
 <dd><p>Index to the location where the next transition will be written.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.get_add_args_signature">
-<code class="sig-name descname">get_add_args_signature</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[reagent.replay_memory.circular_replay_buffer.shape_type]<a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.get_add_args_signature" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.get_add_args_signature">
+<span class="sig-name descname"><span class="pre">get_add_args_signature</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.replay_memory.circular_replay_buffer.ReplayElement" title="reagent.replay_memory.circular_replay_buffer.ReplayElement"><span class="pre">reagent.replay_memory.circular_replay_buffer.ReplayElement</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.get_add_args_signature" title="Permalink to this definition"></a></dt>
 <dd><p>The signature of the add function.
 Note - Derived classes may return a different signature.
 :returns:</p>
@@ -768,52 +953,46 @@ Note - Derived classes may return a different signature.
 </div></blockquote>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.get_storage_signature">
-<code class="sig-name descname">get_storage_signature</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List[reagent.replay_memory.circular_replay_buffer.shape_type]<a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.get_storage_signature" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.get_storage_signature">
+<span class="sig-name descname"><span class="pre">get_storage_signature</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.replay_memory.circular_replay_buffer.ReplayElement" title="reagent.replay_memory.circular_replay_buffer.ReplayElement"><span class="pre">reagent.replay_memory.circular_replay_buffer.ReplayElement</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.get_storage_signature" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a default list of elements to be stored in this replay memory.
 Note - Derived classes may return a different signature.
 :returns: list of ReplayElements defining the type of the contents stored.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.get_transition_elements">
-<code class="sig-name descname">get_transition_elements</code><span class="sig-paren">(</span><em class="sig-param">batch_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.get_transition_elements" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a ‘type signature’ for sample_transition_batch.
-:param batch_size: int, number of transitions returned. If None, the default</p>
-<blockquote>
-<div><p>batch_size will be used.</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A namedtuple describing the method’s return type signature.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>signature</p>
-</dd>
-</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.get_transition_elements">
+<span class="sig-name descname"><span class="pre">get_transition_elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.get_transition_elements" title="Permalink to this definition"></a></dt>
+<dd><p>Returns element names for sample_transition_batch.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.is_empty">
-<code class="sig-name descname">is_empty</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.is_empty" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.initialize_buffer">
+<span class="sig-name descname"><span class="pre">initialize_buffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.initialize_buffer" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize replay buffer based on first input</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.is_empty">
+<span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.is_empty" title="Permalink to this definition"></a></dt>
 <dd><p>Is the Replay Buffer empty?</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.is_full">
-<code class="sig-name descname">is_full</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.is_full" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.is_full">
+<span class="sig-name descname"><span class="pre">is_full</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.is_full" title="Permalink to this definition"></a></dt>
 <dd><p>Is the Replay Buffer full?</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.is_valid_transition">
-<code class="sig-name descname">is_valid_transition</code><span class="sig-paren">(</span><em class="sig-param">index</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.is_valid_transition" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.is_valid_transition">
+<span class="sig-name descname"><span class="pre">is_valid_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.is_valid_transition" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.load">
-<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">checkpoint_dir</em>, <em class="sig-param">suffix</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.load" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.load" title="Permalink to this definition"></a></dt>
 <dd><p>Restores the object from bundle_dictionary and numpy checkpoints.
 :param checkpoint_dir: str, the directory where to read the numpy checkpointed</p>
 <blockquote>
@@ -829,14 +1008,14 @@ Note - Derived classes may return a different signature.
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.sample_all_valid_transitions">
-<code class="sig-name descname">sample_all_valid_transitions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.sample_all_valid_transitions" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.sample_all_valid_transitions">
+<span class="sig-name descname"><span class="pre">sample_all_valid_transitions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.sample_all_valid_transitions" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.sample_index_batch">
-<code class="sig-name descname">sample_index_batch</code><span class="sig-paren">(</span><em class="sig-param">batch_size: int</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.sample_index_batch" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.sample_index_batch">
+<span class="sig-name descname"><span class="pre">sample_index_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.sample_index_batch" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a batch of valid indices sampled uniformly.
 :param batch_size: int, number of indices returned.</p>
 <dl class="field-list simple">
@@ -849,12 +1028,12 @@ Note - Derived classes may return a different signature.
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.sample_transition_batch">
-<code class="sig-name descname">sample_transition_batch</code><span class="sig-paren">(</span><em class="sig-param">batch_size=None</em>, <em class="sig-param">indices=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.sample_transition_batch" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.sample_transition_batch">
+<span class="sig-name descname"><span class="pre">sample_transition_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.sample_transition_batch" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a batch of transitions (including any extra contents).
 If get_transition_elements has been overridden and defines elements not
-stored in self._store, an empty array will be returned and it will be
+stored in self._store, None will be returned and it will be
 left to the child class to fill it. For example, for the child class
 PrioritizedReplayBuffer, the contents of the
 sampling_probabilities are stored separately in a sum tree.
@@ -890,9 +1069,9 @@ batch. If None, sample the indices uniformly.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.save">
-<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">checkpoint_dir</em>, <em class="sig-param">iteration_number</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.save" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iteration_number</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.save" title="Permalink to this definition"></a></dt>
 <dd><p>Save the ReplayBuffer attributes into a file.
 This method will save all the replay buffer’s state in a single file.
 :param checkpoint_dir: str, the directory where numpy checkpoint files should be</p>
@@ -907,187 +1086,50 @@ numpy checkpoint files.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.set_index_valid_status">
-<code class="sig-name descname">set_index_valid_status</code><span class="sig-paren">(</span><em class="sig-param">idx: int</em>, <em class="sig-param">is_valid: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.set_index_valid_status" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.set_index_valid_status">
+<span class="sig-name descname"><span class="pre">set_index_valid_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_valid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.set_index_valid_status" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.replay_memory.ReplayBuffer.size">
-<em class="property">property </em><code class="sig-name descname">size</code><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.size" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.replay_memory.ReplayBuffer.size">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.replay_memory.ReplayBuffer.size" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="reagent.replay_memory.PrioritizedReplayBuffer">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.replay_memory.</code><code class="sig-name descname">PrioritizedReplayBuffer</code><span class="sig-paren">(</span><em class="sig-param">observation_shape</em>, <em class="sig-param">stack_size</em>, <em class="sig-param">replay_capacity</em>, <em class="sig-param">batch_size</em>, <em class="sig-param">update_horizon=1</em>, <em class="sig-param">gamma=0.99</em>, <em class="sig-param">max_sample_attempts=1000</em>, <em class="sig-param">extra_storage_types=None</em>, <em class="sig-param">observation_dtype=numpy.uint8</em>, <em class="sig-param">action_shape=()</em>, <em class="sig-param">action_dtype=numpy.int32</em>, <em class="sig-param">reward_shape=()</em>, <em class="sig-param">reward_dtype=numpy.float32</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#reagent.replay_memory.circular_replay_buffer.ReplayBuffer" title="reagent.replay_memory.circular_replay_buffer.ReplayBuffer"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.replay_memory.circular_replay_buffer.ReplayBuffer</span></code></a></p>
-<p>An out-of-graph Replay Buffer for Prioritized Experience Replay.
-See circular_replay_buffer.py for details.</p>
-<dl class="method">
-<dt id="reagent.replay_memory.PrioritizedReplayBuffer.get_add_args_signature">
-<code class="sig-name descname">get_add_args_signature</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer.get_add_args_signature" title="Permalink to this definition">¶</a></dt>
-<dd><p>The signature of the add function.
-The signature is the same as the one for ReplayBuffer, with an
-added priority.
-:returns:</p>
-<blockquote>
-<div><dl class="simple">
-<dt>list of ReplayElements defining the type of the argument signature needed</dt><dd><p>by the add function.</p>
-</dd>
-</dl>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="reagent.replay_memory.PrioritizedReplayBuffer.get_priority">
-<code class="sig-name descname">get_priority</code><span class="sig-paren">(</span><em class="sig-param">indices</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer.get_priority" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fetches the priorities correspond to a batch of memory indices.
-For any memory location not yet used, the corresponding priority is 0.
-:param indices: np.array with dtype int32, of indices in range</p>
-<blockquote>
-<div><p>[0, replay_capacity).</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>float, the corresponding priorities.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>priorities</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="reagent.replay_memory.PrioritizedReplayBuffer.get_transition_elements">
-<code class="sig-name descname">get_transition_elements</code><span class="sig-paren">(</span><em class="sig-param">batch_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer.get_transition_elements" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a ‘type signature’ for sample_transition_batch.
-:param batch_size: int, number of transitions returned. If None, the default</p>
-<blockquote>
-<div><p>batch_size will be used.</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A namedtuple describing the method’s return type signature.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>signature</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="reagent.replay_memory.PrioritizedReplayBuffer.sample_index_batch">
-<code class="sig-name descname">sample_index_batch</code><span class="sig-paren">(</span><em class="sig-param">batch_size: int</em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer.sample_index_batch" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a batch of valid indices sampled as in Schaul et al. (2015).
-:param batch_size: int, number of indices returned.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>1D tensor of ints, a batch of valid indices sampled uniformly.</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>Exception</strong> – If the batch was not constructed after maximum number of tries.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="reagent.replay_memory.PrioritizedReplayBuffer.sample_transition_batch">
-<code class="sig-name descname">sample_transition_batch</code><span class="sig-paren">(</span><em class="sig-param">batch_size=None</em>, <em class="sig-param">indices=None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer.sample_transition_batch" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a batch of transitions with extra storage and the priorities.
-The extra storage are defined through the extra_storage_types constructor
-argument.
-When the transition is terminal next_state_batch has undefined contents.
-:param batch_size: int, number of transitions returned. If None, the default</p>
-<blockquote>
-<div><p>batch_size will be used.</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>indices</strong> – None or 1D tensor of ints, the indices of every transition in the
-batch. If None, sample the indices uniformly.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>tuple of np.arrays with the shape and type as in</dt><dd><p>get_transition_elements().</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>transition_batch</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="reagent.replay_memory.PrioritizedReplayBuffer.set_priority">
-<code class="sig-name descname">set_priority</code><span class="sig-paren">(</span><em class="sig-param">indices</em>, <em class="sig-param">priorities</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.replay_memory.PrioritizedReplayBuffer.set_priority" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the priority of the given elements according to Schaul et al.
-:param indices: np.array with dtype int32, of indices in range</p>
-<blockquote>
-<div><p>[0, replay_capacity).</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>priorities</strong> – float, the corresponding priorities.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reagent.training.html" class="btn btn-neutral float-right" title="reagent.training package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reagent.preprocessing.html" class="btn btn-neutral float-left" title="reagent.preprocessing package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.publishers.html" class="btn btn-neutral float-left" title="reagent.publishers package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.reporting.html" class="btn btn-neutral float-right" title="reagent.reporting package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

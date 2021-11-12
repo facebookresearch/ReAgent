@@ -1,6 +1,14 @@
 reagent.evaluation package
 ==========================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   reagent.evaluation.feature_importance
+
 Submodules
 ----------
 
@@ -44,38 +52,6 @@ reagent.evaluation.ope\_adapter module
    :undoc-members:
    :show-inheritance:
 
-reagent.evaluation.ranking\_listwise\_evaluator module
-------------------------------------------------------
-
-.. automodule:: reagent.evaluation.ranking_listwise_evaluator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-reagent.evaluation.ranking\_policy\_gradient\_evaluator module
---------------------------------------------------------------
-
-.. automodule:: reagent.evaluation.ranking_policy_gradient_evaluator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-reagent.evaluation.reward\_net\_evaluator module
-------------------------------------------------
-
-.. automodule:: reagent.evaluation.reward_net_evaluator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-reagent.evaluation.seq2reward\_evaluator module
------------------------------------------------
-
-.. automodule:: reagent.evaluation.seq2reward_evaluator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 reagent.evaluation.sequential\_doubly\_robust\_estimator module
 ---------------------------------------------------------------
 
@@ -99,7 +75,6 @@ reagent.evaluation.world\_model\_evaluator module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>reagent.evaluation package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="reagent.gym package" href="reagent.gym.html" />
-    <link rel="prev" title="reagent package" href="reagent.html" /> 
+    <link rel="next" title="reagent.evaluation.feature_importance package" href="reagent.evaluation.feature_importance.html" />
+    <link rel="prev" title="reagent.gym.tests.preprocessors package" href="reagent.gym.tests.preprocessors.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,258 +36,227 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4 current"><a class="current reference internal" href="#">reagent.evaluation package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.workflow.html">reagent.workflow package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Evaluation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reagent.evaluation.feature_importance.html">reagent.evaluation.feature_importance package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.evaluation.cpe">reagent.evaluation.cpe module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.evaluation.doubly_robust_estimator">reagent.evaluation.doubly_robust_estimator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.evaluation.evaluation_data_page">reagent.evaluation.evaluation_data_page module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.evaluation.evaluator">reagent.evaluation.evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.evaluation.ope_adapter">reagent.evaluation.ope_adapter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.evaluation.sequential_doubly_robust_estimator">reagent.evaluation.sequential_doubly_robust_estimator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.evaluation.weighted_sequential_doubly_robust_estimator">reagent.evaluation.weighted_sequential_doubly_robust_estimator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.evaluation.world_model_evaluator">reagent.evaluation.world_model_evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.evaluation">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
 </ul>
-</li>
-</ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-          <li><a href="modules.html">reagent</a> &raquo;</li>
-        
-          <li><a href="reagent.html">reagent package</a> &raquo;</li>
-        
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
       <li>reagent.evaluation package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/reagent.evaluation.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-evaluation-package">
-<h1>reagent.evaluation package<a class="headerlink" href="#reagent-evaluation-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="reagent-evaluation-package">
+<h1>reagent.evaluation package<a class="headerlink" href="#reagent-evaluation-package" title="Permalink to this headline"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.feature_importance.html">reagent.evaluation.feature_importance package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.feature_importance.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.feature_importance.html#module-reagent.evaluation.feature_importance.feature_importance_base">reagent.evaluation.feature_importance.feature_importance_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.feature_importance.html#module-reagent.evaluation.feature_importance.feature_importance_perturbation">reagent.evaluation.feature_importance.feature_importance_perturbation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.evaluation.feature_importance.html#module-reagent.evaluation.feature_importance">Module contents</a></li>
+</ul>
+</li>
+</ul>
 </div>
-<div class="section" id="module-reagent.evaluation.cpe">
-<span id="reagent-evaluation-cpe-module"></span><h2>reagent.evaluation.cpe module<a class="headerlink" href="#module-reagent.evaluation.cpe" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.evaluation.cpe.CpeDetails">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.evaluation.cpe.</code><code class="sig-name descname">CpeDetails</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeDetails" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.evaluation.cpe">
+<span id="reagent-evaluation-cpe-module"></span><h2>reagent.evaluation.cpe module<a class="headerlink" href="#module-reagent.evaluation.cpe" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeDetails">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.cpe.</span></span><span class="sig-name descname"><span class="pre">CpeDetails</span></span><a class="headerlink" href="#reagent.evaluation.cpe.CpeDetails" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeDetails.log">
-<code class="sig-name descname">log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeDetails.log" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeDetails.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeDetails.log" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeDetails.log_to_tensorboard">
-<code class="sig-name descname">log_to_tensorboard</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#reagent.evaluation.cpe.CpeDetails.log_to_tensorboard" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeDetails.log_to_tensorboard">
+<span class="sig-name descname"><span class="pre">log_to_tensorboard</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.evaluation.cpe.CpeDetails.log_to_tensorboard" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="reagent.evaluation.cpe.CpeEstimate">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.evaluation.cpe.</code><code class="sig-name descname">CpeEstimate</code><span class="sig-paren">(</span><em class="sig-param">raw</em>, <em class="sig-param">normalized</em>, <em class="sig-param">raw_std_error</em>, <em class="sig-param">normalized_std_error</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimate.normalized">
-<em class="property">property </em><code class="sig-name descname">normalized</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate.normalized" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimate">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.cpe.</span></span><span class="sig-name descname"><span class="pre">CpeEstimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_std_error</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized_std_error</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimate.normalized">
+<span class="sig-name descname"><span class="pre">normalized</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate.normalized" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimate.normalized_std_error">
-<em class="property">property </em><code class="sig-name descname">normalized_std_error</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate.normalized_std_error" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimate.normalized_std_error">
+<span class="sig-name descname"><span class="pre">normalized_std_error</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate.normalized_std_error" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 3</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimate.raw">
-<em class="property">property </em><code class="sig-name descname">raw</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate.raw" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimate.raw">
+<span class="sig-name descname"><span class="pre">raw</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate.raw" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimate.raw_std_error">
-<em class="property">property </em><code class="sig-name descname">raw_std_error</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate.raw_std_error" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimate.raw_std_error">
+<span class="sig-name descname"><span class="pre">raw_std_error</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimate.raw_std_error" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="reagent.evaluation.cpe.CpeEstimateSet">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.evaluation.cpe.</code><code class="sig-name descname">CpeEstimateSet</code><span class="sig-paren">(</span><em class="sig-param">direct_method</em>, <em class="sig-param">inverse_propensity</em>, <em class="sig-param">doubly_robust</em>, <em class="sig-param">sequential_doubly_robust</em>, <em class="sig-param">weighted_doubly_robust</em>, <em class="sig-param">magic</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimateSet.check_estimates_exist">
-<code class="sig-name descname">check_estimates_exist</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.check_estimates_exist" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.cpe.</span></span><span class="sig-name descname"><span class="pre">CpeEstimateSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direct_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse_propensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubly_robust</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequential_doubly_robust</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weighted_doubly_robust</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">switch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">switch_dr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet.check_estimates_exist">
+<span class="sig-name descname"><span class="pre">check_estimates_exist</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.check_estimates_exist" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimateSet.direct_method">
-<em class="property">property </em><code class="sig-name descname">direct_method</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.direct_method" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet.direct_method">
+<span class="sig-name descname"><span class="pre">direct_method</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.direct_method" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimateSet.doubly_robust">
-<em class="property">property </em><code class="sig-name descname">doubly_robust</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.doubly_robust" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet.doubly_robust">
+<span class="sig-name descname"><span class="pre">doubly_robust</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.doubly_robust" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimateSet.fill_empty_with_zero">
-<code class="sig-name descname">fill_empty_with_zero</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.fill_empty_with_zero" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet.fill_empty_with_zero">
+<span class="sig-name descname"><span class="pre">fill_empty_with_zero</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.fill_empty_with_zero" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimateSet.inverse_propensity">
-<em class="property">property </em><code class="sig-name descname">inverse_propensity</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.inverse_propensity" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet.inverse_propensity">
+<span class="sig-name descname"><span class="pre">inverse_propensity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.inverse_propensity" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimateSet.log">
-<code class="sig-name descname">log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.log" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.log" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimateSet.log_to_tensorboard">
-<code class="sig-name descname">log_to_tensorboard</code><span class="sig-paren">(</span><em class="sig-param">metric_name: str</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.log_to_tensorboard" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet.log_to_tensorboard">
+<span class="sig-name descname"><span class="pre">log_to_tensorboard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.log_to_tensorboard" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimateSet.magic">
-<em class="property">property </em><code class="sig-name descname">magic</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.magic" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet.magic">
+<span class="sig-name descname"><span class="pre">magic</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.magic" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 5</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimateSet.sequential_doubly_robust">
-<em class="property">property </em><code class="sig-name descname">sequential_doubly_robust</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.sequential_doubly_robust" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet.sequential_doubly_robust">
+<span class="sig-name descname"><span class="pre">sequential_doubly_robust</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.sequential_doubly_robust" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 3</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="reagent.evaluation.cpe.CpeEstimateSet.weighted_doubly_robust">
-<em class="property">property </em><code class="sig-name descname">weighted_doubly_robust</code><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.weighted_doubly_robust" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet.switch">
+<span class="sig-name descname"><span class="pre">switch</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.switch" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet.switch_dr">
+<span class="sig-name descname"><span class="pre">switch_dr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.switch_dr" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.CpeEstimateSet.weighted_doubly_robust">
+<span class="sig-name descname"><span class="pre">weighted_doubly_robust</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.cpe.CpeEstimateSet.weighted_doubly_robust" title="Permalink to this definition"></a></dt>
 <dd><p>Alias for field number 4</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="reagent.evaluation.cpe.bootstrapped_std_error_of_mean">
-<code class="sig-prename descclassname">reagent.evaluation.cpe.</code><code class="sig-name descname">bootstrapped_std_error_of_mean</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">sample_percent=0.25</em>, <em class="sig-param">num_samples=1000</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.bootstrapped_std_error_of_mean" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.evaluation.cpe.bootstrapped_std_error_of_mean">
+<span class="sig-prename descclassname"><span class="pre">reagent.evaluation.cpe.</span></span><span class="sig-name descname"><span class="pre">bootstrapped_std_error_of_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_percent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.cpe.bootstrapped_std_error_of_mean" title="Permalink to this definition"></a></dt>
 <dd><p>Compute bootstrapped standard error of mean of input data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -333,92 +269,769 @@
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="reagent-evaluation-doubly-robust-estimator-module">
-<h2>reagent.evaluation.doubly_robust_estimator module<a class="headerlink" href="#reagent-evaluation-doubly-robust-estimator-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-evaluation-evaluation-data-page-module">
-<h2>reagent.evaluation.evaluation_data_page module<a class="headerlink" href="#reagent-evaluation-evaluation-data-page-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-evaluation-evaluator-module">
-<h2>reagent.evaluation.evaluator module<a class="headerlink" href="#reagent-evaluation-evaluator-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-evaluation-ope-adapter-module">
-<h2>reagent.evaluation.ope_adapter module<a class="headerlink" href="#reagent-evaluation-ope-adapter-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-evaluation-ranking-listwise-evaluator-module">
-<h2>reagent.evaluation.ranking_listwise_evaluator module<a class="headerlink" href="#reagent-evaluation-ranking-listwise-evaluator-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-evaluation-ranking-policy-gradient-evaluator-module">
-<h2>reagent.evaluation.ranking_policy_gradient_evaluator module<a class="headerlink" href="#reagent-evaluation-ranking-policy-gradient-evaluator-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-evaluation-reward-net-evaluator-module">
-<h2>reagent.evaluation.reward_net_evaluator module<a class="headerlink" href="#reagent-evaluation-reward-net-evaluator-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-evaluation-seq2reward-evaluator-module">
-<h2>reagent.evaluation.seq2reward_evaluator module<a class="headerlink" href="#reagent-evaluation-seq2reward-evaluator-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-evaluation-sequential-doubly-robust-estimator-module">
-<h2>reagent.evaluation.sequential_doubly_robust_estimator module<a class="headerlink" href="#reagent-evaluation-sequential-doubly-robust-estimator-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-evaluation-weighted-sequential-doubly-robust-estimator-module">
-<h2>reagent.evaluation.weighted_sequential_doubly_robust_estimator module<a class="headerlink" href="#reagent-evaluation-weighted-sequential-doubly-robust-estimator-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-evaluation-world-model-evaluator-module">
-<h2>reagent.evaluation.world_model_evaluator module<a class="headerlink" href="#reagent-evaluation-world-model-evaluator-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.evaluation">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.evaluation" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</section>
+<section id="module-reagent.evaluation.doubly_robust_estimator">
+<span id="reagent-evaluation-doubly-robust-estimator-module"></span><h2>reagent.evaluation.doubly_robust_estimator module<a class="headerlink" href="#module-reagent.evaluation.doubly_robust_estimator" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.DoublyRobustEstimator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.doubly_robust_estimator.</span></span><span class="sig-name descname"><span class="pre">DoublyRobustEstimator</span></span><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.DoublyRobustEstimator" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>For details, visit <a class="reference external" href="https://arxiv.org/pdf/1612.01205.pdf">https://arxiv.org/pdf/1612.01205.pdf</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.DoublyRobustEstimator.estimate">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage" title="reagent.evaluation.evaluation_data_page.EvaluationDataPage"><span class="pre">reagent.evaluation.evaluation_data_page.EvaluationDataPage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">hp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.evaluation.doubly_robust_estimator.DoublyRobustHP" title="reagent.evaluation.doubly_robust_estimator.DoublyRobustHP"><span class="pre">reagent.evaluation.doubly_robust_estimator.DoublyRobustHP</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.DoublyRobustEstimator.estimate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.DoublyRobustHP">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.doubly_robust_estimator.</span></span><span class="sig-name descname"><span class="pre">DoublyRobustHP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frac_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frac_valid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstrap_num_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstrap_sample_percent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xgb_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bope_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bope_num_samples</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.DoublyRobustHP" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.bootstrap_num_samples">
+<span class="sig-name descname"><span class="pre">bootstrap_num_samples</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.bootstrap_num_samples" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.bootstrap_sample_percent">
+<span class="sig-name descname"><span class="pre">bootstrap_sample_percent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.bootstrap_sample_percent" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.bope_mode">
+<span class="sig-name descname"><span class="pre">bope_mode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.bope_mode" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.bope_num_samples">
+<span class="sig-name descname"><span class="pre">bope_num_samples</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.bope_num_samples" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.frac_train">
+<span class="sig-name descname"><span class="pre">frac_train</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.frac_train" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.frac_valid">
+<span class="sig-name descname"><span class="pre">frac_valid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.frac_valid" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.xgb_params">
+<span class="sig-name descname"><span class="pre">xgb_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.DoublyRobustHP.xgb_params" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.doubly_robust_estimator.</span></span><span class="sig-name descname"><span class="pre">EstimationData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">contexts_actions_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy_indicators_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contexts_actions_valid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy_indicators_valid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_valid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contexts_actions_eval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contexts_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions_logged_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contexts_valid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions_logged_valid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contexts_eval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions_logged_eval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_propensities_eval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_rewards_eval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_mask_eval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logged_rewards_eval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_rewards_for_logged_action_eval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logged_propensities_eval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.action_mask_eval">
+<span class="sig-name descname"><span class="pre">action_mask_eval</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.action_mask_eval" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.actions_logged_eval">
+<span class="sig-name descname"><span class="pre">actions_logged_eval</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.actions_logged_eval" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.actions_logged_train">
+<span class="sig-name descname"><span class="pre">actions_logged_train</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.actions_logged_train" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.actions_logged_valid">
+<span class="sig-name descname"><span class="pre">actions_logged_valid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.actions_logged_valid" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.contexts_actions_eval">
+<span class="sig-name descname"><span class="pre">contexts_actions_eval</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.contexts_actions_eval" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.contexts_actions_train">
+<span class="sig-name descname"><span class="pre">contexts_actions_train</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.contexts_actions_train" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.contexts_actions_valid">
+<span class="sig-name descname"><span class="pre">contexts_actions_valid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.contexts_actions_valid" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.contexts_eval">
+<span class="sig-name descname"><span class="pre">contexts_eval</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.contexts_eval" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.contexts_train">
+<span class="sig-name descname"><span class="pre">contexts_train</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.contexts_train" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.contexts_valid">
+<span class="sig-name descname"><span class="pre">contexts_valid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.contexts_valid" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.logged_propensities_eval">
+<span class="sig-name descname"><span class="pre">logged_propensities_eval</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.logged_propensities_eval" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.logged_rewards_eval">
+<span class="sig-name descname"><span class="pre">logged_rewards_eval</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.logged_rewards_eval" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.model_propensities_eval">
+<span class="sig-name descname"><span class="pre">model_propensities_eval</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.model_propensities_eval" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.model_rewards_eval">
+<span class="sig-name descname"><span class="pre">model_rewards_eval</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.model_rewards_eval" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.model_rewards_for_logged_action_eval">
+<span class="sig-name descname"><span class="pre">model_rewards_for_logged_action_eval</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.model_rewards_for_logged_action_eval" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.policy_indicators_train">
+<span class="sig-name descname"><span class="pre">policy_indicators_train</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.policy_indicators_train" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.policy_indicators_valid">
+<span class="sig-name descname"><span class="pre">policy_indicators_valid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.policy_indicators_valid" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.weights_train">
+<span class="sig-name descname"><span class="pre">weights_train</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.weights_train" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.EstimationData.weights_valid">
+<span class="sig-name descname"><span class="pre">weights_valid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.EstimationData.weights_valid" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.ImportanceSamplingData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.doubly_robust_estimator.</span></span><span class="sig-name descname"><span class="pre">ImportanceSamplingData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">importance_weight</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logged_rewards</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_rewards</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_rewards_for_logged_action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_propensities</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.ImportanceSamplingData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.ImportanceSamplingData.importance_weight">
+<span class="sig-name descname"><span class="pre">importance_weight</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.ImportanceSamplingData.importance_weight" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.ImportanceSamplingData.logged_rewards">
+<span class="sig-name descname"><span class="pre">logged_rewards</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.ImportanceSamplingData.logged_rewards" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.ImportanceSamplingData.model_propensities">
+<span class="sig-name descname"><span class="pre">model_propensities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.ImportanceSamplingData.model_propensities" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.ImportanceSamplingData.model_rewards">
+<span class="sig-name descname"><span class="pre">model_rewards</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.ImportanceSamplingData.model_rewards" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.ImportanceSamplingData.model_rewards_for_logged_action">
+<span class="sig-name descname"><span class="pre">model_rewards_for_logged_action</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.ImportanceSamplingData.model_rewards_for_logged_action" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.TrainValidEvalData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.doubly_robust_estimator.</span></span><span class="sig-name descname"><span class="pre">TrainValidEvalData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">contexts_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_propensities_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions_logged_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_mask_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logged_rewards_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_rewards_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_rewards_for_logged_action_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logged_propensities_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_examples_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.TrainValidEvalData" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.action_mask_dict">
+<span class="sig-name descname"><span class="pre">action_mask_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.action_mask_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.actions_logged_dict">
+<span class="sig-name descname"><span class="pre">actions_logged_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.actions_logged_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.contexts_dict">
+<span class="sig-name descname"><span class="pre">contexts_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.contexts_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.logged_propensities_dict">
+<span class="sig-name descname"><span class="pre">logged_propensities_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.logged_propensities_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.logged_rewards_dict">
+<span class="sig-name descname"><span class="pre">logged_rewards_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.logged_rewards_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.model_propensities_dict">
+<span class="sig-name descname"><span class="pre">model_propensities_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.model_propensities_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.model_rewards_dict">
+<span class="sig-name descname"><span class="pre">model_rewards_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.model_rewards_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.model_rewards_for_logged_action_dict">
+<span class="sig-name descname"><span class="pre">model_rewards_for_logged_action_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.model_rewards_for_logged_action_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.num_examples_dict">
+<span class="sig-name descname"><span class="pre">num_examples_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.doubly_robust_estimator.TrainValidEvalData.num_examples_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 8</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.evaluation.evaluation_data_page">
+<span id="reagent-evaluation-evaluation-data-page-module"></span><h2>reagent.evaluation.evaluation_data_page module<a class="headerlink" href="#module-reagent.evaluation.evaluation_data_page" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.evaluation_data_page.</span></span><span class="sig-name descname"><span class="pre">EvaluationDataPage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mdp_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span></em>, <em class="sig-param"><span class="n"><span class="pre">logged_propensities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'torch.Tensor'</span></s></span></em>, <em class="sig-param"><span class="n"><span class="pre">logged_rewards</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'torch.Tensor'</span></s></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'torch.Tensor'</span></s></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_propensities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'torch.Tensor'</span></s></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_rewards</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'torch.Tensor'</span></s></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_rewards_for_logged_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'torch.Tensor'</span></s></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_actions_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimal_q_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_action_idxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logged_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logged_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logged_metrics_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_metrics_for_logged_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_metrics_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_metrics_values_for_logged_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_actions_state_concat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contexts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><s><span class="pre">'Optional[torch.Tensor]'</span></s></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.types.TensorDataClass" title="reagent.core.types.TensorDataClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.types.TensorDataClass</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.action_mask">
+<span class="sig-name descname"><span class="pre">action_mask</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.action_mask" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.append" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.compute_values">
+<span class="sig-name descname"><span class="pre">compute_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.compute_values" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.compute_values_for_mdps">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_values_for_mdps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rewards</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mdp_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence_numbers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.compute_values_for_mdps" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.contexts">
+<span class="sig-name descname"><span class="pre">contexts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.contexts" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.create_from_tensors_dqn">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_from_tensors_dqn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DQNTrainer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mdp_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence_numbers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rlt.FeatureData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rlt.FeatureData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">propensities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewards</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_actions_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.create_from_tensors_dqn" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.create_from_tensors_parametric_dqn">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_from_tensors_parametric_dqn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ParametricDQNTrainer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mdp_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence_numbers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rlt.FeatureData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rlt.FeatureData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">propensities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewards</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_actions_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rlt.FeatureData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_num_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.create_from_tensors_parametric_dqn" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.create_from_tensors_seq2slate">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_from_tensors_seq2slate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq2slate_net</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.models.html#reagent.models.seq2slate.Seq2SlateTransformerNet" title="reagent.models.seq2slate.Seq2SlateTransformerNet"><span class="pre">reagent.models.seq2slate.Seq2SlateTransformerNet</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.PreprocessedRankingInput" title="reagent.core.types.PreprocessedRankingInput"><span class="pre">reagent.core.types.PreprocessedRankingInput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_greedy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mdp_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence_numbers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.create_from_tensors_seq2slate" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>eval_greedy</strong> – If True, evaluate the greedy policy which</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>always picks the most probable output sequence. If False, evaluate</dt><dd><p>the stochastic ranking policy.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.create_from_training_batch">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_from_training_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tdb</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rlt.PreprocessedRankingInput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ReAgentLightningModule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">nn.Module</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.create_from_training_batch" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.eval_action_idxs">
+<span class="sig-name descname"><span class="pre">eval_action_idxs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.eval_action_idxs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.logged_metrics">
+<span class="sig-name descname"><span class="pre">logged_metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.logged_metrics" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.logged_metrics_values">
+<span class="sig-name descname"><span class="pre">logged_metrics_values</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.logged_metrics_values" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.logged_propensities">
+<span class="sig-name descname"><span class="pre">logged_propensities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.logged_propensities" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.logged_rewards">
+<span class="sig-name descname"><span class="pre">logged_rewards</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.logged_rewards" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.logged_values">
+<span class="sig-name descname"><span class="pre">logged_values</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.logged_values" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.mdp_id">
+<span class="sig-name descname"><span class="pre">mdp_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.mdp_id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_metrics">
+<span class="sig-name descname"><span class="pre">model_metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_metrics" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_metrics_for_logged_action">
+<span class="sig-name descname"><span class="pre">model_metrics_for_logged_action</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_metrics_for_logged_action" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_metrics_values">
+<span class="sig-name descname"><span class="pre">model_metrics_values</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_metrics_values" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_metrics_values_for_logged_action">
+<span class="sig-name descname"><span class="pre">model_metrics_values_for_logged_action</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_metrics_values_for_logged_action" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_propensities">
+<span class="sig-name descname"><span class="pre">model_propensities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_propensities" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_rewards">
+<span class="sig-name descname"><span class="pre">model_rewards</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_rewards" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_rewards_for_logged_action">
+<span class="sig-name descname"><span class="pre">model_rewards_for_logged_action</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">torch.Tensor</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_rewards_for_logged_action" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_values">
+<span class="sig-name descname"><span class="pre">model_values</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.model_values" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.optimal_q_values">
+<span class="sig-name descname"><span class="pre">optimal_q_values</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.optimal_q_values" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.possible_actions_mask">
+<span class="sig-name descname"><span class="pre">possible_actions_mask</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.possible_actions_mask" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.possible_actions_state_concat">
+<span class="sig-name descname"><span class="pre">possible_actions_state_concat</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.possible_actions_state_concat" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.sequence_number">
+<span class="sig-name descname"><span class="pre">sequence_number</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.sequence_number" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.set_metric_as_reward">
+<span class="sig-name descname"><span class="pre">set_metric_as_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.set_metric_as_reward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.sort">
+<span class="sig-name descname"><span class="pre">sort</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.sort" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluation_data_page.EvaluationDataPage.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage.validate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.evaluation.evaluator">
+<span id="reagent-evaluation-evaluator-module"></span><h2>reagent.evaluation.evaluator module<a class="headerlink" href="#module-reagent.evaluation.evaluator" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluator.Evaluator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.evaluator.</span></span><span class="sig-name descname"><span class="pre">Evaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics_to_score</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluator.Evaluator" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluator.Evaluator.NUM_J_STEPS_FOR_MAGIC_ESTIMATOR">
+<span class="sig-name descname"><span class="pre">NUM_J_STEPS_FOR_MAGIC_ESTIMATOR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">25</span></em><a class="headerlink" href="#reagent.evaluation.evaluator.Evaluator.NUM_J_STEPS_FOR_MAGIC_ESTIMATOR" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluator.Evaluator.add_observer">
+<span class="sig-name descname"><span class="pre">add_observer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.tracker.Observer" title="reagent.core.tracker.Observer"><span class="pre">reagent.core.tracker.Observer</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluator.Evaluator.add_observer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluator.Evaluator.add_observers">
+<span class="sig-name descname"><span class="pre">add_observers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.core.html#reagent.core.tracker.Observer" title="reagent.core.tracker.Observer"><span class="pre">reagent.core.tracker.Observer</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluator.Evaluator.add_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluator.Evaluator.evaluate_post_training">
+<span class="sig-name descname"><span class="pre">evaluate_post_training</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage" title="reagent.evaluation.evaluation_data_page.EvaluationDataPage"><span class="pre">reagent.evaluation.evaluation_data_page.EvaluationDataPage</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.evaluation.cpe.CpeDetails" title="reagent.evaluation.cpe.CpeDetails"><span class="pre">reagent.evaluation.cpe.CpeDetails</span></a></span></span><a class="headerlink" href="#reagent.evaluation.evaluator.Evaluator.evaluate_post_training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluator.Evaluator.get_target_distribution_error">
+<span class="sig-name descname"><span class="pre">get_target_distribution_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_distribution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actual_distribution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluator.Evaluator.get_target_distribution_error" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate MSE between actual and target action distribution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluator.Evaluator.huberLoss">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">huberLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluator.Evaluator.huberLoss" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluator.Evaluator.notify_observers">
+<span class="sig-name descname"><span class="pre">notify_observers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluator.Evaluator.notify_observers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluator.Evaluator.score_cpe">
+<span class="sig-name descname"><span class="pre">score_cpe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage" title="reagent.evaluation.evaluation_data_page.EvaluationDataPage"><span class="pre">reagent.evaluation.evaluation_data_page.EvaluationDataPage</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluator.Evaluator.score_cpe" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluator.get_metrics_to_score">
+<span class="sig-prename descclassname"><span class="pre">reagent.evaluation.evaluator.</span></span><span class="sig-name descname"><span class="pre">get_metrics_to_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_reward_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.evaluation.evaluator.get_metrics_to_score" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.evaluation.evaluator.get_tensor">
+<span class="sig-prename descclassname"><span class="pre">reagent.evaluation.evaluator.</span></span><span class="sig-name descname"><span class="pre">get_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.evaluator.get_tensor" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Input:</dt><dd><ul class="simple">
+<li><p>x: list or a sequence</p></li>
+<li><dl class="simple">
+<dt>dtype: target data type of the elements in tensor [optional]</dt><dd><p>It will be inferred automatically if not provided.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Output:</dt><dd><p>Tensor given a list or a sequence.
+If the input is None, it returns None
+If the input is a tensor it returns the tensor.
+If type is provides the output Tensor will have that type</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-reagent.evaluation.ope_adapter">
+<span id="reagent-evaluation-ope-adapter-module"></span><h2>reagent.evaluation.ope_adapter module<a class="headerlink" href="#module-reagent.evaluation.ope_adapter" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.OPEstimatorAdapter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.ope_adapter.</span></span><span class="sig-name descname"><span class="pre">OPEstimatorAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ope_estimator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.estimator.Estimator" title="reagent.ope.estimators.estimator.Estimator"><span class="pre">reagent.ope.estimators.estimator.Estimator</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.ope_adapter.OPEstimatorAdapter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.OPEstimatorAdapter.edp_to_contextual_bandit_log">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">edp_to_contextual_bandit_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage" title="reagent.evaluation.evaluation_data_page.EvaluationDataPage"><span class="pre">reagent.evaluation.evaluation_data_page.EvaluationDataPage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.contextual_bandits_estimators.BanditsEstimatorInput" title="reagent.ope.estimators.contextual_bandits_estimators.BanditsEstimatorInput"><span class="pre">reagent.ope.estimators.contextual_bandits_estimators.BanditsEstimatorInput</span></a></span></span><a class="headerlink" href="#reagent.evaluation.ope_adapter.OPEstimatorAdapter.edp_to_contextual_bandit_log" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.OPEstimatorAdapter.estimate">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage" title="reagent.evaluation.evaluation_data_page.EvaluationDataPage"><span class="pre">reagent.evaluation.evaluation_data_page.EvaluationDataPage</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a></span></span><a class="headerlink" href="#reagent.evaluation.ope_adapter.OPEstimatorAdapter.estimate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.OPEstimatorAdapter.estimator_result_to_cpe_estimate">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimator_result_to_cpe_estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.estimator.EstimatorResult" title="reagent.ope.estimators.estimator.EstimatorResult"><span class="pre">reagent.ope.estimators.estimator.EstimatorResult</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a></span></span><a class="headerlink" href="#reagent.evaluation.ope_adapter.OPEstimatorAdapter.estimator_result_to_cpe_estimate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.OPEvaluator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.ope_adapter.</span></span><span class="sig-name descname"><span class="pre">OPEvaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics_to_score</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.ope_adapter.OPEvaluator" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.evaluation.evaluator.Evaluator" title="reagent.evaluation.evaluator.Evaluator"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.evaluation.evaluator.Evaluator</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.OPEvaluator.score_cpe">
+<span class="sig-name descname"><span class="pre">score_cpe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage" title="reagent.evaluation.evaluation_data_page.EvaluationDataPage"><span class="pre">reagent.evaluation.evaluation_data_page.EvaluationDataPage</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.ope_adapter.OPEvaluator.score_cpe" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.ope_adapter.</span></span><span class="sig-name descname"><span class="pre">SequentialOPEstimatorAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq_ope_estimator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.RLEstimator" title="reagent.ope.estimators.sequential_estimators.RLEstimator"><span class="pre">reagent.ope.estimators.sequential_estimators.RLEstimator</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.EDPSeqPolicy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">EDPSeqPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_propensities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.EDPSeqPolicy" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.RLPolicy" title="reagent.ope.estimators.sequential_estimators.RLPolicy"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.sequential_estimators.RLPolicy</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.EDPSeqPolicy.action_dist">
+<span class="sig-name descname"><span class="pre">action_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.State" title="reagent.ope.estimators.sequential_estimators.State"><span class="pre">reagent.ope.estimators.sequential_estimators.State</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.types.ActionDistribution" title="reagent.ope.estimators.types.ActionDistribution"><span class="pre">reagent.ope.estimators.types.ActionDistribution</span></a></span></span><a class="headerlink" href="#reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.EDPSeqPolicy.action_dist" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.EDPValueFunc">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">EDPValueFunc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_propensities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.EDPValueFunc" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.ValueFunction" title="reagent.ope.estimators.sequential_estimators.ValueFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.ope.estimators.sequential_estimators.ValueFunction</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.EDPValueFunc.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.EDPValueFunc.reset" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.EDPValueFunc.state_action_value">
+<span class="sig-name descname"><span class="pre">state_action_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.State" title="reagent.ope.estimators.sequential_estimators.State"><span class="pre">reagent.ope.estimators.sequential_estimators.State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.types.TypeWrapper" title="reagent.ope.estimators.types.TypeWrapper"><span class="pre">reagent.ope.estimators.types.TypeWrapper</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.EDPValueFunc.state_action_value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.EDPValueFunc.state_value">
+<span class="sig-name descname"><span class="pre">state_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.State" title="reagent.ope.estimators.sequential_estimators.State"><span class="pre">reagent.ope.estimators.sequential_estimators.State</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.EDPValueFunc.state_value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.edp_to_rl_input">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">edp_to_rl_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage" title="reagent.evaluation.evaluation_data_page.EvaluationDataPage"><span class="pre">reagent.evaluation.evaluation_data_page.EvaluationDataPage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.RLEstimatorInput" title="reagent.ope.estimators.sequential_estimators.RLEstimatorInput"><span class="pre">reagent.ope.estimators.sequential_estimators.RLEstimatorInput</span></a></span></span><a class="headerlink" href="#reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.edp_to_rl_input" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.estimate">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage" title="reagent.evaluation.evaluation_data_page.EvaluationDataPage"><span class="pre">reagent.evaluation.evaluation_data_page.EvaluationDataPage</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a></span></span><a class="headerlink" href="#reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.estimate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.estimator_results_to_cpe_estimate">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimator_results_to_cpe_estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.ope.estimators.html#reagent.ope.estimators.estimator.EstimatorResults" title="reagent.ope.estimators.estimator.EstimatorResults"><span class="pre">reagent.ope.estimators.estimator.EstimatorResults</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a></span></span><a class="headerlink" href="#reagent.evaluation.ope_adapter.SequentialOPEstimatorAdapter.estimator_results_to_cpe_estimate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.evaluation.sequential_doubly_robust_estimator">
+<span id="reagent-evaluation-sequential-doubly-robust-estimator-module"></span><h2>reagent.evaluation.sequential_doubly_robust_estimator module<a class="headerlink" href="#module-reagent.evaluation.sequential_doubly_robust_estimator" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.sequential_doubly_robust_estimator.SequentialDoublyRobustEstimator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.sequential_doubly_robust_estimator.</span></span><span class="sig-name descname"><span class="pre">SequentialDoublyRobustEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.sequential_doubly_robust_estimator.SequentialDoublyRobustEstimator" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.sequential_doubly_robust_estimator.SequentialDoublyRobustEstimator.estimate">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage" title="reagent.evaluation.evaluation_data_page.EvaluationDataPage"><span class="pre">reagent.evaluation.evaluation_data_page.EvaluationDataPage</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a></span></span><a class="headerlink" href="#reagent.evaluation.sequential_doubly_robust_estimator.SequentialDoublyRobustEstimator.estimate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.evaluation.weighted_sequential_doubly_robust_estimator">
+<span id="reagent-evaluation-weighted-sequential-doubly-robust-estimator-module"></span><h2>reagent.evaluation.weighted_sequential_doubly_robust_estimator module<a class="headerlink" href="#module-reagent.evaluation.weighted_sequential_doubly_robust_estimator" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.weighted_sequential_doubly_robust_estimator.</span></span><span class="sig-name descname"><span class="pre">WeightedSequentialDoublyRobustEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.BOOTSTRAP_SAMPLE_PCT">
+<span class="sig-name descname"><span class="pre">BOOTSTRAP_SAMPLE_PCT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></em><a class="headerlink" href="#reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.BOOTSTRAP_SAMPLE_PCT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.CONFIDENCE_INTERVAL">
+<span class="sig-name descname"><span class="pre">CONFIDENCE_INTERVAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.9</span></em><a class="headerlink" href="#reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.CONFIDENCE_INTERVAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.NUM_BOOTSTRAP_SAMPLES">
+<span class="sig-name descname"><span class="pre">NUM_BOOTSTRAP_SAMPLES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></em><a class="headerlink" href="#reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.NUM_BOOTSTRAP_SAMPLES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.NUM_SUBSETS_FOR_CB_ESTIMATES">
+<span class="sig-name descname"><span class="pre">NUM_SUBSETS_FOR_CB_ESTIMATES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">25</span></em><a class="headerlink" href="#reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.NUM_SUBSETS_FOR_CB_ESTIMATES" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.calculate_step_return">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculate_step_return</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rewards</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discounts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">importance_weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">importance_weights_one_earlier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimated_state_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimated_q_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j_step</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.calculate_step_return" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.compute_weighted_doubly_robust_point_estimate">
+<span class="sig-name descname"><span class="pre">compute_weighted_doubly_robust_point_estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">j_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_j_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j_step_returns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infinite_step_returns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j_step_return_trajectories</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.compute_weighted_doubly_robust_point_estimate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.confidence_bounds">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">confidence_bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.confidence_bounds" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.estimate">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.evaluation.evaluation_data_page.EvaluationDataPage" title="reagent.evaluation.evaluation_data_page.EvaluationDataPage"><span class="pre">reagent.evaluation.evaluation_data_page.EvaluationDataPage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_j_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whether_self_normalize_importance_weights</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a></span></span><a class="headerlink" href="#reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.estimate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.normalize_importance_weights">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normalize_importance_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">importance_weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whether_self_normalize_importance_weights</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.normalize_importance_weights" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.transform_to_equal_length_trajectories">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform_to_equal_length_trajectories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mdp_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewards</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logged_propensities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_propensities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimated_q_values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator.transform_to_equal_length_trajectories" title="Permalink to this definition"></a></dt>
+<dd><p>Take in samples (action, rewards, propensities, etc.) and output lists
+of equal-length trajectories (episodes) according to terminals.
+As the raw trajectories are of various lengths, the shorter ones are
+filled with zeros(ones) at the end.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.evaluation.weighted_sequential_doubly_robust_estimator.mse_loss">
+<span class="sig-prename descclassname"><span class="pre">reagent.evaluation.weighted_sequential_doubly_robust_estimator.</span></span><span class="sig-name descname"><span class="pre">mse_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.weighted_sequential_doubly_robust_estimator.mse_loss" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.evaluation.world_model_evaluator">
+<span id="reagent-evaluation-world-model-evaluator-module"></span><h2>reagent.evaluation.world_model_evaluator module<a class="headerlink" href="#module-reagent.evaluation.world_model_evaluator" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.world_model_evaluator.FeatureImportanceEvaluator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.world_model_evaluator.</span></span><span class="sig-name descname"><span class="pre">FeatureImportanceEvaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.world_model.html#reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer" title="reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer"><span class="pre">reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">discrete_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_feature_num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sorted_action_feature_start_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sorted_state_feature_start_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.world_model_evaluator.FeatureImportanceEvaluator" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Evaluate feature importance weights on data pages</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.world_model_evaluator.FeatureImportanceEvaluator.compute_median_feature_value">
+<span class="sig-name descname"><span class="pre">compute_median_feature_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.world_model_evaluator.FeatureImportanceEvaluator.compute_median_feature_value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.world_model_evaluator.FeatureImportanceEvaluator.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.MemoryNetworkInput" title="reagent.core.types.MemoryNetworkInput"><span class="pre">reagent.core.types.MemoryNetworkInput</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.world_model_evaluator.FeatureImportanceEvaluator.evaluate" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate feature importance: setting each state/action feature to
+the mean value and observe loss increase.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.world_model_evaluator.FeatureSensitivityEvaluator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.world_model_evaluator.</span></span><span class="sig-name descname"><span class="pre">FeatureSensitivityEvaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.world_model.html#reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer" title="reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer"><span class="pre">reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sorted_state_feature_start_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.world_model_evaluator.FeatureSensitivityEvaluator" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Evaluate state feature sensitivity caused by varying actions</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.world_model_evaluator.FeatureSensitivityEvaluator.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.MemoryNetworkInput" title="reagent.core.types.MemoryNetworkInput"><span class="pre">reagent.core.types.MemoryNetworkInput</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.world_model_evaluator.FeatureSensitivityEvaluator.evaluate" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate state feature sensitivity due to actions:
+randomly permutating actions and see how much the prediction of next
+state feature deviates.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.evaluation.world_model_evaluator.LossEvaluator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.evaluation.world_model_evaluator.</span></span><span class="sig-name descname"><span class="pre">LossEvaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.world_model.html#reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer" title="reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer"><span class="pre">reagent.training.world_model.mdnrnn_trainer.MDNRNNTrainer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.evaluation.world_model_evaluator.LossEvaluator" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Evaluate losses on data pages</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.evaluation.world_model_evaluator.LossEvaluator.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tdp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.MemoryNetworkInput" title="reagent.core.types.MemoryNetworkInput"><span class="pre">reagent.core.types.MemoryNetworkInput</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.evaluation.world_model_evaluator.LossEvaluator.evaluate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.evaluation">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.evaluation" title="Permalink to this headline"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reagent.gym.html" class="btn btn-neutral float-right" title="reagent.gym package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reagent.html" class="btn btn-neutral float-left" title="reagent package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.gym.tests.preprocessors.html" class="btn btn-neutral float-left" title="reagent.gym.tests.preprocessors package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.evaluation.feature_importance.html" class="btn btn-neutral float-right" title="reagent.evaluation.feature_importance package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

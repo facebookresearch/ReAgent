@@ -12,14 +12,6 @@ reagent.workflow.cli module
    :undoc-members:
    :show-inheritance:
 
-reagent.workflow.data\_fetcher module
--------------------------------------
-
-.. automodule:: reagent.workflow.data_fetcher
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 reagent.workflow.env module
 ---------------------------
 
@@ -40,38 +32,6 @@ reagent.workflow.identify\_types\_flow module
 ---------------------------------------------
 
 .. automodule:: reagent.workflow.identify_types_flow
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-reagent.workflow.result\_registries module
-------------------------------------------
-
-.. automodule:: reagent.workflow.result_registries
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-reagent.workflow.result\_types module
--------------------------------------
-
-.. automodule:: reagent.workflow.result_types
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-reagent.workflow.spark\_utils module
-------------------------------------
-
-.. automodule:: reagent.workflow.spark_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-reagent.workflow.tagged\_union module
--------------------------------------
-
-.. automodule:: reagent.workflow.tagged_union
    :members:
    :undoc-members:
    :show-inheritance:
@@ -107,7 +67,6 @@ reagent.workflow.utils module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

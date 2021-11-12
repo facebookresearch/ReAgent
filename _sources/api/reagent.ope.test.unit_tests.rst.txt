@@ -4,6 +4,14 @@ reagent.ope.test.unit\_tests package
 Submodules
 ----------
 
+reagent.ope.test.unit\_tests.test\_contextual\_bandit\_estimators module
+------------------------------------------------------------------------
+
+.. automodule:: reagent.ope.test.unit_tests.test_contextual_bandit_estimators
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 reagent.ope.test.unit\_tests.test\_slate\_estimators module
 -----------------------------------------------------------
 
@@ -27,7 +35,6 @@ reagent.ope.test.unit\_tests.test\_utils module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

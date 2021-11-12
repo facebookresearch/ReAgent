@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>reagent.workflow package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="License" href="../license.html" />
+    <link rel="next" title="reagent" href="modules.html" />
     <link rel="prev" title="reagent.training.world_model package" href="reagent.training.world_model.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,406 +36,786 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="reagent.html">reagent package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="reagent.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="reagent.evaluation.html">reagent.evaluation package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.gym.html">reagent.gym package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.models.html">reagent.models package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.ope.html">reagent.ope package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.optimizer.html">reagent.optimizer package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.prediction.html">reagent.prediction package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.preprocessing.html">reagent.preprocessing package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.replay_memory.html">reagent.replay_memory package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="reagent.training.html">reagent.training package</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">reagent.workflow package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reagent-workflow-cli-module">reagent.workflow.cli module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.workflow.env">reagent.workflow.env module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.workflow.gym_batch_rl">reagent.workflow.gym_batch_rl module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.workflow.identify_types_flow">reagent.workflow.identify_types_flow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.workflow.training">reagent.workflow.training module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.workflow.training_reports">reagent.workflow.training_reports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.workflow.types">reagent.workflow.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.workflow.utils">reagent.workflow.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.workflow">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.base_dataclass">reagent.base_dataclass module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.debug_on_error">reagent.debug_on_error module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.json_serialize">reagent.json_serialize module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#reagent-parameters-module">reagent.parameters module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.parameters_seq2slate">reagent.parameters_seq2slate module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.tensorboardX">reagent.tensorboardX module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.torch_utils">reagent.torch_utils module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent.types">reagent.types module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reagent.html#module-reagent">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
 </ul>
-</li>
-</ul>
-</li>
-</ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-          <li><a href="modules.html">reagent</a> &raquo;</li>
-        
-          <li><a href="reagent.html">reagent package</a> &raquo;</li>
-        
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
       <li>reagent.workflow package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/reagent.workflow.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-workflow-package">
-<h1>reagent.workflow package<a class="headerlink" href="#reagent-workflow-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.workflow.cli">
-<span id="reagent-workflow-cli-module"></span><h2>reagent.workflow.cli module<a class="headerlink" href="#module-reagent.workflow.cli" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="reagent.workflow.cli.select_relevant_params">
-<code class="sig-prename descclassname">reagent.workflow.cli.</code><code class="sig-name descname">select_relevant_params</code><span class="sig-paren">(</span><em class="sig-param">config_dict</em>, <em class="sig-param">ConfigClass</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.cli.select_relevant_params" title="Permalink to this definition">¶</a></dt>
+             
+  <section id="reagent-workflow-package">
+<h1>reagent.workflow package<a class="headerlink" href="#reagent-workflow-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="reagent-workflow-cli-module">
+<h2>reagent.workflow.cli module<a class="headerlink" href="#reagent-workflow-cli-module" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.workflow.env">
+<span id="reagent-workflow-env-module"></span><h2>reagent.workflow.env module<a class="headerlink" href="#module-reagent.workflow.env" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.env.get_new_named_entity_ids">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.env.</span></span><span class="sig-name descname"><span class="pre">get_new_named_entity_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.workflow.env.get_new_named_entity_ids" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="reagent-workflow-data-fetcher-module">
-<h2>reagent.workflow.data_fetcher module<a class="headerlink" href="#reagent-workflow-data-fetcher-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.workflow.env">
-<span id="reagent-workflow-env-module"></span><h2>reagent.workflow.env module<a class="headerlink" href="#module-reagent.workflow.env" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="reagent.workflow.env.get_workflow_id">
-<code class="sig-prename descclassname">reagent.workflow.env.</code><code class="sig-name descname">get_workflow_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#reagent.workflow.env.get_workflow_id" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.env.get_workflow_id">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.env.</span></span><span class="sig-name descname"><span class="pre">get_workflow_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#reagent.workflow.env.get_workflow_id" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="reagent-workflow-gym-batch-rl-module">
-<h2>reagent.workflow.gym_batch_rl module<a class="headerlink" href="#reagent-workflow-gym-batch-rl-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-workflow-identify-types-flow-module">
-<h2>reagent.workflow.identify_types_flow module<a class="headerlink" href="#reagent-workflow-identify-types-flow-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.workflow.result_registries">
-<span id="reagent-workflow-result-registries-module"></span><h2>reagent.workflow.result_registries module<a class="headerlink" href="#module-reagent.workflow.result_registries" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.workflow.result_registries.PublishingResult">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.result_registries.</code><code class="sig-name descname">PublishingResult</code><span class="sig-paren">(</span><em class="sig-param">success: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.result_registries.PublishingResult" title="Permalink to this definition">¶</a></dt>
+</section>
+<section id="module-reagent.workflow.gym_batch_rl">
+<span id="reagent-workflow-gym-batch-rl-module"></span><h2>reagent.workflow.gym_batch_rl module<a class="headerlink" href="#module-reagent.workflow.gym_batch_rl" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.gym_batch_rl.evaluate_gym">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.gym_batch_rl.</span></span><span class="sig-name descname"><span class="pre">evaluate_gym</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.union.ModelManager__Union" title="reagent.model_managers.union.ModelManager__Union"><span class="pre">reagent.model_managers.union.ModelManager__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">publisher</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.publishers.html#reagent.publishers.union.ModelPublisher__Union" title="reagent.publishers.union.ModelPublisher__Union"><span class="pre">reagent.publishers.union.ModelPublisher__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_eval_episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passing_score_bar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'default_model'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.gym_batch_rl.evaluate_gym" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.gym_batch_rl.initialize_seed">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.gym_batch_rl.</span></span><span class="sig-name descname"><span class="pre">initialize_seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.gym_batch_rl.initialize_seed" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.gym_batch_rl.make_agent_from_model">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.gym_batch_rl.</span></span><span class="sig-name descname"><span class="pre">make_agent_from_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.gym.envs.html#reagent.gym.envs.gym.Gym" title="reagent.gym.envs.gym.Gym"><span class="pre">reagent.gym.envs.gym.Gym</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.union.ModelManager__Union" title="reagent.model_managers.union.ModelManager__Union"><span class="pre">reagent.model_managers.union.ModelManager__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">publisher</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.publishers.html#reagent.publishers.union.ModelPublisher__Union" title="reagent.publishers.union.ModelPublisher__Union"><span class="pre">reagent.publishers.union.ModelPublisher__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">module_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.gym_batch_rl.make_agent_from_model" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.gym_batch_rl.offline_gym_predictor">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.gym_batch_rl.</span></span><span class="sig-name descname"><span class="pre">offline_gym_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.union.ModelManager__Union" title="reagent.model_managers.union.ModelManager__Union"><span class="pre">reagent.model_managers.union.ModelManager__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">publisher</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.publishers.html#reagent.publishers.union.ModelPublisher__Union" title="reagent.publishers.union.ModelPublisher__Union"><span class="pre">reagent.publishers.union.ModelPublisher__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">pkl_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_train_transitions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'default_model'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.gym_batch_rl.offline_gym_predictor" title="Permalink to this definition"></a></dt>
+<dd><p>Generate samples from a trained Policy on the Gym environment and
+saves results in a pandas df parquet.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.gym_batch_rl.offline_gym_random">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.gym_batch_rl.</span></span><span class="sig-name descname"><span class="pre">offline_gym_random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pkl_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_train_transitions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.gym_batch_rl.offline_gym_random" title="Permalink to this definition"></a></dt>
+<dd><p>Generate samples from a random Policy on the Gym environment and
+saves results in a pandas df parquet.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.gym_batch_rl.timeline_operator">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.gym_batch_rl.</span></span><span class="sig-name descname"><span class="pre">timeline_operator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pkl_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.gym_batch_rl.timeline_operator" title="Permalink to this definition"></a></dt>
+<dd><p>Loads a pandas parquet, converts to pyspark, and uploads df to Hive.
+Then call the timeline operator.</p>
+</dd></dl>
+
+</section>
+<section id="module-reagent.workflow.identify_types_flow">
+<span id="reagent-workflow-identify-types-flow-module"></span><h2>reagent.workflow.identify_types_flow module<a class="headerlink" href="#module-reagent.workflow.identify_types_flow" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.identify_types_flow.create_normalization_spec_spark">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.identify_types_flow.</span></span><span class="sig-name descname"><span class="pre">create_normalization_spec_spark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.identify_types_flow.create_normalization_spec_spark" title="Permalink to this definition"></a></dt>
+<dd><p>Returns approximately num_samples random rows from column of df.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.identify_types_flow.identify_normalization_parameters">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.identify_types_flow.</span></span><span class="sig-name descname"><span class="pre">identify_normalization_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessing_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.workflow.types.PreprocessingOptions" title="reagent.workflow.types.PreprocessingOptions"><span class="pre">reagent.workflow.types.PreprocessingOptions</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationParameters" title="reagent.core.parameters.NormalizationParameters"><span class="pre">reagent.core.parameters.NormalizationParameters</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.workflow.identify_types_flow.identify_normalization_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Get normalization parameters</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.identify_types_flow.identify_sparse_normalization_parameters">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.identify_types_flow.</span></span><span class="sig-name descname"><span class="pre">identify_sparse_normalization_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_list_column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_score_list_column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocessing_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.workflow.types.PreprocessingOptions" title="reagent.workflow.types.PreprocessingOptions"><span class="pre">reagent.workflow.types.PreprocessingOptions</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.identify_types_flow.identify_sparse_normalization_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.identify_types_flow.normalization_helper">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.identify_types_flow.</span></span><span class="sig-name descname"><span class="pre">normalization_helper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_unique_enum_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantile_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantile_k2_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_box_cox</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_overrides</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowedlist_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assert_allowedlist_feature_coverage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.identify_types_flow.normalization_helper" title="Permalink to this definition"></a></dt>
+<dd><p>Construct a preprocessing closure to obtain normalization parameters
+from rows of feature_name and a sample of feature_values.</p>
+</dd></dl>
+
+</section>
+<section id="module-reagent.workflow.training">
+<span id="reagent-workflow-training-module"></span><h2>reagent.workflow.training module<a class="headerlink" href="#module-reagent.workflow.training" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.training.identify_and_train_network">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.training.</span></span><span class="sig-name descname"><span class="pre">identify_and_train_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.union.ModelManager__Union" title="reagent.model_managers.union.ModelManager__Union"><span class="pre">reagent.model_managers.union.ModelManager__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.ReaderOptions" title="reagent.workflow.types.ReaderOptions"><span class="pre">reagent.workflow.types.ReaderOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.ResourceOptions" title="reagent.workflow.types.ResourceOptions"><span class="pre">reagent.workflow.types.ResourceOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmstart_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.validators.html#reagent.validators.union.ModelValidator__Union" title="reagent.validators.union.ModelValidator__Union"><span class="pre">reagent.validators.union.ModelValidator__Union</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">publisher</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.publishers.html#reagent.publishers.union.ModelPublisher__Union" title="reagent.publishers.union.ModelPublisher__Union"><span class="pre">reagent.publishers.union.ModelPublisher__Union</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.workflow.types.RLTrainingOutput" title="reagent.workflow.types.RLTrainingOutput"><span class="pre">reagent.workflow.types.RLTrainingOutput</span></a></span></span><a class="headerlink" href="#reagent.workflow.training.identify_and_train_network" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.training.query_and_train">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.training.</span></span><span class="sig-name descname"><span class="pre">query_and_train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_table_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.workflow.types.TableSpec" title="reagent.workflow.types.TableSpec"><span class="pre">reagent.workflow.types.TableSpec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.union.ModelManager__Union" title="reagent.model_managers.union.ModelManager__Union"><span class="pre">reagent.model_managers.union.ModelManager__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saved_setup_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.ReaderOptions" title="reagent.workflow.types.ReaderOptions"><span class="pre">reagent.workflow.types.ReaderOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.ResourceOptions" title="reagent.workflow.types.ResourceOptions"><span class="pre">reagent.workflow.types.ResourceOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmstart_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.validators.html#reagent.validators.union.ModelValidator__Union" title="reagent.validators.union.ModelValidator__Union"><span class="pre">reagent.validators.union.ModelValidator__Union</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">publisher</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.publishers.html#reagent.publishers.union.ModelPublisher__Union" title="reagent.publishers.union.ModelPublisher__Union"><span class="pre">reagent.publishers.union.ModelPublisher__Union</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">named_model_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurring_period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.workflow.types.RLTrainingOutput" title="reagent.workflow.types.RLTrainingOutput"><span class="pre">reagent.workflow.types.RLTrainingOutput</span></a></span></span><a class="headerlink" href="#reagent.workflow.training.query_and_train" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.training.run_publisher">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.training.</span></span><span class="sig-name descname"><span class="pre">run_publisher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">publisher</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.publishers.html#reagent.publishers.union.ModelPublisher__Union" title="reagent.publishers.union.ModelPublisher__Union"><span class="pre">reagent.publishers.union.ModelPublisher__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_chooser</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.union.ModelManager__Union" title="reagent.model_managers.union.ModelManager__Union"><span class="pre">reagent.model_managers.union.ModelManager__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.workflow.types.RLTrainingOutput" title="reagent.workflow.types.RLTrainingOutput"><span class="pre">reagent.workflow.types.RLTrainingOutput</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurring_workflow_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">child_workflow_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recurring_period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime.datetime</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.workflow.types.RLTrainingOutput" title="reagent.workflow.types.RLTrainingOutput"><span class="pre">reagent.workflow.types.RLTrainingOutput</span></a></span></span><a class="headerlink" href="#reagent.workflow.training.run_publisher" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.training.run_validator">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.training.</span></span><span class="sig-name descname"><span class="pre">run_validator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">validator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.validators.html#reagent.validators.union.ModelValidator__Union" title="reagent.validators.union.ModelValidator__Union"><span class="pre">reagent.validators.union.ModelValidator__Union</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.workflow.types.RLTrainingOutput" title="reagent.workflow.types.RLTrainingOutput"><span class="pre">reagent.workflow.types.RLTrainingOutput</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.workflow.types.RLTrainingOutput" title="reagent.workflow.types.RLTrainingOutput"><span class="pre">reagent.workflow.types.RLTrainingOutput</span></a></span></span><a class="headerlink" href="#reagent.workflow.training.run_validator" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.training.train_workflow">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.training.</span></span><span class="sig-name descname"><span class="pre">train_workflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_manager</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.model_manager.ModelManager" title="reagent.model_managers.model_manager.ModelManager"><span class="pre">reagent.model_managers.model_manager.ModelManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_epochs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">named_model_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">child_workflow_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.ReaderOptions" title="reagent.workflow.types.ReaderOptions"><span class="pre">reagent.workflow.types.ReaderOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.ResourceOptions" title="reagent.workflow.types.ResourceOptions"><span class="pre">reagent.workflow.types.ResourceOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmstart_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#reagent.workflow.types.RLTrainingOutput" title="reagent.workflow.types.RLTrainingOutput"><span class="pre">reagent.workflow.types.RLTrainingOutput</span></a></span></span><a class="headerlink" href="#reagent.workflow.training.train_workflow" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.workflow.training_reports">
+<span id="reagent-workflow-training-reports-module"></span><h2>reagent.workflow.training_reports module<a class="headerlink" href="#module-reagent.workflow.training_reports" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.ActorCriticTrainingReport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.training_reports.</span></span><span class="sig-name descname"><span class="pre">ActorCriticTrainingReport</span></span><a class="headerlink" href="#reagent.workflow.training_reports.ActorCriticTrainingReport" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.result_registries.TrainingReport" title="reagent.core.result_registries.TrainingReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.result_registries.TrainingReport</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.DQNTrainingReport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.training_reports.</span></span><span class="sig-name descname"><span class="pre">DQNTrainingReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">td_loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_ips</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_dm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_dr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_sequential_dr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_weighted_dr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_magic_dr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.result_registries.TrainingReport" title="reagent.core.result_registries.TrainingReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.result_registries.TrainingReport</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.DQNTrainingReport.reward_dm">
+<span class="sig-name descname"><span class="pre">reward_dm</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.reward_dm" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.DQNTrainingReport.reward_dr">
+<span class="sig-name descname"><span class="pre">reward_dr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.reward_dr" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.DQNTrainingReport.reward_ips">
+<span class="sig-name descname"><span class="pre">reward_ips</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.reward_ips" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.DQNTrainingReport.td_loss">
+<span class="sig-name descname"><span class="pre">td_loss</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.td_loss" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.DQNTrainingReport.value_magic_dr">
+<span class="sig-name descname"><span class="pre">value_magic_dr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.value_magic_dr" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.DQNTrainingReport.value_sequential_dr">
+<span class="sig-name descname"><span class="pre">value_sequential_dr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.value_sequential_dr" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.DQNTrainingReport.value_weighted_dr">
+<span class="sig-name descname"><span class="pre">value_weighted_dr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimate" title="reagent.evaluation.cpe.CpeEstimate"><span class="pre">reagent.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.value_weighted_dr" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.ParametricDQNTrainingReport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.training_reports.</span></span><span class="sig-name descname"><span class="pre">ParametricDQNTrainingReport</span></span><a class="headerlink" href="#reagent.workflow.training_reports.ParametricDQNTrainingReport" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.result_registries.TrainingReport" title="reagent.core.result_registries.TrainingReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.result_registries.TrainingReport</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.Seq2RewardTrainingReport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.training_reports.</span></span><span class="sig-name descname"><span class="pre">Seq2RewardTrainingReport</span></span><a class="headerlink" href="#reagent.workflow.training_reports.Seq2RewardTrainingReport" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.result_registries.TrainingReport" title="reagent.core.result_registries.TrainingReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.result_registries.TrainingReport</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.SlateQTrainingReport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.training_reports.</span></span><span class="sig-name descname"><span class="pre">SlateQTrainingReport</span></span><a class="headerlink" href="#reagent.workflow.training_reports.SlateQTrainingReport" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.result_registries.TrainingReport" title="reagent.core.result_registries.TrainingReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.result_registries.TrainingReport</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.training_reports.WorldModelTrainingReport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.training_reports.</span></span><span class="sig-name descname"><span class="pre">WorldModelTrainingReport</span></span><a class="headerlink" href="#reagent.workflow.training_reports.WorldModelTrainingReport" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.result_registries.TrainingReport" title="reagent.core.result_registries.TrainingReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.result_registries.TrainingReport</span></code></a></p>
+</dd></dl>
+
+</section>
+<section id="module-reagent.workflow.types">
+<span id="reagent-workflow-types-module"></span><h2>reagent.workflow.types module<a class="headerlink" href="#module-reagent.workflow.types" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.types.Dataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.types.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parquet_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.Dataset" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="attribute">
-<dt id="reagent.workflow.result_registries.PublishingResult.REGISTRY">
-<code class="sig-name descname">REGISTRY</code><em class="property"> = {'no_publishing_results': &lt;class 'reagent.workflow.result_types.NoPublishingResults'&gt;}</em><a class="headerlink" href="#reagent.workflow.result_registries.PublishingResult.REGISTRY" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.workflow.result_registries.PublishingResult.REGISTRY_FROZEN">
-<code class="sig-name descname">REGISTRY_FROZEN</code><em class="property"> = False</em><a class="headerlink" href="#reagent.workflow.result_registries.PublishingResult.REGISTRY_FROZEN" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.workflow.result_registries.PublishingResult.REGISTRY_NAME">
-<code class="sig-name descname">REGISTRY_NAME</code><em class="property"> = 'PublishingResult'</em><a class="headerlink" href="#reagent.workflow.result_registries.PublishingResult.REGISTRY_NAME" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.Dataset.parquet_url">
+<span class="sig-name descname"><span class="pre">parquet_url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#reagent.workflow.types.Dataset.parquet_url" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="reagent.workflow.result_registries.TrainingReport">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.result_registries.</code><code class="sig-name descname">TrainingReport</code><a class="headerlink" href="#reagent.workflow.result_registries.TrainingReport" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.types.ModelFeatureConfigProvider__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.types.</span></span><span class="sig-name descname"><span class="pre">ModelFeatureConfigProvider__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.models.html#reagent.models.model_feature_config_provider.RawModelFeatureConfigProvider" title="reagent.models.model_feature_config_provider.RawModelFeatureConfigProvider"><span class="pre">reagent.models.model_feature_config_provider.RawModelFeatureConfigProvider</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.ModelFeatureConfigProvider__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.workflow.types.ModelFeatureConfigProvider__Union.make_union_instance">
+<span class="sig-name descname"><span class="pre">make_union_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.ModelFeatureConfigProvider__Union.make_union_instance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.ModelFeatureConfigProvider__Union.raw">
+<span class="sig-name descname"><span class="pre">raw</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.models.html#reagent.models.model_feature_config_provider.RawModelFeatureConfigProvider" title="reagent.models.model_feature_config_provider.RawModelFeatureConfigProvider"><span class="pre">reagent.models.model_feature_config_provider.RawModelFeatureConfigProvider</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.ModelFeatureConfigProvider__Union.raw" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.types.PreprocessingOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.types.</span></span><span class="sig-name descname"><span class="pre">PreprocessingOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_unique_enum_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantile_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantile_k2_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_box_cox</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_overrides</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tablesample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_missing_value_to_zero</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowedlist_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assert_allowedlist_feature_coverage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.PreprocessingOptions" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="attribute">
-<dt id="reagent.workflow.result_registries.TrainingReport.REGISTRY">
-<code class="sig-name descname">REGISTRY</code><em class="property"> = {'actor_critic_report': &lt;class 'reagent.workflow.training_reports.ActorCriticTrainingReport'&gt;, 'dqn_report': &lt;class 'reagent.workflow.training_reports.DQNTrainingReport'&gt;, 'parametric_dqn_report': &lt;class 'reagent.workflow.training_reports.ParametricDQNTrainingReport'&gt;}</em><a class="headerlink" href="#reagent.workflow.result_registries.TrainingReport.REGISTRY" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.PreprocessingOptions.allowedlist_features">
+<span class="sig-name descname"><span class="pre">allowedlist_features</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.PreprocessingOptions.allowedlist_features" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="reagent.workflow.result_registries.TrainingReport.REGISTRY_FROZEN">
-<code class="sig-name descname">REGISTRY_FROZEN</code><em class="property"> = False</em><a class="headerlink" href="#reagent.workflow.result_registries.TrainingReport.REGISTRY_FROZEN" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.PreprocessingOptions.assert_allowedlist_feature_coverage">
+<span class="sig-name descname"><span class="pre">assert_allowedlist_feature_coverage</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.workflow.types.PreprocessingOptions.assert_allowedlist_feature_coverage" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="reagent.workflow.result_registries.TrainingReport.REGISTRY_NAME">
-<code class="sig-name descname">REGISTRY_NAME</code><em class="property"> = 'TrainingReport'</em><a class="headerlink" href="#reagent.workflow.result_registries.TrainingReport.REGISTRY_NAME" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.PreprocessingOptions.feature_overrides">
+<span class="sig-name descname"><span class="pre">feature_overrides</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.PreprocessingOptions.feature_overrides" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.PreprocessingOptions.max_unique_enum_values">
+<span class="sig-name descname"><span class="pre">max_unique_enum_values</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#reagent.workflow.types.PreprocessingOptions.max_unique_enum_values" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.PreprocessingOptions.num_samples">
+<span class="sig-name descname"><span class="pre">num_samples</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100000</span></em><a class="headerlink" href="#reagent.workflow.types.PreprocessingOptions.num_samples" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.PreprocessingOptions.quantile_k2_threshold">
+<span class="sig-name descname"><span class="pre">quantile_k2_threshold</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000.0</span></em><a class="headerlink" href="#reagent.workflow.types.PreprocessingOptions.quantile_k2_threshold" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.PreprocessingOptions.quantile_size">
+<span class="sig-name descname"><span class="pre">quantile_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></em><a class="headerlink" href="#reagent.workflow.types.PreprocessingOptions.quantile_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.PreprocessingOptions.set_missing_value_to_zero">
+<span class="sig-name descname"><span class="pre">set_missing_value_to_zero</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#reagent.workflow.types.PreprocessingOptions.set_missing_value_to_zero" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.PreprocessingOptions.skip_box_cox">
+<span class="sig-name descname"><span class="pre">skip_box_cox</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#reagent.workflow.types.PreprocessingOptions.skip_box_cox" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.PreprocessingOptions.skip_quantiles">
+<span class="sig-name descname"><span class="pre">skip_quantiles</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.workflow.types.PreprocessingOptions.skip_quantiles" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.PreprocessingOptions.tablesample">
+<span class="sig-name descname"><span class="pre">tablesample</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.PreprocessingOptions.tablesample" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="reagent.workflow.result_registries.ValidationResult">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.result_registries.</code><code class="sig-name descname">ValidationResult</code><span class="sig-paren">(</span><em class="sig-param">should_publish: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.result_registries.ValidationResult" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.types.PublishingResult__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.types.</span></span><span class="sig-name descname"><span class="pre">PublishingResult__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">no_publishing_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.core.html#reagent.core.result_types.NoPublishingResults" title="reagent.core.result_types.NoPublishingResults"><span class="pre">reagent.core.result_types.NoPublishingResults</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.PublishingResult__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.workflow.types.PublishingResult__Union.make_union_instance">
+<span class="sig-name descname"><span class="pre">make_union_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.PublishingResult__Union.make_union_instance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.PublishingResult__Union.no_publishing_results">
+<span class="sig-name descname"><span class="pre">no_publishing_results</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.core.html#reagent.core.result_types.NoPublishingResults" title="reagent.core.result_types.NoPublishingResults"><span class="pre">reagent.core.result_types.NoPublishingResults</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.PublishingResult__Union.no_publishing_results" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingOutput">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.types.</span></span><span class="sig-name descname"><span class="pre">RLTrainingOutput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_paths:</span> <span class="pre">Dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">str]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_result:</span> <span class="pre">Optional[reagent.workflow.types.ValidationResult__Union]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">publishing_result:</span> <span class="pre">Optional[reagent.workflow.types.PublishingResult__Union]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_report:</span> <span class="pre">Optional[reagent.workflow.types.RLTrainingReport]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_data:</span> <span class="pre">Dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">List[Tuple[float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">float]]]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.RLTrainingOutput" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="attribute">
-<dt id="reagent.workflow.result_registries.ValidationResult.REGISTRY">
-<code class="sig-name descname">REGISTRY</code><em class="property"> = {'no_validation_results': &lt;class 'reagent.workflow.result_types.NoValidationResults'&gt;}</em><a class="headerlink" href="#reagent.workflow.result_registries.ValidationResult.REGISTRY" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingOutput.logger_data">
+<span class="sig-name descname"><span class="pre">logger_data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.workflow.types.RLTrainingOutput.logger_data" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="reagent.workflow.result_registries.ValidationResult.REGISTRY_FROZEN">
-<code class="sig-name descname">REGISTRY_FROZEN</code><em class="property"> = False</em><a class="headerlink" href="#reagent.workflow.result_registries.ValidationResult.REGISTRY_FROZEN" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingOutput.output_paths">
+<span class="sig-name descname"><span class="pre">output_paths</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.workflow.types.RLTrainingOutput.output_paths" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="reagent.workflow.result_registries.ValidationResult.REGISTRY_NAME">
-<code class="sig-name descname">REGISTRY_NAME</code><em class="property"> = 'ValidationResult'</em><a class="headerlink" href="#reagent.workflow.result_registries.ValidationResult.REGISTRY_NAME" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingOutput.publishing_result">
+<span class="sig-name descname"><span class="pre">publishing_result</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.PublishingResult__Union" title="reagent.workflow.types.PublishingResult__Union"><span class="pre">reagent.workflow.types.PublishingResult__Union</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.RLTrainingOutput.publishing_result" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingOutput.training_report">
+<span class="sig-name descname"><span class="pre">training_report</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.RLTrainingReport" title="reagent.workflow.types.RLTrainingReport"><span class="pre">reagent.workflow.types.RLTrainingReport</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.RLTrainingOutput.training_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingOutput.validation_result">
+<span class="sig-name descname"><span class="pre">validation_result</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.ValidationResult__Union" title="reagent.workflow.types.ValidationResult__Union"><span class="pre">reagent.workflow.types.ValidationResult__Union</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.RLTrainingOutput.validation_result" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.workflow.result_types">
-<span id="reagent-workflow-result-types-module"></span><h2>reagent.workflow.result_types module<a class="headerlink" href="#module-reagent.workflow.result_types" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.workflow.result_types.NoPublishingResults">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.result_types.</code><code class="sig-name descname">NoPublishingResults</code><span class="sig-paren">(</span><em class="sig-param">success: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.result_types.NoPublishingResults" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#reagent.workflow.result_registries.PublishingResult" title="reagent.workflow.result_registries.PublishingResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.workflow.result_registries.PublishingResult</span></code></a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingReport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.types.</span></span><span class="sig-name descname"><span class="pre">RLTrainingReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dqn_report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.training_reports.DQNTrainingReport" title="reagent.workflow.training_reports.DQNTrainingReport"><span class="pre">reagent.workflow.training_reports.DQNTrainingReport</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_critic_report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.training_reports.ActorCriticTrainingReport" title="reagent.workflow.training_reports.ActorCriticTrainingReport"><span class="pre">reagent.workflow.training_reports.ActorCriticTrainingReport</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">world_model_report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.training_reports.WorldModelTrainingReport" title="reagent.workflow.training_reports.WorldModelTrainingReport"><span class="pre">reagent.workflow.training_reports.WorldModelTrainingReport</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parametric_dqn_report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.training_reports.ParametricDQNTrainingReport" title="reagent.workflow.training_reports.ParametricDQNTrainingReport"><span class="pre">reagent.workflow.training_reports.ParametricDQNTrainingReport</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slate_q_report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.training_reports.SlateQTrainingReport" title="reagent.workflow.training_reports.SlateQTrainingReport"><span class="pre">reagent.workflow.training_reports.SlateQTrainingReport</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq2reward_report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.training_reports.Seq2RewardTrainingReport" title="reagent.workflow.training_reports.Seq2RewardTrainingReport"><span class="pre">reagent.workflow.training_reports.Seq2RewardTrainingReport</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.RLTrainingReport" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingReport.actor_critic_report">
+<span class="sig-name descname"><span class="pre">actor_critic_report</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.training_reports.ActorCriticTrainingReport" title="reagent.workflow.training_reports.ActorCriticTrainingReport"><span class="pre">reagent.workflow.training_reports.ActorCriticTrainingReport</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.RLTrainingReport.actor_critic_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingReport.dqn_report">
+<span class="sig-name descname"><span class="pre">dqn_report</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.training_reports.DQNTrainingReport" title="reagent.workflow.training_reports.DQNTrainingReport"><span class="pre">reagent.workflow.training_reports.DQNTrainingReport</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.RLTrainingReport.dqn_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingReport.make_union_instance">
+<span class="sig-name descname"><span class="pre">make_union_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.RLTrainingReport.make_union_instance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingReport.parametric_dqn_report">
+<span class="sig-name descname"><span class="pre">parametric_dqn_report</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.training_reports.ParametricDQNTrainingReport" title="reagent.workflow.training_reports.ParametricDQNTrainingReport"><span class="pre">reagent.workflow.training_reports.ParametricDQNTrainingReport</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.RLTrainingReport.parametric_dqn_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingReport.seq2reward_report">
+<span class="sig-name descname"><span class="pre">seq2reward_report</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.training_reports.Seq2RewardTrainingReport" title="reagent.workflow.training_reports.Seq2RewardTrainingReport"><span class="pre">reagent.workflow.training_reports.Seq2RewardTrainingReport</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.RLTrainingReport.seq2reward_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingReport.slate_q_report">
+<span class="sig-name descname"><span class="pre">slate_q_report</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.training_reports.SlateQTrainingReport" title="reagent.workflow.training_reports.SlateQTrainingReport"><span class="pre">reagent.workflow.training_reports.SlateQTrainingReport</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.RLTrainingReport.slate_q_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RLTrainingReport.world_model_report">
+<span class="sig-name descname"><span class="pre">world_model_report</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.training_reports.WorldModelTrainingReport" title="reagent.workflow.training_reports.WorldModelTrainingReport"><span class="pre">reagent.workflow.training_reports.WorldModelTrainingReport</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.RLTrainingReport.world_model_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
-<dl class="class">
-<dt id="reagent.workflow.result_types.NoValidationResults">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.result_types.</code><code class="sig-name descname">NoValidationResults</code><span class="sig-paren">(</span><em class="sig-param">should_publish: bool</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.result_types.NoValidationResults" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#reagent.workflow.result_registries.ValidationResult" title="reagent.workflow.result_registries.ValidationResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.workflow.result_registries.ValidationResult</span></code></a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.types.ReaderOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.types.</span></span><span class="sig-name descname"><span class="pre">ReaderOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">minibatch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">petastorm_reader_pool_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'thread'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.ReaderOptions" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.ReaderOptions.minibatch_size">
+<span class="sig-name descname"><span class="pre">minibatch_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1024</span></em><a class="headerlink" href="#reagent.workflow.types.ReaderOptions.minibatch_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.ReaderOptions.petastorm_reader_pool_type">
+<span class="sig-name descname"><span class="pre">petastorm_reader_pool_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'thread'</span></em><a class="headerlink" href="#reagent.workflow.types.ReaderOptions.petastorm_reader_pool_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
-</div>
-<div class="section" id="module-reagent.workflow.spark_utils">
-<span id="reagent-workflow-spark-utils-module"></span><h2>reagent.workflow.spark_utils module<a class="headerlink" href="#module-reagent.workflow.spark_utils" title="Permalink to this headline">¶</a></h2>
-<dl class="data">
-<dt id="reagent.workflow.spark_utils.SPARK_JAR_FROM_ROOT_DIR">
-<code class="sig-prename descclassname">reagent.workflow.spark_utils.</code><code class="sig-name descname">SPARK_JAR_FROM_ROOT_DIR</code><em class="property"> = 'preprocessing/target/rl-preprocessing-1.1.jar'</em><a class="headerlink" href="#reagent.workflow.spark_utils.SPARK_JAR_FROM_ROOT_DIR" title="Permalink to this definition">¶</a></dt>
-<dd><p>SPARK_JAR is abspath to the above jar file.</p>
-<p>Assume file structure
-ReAgent/</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.types.ResourceOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.types.</span></span><span class="sig-name descname"><span class="pre">ResourceOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'40g'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.ResourceOptions" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.ResourceOptions.cpu">
+<span class="sig-name descname"><span class="pre">cpu</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.ResourceOptions.cpu" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.ResourceOptions.gpu">
+<span class="sig-name descname"><span class="pre">gpu</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#reagent.workflow.types.ResourceOptions.gpu" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.ResourceOptions.max_nodes">
+<span class="sig-name descname"><span class="pre">max_nodes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#reagent.workflow.types.ResourceOptions.max_nodes" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.ResourceOptions.memory">
+<span class="sig-name descname"><span class="pre">memory</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'40g'</span></em><a class="headerlink" href="#reagent.workflow.types.ResourceOptions.memory" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.ResourceOptions.min_nodes">
+<span class="sig-name descname"><span class="pre">min_nodes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#reagent.workflow.types.ResourceOptions.min_nodes" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.workflow.types.ResourceOptions.use_gpu">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">use_gpu</span></span><a class="headerlink" href="#reagent.workflow.types.ResourceOptions.use_gpu" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.types.RewardOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.types.</span></span><span class="sig-name descname"><span class="pre">RewardOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">custom_reward_expression</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_reward_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.RewardOptions" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RewardOptions.custom_reward_expression">
+<span class="sig-name descname"><span class="pre">custom_reward_expression</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.RewardOptions.custom_reward_expression" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.RewardOptions.metric_reward_values">
+<span class="sig-name descname"><span class="pre">metric_reward_values</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.RewardOptions.metric_reward_values" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.types.TableSpec">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.types.</span></span><span class="sig-name descname"><span class="pre">TableSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_table_sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_table_sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.TableSpec" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.TableSpec.eval_table_sample">
+<span class="sig-name descname"><span class="pre">eval_table_sample</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.TableSpec.eval_table_sample" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.TableSpec.table_name">
+<span class="sig-name descname"><span class="pre">table_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#reagent.workflow.types.TableSpec.table_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.TableSpec.table_sample">
+<span class="sig-name descname"><span class="pre">table_sample</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.TableSpec.table_sample" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.TableSpec.test_table_sample">
+<span class="sig-name descname"><span class="pre">test_table_sample</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.TableSpec.test_table_sample" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.types.TrainerConf">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.types.</span></span><span class="sig-name descname"><span class="pre">TrainerConf</span></span><a class="headerlink" href="#reagent.workflow.types.TrainerConf" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.types.ValidationResult__Union">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.types.</span></span><span class="sig-name descname"><span class="pre">ValidationResult__Union</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">no_validation_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.core.html#reagent.core.result_types.NoValidationResults" title="reagent.core.result_types.NoValidationResults"><span class="pre">reagent.core.result_types.NoValidationResults</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.ValidationResult__Union" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.core.html#reagent.core.tagged_union.TaggedUnion" title="reagent.core.tagged_union.TaggedUnion"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.core.tagged_union.TaggedUnion</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.workflow.types.ValidationResult__Union.make_union_instance">
+<span class="sig-name descname"><span class="pre">make_union_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.types.ValidationResult__Union.make_union_instance" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.workflow.types.ValidationResult__Union.no_validation_results">
+<span class="sig-name descname"><span class="pre">no_validation_results</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.core.html#reagent.core.result_types.NoValidationResults" title="reagent.core.result_types.NoValidationResults"><span class="pre">reagent.core.result_types.NoValidationResults</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.workflow.types.ValidationResult__Union.no_validation_results" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.workflow.utils">
+<span id="reagent-workflow-utils-module"></span><h2>reagent.workflow.utils module<a class="headerlink" href="#module-reagent.workflow.utils" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.workflow.utils.PetastormLightningDataModule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.workflow.utils.</span></span><span class="sig-name descname"><span class="pre">PetastormLightningDataModule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.utils.PetastormLightningDataModule" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pytorch_lightning.core.datamodule.LightningDataModule</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.workflow.utils.PetastormLightningDataModule.test_dataloader">
+<span class="sig-name descname"><span class="pre">test_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.utils.PetastormLightningDataModule.test_dataloader" title="Permalink to this definition"></a></dt>
+<dd><p>Implement one or multiple PyTorch DataLoaders for testing.</p>
+<p>The dataloader you return will not be reloaded unless you set
+<a href="#id1"><span class="problematic" id="id2">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_n_epochs`</span></a> to
+a postive integer.</p>
+<p>For data processing use the following pattern:</p>
 <blockquote>
-<div><p>preprocessing/…
-reagent/…</p>
+<div><ul class="simple">
+<li><p>download in <code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></p></li>
+<li><p>process and split in <code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></p></li>
+</ul>
 </div></blockquote>
+<p>However, the above are only necessary for distributed processing.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>do not assign state in prepare_data</p>
+</div>
+<ul class="simple">
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
+<li><p>…</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></p></li>
+<li><p><a class="reference internal" href="#reagent.workflow.utils.PetastormLightningDataModule.train_dataloader" title="reagent.workflow.utils.PetastormLightningDataModule.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">val_dataloader()</span></code></p></li>
+<li><p><a class="reference internal" href="#reagent.workflow.utils.PetastormLightningDataModule.test_dataloader" title="reagent.workflow.utils.PetastormLightningDataModule.test_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_dataloader()</span></code></a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lightning adds the correct sampler for distributed and arbitrary hardware.
+There is no need to set it yourself.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.DataLoader</span></code> or a sequence of them specifying testing samples.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                                    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,))])</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;/path/to/mnist/&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
+                    <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">loader</span>
+
+<span class="c1"># can also return multiple dataloaders</span>
+<span class="k">def</span> <span class="nf">test_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">loader_a</span><span class="p">,</span> <span class="n">loader_b</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">loader_n</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you don’t need a test dataset and a <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code>, you don’t need to implement
+this method.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the case where you return multiple test dataloaders, the <code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code>
+will have an argument <code class="docutils literal notranslate"><span class="pre">dataloader_idx</span></code> which matches the order here.</p>
+</div>
 </dd></dl>
 
-<dl class="function">
-<dt id="reagent.workflow.spark_utils.call_spark_class">
-<code class="sig-prename descclassname">reagent.workflow.spark_utils.</code><code class="sig-name descname">call_spark_class</code><span class="sig-paren">(</span><em class="sig-param">spark</em>, <em class="sig-param">class_name: str</em>, <em class="sig-param">args: str</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.spark_utils.call_spark_class" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="reagent.workflow.spark_utils.get_spark_session">
-<code class="sig-prename descclassname">reagent.workflow.spark_utils.</code><code class="sig-name descname">get_spark_session</code><span class="sig-paren">(</span><em class="sig-param">config: Optional[Dict[str</em>, <em class="sig-param">str]] = {'spark.app.name': 'ReAgent'</em>, <em class="sig-param">'spark.driver.extraClassPath': '/Users/jjg/github/ReAgent/reagent/../preprocessing/target/rl-preprocessing-1.1.jar'</em>, <em class="sig-param">'spark.driver.host': '127.0.0.1'</em>, <em class="sig-param">'spark.master': 'local[*]'</em>, <em class="sig-param">'spark.sql.catalogImplementation': 'hive'</em>, <em class="sig-param">'spark.sql.execution.arrow.enabled': 'true'</em>, <em class="sig-param">'spark.sql.session.timeZone': 'UTC'</em>, <em class="sig-param">'spark.sql.shuffle.partitions': '12'</em>, <em class="sig-param">'spark.sql.warehouse.dir': '/Users/jjg/github/ReAgent/docs/spark-warehouse'}</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.spark_utils.get_spark_session" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="reagent.workflow.spark_utils.get_table_url">
-<code class="sig-prename descclassname">reagent.workflow.spark_utils.</code><code class="sig-name descname">get_table_url</code><span class="sig-paren">(</span><em class="sig-param">table_name: str</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#reagent.workflow.spark_utils.get_table_url" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.workflow.utils.PetastormLightningDataModule.train_dataloader">
+<span class="sig-name descname"><span class="pre">train_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.utils.PetastormLightningDataModule.train_dataloader" title="Permalink to this definition"></a></dt>
+<dd><p>Implement one or more PyTorch DataLoaders for training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A collection of <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.DataLoader</span></code> specifying training samples.
+In the case of multiple dataloaders, please see this <span class="xref std std-ref">page</span>.</p>
+</dd>
+</dl>
+<p>The dataloader you return will not be reloaded unless you set
+<a href="#id3"><span class="problematic" id="id4">:paramref:`~pytorch_lightning.trainer.Trainer.reload_dataloaders_every_n_epochs`</span></a> to
+a positive integer.</p>
+<p>For data processing use the following pattern:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>download in <code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></p></li>
+<li><p>process and split in <code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>However, the above are only necessary for distributed processing.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>do not assign state in prepare_data</p>
 </div>
-<div class="section" id="module-reagent.workflow.tagged_union">
-<span id="reagent-workflow-tagged-union-module"></span><h2>reagent.workflow.tagged_union module<a class="headerlink" href="#module-reagent.workflow.tagged_union" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></p></li>
+<li><p>…</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_data()</span></code></p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">setup()</span></code></p></li>
+<li><p><a class="reference internal" href="#reagent.workflow.utils.PetastormLightningDataModule.train_dataloader" title="reagent.workflow.utils.PetastormLightningDataModule.train_dataloader"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train_dataloader()</span></code></a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lightning adds the correct sampler for distributed and arbitrary hardware.
+There is no need to set it yourself.</p>
 </div>
-<div class="section" id="reagent-workflow-training-module">
-<h2>reagent.workflow.training module<a class="headerlink" href="#reagent-workflow-training-module" title="Permalink to this headline">¶</a></h2>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># single dataloader</span>
+<span class="k">def</span> <span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                                    <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,))])</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s1">&#39;/path/to/mnist/&#39;</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
+                    <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">loader</span>
+
+<span class="c1"># multiple dataloaders, return as list</span>
+<span class="k">def</span> <span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">mnist</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">cifar</span> <span class="o">=</span> <span class="n">CIFAR</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">mnist_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">mnist</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">cifar_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">cifar</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="c1"># each batch will be a list of tensors: [batch_mnist, batch_cifar]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">mnist_loader</span><span class="p">,</span> <span class="n">cifar_loader</span><span class="p">]</span>
+
+<span class="c1"># multiple dataloader, return as dict</span>
+<span class="k">def</span> <span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">mnist</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">cifar</span> <span class="o">=</span> <span class="n">CIFAR</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">mnist_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">mnist</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">cifar_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">cifar</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="c1"># each batch will be a dict of tensors: {&#39;mnist&#39;: batch_mnist, &#39;cifar&#39;: batch_cifar}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;mnist&#39;</span><span class="p">:</span> <span class="n">mnist_loader</span><span class="p">,</span> <span class="s1">&#39;cifar&#39;</span><span class="p">:</span> <span class="n">cifar_loader</span><span class="p">}</span>
+</pre></div>
 </div>
-<div class="section" id="module-reagent.workflow.training_reports">
-<span id="reagent-workflow-training-reports-module"></span><h2>reagent.workflow.training_reports module<a class="headerlink" href="#module-reagent.workflow.training_reports" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="reagent.workflow.training_reports.ActorCriticTrainingReport">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.training_reports.</code><code class="sig-name descname">ActorCriticTrainingReport</code><a class="headerlink" href="#reagent.workflow.training_reports.ActorCriticTrainingReport" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#reagent.workflow.result_registries.TrainingReport" title="reagent.workflow.result_registries.TrainingReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.workflow.result_registries.TrainingReport</span></code></a></p>
 </dd></dl>
 
-<dl class="class">
-<dt id="reagent.workflow.training_reports.DQNTrainingReport">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.training_reports.</code><code class="sig-name descname">DQNTrainingReport</code><span class="sig-paren">(</span><em class="sig-param">td_loss: Union[float</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">mc_loss: Union[float</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">reward_ips: Union[reagent.evaluation.cpe.CpeEstimate</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">reward_dm: Union[reagent.evaluation.cpe.CpeEstimate</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">reward_dr: Union[reagent.evaluation.cpe.CpeEstimate</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">value_sequential_dr: Union[reagent.evaluation.cpe.CpeEstimate</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">value_weighted_dr: Union[reagent.evaluation.cpe.CpeEstimate</em>, <em class="sig-param">NoneType] = None</em>, <em class="sig-param">value_magic_dr: Union[reagent.evaluation.cpe.CpeEstimate</em>, <em class="sig-param">NoneType] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#reagent.workflow.result_registries.TrainingReport" title="reagent.workflow.result_registries.TrainingReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.workflow.result_registries.TrainingReport</span></code></a></p>
-<dl class="attribute">
-<dt id="reagent.workflow.training_reports.DQNTrainingReport.mc_loss">
-<code class="sig-name descname">mc_loss</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.mc_loss" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.workflow.training_reports.DQNTrainingReport.reward_dm">
-<code class="sig-name descname">reward_dm</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.reward_dm" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.workflow.training_reports.DQNTrainingReport.reward_dr">
-<code class="sig-name descname">reward_dr</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.reward_dr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.workflow.training_reports.DQNTrainingReport.reward_ips">
-<code class="sig-name descname">reward_ips</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.reward_ips" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.workflow.training_reports.DQNTrainingReport.td_loss">
-<code class="sig-name descname">td_loss</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.td_loss" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.workflow.training_reports.DQNTrainingReport.value_magic_dr">
-<code class="sig-name descname">value_magic_dr</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.value_magic_dr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.workflow.training_reports.DQNTrainingReport.value_sequential_dr">
-<code class="sig-name descname">value_sequential_dr</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.value_sequential_dr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="reagent.workflow.training_reports.DQNTrainingReport.value_weighted_dr">
-<code class="sig-name descname">value_weighted_dr</code><em class="property"> = None</em><a class="headerlink" href="#reagent.workflow.training_reports.DQNTrainingReport.value_weighted_dr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
-<dl class="class">
-<dt id="reagent.workflow.training_reports.ParametricDQNTrainingReport">
-<em class="property">class </em><code class="sig-prename descclassname">reagent.workflow.training_reports.</code><code class="sig-name descname">ParametricDQNTrainingReport</code><a class="headerlink" href="#reagent.workflow.training_reports.ParametricDQNTrainingReport" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#reagent.workflow.result_registries.TrainingReport" title="reagent.workflow.result_registries.TrainingReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.workflow.result_registries.TrainingReport</span></code></a></p>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.utils.collate_and_preprocess">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.utils.</span></span><span class="sig-name descname"><span class="pre">collate_and_preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.batch_preprocessor.BatchPreprocessor" title="reagent.preprocessing.batch_preprocessor.BatchPreprocessor"><span class="pre">reagent.preprocessing.batch_preprocessor.BatchPreprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.utils.collate_and_preprocess" title="Permalink to this definition"></a></dt>
+<dd><p>Helper for Petastorm’s DataLoader to preprocess.
+TODO(kaiwenw): parallelize preprocessing by using transform of Petastorm reader
+Should pin memory and preprocess in reader and convert to gpu in collate_fn.</p>
 </dd></dl>
 
-</div>
-<div class="section" id="reagent-workflow-types-module">
-<h2>reagent.workflow.types module<a class="headerlink" href="#reagent-workflow-types-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="reagent-workflow-utils-module">
-<h2>reagent.workflow.utils module<a class="headerlink" href="#reagent-workflow-utils-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-reagent.workflow">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.workflow" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.utils.get_petastorm_dataloader">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.utils.</span></span><span class="sig-name descname"><span class="pre">get_petastorm_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.workflow.types.Dataset" title="reagent.workflow.types.Dataset"><span class="pre">reagent.workflow.types.Dataset</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_preprocessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.preprocessing.html#reagent.preprocessing.batch_preprocessor.BatchPreprocessor" title="reagent.preprocessing.batch_preprocessor.BatchPreprocessor"><span class="pre">reagent.preprocessing.batch_preprocessor.BatchPreprocessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.workflow.types.ReaderOptions" title="reagent.workflow.types.ReaderOptions"><span class="pre">reagent.workflow.types.ReaderOptions</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.utils.get_petastorm_dataloader" title="Permalink to this definition"></a></dt>
+<dd><p>get petastorm loader for dataset (with preprocessor)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.utils.get_rank">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.utils.</span></span><span class="sig-name descname"><span class="pre">get_rank</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#reagent.workflow.utils.get_rank" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the torch.distributed rank of the process. 0 represents
+the main process and is the default if torch.distributed isn’t set up</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.utils.get_table_row_count">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.utils.</span></span><span class="sig-name descname"><span class="pre">get_table_row_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parquet_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.workflow.utils.get_table_row_count" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.workflow.utils.train_eval_lightning">
+<span class="sig-prename descclassname"><span class="pre">reagent.workflow.utils.</span></span><span class="sig-name descname"><span class="pre">train_eval_lightning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_epochs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_preprocessor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.ReaderOptions" title="reagent.workflow.types.ReaderOptions"><span class="pre">reagent.workflow.types.ReaderOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.workflow.types.ResourceOptions" title="reagent.workflow.types.ResourceOptions"><span class="pre">reagent.workflow.types.ResourceOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pytorch_lightning.trainer.trainer.Trainer</span></span></span><a class="headerlink" href="#reagent.workflow.utils.train_eval_lightning" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-reagent.workflow">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.workflow" title="Permalink to this headline"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../license.html" class="btn btn-neutral float-right" title="License" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reagent.training.world_model.html" class="btn btn-neutral float-left" title="reagent.training.world_model package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.training.world_model.html" class="btn btn-neutral float-left" title="reagent.training.world_model package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="reagent" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

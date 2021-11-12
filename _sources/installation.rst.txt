@@ -7,7 +7,7 @@ ReAgent CLI & Python API
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 We have CLI to launch training & Python API to use programmatically, e.g., in your own script or Jupyter Notebook.
-To install this component, you will need to have Python 3.7+ installed on your system.
+To install this component, you will need to have Python 3.8+ installed on your system.
 If you don't have that, you can either install it via `pyenv <https://github.com/pyenv/pyenv>`_ or
 `conda <https://docs.conda.io/projects/conda/en/latest/index.html>`_. To verify that you have the right version,
 type the following command on your shell:
@@ -24,7 +24,7 @@ Once you make sure you have the right version, you can simply clone this repo an
    cd ReAgent
    pip install ".[gym]"
 
-   # install nightly torch (change cpu to cu101/102 if fit)
+   # install nightly torch (change cpu to cu102 if fit)
    pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
 
 If you don't want need gym dependencies, you can remove :code:`[gym]`
@@ -49,7 +49,7 @@ To build from source, you'll need JDK, Scala, & Maven. We will use `SDKMAN! <htt
    curl -s "https://get.sdkman.io" | bash
    source "$HOME/.sdkman/bin/sdkman-init.sh"
    sdk version
-   sdk install java 8.0.252.hs-adpt
+   sdk install java 8.0.272.hs-adpt
    sdk install scala
    sdk install maven
 
@@ -57,7 +57,7 @@ If you are testing locally, you can also install Spark
 
 .. code-block:: bash
 
-   sdk install spark 2.4.6
+   sdk install spark 3.1.1
 
 Now, you can build our preprocessing JAR
 

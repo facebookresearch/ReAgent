@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>reagent.model_managers.actor_critic package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.model_managers.discrete package" href="reagent.model_managers.discrete.html" />
+    <link rel="prev" title="reagent.model_managers package" href="reagent.model_managers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.model_managers.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">reagent.model_managers.actor_critic package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.model_managers.actor_critic.sac">reagent.model_managers.actor_critic.sac module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.model_managers.actor_critic.td3">reagent.model_managers.actor_critic.td3 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.model_managers.actor_critic">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.discrete.html">reagent.model_managers.discrete package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.model_based.html">reagent.model_managers.model_based package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.parametric.html">reagent.model_managers.parametric package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.policy_gradient.html">reagent.model_managers.policy_gradient package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.ranking.html">reagent.model_managers.ranking package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.actor_critic_base">reagent.model_managers.actor_critic_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.discrete_dqn_base">reagent.model_managers.discrete_dqn_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.model_manager">reagent.model_managers.model_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.parametric_dqn_base">reagent.model_managers.parametric_dqn_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.slate_q_base">reagent.model_managers.slate_q_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.union">reagent.model_managers.union module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.world_model_base">reagent.model_managers.world_model_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="reagent.model_managers.html">reagent.model_managers package</a> &raquo;</li>
+      <li>reagent.model_managers.actor_critic package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/reagent.model_managers.actor_critic.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="reagent-model-managers-actor-critic-package">
+<h1>reagent.model_managers.actor_critic package<a class="headerlink" href="#reagent-model-managers-actor-critic-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.model_managers.actor_critic.sac">
+<span id="reagent-model-managers-actor-critic-sac-module"></span><h2>reagent.model_managers.actor_critic.sac module<a class="headerlink" href="#module-reagent.model_managers.actor_critic.sac" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.sac.SAC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.actor_critic.sac.</span></span><span class="sig-name descname"><span class="pre">SAC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_feature_override:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_float_features:</span> <span class="pre">List[Tuple[int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">str]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options:</span> <span class="pre">Optional[reagent.workflow.types.ReaderOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_parameters:</span> <span class="pre">reagent.core.parameters.EvaluationParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_critic_bool:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.SACTrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_net_builder:</span> <span class="pre">reagent.net_builder.unions.ContinuousActorNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_net_builder:</span> <span class="pre">reagent.net_builder.unions.ParametricDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_net_builder:</span> <span class="pre">Optional[reagent.net_builder.unions.ValueNetBuilder__Union]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_2_q_functions:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serve_mean_policy:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.actor_critic.sac.SAC" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.actor_critic_base.ActorCriticBase" title="reagent.model_managers.actor_critic_base.ActorCriticBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.actor_critic_base.ActorCriticBase</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.sac.SAC.actor_net_builder">
+<span class="sig-name descname"><span class="pre">actor_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ContinuousActorNetBuilder__Union" title="reagent.net_builder.unions.ContinuousActorNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ContinuousActorNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.sac.SAC.actor_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.sac.SAC.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.actor_critic.sac.SAC.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Optionaly, implement this method if you only have one model for serving</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.sac.SAC.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.sac_trainer.SACTrainer" title="reagent.training.sac_trainer.SACTrainer"><span class="pre">reagent.training.sac_trainer.SACTrainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.actor_critic.sac.SAC.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.sac.SAC.critic_net_builder">
+<span class="sig-name descname"><span class="pre">critic_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ParametricDQNNetBuilder__Union" title="reagent.net_builder.unions.ParametricDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ParametricDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.sac.SAC.critic_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.sac.SAC.get_reporter">
+<span class="sig-name descname"><span class="pre">get_reporter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.actor_critic.sac.SAC.get_reporter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.sac.SAC.serve_mean_policy">
+<span class="sig-name descname"><span class="pre">serve_mean_policy</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.sac.SAC.serve_mean_policy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.sac.SAC.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.SACTrainerParameters" title="reagent.training.parameters.SACTrainerParameters"><span class="pre">reagent.training.parameters.SACTrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.sac.SAC.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.sac.SAC.use_2_q_functions">
+<span class="sig-name descname"><span class="pre">use_2_q_functions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.sac.SAC.use_2_q_functions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.sac.SAC.value_net_builder">
+<span class="sig-name descname"><span class="pre">value_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ValueNetBuilder__Union" title="reagent.net_builder.unions.ValueNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ValueNetBuilder__Union</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.sac.SAC.value_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.model_managers.actor_critic.td3">
+<span id="reagent-model-managers-actor-critic-td3-module"></span><h2>reagent.model_managers.actor_critic.td3 module<a class="headerlink" href="#module-reagent.model_managers.actor_critic.td3" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.td3.TD3">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.actor_critic.td3.</span></span><span class="sig-name descname"><span class="pre">TD3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_feature_override:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_float_features:</span> <span class="pre">List[Tuple[int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">str]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options:</span> <span class="pre">Optional[reagent.workflow.types.ReaderOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_parameters:</span> <span class="pre">reagent.core.parameters.EvaluationParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_critic_bool:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.TD3TrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_net_builder:</span> <span class="pre">reagent.net_builder.unions.ContinuousActorNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_net_builder:</span> <span class="pre">reagent.net_builder.unions.ParametricDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_2_q_functions:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.actor_critic.td3.TD3" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.actor_critic_base.ActorCriticBase" title="reagent.model_managers.actor_critic_base.ActorCriticBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.actor_critic_base.ActorCriticBase</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.td3.TD3.actor_net_builder">
+<span class="sig-name descname"><span class="pre">actor_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ContinuousActorNetBuilder__Union" title="reagent.net_builder.unions.ContinuousActorNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ContinuousActorNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.td3.TD3.actor_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.td3.TD3.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.actor_critic.td3.TD3.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Optionaly, implement this method if you only have one model for serving</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.td3.TD3.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.td3_trainer.TD3Trainer" title="reagent.training.td3_trainer.TD3Trainer"><span class="pre">reagent.training.td3_trainer.TD3Trainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.actor_critic.td3.TD3.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.td3.TD3.critic_net_builder">
+<span class="sig-name descname"><span class="pre">critic_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ParametricDQNNetBuilder__Union" title="reagent.net_builder.unions.ParametricDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ParametricDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.td3.TD3.critic_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.td3.TD3.eval_parameters">
+<span class="sig-name descname"><span class="pre">eval_parameters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.EvaluationParameters" title="reagent.core.parameters.EvaluationParameters"><span class="pre">reagent.core.parameters.EvaluationParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.td3.TD3.eval_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.td3.TD3.get_reporter">
+<span class="sig-name descname"><span class="pre">get_reporter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.actor_critic.td3.TD3.get_reporter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.td3.TD3.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.TD3TrainerParameters" title="reagent.training.parameters.TD3TrainerParameters"><span class="pre">reagent.training.parameters.TD3TrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.td3.TD3.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.td3.TD3.use_2_q_functions">
+<span class="sig-name descname"><span class="pre">use_2_q_functions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.td3.TD3.use_2_q_functions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.model_managers.actor_critic">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.model_managers.actor_critic" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.actor_critic.</span></span><span class="sig-name descname"><span class="pre">SAC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_feature_override:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_float_features:</span> <span class="pre">List[Tuple[int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">str]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options:</span> <span class="pre">Optional[reagent.workflow.types.ReaderOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_parameters:</span> <span class="pre">reagent.core.parameters.EvaluationParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_critic_bool:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.SACTrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_net_builder:</span> <span class="pre">reagent.net_builder.unions.ContinuousActorNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_net_builder:</span> <span class="pre">reagent.net_builder.unions.ParametricDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_net_builder:</span> <span class="pre">Optional[reagent.net_builder.unions.ValueNetBuilder__Union]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_2_q_functions:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serve_mean_policy:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.actor_critic_base.ActorCriticBase" title="reagent.model_managers.actor_critic_base.ActorCriticBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.actor_critic_base.ActorCriticBase</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC.action_float_features">
+<span class="sig-name descname"><span class="pre">action_float_features</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC.action_float_features" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC.actor_net_builder">
+<span class="sig-name descname"><span class="pre">actor_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ContinuousActorNetBuilder__Union" title="reagent.net_builder.unions.ContinuousActorNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ContinuousActorNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC.actor_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Optionaly, implement this method if you only have one model for serving</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.sac_trainer.SACTrainer" title="reagent.training.sac_trainer.SACTrainer"><span class="pre">reagent.training.sac_trainer.SACTrainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC.critic_net_builder">
+<span class="sig-name descname"><span class="pre">critic_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ParametricDQNNetBuilder__Union" title="reagent.net_builder.unions.ParametricDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ParametricDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC.critic_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC.eval_parameters">
+<span class="sig-name descname"><span class="pre">eval_parameters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">EvaluationParameters</span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC.eval_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC.get_reporter">
+<span class="sig-name descname"><span class="pre">get_reporter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC.get_reporter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC.serve_mean_policy">
+<span class="sig-name descname"><span class="pre">serve_mean_policy</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC.serve_mean_policy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC.state_feature_config_provider">
+<span class="sig-name descname"><span class="pre">state_feature_config_provider</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelFeatureConfigProvider__Union</span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC.state_feature_config_provider" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.SACTrainerParameters" title="reagent.training.parameters.SACTrainerParameters"><span class="pre">reagent.training.parameters.SACTrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC.use_2_q_functions">
+<span class="sig-name descname"><span class="pre">use_2_q_functions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC.use_2_q_functions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.SAC.value_net_builder">
+<span class="sig-name descname"><span class="pre">value_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ValueNetBuilder__Union" title="reagent.net_builder.unions.ValueNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ValueNetBuilder__Union</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.SAC.value_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.TD3">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.actor_critic.</span></span><span class="sig-name descname"><span class="pre">TD3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_preprocessing_options:</span> <span class="pre">Optional[reagent.workflow.types.PreprocessingOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_feature_override:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_float_features:</span> <span class="pre">List[Tuple[int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">str]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_options:</span> <span class="pre">Optional[reagent.workflow.types.ReaderOptions]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_parameters:</span> <span class="pre">reagent.core.parameters.EvaluationParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_critic_bool:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.TD3TrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_net_builder:</span> <span class="pre">reagent.net_builder.unions.ContinuousActorNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_net_builder:</span> <span class="pre">reagent.net_builder.unions.ParametricDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_2_q_functions:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.actor_critic.TD3" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.actor_critic_base.ActorCriticBase" title="reagent.model_managers.actor_critic_base.ActorCriticBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.actor_critic_base.ActorCriticBase</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.TD3.action_float_features">
+<span class="sig-name descname"><span class="pre">action_float_features</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.TD3.action_float_features" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.TD3.actor_net_builder">
+<span class="sig-name descname"><span class="pre">actor_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ContinuousActorNetBuilder__Union" title="reagent.net_builder.unions.ContinuousActorNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ContinuousActorNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.TD3.actor_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.TD3.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.actor_critic.TD3.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Optionaly, implement this method if you only have one model for serving</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.TD3.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.td3_trainer.TD3Trainer" title="reagent.training.td3_trainer.TD3Trainer"><span class="pre">reagent.training.td3_trainer.TD3Trainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.actor_critic.TD3.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.TD3.critic_net_builder">
+<span class="sig-name descname"><span class="pre">critic_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ParametricDQNNetBuilder__Union" title="reagent.net_builder.unions.ParametricDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ParametricDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.TD3.critic_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.TD3.eval_parameters">
+<span class="sig-name descname"><span class="pre">eval_parameters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.EvaluationParameters" title="reagent.core.parameters.EvaluationParameters"><span class="pre">reagent.core.parameters.EvaluationParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.TD3.eval_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.TD3.get_reporter">
+<span class="sig-name descname"><span class="pre">get_reporter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.actor_critic.TD3.get_reporter" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.TD3.state_feature_config_provider">
+<span class="sig-name descname"><span class="pre">state_feature_config_provider</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ModelFeatureConfigProvider__Union</span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.TD3.state_feature_config_provider" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.TD3.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.TD3TrainerParameters" title="reagent.training.parameters.TD3TrainerParameters"><span class="pre">reagent.training.parameters.TD3TrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.actor_critic.TD3.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.actor_critic.TD3.use_2_q_functions">
+<span class="sig-name descname"><span class="pre">use_2_q_functions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#reagent.model_managers.actor_critic.TD3.use_2_q_functions" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.model_managers.html" class="btn btn-neutral float-left" title="reagent.model_managers package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.model_managers.discrete.html" class="btn btn-neutral float-right" title="reagent.model_managers.discrete package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

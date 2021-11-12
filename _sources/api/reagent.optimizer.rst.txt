@@ -28,6 +28,14 @@ reagent.optimizer.scheduler\_union module
    :undoc-members:
    :show-inheritance:
 
+reagent.optimizer.soft\_update module
+-------------------------------------
+
+.. automodule:: reagent.optimizer.soft_update
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 reagent.optimizer.uninferrable\_optimizers module
 -------------------------------------------------
 
@@ -59,7 +67,6 @@ reagent.optimizer.utils module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

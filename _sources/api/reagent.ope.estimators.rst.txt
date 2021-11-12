@@ -44,7 +44,6 @@ reagent.ope.estimators.types module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

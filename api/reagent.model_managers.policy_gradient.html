@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>reagent.model_managers.policy_gradient package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reagent.model_managers.ranking package" href="reagent.model_managers.ranking.html" />
+    <link rel="prev" title="reagent.model_managers.parametric package" href="reagent.model_managers.parametric.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.mab.html">MAB</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reagent.model_managers.html">Model Managers</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="reagent.model_managers.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.actor_critic.html">reagent.model_managers.actor_critic package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.discrete.html">reagent.model_managers.discrete package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.model_based.html">reagent.model_managers.model_based package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.parametric.html">reagent.model_managers.parametric package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">reagent.model_managers.policy_gradient package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.model_managers.policy_gradient.ppo">reagent.model_managers.policy_gradient.ppo module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.model_managers.policy_gradient.reinforce">reagent.model_managers.policy_gradient.reinforce module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-reagent.model_managers.policy_gradient">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reagent.model_managers.ranking.html">reagent.model_managers.ranking package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.actor_critic_base">reagent.model_managers.actor_critic_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.discrete_dqn_base">reagent.model_managers.discrete_dqn_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.model_manager">reagent.model_managers.model_manager module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.parametric_dqn_base">reagent.model_managers.parametric_dqn_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.slate_q_base">reagent.model_managers.slate_q_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.union">reagent.model_managers.union module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers.world_model_base">reagent.model_managers.world_model_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reagent.model_managers.html#module-reagent.model_managers">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reagent.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="reagent.model_managers.html">reagent.model_managers package</a> &raquo;</li>
+      <li>reagent.model_managers.policy_gradient package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/reagent.model_managers.policy_gradient.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="reagent-model-managers-policy-gradient-package">
+<h1>reagent.model_managers.policy_gradient package<a class="headerlink" href="#reagent-model-managers-policy-gradient-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-reagent.model_managers.policy_gradient.ppo">
+<span id="reagent-model-managers-policy-gradient-ppo-module"></span><h2>reagent.model_managers.policy_gradient.ppo module<a class="headerlink" href="#module-reagent.model_managers.policy_gradient.ppo" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.ppo.PPO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.policy_gradient.ppo.</span></span><span class="sig-name descname"><span class="pre">PPO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.PPOTrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_net_builder:</span> <span class="pre">Optional[reagent.net_builder.unions.ValueNetBuilder__Union]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler_temperature:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.policy_gradient.ppo.PPO" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.model_manager.ModelManager" title="reagent.model_managers.model_manager.ModelManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.model_manager.ModelManager</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.ppo.PPO.action_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_names</span></span><a class="headerlink" href="#reagent.model_managers.policy_gradient.ppo.PPO.action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.ppo.PPO.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.policy_gradient.ppo.PPO.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Optionaly, implement this method if you only have one model for serving</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.ppo.PPO.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.ppo_trainer.PPOTrainer" title="reagent.training.ppo_trainer.PPOTrainer"><span class="pre">reagent.training.ppo_trainer.PPOTrainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.policy_gradient.ppo.PPO.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.ppo.PPO.create_policy">
+<span class="sig-name descname"><span class="pre">create_policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">serving</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.policy_gradient.ppo.PPO.create_policy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.ppo.PPO.policy_net_builder">
+<span class="sig-name descname"><span class="pre">policy_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.ppo.PPO.policy_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.ppo.PPO.sampler_temperature">
+<span class="sig-name descname"><span class="pre">sampler_temperature</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.ppo.PPO.sampler_temperature" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.ppo.PPO.state_feature_config">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state_feature_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.ppo.PPO.state_feature_config" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.ppo.PPO.state_feature_config_provider">
+<span class="sig-name descname"><span class="pre">state_feature_config_provider</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.ModelFeatureConfigProvider__Union" title="reagent.workflow.types.ModelFeatureConfigProvider__Union"><span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.ppo.PPO.state_feature_config_provider" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.ppo.PPO.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.PPOTrainerParameters" title="reagent.training.parameters.PPOTrainerParameters"><span class="pre">reagent.training.parameters.PPOTrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.ppo.PPO.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.ppo.PPO.value_net_builder">
+<span class="sig-name descname"><span class="pre">value_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ValueNetBuilder__Union" title="reagent.net_builder.unions.ValueNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ValueNetBuilder__Union</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.ppo.PPO.value_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.model_managers.policy_gradient.reinforce">
+<span id="reagent-model-managers-policy-gradient-reinforce-module"></span><h2>reagent.model_managers.policy_gradient.reinforce module<a class="headerlink" href="#module-reagent.model_managers.policy_gradient.reinforce" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.reinforce.Reinforce">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.policy_gradient.reinforce.</span></span><span class="sig-name descname"><span class="pre">Reinforce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.ReinforceTrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_net_builder:</span> <span class="pre">Optional[reagent.net_builder.unions.ValueNetBuilder__Union]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler_temperature:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.policy_gradient.reinforce.Reinforce" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.model_manager.ModelManager" title="reagent.model_managers.model_manager.ModelManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.model_manager.ModelManager</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.reinforce.Reinforce.action_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_names</span></span><a class="headerlink" href="#reagent.model_managers.policy_gradient.reinforce.Reinforce.action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.reinforce.Reinforce.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.policy_gradient.reinforce.Reinforce.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Optionaly, implement this method if you only have one model for serving</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.reinforce.Reinforce.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.reinforce_trainer.ReinforceTrainer" title="reagent.training.reinforce_trainer.ReinforceTrainer"><span class="pre">reagent.training.reinforce_trainer.ReinforceTrainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.policy_gradient.reinforce.Reinforce.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.reinforce.Reinforce.create_policy">
+<span class="sig-name descname"><span class="pre">create_policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">serving</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.policy_gradient.reinforce.Reinforce.create_policy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.reinforce.Reinforce.policy_net_builder">
+<span class="sig-name descname"><span class="pre">policy_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.reinforce.Reinforce.policy_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.reinforce.Reinforce.sampler_temperature">
+<span class="sig-name descname"><span class="pre">sampler_temperature</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.reinforce.Reinforce.sampler_temperature" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.reinforce.Reinforce.state_feature_config">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state_feature_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.reinforce.Reinforce.state_feature_config" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.reinforce.Reinforce.state_feature_config_provider">
+<span class="sig-name descname"><span class="pre">state_feature_config_provider</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.ModelFeatureConfigProvider__Union" title="reagent.workflow.types.ModelFeatureConfigProvider__Union"><span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.reinforce.Reinforce.state_feature_config_provider" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.reinforce.Reinforce.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.ReinforceTrainerParameters" title="reagent.training.parameters.ReinforceTrainerParameters"><span class="pre">reagent.training.parameters.ReinforceTrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.reinforce.Reinforce.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.reinforce.Reinforce.value_net_builder">
+<span class="sig-name descname"><span class="pre">value_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ValueNetBuilder__Union" title="reagent.net_builder.unions.ValueNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ValueNetBuilder__Union</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.reinforce.Reinforce.value_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.model_managers.policy_gradient">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-reagent.model_managers.policy_gradient" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.PPO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.policy_gradient.</span></span><span class="sig-name descname"><span class="pre">PPO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.PPOTrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_net_builder:</span> <span class="pre">Optional[reagent.net_builder.unions.ValueNetBuilder__Union]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler_temperature:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.policy_gradient.PPO" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.model_manager.ModelManager" title="reagent.model_managers.model_manager.ModelManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.model_manager.ModelManager</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.PPO.action_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_names</span></span><a class="headerlink" href="#reagent.model_managers.policy_gradient.PPO.action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.PPO.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.policy_gradient.PPO.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Optionaly, implement this method if you only have one model for serving</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.PPO.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.ppo_trainer.PPOTrainer" title="reagent.training.ppo_trainer.PPOTrainer"><span class="pre">reagent.training.ppo_trainer.PPOTrainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.policy_gradient.PPO.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.PPO.create_policy">
+<span class="sig-name descname"><span class="pre">create_policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">serving</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.policy_gradient.PPO.create_policy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.PPO.policy_net_builder">
+<span class="sig-name descname"><span class="pre">policy_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.PPO.policy_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.PPO.sampler_temperature">
+<span class="sig-name descname"><span class="pre">sampler_temperature</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.PPO.sampler_temperature" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.PPO.state_feature_config">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state_feature_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.PPO.state_feature_config" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.PPO.state_feature_config_provider">
+<span class="sig-name descname"><span class="pre">state_feature_config_provider</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.ModelFeatureConfigProvider__Union" title="reagent.workflow.types.ModelFeatureConfigProvider__Union"><span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.PPO.state_feature_config_provider" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.PPO.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.PPOTrainerParameters" title="reagent.training.parameters.PPOTrainerParameters"><span class="pre">reagent.training.parameters.PPOTrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.PPO.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.PPO.value_net_builder">
+<span class="sig-name descname"><span class="pre">value_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ValueNetBuilder__Union" title="reagent.net_builder.unions.ValueNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ValueNetBuilder__Union</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.PPO.value_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.Reinforce">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.model_managers.policy_gradient.</span></span><span class="sig-name descname"><span class="pre">Reinforce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_param:</span> <span class="pre">reagent.training.parameters.ReinforceTrainerParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy_net_builder:</span> <span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_net_builder:</span> <span class="pre">Optional[reagent.net_builder.unions.ValueNetBuilder__Union]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feature_config_provider:</span> <span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler_temperature:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.policy_gradient.Reinforce" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="reagent.model_managers.html#reagent.model_managers.model_manager.ModelManager" title="reagent.model_managers.model_manager.ModelManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.model_managers.model_manager.ModelManager</span></code></a></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.Reinforce.action_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">action_names</span></span><a class="headerlink" href="#reagent.model_managers.policy_gradient.Reinforce.action_names" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.Reinforce.build_serving_module">
+<span class="sig-name descname"><span class="pre">build_serving_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="headerlink" href="#reagent.model_managers.policy_gradient.Reinforce.build_serving_module" title="Permalink to this definition"></a></dt>
+<dd><p>Optionaly, implement this method if you only have one model for serving</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.Reinforce.build_trainer">
+<span class="sig-name descname"><span class="pre">build_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.RewardOptions" title="reagent.workflow.types.RewardOptions"><span class="pre">reagent.workflow.types.RewardOptions</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="reagent.training.html#reagent.training.reinforce_trainer.ReinforceTrainer" title="reagent.training.reinforce_trainer.ReinforceTrainer"><span class="pre">reagent.training.reinforce_trainer.ReinforceTrainer</span></a></span></span><a class="headerlink" href="#reagent.model_managers.policy_gradient.Reinforce.build_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Implement this to build the trainer, given the config</p>
+<p>TODO: This function should return ReAgentLightningModule &amp;
+the dictionary of modules created</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.Reinforce.create_policy">
+<span class="sig-name descname"><span class="pre">create_policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer_module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="reagent.training.html#reagent.training.reagent_lightning_module.ReAgentLightningModule" title="reagent.training.reagent_lightning_module.ReAgentLightningModule"><span class="pre">reagent.training.reagent_lightning_module.ReAgentLightningModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">serving</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization_data_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.parameters.NormalizationData" title="reagent.core.parameters.NormalizationData"><span class="pre">reagent.core.parameters.NormalizationData</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.model_managers.policy_gradient.Reinforce.create_policy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.Reinforce.policy_net_builder">
+<span class="sig-name descname"><span class="pre">policy_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.DiscreteDQNNetBuilder__Union" title="reagent.net_builder.unions.DiscreteDQNNetBuilder__Union"><span class="pre">reagent.net_builder.unions.DiscreteDQNNetBuilder__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.Reinforce.policy_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.Reinforce.sampler_temperature">
+<span class="sig-name descname"><span class="pre">sampler_temperature</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.Reinforce.sampler_temperature" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.Reinforce.state_feature_config">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state_feature_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.core.html#reagent.core.types.ModelFeatureConfig" title="reagent.core.types.ModelFeatureConfig"><span class="pre">reagent.core.types.ModelFeatureConfig</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.Reinforce.state_feature_config" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.Reinforce.state_feature_config_provider">
+<span class="sig-name descname"><span class="pre">state_feature_config_provider</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.workflow.html#reagent.workflow.types.ModelFeatureConfigProvider__Union" title="reagent.workflow.types.ModelFeatureConfigProvider__Union"><span class="pre">reagent.workflow.types.ModelFeatureConfigProvider__Union</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.Reinforce.state_feature_config_provider" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.Reinforce.trainer_param">
+<span class="sig-name descname"><span class="pre">trainer_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="reagent.training.html#reagent.training.parameters.ReinforceTrainerParameters" title="reagent.training.parameters.ReinforceTrainerParameters"><span class="pre">reagent.training.parameters.ReinforceTrainerParameters</span></a></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.Reinforce.trainer_param" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.model_managers.policy_gradient.Reinforce.value_net_builder">
+<span class="sig-name descname"><span class="pre">value_net_builder</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="reagent.net_builder.html#reagent.net_builder.unions.ValueNetBuilder__Union" title="reagent.net_builder.unions.ValueNetBuilder__Union"><span class="pre">reagent.net_builder.unions.ValueNetBuilder__Union</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#reagent.model_managers.policy_gradient.Reinforce.value_net_builder" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reagent.model_managers.parametric.html" class="btn btn-neutral float-left" title="reagent.model_managers.parametric package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reagent.model_managers.ranking.html" class="btn btn-neutral float-right" title="reagent.model_managers.ranking package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

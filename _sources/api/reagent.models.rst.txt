@@ -108,6 +108,14 @@ reagent.models.mdn\_rnn module
    :undoc-members:
    :show-inheritance:
 
+reagent.models.mlp\_scorer module
+---------------------------------
+
+.. automodule:: reagent.models.mlp_scorer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 reagent.models.model\_feature\_config\_provider module
 ------------------------------------------------------
 
@@ -148,6 +156,14 @@ reagent.models.seq2slate\_reward module
    :undoc-members:
    :show-inheritance:
 
+reagent.models.synthetic\_reward module
+---------------------------------------
+
+.. automodule:: reagent.models.synthetic_reward
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 reagent.models.world\_model module
 ----------------------------------
 
@@ -155,7 +171,6 @@ reagent.models.world\_model module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------
