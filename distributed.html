@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Training a model across multiple GPUs &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Continuous Integration" href="continuous_integration.html" />
     <link rel="prev" title="Usage" href="usage.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,24 +36,14 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Distributed Training</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#how-distributed-training-works">How distributed training works</a></li>
@@ -96,92 +53,61 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.workflow.html">Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/modules.html">All Modules</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html">Docs</a> &raquo;</li>
-        
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
       <li>Training a model across multiple GPUs</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="_sources/distributed.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="training-a-model-across-multiple-gpus">
-<span id="distributed"></span><h1>Training a model across multiple GPUs<a class="headerlink" href="#training-a-model-across-multiple-gpus" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="training-a-model-across-multiple-gpus">
+<span id="distributed"></span><h1>Training a model across multiple GPUs<a class="headerlink" href="#training-a-model-across-multiple-gpus" title="Permalink to this headline"></a></h1>
 <p>Before we get started, please check out the <a class="reference internal" href="usage.html#usage"><span class="std std-ref">Usage Guide</span></a> and
 the <a class="reference external" href="https://pytorch.org/docs/stable/distributed.html">PyTorch Distributed documentation</a>.</p>
-<div class="section" id="how-distributed-training-works">
-<h2>How distributed training works<a class="headerlink" href="#how-distributed-training-works" title="Permalink to this headline">¶</a></h2>
+<section id="how-distributed-training-works">
+<h2>How distributed training works<a class="headerlink" href="#how-distributed-training-works" title="Permalink to this headline"></a></h2>
 <p>With a single GPU and model, training follows this process:</p>
 <ol class="arabic simple">
 <li><p>Compute the loss from a minibatch of data (the forward pass of the model)</p></li>
@@ -193,15 +119,15 @@ the <a class="reference external" href="https://pytorch.org/docs/stable/distribu
 #1 and #2 are <a class="reference external" href="https://en.wikipedia.org/wiki/Embarrassingly_parallel">embarrassingly parallel</a> and can be distributed to many nodes.
 As long as we can sum across nodes to complete #3 (this is known as an ‘all-reduce’), then each node can run #4 on the same gradients,
 and the resulting models will again be identical.  This is the premise behind distributed training.</p>
-</div>
-<div class="section" id="training-on-a-single-node">
-<h2>Training on a single node<a class="headerlink" href="#training-on-a-single-node" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="training-on-a-single-node">
+<h2>Training on a single node<a class="headerlink" href="#training-on-a-single-node" title="Permalink to this headline"></a></h2>
 <p>Using multiple GPUs on a single node is relatively straightforward.  When running either the dqn_workflow or the parametric_dqn_workflow,
 set the “use_all_avail_gpus” parameters in the input config (the json file) to true.  ReAgent will detect the number of available GPUs and
 run on all of them without any additional effort.</p>
-</div>
-<div class="section" id="training-on-multiple-nodes">
-<h2>Training on multiple nodes<a class="headerlink" href="#training-on-multiple-nodes" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="training-on-multiple-nodes">
+<h2>Training on multiple nodes<a class="headerlink" href="#training-on-multiple-nodes" title="Permalink to this headline"></a></h2>
 <p>Multi-node training requires more setup.  Some prerequisites:</p>
 <ol class="arabic simple">
 <li><p>A networked filesystem (such as NFS) that all trainers can access</p></li>
@@ -217,56 +143,38 @@ run on all of them without any additional effort.</p>
 <li><p>On each machine, run the workflow with the “–node_index=n” flag, where n is the index of that machine.</p></li>
 <li><p>The machine with –node_index=0 will save the final model to the output path specified.</p></li>
 </ol>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="continuous_integration.html" class="btn btn-neutral float-right" title="Continuous Integration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="usage.html" class="btn btn-neutral float-left" title="Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-left" title="Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="continuous_integration.html" class="btn btn-neutral float-right" title="Continuous Integration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Installation &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="ReAgent Serving Platform (RASP)" href="rasp_tutorial.html" />
     <link rel="prev" title="ReAgent: Applied Reinforcement Learning Platform" href="index.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,18 +36,8 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#reagent-cli-python-api">ReAgent CLI &amp; Python API</a></li>
@@ -91,97 +48,66 @@
 <li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.workflow.html">Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/modules.html">All Modules</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html">Docs</a> &raquo;</li>
-        
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
       <li>Installation</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="installation">
-<span id="id1"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="reagent-cli-python-api">
-<h2>ReAgent CLI &amp; Python API<a class="headerlink" href="#reagent-cli-python-api" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="installation">
+<span id="id1"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h1>
+<section id="reagent-cli-python-api">
+<h2>ReAgent CLI &amp; Python API<a class="headerlink" href="#reagent-cli-python-api" title="Permalink to this headline"></a></h2>
 <p>We have CLI to launch training &amp; Python API to use programmatically, e.g., in your own script or Jupyter Notebook.
-To install this component, you will need to have Python 3.7+ installed on your system.
+To install this component, you will need to have Python 3.8+ installed on your system.
 If you don’t have that, you can either install it via <a class="reference external" href="https://github.com/pyenv/pyenv">pyenv</a> or
 <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/index.html">conda</a>. To verify that you have the right version,
 type the following command on your shell:</p>
@@ -193,7 +119,7 @@ type the following command on your shell:</p>
 <span class="nb">cd</span> ReAgent
 pip install <span class="s2">&quot;.[gym]&quot;</span>
 
-<span class="c1"># install nightly torch (change cpu to cu101/102 if fit)</span>
+<span class="c1"># install nightly torch (change cpu to cu102 if fit)</span>
 pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
 </pre></div>
 </div>
@@ -203,31 +129,31 @@ pip install --pre torch torchvision -f https://download.pytorch.org/whl/nightly/
 tox
 </pre></div>
 </div>
-</div>
-<div class="section" id="spark-preprocessing-jar">
-<h2>Spark preprocessing JAR<a class="headerlink" href="#spark-preprocessing-jar" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="spark-preprocessing-jar">
+<h2>Spark preprocessing JAR<a class="headerlink" href="#spark-preprocessing-jar" title="Permalink to this headline"></a></h2>
 <p>If you don’t want to rebuild the JAR, you can grab <a class="reference external" href="https://841-98565575-gh.circle-artifacts.com/0/rl-preprocessing-1.1.jar">the pre-built version from CircleCI</a>,
 under <a class="reference external" href="https://app.circleci.com/pipelines/github/facebookresearch/ReAgent?branch=master">the artifact section of end_to_end_test</a>.</p>
 <p>To build from source, you’ll need JDK, Scala, &amp; Maven. We will use <a class="reference external" href="https://sdkman.io/">SDKMAN!</a> to install them.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -s <span class="s2">&quot;https://get.sdkman.io&quot;</span> <span class="p">|</span> bash
 <span class="nb">source</span> <span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/.sdkman/bin/sdkman-init.sh&quot;</span>
 sdk version
-sdk install java <span class="m">8</span>.0.252.hs-adpt
+sdk install java <span class="m">8</span>.0.272.hs-adpt
 sdk install scala
 sdk install maven
 </pre></div>
 </div>
 <p>If you are testing locally, you can also install Spark</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sdk install spark <span class="m">2</span>.4.6
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sdk install spark <span class="m">3</span>.1.1
 </pre></div>
 </div>
 <p>Now, you can build our preprocessing JAR</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mvn -f preprocessing/pom.xml clean package
 </pre></div>
 </div>
-</div>
-<div class="section" id="rasp">
-<h2>RASP<a class="headerlink" href="#rasp" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="rasp">
+<h2>RASP<a class="headerlink" href="#rasp" title="Permalink to this headline"></a></h2>
 <p>RASP (ReAgent Serving Platform) is a decision-serving library. It also has standlone binary. It depends on libtorch,
 which cannot be statically linked at the moment. Therefore, we don’t have a pre-built version.</p>
 <p>To build the CLI, you’ll need <a class="reference external" href="https://cmake.org/">CMake</a> and the following libraries:</p>
@@ -258,56 +184,38 @@ cmake -DCMAKE_PREFIX_PATH=$HOME/libtorch -DCMAKE_CXX_STANDARD=17 ..
 make
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="rasp_tutorial.html" class="btn btn-neutral float-right" title="ReAgent Serving Platform (RASP)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="index.html" class="btn btn-neutral float-left" title="ReAgent: Applied Reinforcement Learning Platform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="ReAgent: Applied Reinforcement Learning Platform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="rasp_tutorial.html" class="btn btn-neutral float-right" title="ReAgent Serving Platform (RASP)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

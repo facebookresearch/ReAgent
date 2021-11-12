@@ -1,67 +1,34 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ReAgent Serving Platform (RASP) &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Usage" href="usage.html" />
     <link rel="prev" title="Installation" href="installation.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> ReAgent
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -69,18 +36,8 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
@@ -94,113 +51,82 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Advanced Topics</span></p>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Package Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.evaluation.html">Evaluation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.prediction.html">Prediction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.preprocessing.html">Preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.readers.html">Readers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.simulators.html">Simulators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.training.html">Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.gym.html">Gym</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.lite.html">Lite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.mab.html">MAB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.model_managers.html">Model Managers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.model_utils.html">Model Utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.net_builder.html">Net Builders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.optimizer.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/reagent.workflow.html">Workflow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/modules.html">All Modules</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Others</span></p>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ReAgent</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html">Docs</a> &raquo;</li>
-        
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
       <li>ReAgent Serving Platform (RASP)</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="_sources/rasp_tutorial.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="reagent-serving-platform-rasp">
-<span id="rasp-tutorial"></span><h1>ReAgent Serving Platform (RASP)<a class="headerlink" href="#reagent-serving-platform-rasp" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="reagent-serving-platform-rasp">
+<span id="rasp-tutorial"></span><h1>ReAgent Serving Platform (RASP)<a class="headerlink" href="#reagent-serving-platform-rasp" title="Permalink to this headline"></a></h1>
 <p>Welcome to the ReAgent Serving Platform! This tutorial gets readers
 familiar with reasoning at scale by building an artificial e-commerce
 site.</p>
-<div class="section" id="what-is-rasp">
-<h2>What is RASP?<a class="headerlink" href="#what-is-rasp" title="Permalink to this headline">¶</a></h2>
+<section id="what-is-rasp">
+<h2>What is RASP?<a class="headerlink" href="#what-is-rasp" title="Permalink to this headline"></a></h2>
 <p>RASP is a set of scoring and ranking functions and a systematic way to
 collect data and deploy models. A set of potential actions are input to
 RASP and a ranked list of scores is output. The method for scoring and
 ranking actions is called a decision plan. In this tutorial, we will
 create several different decision plans and simulate user traffic to see
 the results.</p>
-</div>
-<div class="section" id="installing-reagent">
-<h2>Installing ReAgent<a class="headerlink" href="#installing-reagent" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="installing-reagent">
+<h2>Installing ReAgent<a class="headerlink" href="#installing-reagent" title="Permalink to this headline"></a></h2>
 <p>Before beginning this tutorial, please install ReAgent by following
 these instructions:
 <a class="reference external" href="https://github.com/facebookresearch/ReAgent/blob/master/docs/installation.rst">https://github.com/facebookresearch/ReAgent/blob/master/docs/installation.rst</a></p>
-</div>
-<div class="section" id="store-set-up">
-<h2>Store set-up<a class="headerlink" href="#store-set-up" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="store-set-up">
+<h2>Store set-up<a class="headerlink" href="#store-set-up" title="Permalink to this headline"></a></h2>
 <p>For this tutorial, we will be in charge of recommendations for
 Pig-E-Barbeque, a pork e-store. Pig-E-Barbeque sells two products: Ribs
 and Bacon. Our product manager has told us to optimize for clicks. Since
@@ -271,9 +197,9 @@ operator is based on the softmax function:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="user-simulator">
-<h2>User simulator<a class="headerlink" href="#user-simulator" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="user-simulator">
+<h2>User simulator<a class="headerlink" href="#user-simulator" title="Permalink to this headline"></a></h2>
 <p>Because this isn’t a real store, we need a way to simulate users. Our
 simulator has a few rules:</p>
 <ol class="arabic simple">
@@ -288,9 +214,9 @@ simulator has a few rules:</p>
 <p>We will be using the built-in web service directly for this tutorial.
 The simulator code can be found at:
 serving/examples/ecommerce/customer_simulator.py</p>
-</div>
-<div class="section" id="makin-bacon">
-<h2>Makin’ bacon<a class="headerlink" href="#makin-bacon" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="makin-bacon">
+<h2>Makin’ bacon<a class="headerlink" href="#makin-bacon" title="Permalink to this headline"></a></h2>
 <p>In one terminal window, start the RP server:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>➜  ./serving/build/RaspCli --logtostderr
 I1014 17:23:19.736086 457250240 DiskConfigProvider.cpp:10] READING CONFIGS FROM serving/examples/ecommerce/plans
@@ -415,9 +341,9 @@ Action Distribution: {&#39;Bacon&#39;: 926, &#39;Ribs&#39;: 74}
 average than our first plan. If we keep running, eventually the model
 will stop exploring the Ribs action and the average reward will approach
 50% (which is the chance of a reward that we set in our simulator).</p>
-</div>
-<div class="section" id="straight-outta-context">
-<h2>Straight Outta Context<a class="headerlink" href="#straight-outta-context" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="straight-outta-context">
+<h2>Straight Outta Context<a class="headerlink" href="#straight-outta-context" title="Permalink to this headline"></a></h2>
 <p>While running the store, our data scientist has discovered a way to
 figure out who is a rib-lover. Now we can pass a context feature which
 is 1 when the visitor is a rib lover and 0 otherwise. In this section we
@@ -570,56 +496,38 @@ customers.</p>
 repeat visitors. ReAgent can also optimize for long-term value in
 sequential decisions using reinforcement learning, but that is out of
 the scope of this starting tutorial.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Facebook Inc.
-
-    </p>
+    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
