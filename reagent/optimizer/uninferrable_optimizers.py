@@ -23,6 +23,7 @@ class Adam(OptimizerConfig):
     eps: float = 1e-08
     weight_decay: float = 0
     amsgrad: bool = False
+    maximize: bool = False
 
 
 @dataclass(frozen=True)
@@ -32,6 +33,7 @@ class NAdam(OptimizerConfig):
     eps: float = 1e-08
     weight_decay: float = 0
     momentum_decay: float = 4e-3
+    maximize: bool = False
 
 
 @dataclass(frozen=True)
@@ -40,6 +42,7 @@ class RAdam(OptimizerConfig):
     betas: Tuple[float, float] = (0.9, 0.999)
     eps: float = 1e-08
     weight_decay: float = 0
+    maximize: bool = False
 
 
 @dataclass(frozen=True)
@@ -49,6 +52,7 @@ class SGD(OptimizerConfig):
     weight_decay: float = 0.0
     dampening: float = 0.0
     nesterov: bool = False
+    maximize: bool = False
 
 
 @dataclass(frozen=True)
@@ -58,6 +62,7 @@ class AdamW(OptimizerConfig):
     eps: float = 1e-08
     weight_decay: float = 0.01
     amsgrad: bool = False
+    maximize: bool = False
 
 
 @dataclass(frozen=True)
@@ -65,6 +70,7 @@ class SparseAdam(OptimizerConfig):
     lr: float = 0.001
     betas: Tuple[float, float] = (0.9, 0.999)
     eps: float = 1e-08
+    maximize: bool = False
 
 
 @dataclass(frozen=True)
@@ -73,6 +79,7 @@ class Adamax(OptimizerConfig):
     betas: Tuple[float, float] = (0.9, 0.999)
     eps: float = 1e-08
     weight_decay: float = 0
+    maximize: bool = False
 
 
 @dataclass(frozen=True)
@@ -84,6 +91,7 @@ class LBFGS(OptimizerConfig):
     tolerance_change: float = 1e-09
     history_size: int = 100
     line_search_fn: Optional[str] = None
+    maximize: bool = False
 
 
 @dataclass(frozen=True)
@@ -91,3 +99,4 @@ class Rprop(OptimizerConfig):
     lr: float = 0.01
     etas: Tuple[float, float] = (0.5, 1.2)
     step_sizes: Tuple[float, float] = (1e-06, 50)
+    maximize: bool = False
