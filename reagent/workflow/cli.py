@@ -10,6 +10,8 @@ import os
 import sys
 
 import click
+
+# pyre-fixme[21]: Could not find name `YAML` in `ruamel.yaml`.
 from ruamel.yaml import YAML
 
 
