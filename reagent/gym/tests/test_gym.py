@@ -255,7 +255,6 @@ def run_test_replay_buffer(
     pl_trainer = pl.Trainer(
         max_epochs=1,
         gpus=int(use_gpu),
-        deterministic=True,
         default_root_dir=f"lightning_log_{str(uuid.uuid4())}",
     )
     # Note: the fit() function below also evaluates the agent along the way
@@ -308,7 +307,6 @@ def run_test_online_episode(
     pl_trainer = pl.Trainer(
         max_epochs=1,
         gpus=int(use_gpu),
-        deterministic=True,
         default_root_dir=f"lightning_log_{str(uuid.uuid4())}",
     )
     dataset = EpisodicDataset(
