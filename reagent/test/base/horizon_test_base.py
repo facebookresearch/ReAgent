@@ -10,6 +10,8 @@ import numpy as np
 import torch
 from reagent.core.configuration import make_config_class
 from reagent.core.tensorboardX import SummaryWriterContext
+
+# pyre-fixme[21]: Could not find name `YAML` in `ruamel.yaml`.
 from ruamel.yaml import YAML
 
 
@@ -29,6 +31,7 @@ class HorizonTestBase(unittest.TestCase):
 
     @classmethod
     def run_from_config(cls, run_test: Callable, config_path: str, use_gpu: bool):
+        # pyre-fixme[16]: Module `yaml` has no attribute `YAML`.
         yaml = YAML(typ="safe")
         with open(config_path, "r") as f:
             config_dict = yaml.load(f.read())
