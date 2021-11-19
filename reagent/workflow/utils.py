@@ -17,6 +17,7 @@ from reagent.core.oss_tensorboard_logger import OssTensorboardLogger
 from reagent.data.spark_utils import get_spark_session
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.training import StoppingEpochCallback
+from reagent.training.reagent_lightning_module import has_test_step_override
 
 from .types import Dataset, ReaderOptions, ResourceOptions
 
@@ -141,7 +142,12 @@ def train_eval_lightning(
         callbacks=[StoppingEpochCallback(num_epochs)],
     )
     trainer.fit(trainer_module, datamodule=datamodule)
-    trainer.test()
+    if has_test_step_override(trainer_module):
+        trainer.test(ckpt_path=None, datamodule=datamodule)
+    else:
+        logger.warning(
+            f"Module {type(trainer_module).__name__} doesn't implement test_step(). Skipping testing"
+        )
     if checkpoint_path is not None:
         # Overwrite the warmstart path with the new model
         trainer_module.set_clean_stop(True)
