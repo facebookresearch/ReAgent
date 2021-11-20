@@ -11,7 +11,7 @@ class BaseThompsonSampling(MABAlgo):
     def _get_posterior_samples(self) -> Tensor:
         pass
 
-    def forward(self):
+    def get_scores(self):
         return self._get_posterior_samples()
 
 
@@ -35,17 +35,24 @@ class NormalGammaThompson(BaseThompsonSampling):
     """
     The Thompson Sampling MAB with Normal-Gamma distribution for rewards.
     Appropriate for MAB with normally distributed rewards.
-    We use poterior update equations from
+    We use posterior update equations from
         https://en.wikipedia.org/wiki/Normal-gamma_distribution#Posterior_distribution_of_the_parameters
     """
 
     def __init__(
         self,
+        randomize_ties: bool = True,
+        min_num_obs_per_arm: int = 1,
         *,
         n_arms: Optional[int] = None,
         arm_ids: Optional[List[str]] = None,
     ):
-        super().__init__(n_arms=n_arms, arm_ids=arm_ids)
+        super().__init__(
+            randomize_ties=randomize_ties,
+            n_arms=n_arms,
+            arm_ids=arm_ids,
+            min_num_obs_per_arm=min_num_obs_per_arm,
+        )
         self.mus = torch.zeros(self.n_arms)
         self.alpha_0 = 1.5  # initial value of the alpha parameter
         self.lambda_0 = 1.0  # initial value of the lambda parameter
