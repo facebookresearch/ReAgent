@@ -1,5 +1,7 @@
 import unittest
 from io import BytesIO
+from itertools import cycle
+from unittest import mock
 
 import numpy as np
 import numpy.testing as npt
@@ -320,6 +322,36 @@ class TestSimulation(unittest.TestCase):
         # make sure regret is non-decreasing
         self.assertGreaterEqual(np.diff(regret_trajectory, prepend=0).min(), 0)
 
+    def test_single_evaluation_update_every(self):
+        num_steps = 100
+        update_every = 10
+
+        bandit = BernoilliMAB(num_steps, torch.tensor([0.3, 0.5]))
+        algo = UCB1(n_arms=2)
+        algo.add_batch_observations = mock.Mock()
+        algo.get_action = mock.Mock(side_effect=cycle(["0", "1"]))
+        regret_trajectory = single_evaluation_bandit_algo(
+            bandit, algo, update_every=update_every, freeze_scores_btw_updates=False
+        )
+        self.assertEqual(len(regret_trajectory), num_steps)
+        self.assertEqual(
+            algo.add_batch_observations.call_count, num_steps / update_every
+        )
+        self.assertEqual(algo.get_action.call_count, num_steps)
+
+        bandit = BernoilliMAB(num_steps, torch.tensor([0.3, 0.5]))
+        algo = UCB1(n_arms=2)
+        algo.add_batch_observations = mock.Mock()
+        algo.get_action = mock.Mock(side_effect=cycle(["0", "1"]))
+        regret_trajectory = single_evaluation_bandit_algo(
+            bandit, algo, update_every=update_every, freeze_scores_btw_updates=True
+        )
+        self.assertEqual(len(regret_trajectory), num_steps)
+        self.assertEqual(
+            algo.add_batch_observations.call_count, num_steps / update_every
+        )
+        self.assertEqual(algo.get_action.call_count, num_steps / update_every)
+
     def test_multiple_evaluations_bandit_algo(self):
         max_steps = 20
         regret_trajectory = multiple_evaluations_bandit_algo(
@@ -339,7 +371,7 @@ class TestSimulation(unittest.TestCase):
 
     def test_compare_bandit_algos(self):
         max_steps = 1000
-        algo_clss = [UCB1, MetricUCB]
+        algo_clss = [UCB1, MetricUCB, BernoulliBetaThompson]
         algo_names, regret_trajectories = compare_bandit_algos(
             algo_clss=algo_clss,
             bandit_cls=BernoilliMAB,
@@ -352,7 +384,7 @@ class TestSimulation(unittest.TestCase):
         self.assertEqual(len(algo_names), len(algo_clss))
         self.assertEqual(len(regret_trajectories), len(algo_clss))
 
-        self.assertListEqual(algo_names, ["UCB1", "MetricUCB"])
+        self.assertListEqual(algo_names, ["UCB1", "MetricUCB", "BernoulliBetaThompson"])
 
         for traj in regret_trajectories:
             self.assertIsInstance(traj, np.ndarray)

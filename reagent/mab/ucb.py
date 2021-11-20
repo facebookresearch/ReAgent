@@ -77,7 +77,7 @@ class UCB1(BaseUCB):
 class MetricUCB(BaseUCB):
     """
     This is an improvement over UCB1 which uses a more precise confidence radius, especially for small expected rewards.
-    This algorithm has been constructed for Benroulli reward distributions.
+    This algorithm has been constructed for Bernoulli reward distributions.
     Reference: https://arxiv.org/pdf/0809.4882.pdf
     """
 
