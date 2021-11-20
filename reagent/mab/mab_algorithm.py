@@ -189,7 +189,7 @@ class MABAlgo(torch.nn.Module, ABC):
         # set `inf` scores for arms which don't have the minimum number of observations
         return torch.where(
             self.total_n_obs_per_arm >= self.min_num_obs_per_arm,
-            self.get_scores(),
+            self.get_scores().float(),
             torch.tensor(torch.inf, dtype=torch.float),
         )
 
