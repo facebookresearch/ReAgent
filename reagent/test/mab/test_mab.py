@@ -9,6 +9,7 @@ from reagent.mab.mab_algorithm import (
     get_arm_indices,
     place_values_at_indices,
     reindex_multiple_tensors,
+    randomized_argmax,
 )
 from reagent.mab.simulation import (
     BernoilliMAB,
@@ -25,11 +26,13 @@ from reagent.mab.ucb import (
     BaseUCB,
     MetricUCB,
     UCB1,
+    UCBTuned,
 )
 
 ALL_UCB_ALGOS = [
     ["MetricUCB", MetricUCB],
     ["UCB1", UCB1],
+    ["UCBTuned", UCBTuned],
 ]
 
 ALL_THOMPSON_ALGOS = [
@@ -76,6 +79,32 @@ class TestMAButils(unittest.TestCase):
             reindexed_values[1].numpy(), np.array([0.0, 89.0, 0.0, 4.0, 2.0])
         )
 
+    def _test_randomized_argmax(self, x, expected_idxs):
+        best_idxs = set()
+        for _ in range(1000):
+            best_idxs.add(randomized_argmax(x))
+        self.assertSetEqual(best_idxs, expected_idxs)
+
+    def test_randomized_argmax(self):
+        self._test_randomized_argmax(torch.tensor([1, 2, 3, 2, 3, 1, 3]), {2, 4, 6})
+        self._test_randomized_argmax(
+            torch.tensor(
+                [1, torch.tensor(float("inf")), 3, 2, 3, torch.tensor(float("inf")), 3]
+            ),
+            {1, 5},
+        )
+        self._test_randomized_argmax(
+            torch.tensor(
+                [
+                    torch.tensor(float("inf")),
+                    torch.tensor(float("inf")),
+                    torch.tensor(float("inf")),
+                ]
+            ),
+            {0, 1, 2},
+        )
+        self._test_randomized_argmax(torch.tensor([1, 2, 3, 2, 3, 1, 5]), {6})
+
 
 class TestMAB(unittest.TestCase):
     @parameterized.expand(ALL_MAB_ALGOS)
@@ -116,22 +145,25 @@ class TestMAB(unittest.TestCase):
                 b.get_avg_reward_values().numpy(), avg_rewards.numpy()
             )  # avg rewards computed correctly
 
+            scores = b.get_scores()
+            forward_scores = b()
+
+            # scores shape and type are correct
+            self.assertEqual(scores.shape, (n_arms,))
+            self.assertIsInstance(scores, torch.Tensor)
+            self.assertEqual(forward_scores.shape, (n_arms,))
+            self.assertIsInstance(forward_scores, torch.Tensor)
+
             if isinstance(b, BaseUCB):
-                ucb_scores = b.get_ucb_scores()
-                forward_scores = b()
-
-                # UCB scores shape and type are correct
-                self.assertEqual(ucb_scores.shape, (n_arms,))
-                self.assertIsInstance(ucb_scores, torch.Tensor)
-
                 npt.assert_array_less(
                     avg_rewards,
-                    np.where(
-                        b.total_n_obs_per_arm.numpy() > 0, ucb_scores.numpy(), np.nan
-                    ),
+                    scores.numpy(),
                 )  # UCB scores greater than avg rewards
 
-                npt.assert_array_equal(ucb_scores, forward_scores)
+                valid_indices = b.total_n_obs_per_arm.numpy() >= b.min_num_obs_per_arm
+                npt.assert_array_equal(
+                    scores[valid_indices], forward_scores[valid_indices]
+                )
 
     @parameterized.expand(ALL_MAB_ALGOS)
     def test_class_method(self, name, cls):
@@ -151,14 +183,19 @@ class TestMAB(unittest.TestCase):
 
             npt.assert_array_less(
                 avg_rewards.numpy(),
-                np.where(n_obs_per_arm.numpy() > 0, scores.numpy(), np.nan),
+                np.where(
+                    n_obs_per_arm.numpy() >= 1,
+                    scores.numpy(),
+                    np.nan,
+                ),
             )  # UCB scores greater than avg rewards
 
     @parameterized.expand(ALL_MAB_ALGOS)
     def test_online_training(self, name, cls):
         n_arms = 5
         total_n_obs = 100
-        b = cls(n_arms=n_arms)
+        min_num_obs_per_arm = 15
+        b = cls(n_arms=n_arms, min_num_obs_per_arm=min_num_obs_per_arm)
         total_obs_per_arm = torch.zeros(n_arms)
         total_success_per_arm = torch.zeros(n_arms)
         true_ctrs = torch.rand(size=(n_arms,))
@@ -168,6 +205,8 @@ class TestMAB(unittest.TestCase):
             b.add_single_observation(chosen_arm, reward)
             total_obs_per_arm[int(chosen_arm)] += 1
             total_success_per_arm[int(chosen_arm)] += reward
+        # each arm has at least the required number of observations
+        self.assertLessEqual(min_num_obs_per_arm, b.total_n_obs_per_arm.min().item())
         online_scores = b()
         offline_scores = cls.get_scores_from_batch(
             total_obs_per_arm, total_success_per_arm, total_success_per_arm
@@ -221,7 +260,7 @@ class TestMAB(unittest.TestCase):
         avg_rewards_before_save = b.get_avg_reward_values()
 
         if isinstance(b, BaseUCB):
-            ucb_scores_before_save = b.get_ucb_scores()
+            ucb_scores_before_save = b.get_scores()
 
         f_write = BytesIO()
         torch.save(b, f_write)
@@ -232,7 +271,7 @@ class TestMAB(unittest.TestCase):
         f_read.close()
 
         if isinstance(b, BaseUCB):
-            ucb_scores_after_load = b_loaded.get_ucb_scores()
+            ucb_scores_after_load = b_loaded.get_scores()
             npt.assert_array_equal(
                 ucb_scores_before_save.numpy(), ucb_scores_after_load.numpy()
             )  # UCB scores are same before saving and after loading

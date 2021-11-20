@@ -72,9 +72,36 @@ def reindex_multiple_tensors(
         return tuple(ret)
 
 
+def randomized_argmax(x: torch.Tensor) -> int:
+    """
+    Like argmax, but return a random (uniformly) index of the max element
+    This function makes sense only if there are ties for the max element
+    """
+    if torch.isinf(x).any():
+        # if some scores are inf, return the index for one of the infs
+        best_indices = torch.nonzero(torch.isinf(x)).squeeze()
+    else:
+        max_value = torch.max(x)
+        best_indices = torch.nonzero(x == max_value).squeeze()
+    if best_indices.ndim == 0:
+        # if there is a single argmax
+        chosen_idx = int(best_indices)
+    else:
+        chosen_idx = int(
+            best_indices[
+                torch.multinomial(
+                    1.0 / len(best_indices) * torch.ones(len(best_indices)), 1
+                )[0]
+            ]
+        )
+    return chosen_idx
+
+
 class MABAlgo(torch.nn.Module, ABC):
     def __init__(
         self,
+        randomize_ties: bool = True,
+        min_num_obs_per_arm: int = 1,
         *,
         n_arms: Optional[int] = None,
         arm_ids: Optional[List[str]] = None,
@@ -86,10 +113,12 @@ class MABAlgo(torch.nn.Module, ABC):
         if arm_ids is not None:
             self.arm_ids = arm_ids
             self.n_arms = len(arm_ids)
+        self.min_num_obs_per_arm = min_num_obs_per_arm
         self.total_n_obs_all_arms = 0
         self.total_n_obs_per_arm = torch.zeros(self.n_arms)
         self.total_sum_reward_per_arm = torch.zeros(self.n_arms)
         self.total_sum_reward_squared_per_arm = torch.zeros(self.n_arms)
+        self.randomize_ties = randomize_ties
 
     def add_batch_observations(
         self,
@@ -140,17 +169,29 @@ class MABAlgo(torch.nn.Module, ABC):
             int: The integer ID of the chosen action
         """
         scores = self()  # calling forward() under the hood
-        return self.arm_ids[torch.argmax(scores)]
+        if self.randomize_ties:
+            best_idx = randomized_argmax(scores)
+        else:
+            best_idx = torch.argmax(scores)
+        return self.arm_ids[best_idx]
 
     def reset(self):
         """
         Reset the MAB to the initial (empty) state.
         """
-        self.__init__(arm_ids=self.arm_ids)
+        self.__init__(randomize_ties=self.randomize_ties, arm_ids=self.arm_ids)
 
     @abstractmethod
-    def forward(self):
+    def get_scores(self) -> Tensor:
         pass
+
+    def forward(self):
+        # set `inf` scores for arms which don't have the minimum number of observations
+        return torch.where(
+            self.total_n_obs_per_arm >= self.min_num_obs_per_arm,
+            self.get_scores(),
+            torch.tensor(torch.inf, dtype=torch.float),
+        )
 
     def get_avg_reward_values(self) -> Tensor:
         return self.total_sum_reward_per_arm / self.total_n_obs_per_arm
@@ -193,7 +234,7 @@ class RandomActionsAlgo(MABAlgo):
     A MAB algorithm which samples actions uniformly at random
     """
 
-    def forward(self) -> Tensor:
+    def get_scores(self) -> Tensor:
         return torch.rand(self.n_arms)
 
 
@@ -204,9 +245,5 @@ class GreedyAlgo(MABAlgo):
     Ties are resolved in favor of the arm with the smallest index.
     """
 
-    def forward(self) -> Tensor:
-        return torch.where(
-            self.total_n_obs_per_arm > 0,
-            self.get_avg_reward_values(),
-            torch.tensor(float("inf")),
-        )
+    def get_scores(self) -> Tensor:
+        return self.get_avg_reward_values()
