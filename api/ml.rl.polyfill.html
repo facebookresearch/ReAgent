@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ml.rl.polyfill package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="License" href="../license.html" />
+    <link rel="prev" title="ml.rl package" href="ml.rl.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.evaluation.html">Evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">All Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ml.html">ml package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="ml.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="ml.rl.html">ml.rl package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ml.html#module-ml">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">ml</a> &raquo;</li>
+          <li><a href="ml.html">ml package</a> &raquo;</li>
+          <li><a href="ml.rl.html">ml.rl package</a> &raquo;</li>
+      <li>ml.rl.polyfill package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/ml.rl.polyfill.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ml-rl-polyfill-package">
+<h1>ml.rl.polyfill package<a class="headerlink" href="#ml-rl-polyfill-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-ml.rl.polyfill.decorators">
+<span id="ml-rl-polyfill-decorators-module"></span><h2>ml.rl.polyfill.decorators module<a class="headerlink" href="#module-ml.rl.polyfill.decorators" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ml.rl.polyfill.decorators.ClassPropertyDescriptor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ml.rl.polyfill.decorators.</span></span><span class="sig-name descname"><span class="pre">ClassPropertyDescriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fget</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.polyfill.decorators.ClassPropertyDescriptor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ml.rl.polyfill.decorators.classproperty">
+<span class="sig-prename descclassname"><span class="pre">ml.rl.polyfill.decorators.</span></span><span class="sig-name descname"><span class="pre">classproperty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.polyfill.decorators.classproperty" title="Permalink to this definition"></a></dt>
+<dd><p>Allow for getter property usage on classmethods</p>
+<p>cf: <a class="reference external" href="https://stackoverflow.com/questions/5189699/how-to-make-a-class-property">https://stackoverflow.com/questions/5189699/how-to-make-a-class-property</a></p>
+</dd></dl>
+
+</section>
+<section id="module-ml.rl.polyfill.exceptions">
+<span id="ml-rl-polyfill-exceptions-module"></span><h2>ml.rl.polyfill.exceptions module<a class="headerlink" href="#module-ml.rl.polyfill.exceptions" title="Permalink to this headline"></a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="ml.rl.polyfill.exceptions.NoRetriesException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ml.rl.polyfill.exceptions.</span></span><span class="sig-name descname"><span class="pre">NoRetriesException</span></span><a class="headerlink" href="#ml.rl.polyfill.exceptions.NoRetriesException" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="ml.rl.polyfill.exceptions.NonRetryableException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ml.rl.polyfill.exceptions.</span></span><span class="sig-name descname"><span class="pre">NonRetryableException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child_exception</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.polyfill.exceptions.NonRetryableException" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ml.rl.polyfill.exceptions.NoRetriesException" title="ml.rl.polyfill.exceptions.NoRetriesException"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.polyfill.exceptions.NoRetriesException</span></code></a></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="ml.rl.polyfill.exceptions.NonRetryableTypeError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ml.rl.polyfill.exceptions.</span></span><span class="sig-name descname"><span class="pre">NonRetryableTypeError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_error</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.polyfill.exceptions.NonRetryableTypeError" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypeError</span></code>, <a class="reference internal" href="#ml.rl.polyfill.exceptions.NonRetryableException" title="ml.rl.polyfill.exceptions.NonRetryableException"><code class="xref py py-class docutils literal notranslate"><span class="pre">ml.rl.polyfill.exceptions.NonRetryableException</span></code></a></p>
+</dd></dl>
+
+</section>
+<section id="module-ml.rl.polyfill.types">
+<span id="ml-rl-polyfill-types-module"></span><h2>ml.rl.polyfill.types module<a class="headerlink" href="#module-ml.rl.polyfill.types" title="Permalink to this headline"></a></h2>
+<p>Polyfills fblearner types</p>
+</section>
+<section id="module-ml.rl.polyfill">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ml.rl.polyfill" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ml.rl.html" class="btn btn-neutral float-left" title="ml.rl package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../license.html" class="btn btn-neutral float-right" title="License" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Facebook Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

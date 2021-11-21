@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ml.rl.evaluation package &mdash; ReAgent 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ml.rl.models package" href="ml.rl.models.html" />
+    <link rel="prev" title="Continuous Integration" href="../continuous_integration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ReAgent
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Evaluation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.evaluation.cpe">ml.rl.evaluation.cpe module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-evaluation-doubly-robust-estimator-module">ml.rl.evaluation.doubly_robust_estimator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-evaluation-evaluation-data-page-module">ml.rl.evaluation.evaluation_data_page module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-evaluation-evaluator-module">ml.rl.evaluation.evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-evaluation-ranking-evaluator-module">ml.rl.evaluation.ranking_evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.evaluation.reward_net_evaluator">ml.rl.evaluation.reward_net_evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-evaluation-sequential-doubly-robust-estimator-module">ml.rl.evaluation.sequential_doubly_robust_estimator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-evaluation-weighted-sequential-doubly-robust-estimator-module">ml.rl.evaluation.weighted_sequential_doubly_robust_estimator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ml-rl-evaluation-world-model-evaluator-module">ml.rl.evaluation.world_model_evaluator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ml.rl.evaluation">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.prediction.html">Prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.preprocessing.html">Preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.readers.html">Readers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.simulators.html">Simulators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.training.html">Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ml.rl.workflow.html">Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">All Modules</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Others</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/facebookresearch/ReAgent">Github</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ReAgent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>ml.rl.evaluation package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/ml.rl.evaluation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ml-rl-evaluation-package">
+<h1>ml.rl.evaluation package<a class="headerlink" href="#ml-rl-evaluation-package" title="Permalink to this headline"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-ml.rl.evaluation.cpe">
+<span id="ml-rl-evaluation-cpe-module"></span><h2>ml.rl.evaluation.cpe module<a class="headerlink" href="#module-ml.rl.evaluation.cpe" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeDetails">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ml.rl.evaluation.cpe.</span></span><span class="sig-name descname"><span class="pre">CpeDetails</span></span><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeDetails" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeDetails.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeDetails.log" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeDetails.log_to_tensorboard">
+<span class="sig-name descname"><span class="pre">log_to_tensorboard</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeDetails.log_to_tensorboard" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimate">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ml.rl.evaluation.cpe.</span></span><span class="sig-name descname"><span class="pre">CpeEstimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_std_error</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized_std_error</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimate" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimate.normalized">
+<span class="sig-name descname"><span class="pre">normalized</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimate.normalized" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimate.normalized_std_error">
+<span class="sig-name descname"><span class="pre">normalized_std_error</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimate.normalized_std_error" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimate.raw">
+<span class="sig-name descname"><span class="pre">raw</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimate.raw" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimate.raw_std_error">
+<span class="sig-name descname"><span class="pre">raw_std_error</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimate.raw_std_error" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimateSet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ml.rl.evaluation.cpe.</span></span><span class="sig-name descname"><span class="pre">CpeEstimateSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direct_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse_propensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubly_robust</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequential_doubly_robust</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weighted_doubly_robust</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magic</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimateSet" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimateSet.check_estimates_exist">
+<span class="sig-name descname"><span class="pre">check_estimates_exist</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimateSet.check_estimates_exist" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimateSet.direct_method">
+<span class="sig-name descname"><span class="pre">direct_method</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ml.rl.evaluation.cpe.CpeEstimate" title="ml.rl.evaluation.cpe.CpeEstimate"><span class="pre">ml.rl.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimateSet.direct_method" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimateSet.doubly_robust">
+<span class="sig-name descname"><span class="pre">doubly_robust</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ml.rl.evaluation.cpe.CpeEstimate" title="ml.rl.evaluation.cpe.CpeEstimate"><span class="pre">ml.rl.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimateSet.doubly_robust" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimateSet.fill_empty_with_zero">
+<span class="sig-name descname"><span class="pre">fill_empty_with_zero</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimateSet.fill_empty_with_zero" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimateSet.inverse_propensity">
+<span class="sig-name descname"><span class="pre">inverse_propensity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ml.rl.evaluation.cpe.CpeEstimate" title="ml.rl.evaluation.cpe.CpeEstimate"><span class="pre">ml.rl.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimateSet.inverse_propensity" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimateSet.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimateSet.log" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimateSet.log_to_tensorboard">
+<span class="sig-name descname"><span class="pre">log_to_tensorboard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimateSet.log_to_tensorboard" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimateSet.magic">
+<span class="sig-name descname"><span class="pre">magic</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ml.rl.evaluation.cpe.CpeEstimate" title="ml.rl.evaluation.cpe.CpeEstimate"><span class="pre">ml.rl.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimateSet.magic" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimateSet.sequential_doubly_robust">
+<span class="sig-name descname"><span class="pre">sequential_doubly_robust</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ml.rl.evaluation.cpe.CpeEstimate" title="ml.rl.evaluation.cpe.CpeEstimate"><span class="pre">ml.rl.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimateSet.sequential_doubly_robust" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.CpeEstimateSet.weighted_doubly_robust">
+<span class="sig-name descname"><span class="pre">weighted_doubly_robust</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ml.rl.evaluation.cpe.CpeEstimate" title="ml.rl.evaluation.cpe.CpeEstimate"><span class="pre">ml.rl.evaluation.cpe.CpeEstimate</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ml.rl.evaluation.cpe.CpeEstimateSet.weighted_doubly_robust" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ml.rl.evaluation.cpe.bootstrapped_std_error_of_mean">
+<span class="sig-prename descclassname"><span class="pre">ml.rl.evaluation.cpe.</span></span><span class="sig-name descname"><span class="pre">bootstrapped_std_error_of_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_percent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.evaluation.cpe.bootstrapped_std_error_of_mean" title="Permalink to this definition"></a></dt>
+<dd><p>Compute bootstrapped standard error of mean of input data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – Input data (1D torch tensor or numpy array).</p></li>
+<li><p><strong>sample_percent</strong> – Size of sample to use to calculate bootstrap statistic.</p></li>
+<li><p><strong>num_samples</strong> – Number of times to sample.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="ml-rl-evaluation-doubly-robust-estimator-module">
+<h2>ml.rl.evaluation.doubly_robust_estimator module<a class="headerlink" href="#ml-rl-evaluation-doubly-robust-estimator-module" title="Permalink to this headline"></a></h2>
+</section>
+<section id="ml-rl-evaluation-evaluation-data-page-module">
+<h2>ml.rl.evaluation.evaluation_data_page module<a class="headerlink" href="#ml-rl-evaluation-evaluation-data-page-module" title="Permalink to this headline"></a></h2>
+</section>
+<section id="ml-rl-evaluation-evaluator-module">
+<h2>ml.rl.evaluation.evaluator module<a class="headerlink" href="#ml-rl-evaluation-evaluator-module" title="Permalink to this headline"></a></h2>
+</section>
+<section id="ml-rl-evaluation-ranking-evaluator-module">
+<h2>ml.rl.evaluation.ranking_evaluator module<a class="headerlink" href="#ml-rl-evaluation-ranking-evaluator-module" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-ml.rl.evaluation.reward_net_evaluator">
+<span id="ml-rl-evaluation-reward-net-evaluator-module"></span><h2>ml.rl.evaluation.reward_net_evaluator module<a class="headerlink" href="#module-ml.rl.evaluation.reward_net_evaluator" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ml.rl.evaluation.reward_net_evaluator.RewardNetEvaluator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ml.rl.evaluation.reward_net_evaluator.</span></span><span class="sig-name descname"><span class="pre">RewardNetEvaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="ml.rl.training.html#ml.rl.training.reward_network_trainer.RewardNetTrainer" title="ml.rl.training.reward_network_trainer.RewardNetTrainer"><span class="pre">ml.rl.training.reward_network_trainer.RewardNetTrainer</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.evaluation.reward_net_evaluator.RewardNetEvaluator" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Evaluate reward networks</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ml.rl.evaluation.reward_net_evaluator.RewardNetEvaluator.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_tdp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="ml.rl.html#ml.rl.types.PreprocessedTrainingBatch" title="ml.rl.types.PreprocessedTrainingBatch"><span class="pre">ml.rl.types.PreprocessedTrainingBatch</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.evaluation.reward_net_evaluator.RewardNetEvaluator.evaluate" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ml.rl.evaluation.reward_net_evaluator.RewardNetEvaluator.evaluate_post_training">
+<span class="sig-name descname"><span class="pre">evaluate_post_training</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ml.rl.evaluation.reward_net_evaluator.RewardNetEvaluator.evaluate_post_training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="ml-rl-evaluation-sequential-doubly-robust-estimator-module">
+<h2>ml.rl.evaluation.sequential_doubly_robust_estimator module<a class="headerlink" href="#ml-rl-evaluation-sequential-doubly-robust-estimator-module" title="Permalink to this headline"></a></h2>
+</section>
+<section id="ml-rl-evaluation-weighted-sequential-doubly-robust-estimator-module">
+<h2>ml.rl.evaluation.weighted_sequential_doubly_robust_estimator module<a class="headerlink" href="#ml-rl-evaluation-weighted-sequential-doubly-robust-estimator-module" title="Permalink to this headline"></a></h2>
+</section>
+<section id="ml-rl-evaluation-world-model-evaluator-module">
+<h2>ml.rl.evaluation.world_model_evaluator module<a class="headerlink" href="#ml-rl-evaluation-world-model-evaluator-module" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-ml.rl.evaluation">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ml.rl.evaluation" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../continuous_integration.html" class="btn btn-neutral float-left" title="Continuous Integration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ml.rl.models.html" class="btn btn-neutral float-right" title="ml.rl.models package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Facebook Inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
