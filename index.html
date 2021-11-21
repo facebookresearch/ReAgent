@@ -39,12 +39,11 @@
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">RASP (Not Actively Maintained)</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
@@ -99,7 +98,7 @@
   <img alt="Banner" src="_images/reagent_banner.png" />
 <section id="reagent-applied-reinforcement-learning-platform">
 <h1>ReAgent: Applied Reinforcement Learning Platform<a class="headerlink" href="#reagent-applied-reinforcement-learning-platform" title="Permalink to this headline"></a></h1>
-<a class="reference external image-reference" href="https://circleci.com/gh/facebookresearch/ReAgent/tree/master"><img alt="https://circleci.com/gh/facebookresearch/ReAgent/tree/master.svg?style=svg" src="https://circleci.com/gh/facebookresearch/ReAgent/tree/master.svg?style=svg" /></a>
+<a class="reference external image-reference" href="https://circleci.com/gh/facebookresearch/ReAgent/tree/main"><img alt="https://circleci.com/gh/facebookresearch/ReAgent/tree/main.svg?style=svg" src="https://circleci.com/gh/facebookresearch/ReAgent/tree/main.svg?style=svg" /></a>
 </section>
 <hr class="docutils" />
 <section id="overview">
@@ -107,13 +106,15 @@
 <p>ReAgent is an open source end-to-end platform for applied reinforcement learning (RL) developed and used at Facebook.
 ReAgent is built in Python and uses PyTorch for modeling and training and TorchScript for model serving. The platform contains
 workflows to train popular deep RL algorithms and includes data preprocessing, feature transformation, distributed training,
-counterfactual policy evaluation, and optimized serving. For more detailed information about ReAgent see the white
-paper here: <a class="reference external" href="https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/">Platform</a>.</p>
+counterfactual policy evaluation, and optimized serving. For more detailed information about ReAgent, please read
+<a class="reference external" href="https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/">releases post</a>
+and <a class="reference external" href="https://arxiv.org/abs/1811.00260">white paper</a>.</p>
 <p>The source code is available here: <a class="reference external" href="https://github.com/facebookresearch/ReAgent">Source code</a>.</p>
 <p>The platform was once named “Horizon” but we have adopted the name “ReAgent” recently to emphasize its broader scope in decision making and reasoning.</p>
 </section>
 <section id="algorithms-supported">
 <h1>Algorithms Supported<a class="headerlink" href="#algorithms-supported" title="Permalink to this headline"></a></h1>
+<p>Classic Off-Policy algorithms:</p>
 <ul class="simple">
 <li><p>Discrete-Action <a class="reference external" href="https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf">DQN</a></p></li>
 <li><p>Parametric-Action DQN</p></li>
@@ -121,6 +122,31 @@ paper here: <a class="reference external" href="https://research.fb.com/publicat
 <li><p>Distributional RL <a class="reference external" href="https://arxiv.org/abs/1707.06887">C51</a>, <a class="reference external" href="https://arxiv.org/abs/1710.10044">QR-DQN</a></p></li>
 <li><p><a class="reference external" href="https://arxiv.org/abs/1802.09477">Twin Delayed DDPG</a> (TD3)</p></li>
 <li><p><a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic</a> (SAC)</p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/2006.15134">Critic Regularized Regression</a> (CRR)</p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/1707.06347">Proximal Policy Optimization Algorithms</a> (PPO)</p></li>
+</ul>
+<p>RL for recommender systems:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://arxiv.org/abs/1810.02019">Seq2Slate</a></p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/1905.12767">SlateQ</a></p></li>
+</ul>
+<p>Counterfactual Evaluation:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://arxiv.org/abs/1612.01205">Doubly Robust</a> (for bandits)</p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/1511.03722">Doubly Robust</a> (for sequential decisions)</p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/1604.00923">MAGIC</a></p></li>
+</ul>
+<p>Multi-Arm and Contextual Bandits:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.cs.bham.ac.uk/internal/courses/robotics/lectures/ucb1.pdf">UCB1</a></p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/0809.4882">MetricUCB</a></p></li>
+<li><p><a class="reference external" href="https://web.stanford.edu/~bvr/pubs/TS_Tutorial.pdf">Thompson Sampling</a></p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/1003.0146">LinUCB</a></p></li>
+</ul>
+<p>Others:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://web.mit.edu/6.454/www/www_fall_2003/gew/CEtutorial.pdf">Cross-Entropy Method</a></p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/2102.12425">Synthetic Return for Credit Assignment</a></p></li>
 </ul>
 </section>
 <section id="installation">
@@ -128,25 +154,39 @@ paper here: <a class="reference external" href="https://research.fb.com/publicat
 <p>ReAgent can be installed via. Docker or manually. Detailed instructions on how to install ReAgent can be found
 here: <a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a>.</p>
 </section>
-<section id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline"></a></h1>
-<p>The ReAgent Serving Platform (RASP) tutorial covers serving and training models and is available here: <a class="reference internal" href="rasp_tutorial.html#rasp-tutorial"><span class="std std-ref">ReAgent Serving Platform (RASP)</span></a>.</p>
+<section id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline"></a></h1>
+<p>ReAgent is designed for large-scale, distributed recommendation/optimization tasks where we don’t have access to a simulator.
+In this environment, it is typically better to train offline on batches of data, and release new policies slowly over time.
+Because the policy updates slowly and in batches, we use off-policy algorithms. To test a new policy without deploying it,
+we rely on counter-factual policy evaluation (CPE), a set of techniques for estimating a policy based on the actions of another policy.</p>
+<p>We also have a set of tools to facilitate applying RL in real-world applications:</p>
+<ul class="simple">
+<li><p>Domain Analysis Tool, which analyzes state/action feature importance and identifies whether the problem is a suitable for applying batch RL</p></li>
+<li><p>Behavior Cloning, which clones from the logging policy to bootstrap the learning policy safely</p></li>
+</ul>
 <p>Detailed instructions on how to use ReAgent can be found here: <a class="reference internal" href="usage.html#usage"><span class="std std-ref">Usage</span></a>.</p>
 </section>
 <section id="license">
 <h1>License<a class="headerlink" href="#license" title="Permalink to this headline"></a></h1>
-<p>ReAgent is released under a BSD license.  Find out more about it here: <a class="reference internal" href="license.html#license"><span class="std std-ref">License</span></a>.</p>
+<div class="line-block">
+<div class="line">ReAgent is released under a BSD license.  Find out more about it here: <a class="reference internal" href="license.html#license"><span class="std std-ref">License</span></a>.</div>
+<div class="line">Terms of Use - <a class="reference external" href="https://opensource.facebook.com/legal/terms">https://opensource.facebook.com/legal/terms</a></div>
+<div class="line">Privacy Policy - <a class="reference external" href="https://opensource.facebook.com/legal/privacy">https://opensource.facebook.com/legal/privacy</a></div>
+<div class="line">Copyright © 2022 Meta Platforms, Inc</div>
+</div>
 </section>
 <section id="citing">
 <h1>Citing<a class="headerlink" href="#citing" title="Permalink to this headline"></a></h1>
-<dl class="simple">
-<dt>&#64;article{gauci2018horizon,</dt><dd><p>title={Horizon: Facebook’s Open Source Applied Reinforcement Learning Platform},
-author={Gauci, Jason and Conti, Edoardo and Liang, Yitao and Virochsiri, Kittipat and Chen, Zhengxing and He, Yuchen and Kaden, Zachary and Narayanan, Vivek and Ye, Xiaohui},
-journal={arXiv preprint arXiv:1811.00260},
-year={2018}</p>
-</dd>
-</dl>
-<p>}</p>
+<p>Cite our work by:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">gauci2018horizon</span><span class="p">,</span>
+  <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">Horizon</span><span class="p">:</span> <span class="n">Facebook</span><span class="s1">&#39;s Open Source Applied Reinforcement Learning Platform},</span>
+  <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Gauci</span><span class="p">,</span> <span class="n">Jason</span> <span class="ow">and</span> <span class="n">Conti</span><span class="p">,</span> <span class="n">Edoardo</span> <span class="ow">and</span> <span class="n">Liang</span><span class="p">,</span> <span class="n">Yitao</span> <span class="ow">and</span> <span class="n">Virochsiri</span><span class="p">,</span> <span class="n">Kittipat</span> <span class="ow">and</span> <span class="n">Chen</span><span class="p">,</span> <span class="n">Zhengxing</span> <span class="ow">and</span> <span class="n">He</span><span class="p">,</span> <span class="n">Yuchen</span> <span class="ow">and</span> <span class="n">Kaden</span><span class="p">,</span> <span class="n">Zachary</span> <span class="ow">and</span> <span class="n">Narayanan</span><span class="p">,</span> <span class="n">Vivek</span> <span class="ow">and</span> <span class="n">Ye</span><span class="p">,</span> <span class="n">Xiaohui</span><span class="p">},</span>
+  <span class="n">journal</span><span class="o">=</span><span class="p">{</span><span class="n">arXiv</span> <span class="n">preprint</span> <span class="n">arXiv</span><span class="p">:</span><span class="mf">1811.00260</span><span class="p">},</span>
+  <span class="n">year</span><span class="o">=</span><span class="p">{</span><span class="mi">2018</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </section>
 <section id="table-of-contents">
 <h1>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline"></a></h1>
@@ -156,16 +196,7 @@ year={2018}</p>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#reagent-cli-python-api">ReAgent CLI &amp; Python API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installation.html#spark-preprocessing-jar">Spark preprocessing JAR</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#rasp">RASP</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">Tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="rasp_tutorial.html#what-is-rasp">What is RASP?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rasp_tutorial.html#installing-reagent">Installing ReAgent</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rasp_tutorial.html#store-set-up">Store set-up</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rasp_tutorial.html#user-simulator">User simulator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rasp_tutorial.html#makin-bacon">Makin’ bacon</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rasp_tutorial.html#straight-outta-context">Straight Outta Context</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#rasp-not-actively-maintained">RASP (Not Actively Maintained)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
@@ -182,17 +213,20 @@ year={2018}</p>
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">RASP (Not Actively Maintained)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rasp_tutorial.html#what-is-rasp">What is RASP?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rasp_tutorial.html#installing-reagent">Installing ReAgent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rasp_tutorial.html#store-set-up">Store set-up</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rasp_tutorial.html#user-simulator">User simulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rasp_tutorial.html#makin-bacon">Makin’ bacon</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rasp_tutorial.html#straight-outta-context">Straight Outta Context</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="distributed.html">Distributed Training</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="distributed.html#how-distributed-training-works">How distributed training works</a></li>
-<li class="toctree-l2"><a class="reference internal" href="distributed.html#training-on-a-single-node">Training on a single node</a></li>
-<li class="toctree-l2"><a class="reference internal" href="distributed.html#training-on-multiple-nodes">Training on multiple nodes</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
 </ul>
 </div>
@@ -398,6 +432,9 @@ year={2018}</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/reagent.mab.html">MAB</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/reagent.mab.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/reagent.mab.html#module-reagent.mab.mab_algorithm">reagent.mab.mab_algorithm module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/reagent.mab.html#module-reagent.mab.simulation">reagent.mab.simulation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/reagent.mab.html#module-reagent.mab.thompson_sampling">reagent.mab.thompson_sampling module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/reagent.mab.html#module-reagent.mab.ucb">reagent.mab.ucb module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/reagent.mab.html#module-reagent.mab">Module contents</a></li>
 </ul>
@@ -584,6 +621,7 @@ year={2018}</p>
 <li class="toctree-l2"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.dueling_q_network">reagent.models.dueling_q_network module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.embedding_bag_concat">reagent.models.embedding_bag_concat module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.fully_connected_network">reagent.models.fully_connected_network module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.linear_regression">reagent.models.linear_regression module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.mdn_rnn">reagent.models.mdn_rnn module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.mlp_scorer">reagent.models.mlp_scorer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.model_feature_config_provider">reagent.models.model_feature_config_provider module</a></li>
@@ -633,6 +671,12 @@ year={2018}</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/reagent.training.html">Training</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/reagent.training.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/reagent.training.cb.html">reagent.training.cb package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.training.cb.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.training.cb.html#module-reagent.training.cb.linucb_trainer">reagent.training.cb.linucb_trainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/reagent.training.cb.html#module-reagent.training.cb">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="api/reagent.training.cfeval.html">reagent.training.cfeval package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="api/reagent.training.cfeval.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/reagent.training.cfeval.html#module-reagent.training.cfeval.bandit_reward_network_trainer">reagent.training.cfeval.bandit_reward_network_trainer module</a></li>
@@ -905,6 +949,9 @@ year={2018}</p>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="api/reagent.mab.html">reagent.mab package</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="api/reagent.mab.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.mab.html#module-reagent.mab.mab_algorithm">reagent.mab.mab_algorithm module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.mab.html#module-reagent.mab.simulation">reagent.mab.simulation module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.mab.html#module-reagent.mab.thompson_sampling">reagent.mab.thompson_sampling module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="api/reagent.mab.html#module-reagent.mab.ucb">reagent.mab.ucb module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="api/reagent.mab.html#module-reagent.mab">Module contents</a></li>
 </ul>
@@ -988,6 +1035,7 @@ year={2018}</p>
 <li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.dueling_q_network">reagent.models.dueling_q_network module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.embedding_bag_concat">reagent.models.embedding_bag_concat module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.fully_connected_network">reagent.models.fully_connected_network module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.linear_regression">reagent.models.linear_regression module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.mdn_rnn">reagent.models.mdn_rnn module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.mlp_scorer">reagent.models.mlp_scorer module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="api/reagent.models.html#module-reagent.models.model_feature_config_provider">reagent.models.model_feature_config_provider module</a></li>
@@ -1241,6 +1289,12 @@ year={2018}</p>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="api/reagent.training.html">reagent.training package</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="api/reagent.training.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="api/reagent.training.cb.html">reagent.training.cb package</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.cb.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.cb.html#module-reagent.training.cb.linucb_trainer">reagent.training.cb.linucb_trainer module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="api/reagent.training.cb.html#module-reagent.training.cb">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l6"><a class="reference internal" href="api/reagent.training.cfeval.html">reagent.training.cfeval package</a><ul>
 <li class="toctree-l7"><a class="reference internal" href="api/reagent.training.cfeval.html#submodules">Submodules</a></li>
 <li class="toctree-l7"><a class="reference internal" href="api/reagent.training.cfeval.html#module-reagent.training.cfeval.bandit_reward_network_trainer">reagent.training.cfeval.bandit_reward_network_trainer module</a></li>
@@ -1347,7 +1401,7 @@ year={2018}</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+    <p>&#169; Copyright 2022, Meta Platforms, Inc.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -40,12 +40,11 @@
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rasp_tutorial.html">RASP (Not Actively Maintained)</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../continuous_integration.html">Continuous Integration</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
@@ -57,6 +56,9 @@
 <li class="toctree-l1"><a class="reference internal" href="reagent.lite.html">Lite</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">MAB</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.mab.mab_algorithm">reagent.mab.mab_algorithm module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.mab.simulation">reagent.mab.simulation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reagent.mab.thompson_sampling">reagent.mab.thompson_sampling module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-reagent.mab.ucb">reagent.mab.ucb module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-reagent.mab">Module contents</a></li>
 </ul>
@@ -107,26 +109,62 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
 </section>
-<section id="module-reagent.mab.ucb">
-<span id="reagent-mab-ucb-module"></span><h2>reagent.mab.ucb module<a class="headerlink" href="#module-reagent.mab.ucb" title="Permalink to this headline"></a></h2>
+<section id="module-reagent.mab.mab_algorithm">
+<span id="reagent-mab-mab-algorithm-module"></span><h2>reagent.mab.mab_algorithm module<a class="headerlink" href="#module-reagent.mab.mab_algorithm" title="Permalink to this headline"></a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">BaseUCB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.GreedyAlgo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.mab_algorithm.</span></span><span class="sig-name descname"><span class="pre">GreedyAlgo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.mab_algorithm.GreedyAlgo" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.mab.mab_algorithm.MABAlgo" title="reagent.mab.mab_algorithm.MABAlgo"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.mab_algorithm.MABAlgo</span></code></a></p>
+<p>Greedy algorithm, which always chooses the best arm played so far
+Arms that haven’t been played yet are given priority by assigning inf score
+Ties are resolved in favor of the arm with the smallest index.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.GreedyAlgo.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.mab_algorithm.GreedyAlgo.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.GreedyAlgo.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.mab_algorithm.GreedyAlgo.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.MABAlgo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.mab_algorithm.</span></span><span class="sig-name descname"><span class="pre">MABAlgo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.mab_algorithm.MABAlgo" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
-<p>Base class for UCB-like Multi-Armed Bandits (MAB)</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.add_batch_observations">
-<span class="sig-name descname"><span class="pre">add_batch_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_obs_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.add_batch_observations" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.MABAlgo.add_batch_observations">
+<span class="sig-name descname"><span class="pre">add_batch_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_obs_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_squared_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.mab_algorithm.MABAlgo.add_batch_observations" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.add_single_observation">
-<span class="sig-name descname"><span class="pre">add_single_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arm_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.add_single_observation" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.MABAlgo.add_single_observation">
+<span class="sig-name descname"><span class="pre">add_single_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arm_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.mab_algorithm.MABAlgo.add_single_observation" title="Permalink to this definition"></a></dt>
+<dd><p>Add a single observation (arm played, reward) to the bandit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arm_id</strong> (<em>int</em>) – Which arm was played</p></li>
+<li><p><strong>reward</strong> (<em>float</em>) – Reward renerated by the arm</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.forward" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.MABAlgo.forward">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.mab_algorithm.MABAlgo.forward" title="Permalink to this definition"></a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -139,9 +177,9 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.get_action">
-<span class="sig-name descname"><span class="pre">get_action</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.get_action" title="Permalink to this definition"></a></dt>
-<dd><p>Get the id of the action chosen by the UCB algorithm</p>
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.MABAlgo.get_action">
+<span class="sig-name descname"><span class="pre">get_action</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#reagent.mab.mab_algorithm.MABAlgo.get_action" title="Permalink to this definition"></a></dt>
+<dd><p>Get the id of the action chosen by the MAB algorithm</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The integer ID of the chosen action</p>
@@ -153,29 +191,24 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.get_avg_reward_values">
-<span class="sig-name descname"><span class="pre">get_avg_reward_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.get_avg_reward_values" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.MABAlgo.get_avg_reward_values">
+<span class="sig-name descname"><span class="pre">get_avg_reward_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.mab_algorithm.MABAlgo.get_avg_reward_values" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.get_ucb_scores">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_ucb_scores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.get_ucb_scores" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.get_ucb_scores_from_batch">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_ucb_scores_from_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_obs_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.get_ucb_scores_from_batch" title="Permalink to this definition"></a></dt>
-<dd><p>A utility method used to create the bandit, feed in a batch of observations and get the UCB scores in one function call</p>
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.MABAlgo.get_scores_from_batch">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_scores_from_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_obs_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_squared_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.mab_algorithm.MABAlgo.get_scores_from_batch" title="Permalink to this definition"></a></dt>
+<dd><p>A utility method used to create the bandit, feed in a batch of observations and get the scores in one function call</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>n_obs_per_arm</strong> (<em>Tensor</em>) – An array of counts of per-arm numbers of observations</p></li>
-<li><p><strong>sum_reward_per_arm</strong> (<em>Tensor</em>) – An array of sums of rewards for each arm</p></li>
-<li><p><strong>implementations</strong><strong>)</strong> (<em>(</em><em>additional arguments can be provided for specific concrete class</em>) – </p></li>
+<li><p><strong>n_obs_per_arm</strong> (<em>Tensor</em>) – A tensor of counts of per-arm numbers of observations</p></li>
+<li><p><strong>sum_reward_per_arm</strong> (<em>Tensor</em>) – A tensor of sums of rewards for each arm</p></li>
+<li><p><strong>sum_reward_squared_per_arm</strong> (<em>Tensor</em>) – A tensor of sums of squared rewards for each arm</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Array of per-arm UCB scores</p>
+<dd class="field-even"><p>Array of per-arm scores</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>Tensor</p>
@@ -183,22 +216,334 @@ registered hooks while the latter silently ignores them.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.MABAlgo.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.mab_algorithm.MABAlgo.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Reset the MAB to the initial (empty) state.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.MABAlgo.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.mab_algorithm.MABAlgo.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.RandomActionsAlgo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.mab_algorithm.</span></span><span class="sig-name descname"><span class="pre">RandomActionsAlgo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.mab_algorithm.RandomActionsAlgo" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.mab.mab_algorithm.MABAlgo" title="reagent.mab.mab_algorithm.MABAlgo"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.mab_algorithm.MABAlgo</span></code></a></p>
+<p>A MAB algorithm which samples actions uniformly at random</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.RandomActionsAlgo.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.mab_algorithm.RandomActionsAlgo.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.RandomActionsAlgo.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.mab_algorithm.RandomActionsAlgo.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.get_arm_indices">
+<span class="sig-prename descclassname"><span class="pre">reagent.mab.mab_algorithm.</span></span><span class="sig-name descname"><span class="pre">get_arm_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids_of_all_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids_of_arms_in_batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.mab.mab_algorithm.get_arm_indices" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.place_values_at_indices">
+<span class="sig-prename descclassname"><span class="pre">reagent.mab.mab_algorithm.</span></span><span class="sig-name descname"><span class="pre">place_values_at_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.mab_algorithm.place_values_at_indices" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>We place the values provided in <cite>values</cite> at indices provided in idxs. The values at indices</dt><dd><p>not included in <cite>idxs</cite> are filled with zeros.</p>
+</dd>
+</dl>
+<p>TODO: maybe replace with sparse-to-dense tensor function?
+.. rubric:: Example</p>
+<p>place_values_at_indices(Tensor([4,5]), [2,0], 4) == Tensor([5, 0, 4, 0])</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> (<em>Tensor</em>) – The values</p></li>
+<li><p><strong>idxs</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – The indices at which the values have to be placed</p></li>
+<li><p><strong>total_len</strong> (<em>int</em>) – Length of the output tensor</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The output tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.mab.mab_algorithm.reindex_multiple_tensors">
+<span class="sig-prename descclassname"><span class="pre">reagent.mab.mab_algorithm.</span></span><span class="sig-name descname"><span class="pre">reindex_multiple_tensors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_tensors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.mab.mab_algorithm.reindex_multiple_tensors" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Each tensor from value_tensors is ordered by ids from batch_ids. In the output we</dt><dd><p>return these tensors reindexed by all_ids, filling in zeros for missing entries.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_ids</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – The IDs that specify how to order the elements in the output</p></li>
+<li><p><strong>batch_ids</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em>) – The IDs that specify how the elements are ordered in the input</p></li>
+<li><p><strong>value_tensors</strong> (<em>Tuple</em><em>[</em><em>Tensor</em><em>]</em>) – A tuple of tensors with elements ordered by <cite>batch_ids</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A Tuple of reindexed tensors</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-reagent.mab.simulation">
+<span id="reagent-mab-simulation-module"></span><h2>reagent.mab.simulation module<a class="headerlink" href="#module-reagent.mab.simulation" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.simulation.BernoilliMAB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.simulation.</span></span><span class="sig-name descname"><span class="pre">BernoilliMAB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.simulation.BernoilliMAB" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.mab.simulation.MAB" title="reagent.mab.simulation.MAB"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.simulation.MAB</span></code></a></p>
+<p>A class that simulates a bandit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>probs</strong> – A tensor of per-arm success probabilities</p></li>
+<li><p><strong>max_steps</strong> – Max number os steps to simulate. This has to be specified because we pre-generate
+all the rewards at initialization</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.simulation.BernoilliMAB.act">
+<span class="sig-name descname"><span class="pre">act</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arm_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#reagent.mab.simulation.BernoilliMAB.act" title="Permalink to this definition"></a></dt>
+<dd><p>Sample a reward from a specific arm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>arm_idx</strong> – Index of arm from which reward is sampled</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sampled reward</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.simulation.MAB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.simulation.</span></span><span class="sig-name descname"><span class="pre">MAB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_rewards</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.simulation.MAB" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.simulation.MAB.act">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">act</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arm_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#reagent.mab.simulation.MAB.act" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.mab.simulation.compare_bandit_algos">
+<span class="sig-prename descclassname"><span class="pre">reagent.mab.simulation.</span></span><span class="sig-name descname"><span class="pre">compare_bandit_algos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algo_clss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.mab.mab_algorithm.MABAlgo" title="reagent.mab.mab_algorithm.MABAlgo"><span class="pre">reagent.mab.mab_algorithm.MABAlgo</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandit_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.mab.simulation.MAB" title="reagent.mab.simulation.MAB"><span class="pre">reagent.mab.simulation.MAB</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bandits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandit_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#reagent.mab.simulation.compare_bandit_algos" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>algo_clss</strong> – A list of MAB algorithm classes to be evaluated</p></li>
+<li><p><strong>bandit_cls</strong> – Bandit class on which we perform evaluations</p></li>
+<li><p><strong>n_bandits</strong> – Number of bandit instances among which the results are averaged</p></li>
+<li><p><strong>max_steps</strong> – Number of time steps to simulate</p></li>
+<li><p><strong>algo_kwargs</strong> – A dict (or list of dicts, one per algorightm class) of kwargs to pass to algo_cls at initialization</p></li>
+<li><p><strong>bandit_kwargs</strong> – A dict of kwargs to pass to bandit_cls at initialization</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of algorithm names that were evaluated (based on class names)
+A list of cumulative regret trajectories (one per evaluated algorithm)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.mab.simulation.multiple_evaluations_bandit_algo">
+<span class="sig-prename descclassname"><span class="pre">reagent.mab.simulation.</span></span><span class="sig-name descname"><span class="pre">multiple_evaluations_bandit_algo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algo_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.mab.mab_algorithm.MABAlgo" title="reagent.mab.mab_algorithm.MABAlgo"><span class="pre">reagent.mab.mab_algorithm.MABAlgo</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandit_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#reagent.mab.simulation.MAB" title="reagent.mab.simulation.MAB"><span class="pre">reagent.mab.simulation.MAB</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bandits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_processes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bandit_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#reagent.mab.simulation.multiple_evaluations_bandit_algo" title="Permalink to this definition"></a></dt>
+<dd><p>Perform evaluations on multiple bandit instances and aggregate (average) the result</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>algo_cls</strong> – MAB algorithm class to be evaluated</p></li>
+<li><p><strong>bandit_cls</strong> – Bandit class on which we perform evaluations</p></li>
+<li><p><strong>n_bandits</strong> – Number of bandit instances among which the results are averaged</p></li>
+<li><p><strong>max_steps</strong> – Number of time steps to simulate</p></li>
+<li><p><strong>algo_kwargs</strong> – A dict of kwargs to pass to algo_cls at initialization</p></li>
+<li><p><strong>bandit_kwargs</strong> – A dict of kwargs to pass to bandit_cls at initialization</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An array of cumulative presudo regret (average across multple bandit instances)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reagent.mab.simulation.single_evaluation_bandit_algo">
+<span class="sig-prename descclassname"><span class="pre">reagent.mab.simulation.</span></span><span class="sig-name descname"><span class="pre">single_evaluation_bandit_algo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bandit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.mab.simulation.MAB" title="reagent.mab.simulation.MAB"><span class="pre">reagent.mab.simulation.MAB</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#reagent.mab.mab_algorithm.MABAlgo" title="reagent.mab.mab_algorithm.MABAlgo"><span class="pre">reagent.mab.mab_algorithm.MABAlgo</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#reagent.mab.simulation.single_evaluation_bandit_algo" title="Permalink to this definition"></a></dt>
+<dd><p>Evaluate a bandit algorithm on a single bandit instance.
+Pseudo-regret (difference between expected values of best and chosen actions) is used to minimize variance of evaluation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bandit</strong> – Bandit instance on which we evaluate</p></li>
+<li><p><strong>algo</strong> – Bandit algorithm to be evaluated</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An array of cumulative presudo regret</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-reagent.mab.thompson_sampling">
+<span id="reagent-mab-thompson-sampling-module"></span><h2>reagent.mab.thompson_sampling module<a class="headerlink" href="#module-reagent.mab.thompson_sampling" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.thompson_sampling.BaseThompsonSampling">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.thompson_sampling.</span></span><span class="sig-name descname"><span class="pre">BaseThompsonSampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.thompson_sampling.BaseThompsonSampling" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.mab.mab_algorithm.MABAlgo" title="reagent.mab.mab_algorithm.MABAlgo"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.mab_algorithm.MABAlgo</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.thompson_sampling.BaseThompsonSampling.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.thompson_sampling.BaseThompsonSampling.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.mab.thompson_sampling.BaseThompsonSampling.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.thompson_sampling.BaseThompsonSampling.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.thompson_sampling.BernoulliBetaThompson">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.thompson_sampling.</span></span><span class="sig-name descname"><span class="pre">BernoulliBetaThompson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.thompson_sampling.BernoulliBetaThompson" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.mab.thompson_sampling.BaseThompsonSampling" title="reagent.mab.thompson_sampling.BaseThompsonSampling"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.thompson_sampling.BaseThompsonSampling</span></code></a></p>
+<p>The Thompson Sampling MAB with Bernoulli-Beta distribution for rewards.
+Appropriate for MAB with Bernoulli rewards (e.g CTR)</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.mab.thompson_sampling.BernoulliBetaThompson.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.thompson_sampling.BernoulliBetaThompson.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.thompson_sampling.NormalGammaThompson">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.thompson_sampling.</span></span><span class="sig-name descname"><span class="pre">NormalGammaThompson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.thompson_sampling.NormalGammaThompson" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.mab.thompson_sampling.BaseThompsonSampling" title="reagent.mab.thompson_sampling.BaseThompsonSampling"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.thompson_sampling.BaseThompsonSampling</span></code></a></p>
+<p>The Thompson Sampling MAB with Normal-Gamma distribution for rewards.
+Appropriate for MAB with normally distributed rewards.
+We use poterior update equations from</p>
+<blockquote>
+<div><p><a class="reference external" href="https://en.wikipedia.org/wiki/Normal-gamma_distribution#Posterior_distribution_of_the_parameters">https://en.wikipedia.org/wiki/Normal-gamma_distribution#Posterior_distribution_of_the_parameters</a></p>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.thompson_sampling.NormalGammaThompson.add_batch_observations">
+<span class="sig-name descname"><span class="pre">add_batch_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_obs_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_squared_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.thompson_sampling.NormalGammaThompson.add_batch_observations" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.thompson_sampling.NormalGammaThompson.add_single_observation">
+<span class="sig-name descname"><span class="pre">add_single_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arm_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.thompson_sampling.NormalGammaThompson.add_single_observation" title="Permalink to this definition"></a></dt>
+<dd><p>Add a single observation (arm played, reward) to the bandit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arm_id</strong> (<em>int</em>) – Which arm was played</p></li>
+<li><p><strong>reward</strong> (<em>float</em>) – Reward renerated by the arm</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="reagent.mab.thompson_sampling.NormalGammaThompson.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.thompson_sampling.NormalGammaThompson.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-reagent.mab.ucb">
+<span id="reagent-mab-ucb-module"></span><h2>reagent.mab.ucb module<a class="headerlink" href="#module-reagent.mab.ucb" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">BaseUCB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimate_variance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#reagent.mab.mab_algorithm.MABAlgo" title="reagent.mab.mab_algorithm.MABAlgo"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.mab_algorithm.MABAlgo</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Base class for UCB-like Multi-Armed Bandits (MAB)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>estimate_variance</strong> – If True, per-arm reward variance is estimated and we multiply thconfidence interval width
+by its square root</p></li>
+<li><p><strong>alpha</strong> – Scalar multiplier for confidence interval width. Values above 1.0 make exploration more aggressive, below 1.0 less aggressive</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.get_ucb_scores">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_ucb_scores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.get_ucb_scores" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.training">
 <span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.training" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="reagent.mab.ucb.BaseUCB.var">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">var</span></span><a class="headerlink" href="#reagent.mab.ucb.BaseUCB.var" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="reagent.mab.ucb.MetricUCB">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">MetricUCB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.MetricUCB" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">MetricUCB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimate_variance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.MetricUCB" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#reagent.mab.ucb.BaseUCB" title="reagent.mab.ucb.BaseUCB"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.ucb.BaseUCB</span></code></a></p>
 <p>This is an improvement over UCB1 which uses a more precise confidence radius, especially for small expected rewards.
+This algorithm has been constructed for Benroulli reward distributions.
 Reference: <a class="reference external" href="https://arxiv.org/pdf/0809.4882.pdf">https://arxiv.org/pdf/0809.4882.pdf</a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="reagent.mab.ucb.MetricUCB.get_ucb_scores">
-<span class="sig-name descname"><span class="pre">get_ucb_scores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.MetricUCB.get_ucb_scores" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ucb_scores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.ucb.MetricUCB.get_ucb_scores" title="Permalink to this definition"></a></dt>
 <dd><p>Get per-arm UCB scores. The formula is
 UCB_i = AVG([rewards_i]) + SQRT(AVG([rewards_i]) * LN(T+1)/N_i) + LN(T+1)/N_i</p>
 <dl class="field-list simple">
@@ -220,15 +565,16 @@ UCB_i = AVG([rewards_i]) + SQRT(AVG([rewards_i]) * LN(T+1)/N_i) + LN(T+1)/N_i</p
 
 <dl class="py class">
 <dt class="sig sig-object py" id="reagent.mab.ucb.UCB1">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">UCB1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCB1" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">UCB1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimate_variance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCB1" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#reagent.mab.ucb.BaseUCB" title="reagent.mab.ucb.BaseUCB"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.ucb.BaseUCB</span></code></a></p>
 <p>Canonical implementation of UCB1
 Reference: <a class="reference external" href="https://www.cs.bham.ac.uk/internal/courses/robotics/lectures/ucb1.pdf">https://www.cs.bham.ac.uk/internal/courses/robotics/lectures/ucb1.pdf</a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="reagent.mab.ucb.UCB1.get_ucb_scores">
-<span class="sig-name descname"><span class="pre">get_ucb_scores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCB1.get_ucb_scores" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_ucb_scores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.ucb.UCB1.get_ucb_scores" title="Permalink to this definition"></a></dt>
 <dd><p>Get per-arm UCB scores. The formula is
-UCB_i = AVG([rewards_i]) + SQRT(2*LN(T)/N_i)</p>
+UCB_i = AVG([rewards_i]) + SQRT(2*LN(T)/N_i*VAR)
+VAR=1 if estimate_variance==False, otherwise VAR=AVG([rewards_i**2]) - AVG([rewards_i])**2</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>An array of UCB scores (one per arm)</p>
@@ -242,95 +588,6 @@ UCB_i = AVG([rewards_i]) + SQRT(2*LN(T)/N_i)</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="reagent.mab.ucb.UCB1.training">
 <span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.ucb.UCB1.training" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTuned">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">UCBTuned</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCBTuned" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#reagent.mab.ucb.BaseUCB" title="reagent.mab.ucb.BaseUCB"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.ucb.BaseUCB</span></code></a></p>
-<p>Implementation of the UCB-Tuned algorithm from Section 4 of  <a class="reference external" href="https://link.springer.com/content/pdf/10.1023/A:1013689704352.pdf">https://link.springer.com/content/pdf/10.1023/A:1013689704352.pdf</a>
-Biggest difference from basic UCB is that per-arm reward variance is estimated.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTuned.add_batch_observations">
-<span class="sig-name descname"><span class="pre">add_batch_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_obs_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_squared_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCBTuned.add_batch_observations" title="Permalink to this definition"></a></dt>
-<dd><p>Add information about arm rewards in a batched form.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>n_obs_per_arm</strong> (<em>Tensor</em>) – An array of counts of per-arm numbers of observations</p></li>
-<li><p><strong>sum_reward_per_arm</strong> (<em>Tensor</em>) – An array of sums of rewards for each arm</p></li>
-<li><p><strong>sum_reward_squared_per_arm</strong> (<em>Tensor</em>) – An array of sums of squares of rewards for each arm</p></li>
-<li><p><strong>arm_ids</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>Union</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em><em>]</em><em>]</em>) – A list of ids of arms in the same order as the elements of previous arrays</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTuned.add_single_observation">
-<span class="sig-name descname"><span class="pre">add_single_observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arm_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCBTuned.add_single_observation" title="Permalink to this definition"></a></dt>
-<dd><p>Add a single observation (arm played, reward) to the bandit</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>arm_id</strong> (<em>int</em>) – Which arm was played</p></li>
-<li><p><strong>reward</strong> (<em>float</em>) – Reward renerated by the arm</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTuned.get_ucb_scores">
-<span class="sig-name descname"><span class="pre">get_ucb_scores</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#reagent.mab.ucb.UCBTuned.get_ucb_scores" title="Permalink to this definition"></a></dt>
-<dd><p>Get per-arm UCB scores. The formula is
-UCB_i = AVG([rewards_i]) + SQRT(LN(T)/N_i * V_i)
-where V_i is a conservative variance estimate of arm i:</p>
-<blockquote>
-<div><p>V_i = AVG([rewards_i**2]) - AVG([rewards_i])**2 + sqrt(2ln(t) / n_i)</p>
-</div></blockquote>
-<p>Nore that we don’t apply the min(1/4, …) operator to the variance because this bandit is meant for non-Bernoulli applications as well</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>An array of UCB scores (one per arm)</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>Tensor</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTuned.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.ucb.UCBTuned.training" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTunedBernoulli">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">reagent.mab.ucb.</span></span><span class="sig-name descname"><span class="pre">UCBTunedBernoulli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_arms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCBTunedBernoulli" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#reagent.mab.ucb.UCBTuned" title="reagent.mab.ucb.UCBTuned"><code class="xref py py-class docutils literal notranslate"><span class="pre">reagent.mab.ucb.UCBTuned</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTunedBernoulli.add_batch_observations">
-<span class="sig-name descname"><span class="pre">add_batch_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_obs_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_success_per_arm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reagent.mab.ucb.UCBTunedBernoulli.add_batch_observations" title="Permalink to this definition"></a></dt>
-<dd><p>Add a batch of observations to the UCBTuned bandit, assuming Bernoulli distribution of rewards.
-Because of the Bernoulli assumption, we don’t need to provide the squared rewards separately</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>n_obs_per_arm</strong> (<em>Tensor</em>) – An array of counts of per-arm numbers of observations</p></li>
-<li><p><strong>num_success_per_arm</strong> (<em>Tensor</em>) – An array of counts of per-arm numbers of successes</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="reagent.mab.ucb.UCBTunedBernoulli.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#reagent.mab.ucb.UCBTunedBernoulli.training" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -357,7 +614,7 @@ Because of the Bernoulli assumption, we don’t need to provide the squared rewa
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+    <p>&#169; Copyright 2022, Meta Platforms, Inc.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

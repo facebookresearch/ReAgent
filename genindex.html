@@ -37,12 +37,11 @@
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">RASP (Not Actively Maintained)</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
@@ -154,6 +153,10 @@
 </li>
         <li><a href="api/reagent.gym.policies.html#reagent.gym.policies.random_policies.MultiDiscreteRandomPolicy.act">(reagent.gym.policies.random_policies.MultiDiscreteRandomPolicy method)</a>
 </li>
+        <li><a href="api/reagent.mab.html#reagent.mab.simulation.BernoilliMAB.act">(reagent.mab.simulation.BernoilliMAB method)</a>
+</li>
+        <li><a href="api/reagent.mab.html#reagent.mab.simulation.MAB.act">(reagent.mab.simulation.MAB method)</a>
+</li>
         <li><a href="api/reagent.model_managers.html#reagent.model_managers.actor_critic_base.ActorPolicyWrapper.act">(reagent.model_managers.actor_critic_base.ActorPolicyWrapper method)</a>
 </li>
         <li><a href="api/reagent.model_managers.discrete.html#reagent.model_managers.discrete.discrete_crr.ActorPolicyWrapper.act">(reagent.model_managers.discrete.discrete_crr.ActorPolicyWrapper method)</a>
@@ -169,6 +172,8 @@
 
       <ul>
         <li><a href="api/reagent.core.html#reagent.core.types.BanditRewardModelInput.action">(reagent.core.types.BanditRewardModelInput attribute)</a>
+</li>
+        <li><a href="api/reagent.core.html#reagent.core.types.CBInput.action">(reagent.core.types.CBInput attribute)</a>
 </li>
         <li><a href="api/reagent.core.html#reagent.core.types.DiscreteDqnInput.action">(reagent.core.types.DiscreteDqnInput attribute)</a>
 </li>
@@ -535,12 +540,10 @@
         <li><a href="api/reagent.replay_memory.html#reagent.replay_memory.ReplayBuffer.add">(reagent.replay_memory.ReplayBuffer method)</a>
 </li>
       </ul></li>
-      <li><a href="api/reagent.mab.html#reagent.mab.ucb.BaseUCB.add_batch_observations">add_batch_observations() (reagent.mab.ucb.BaseUCB method)</a>
+      <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.MABAlgo.add_batch_observations">add_batch_observations() (reagent.mab.mab_algorithm.MABAlgo method)</a>
 
       <ul>
-        <li><a href="api/reagent.mab.html#reagent.mab.ucb.UCBTuned.add_batch_observations">(reagent.mab.ucb.UCBTuned method)</a>
-</li>
-        <li><a href="api/reagent.mab.html#reagent.mab.ucb.UCBTunedBernoulli.add_batch_observations">(reagent.mab.ucb.UCBTunedBernoulli method)</a>
+        <li><a href="api/reagent.mab.html#reagent.mab.thompson_sampling.NormalGammaThompson.add_batch_observations">(reagent.mab.thompson_sampling.NormalGammaThompson method)</a>
 </li>
       </ul></li>
       <li><a href="api/reagent.core.html#reagent.core.tensorboardX.SummaryWriterContext.add_custom_scalars">add_custom_scalars() (reagent.core.tensorboardX.SummaryWriterContext class method)</a>
@@ -563,10 +566,10 @@
       </ul></li>
       <li><a href="api/reagent.gym.agents.html#reagent.gym.agents.post_step.add_replay_buffer_post_step">add_replay_buffer_post_step() (in module reagent.gym.agents.post_step)</a>
 </li>
-      <li><a href="api/reagent.mab.html#reagent.mab.ucb.BaseUCB.add_single_observation">add_single_observation() (reagent.mab.ucb.BaseUCB method)</a>
+      <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.MABAlgo.add_single_observation">add_single_observation() (reagent.mab.mab_algorithm.MABAlgo method)</a>
 
       <ul>
-        <li><a href="api/reagent.mab.html#reagent.mab.ucb.UCBTuned.add_single_observation">(reagent.mab.ucb.UCBTuned method)</a>
+        <li><a href="api/reagent.mab.html#reagent.mab.thompson_sampling.NormalGammaThompson.add_single_observation">(reagent.mab.thompson_sampling.NormalGammaThompson method)</a>
 </li>
       </ul></li>
       <li><a href="api/reagent.gym.html#reagent.gym.types.Trajectory.add_transition">add_transition() (reagent.gym.types.Trajectory method)</a>
@@ -627,6 +630,8 @@
 
       <ul>
         <li><a href="api/reagent.training.html#reagent.training.C51Trainer.allow_zero_length_dataloader_with_multiple_devices">(reagent.training.C51Trainer attribute)</a>
+</li>
+        <li><a href="api/reagent.training.cb.html#reagent.training.cb.linucb_trainer.LinUCBTrainer.allow_zero_length_dataloader_with_multiple_devices">(reagent.training.cb.linucb_trainer.LinUCBTrainer attribute)</a>
 </li>
         <li><a href="api/reagent.training.html#reagent.training.CEMTrainer.allow_zero_length_dataloader_with_multiple_devices">(reagent.training.CEMTrainer attribute)</a>
 </li>
@@ -705,6 +710,8 @@
         <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.estimator.EstimatorResults.append">(reagent.ope.estimators.estimator.EstimatorResults method)</a>
 </li>
       </ul></li>
+      <li><a href="api/reagent.preprocessing.html#reagent.preprocessing.transforms.AppendConstant">AppendConstant (class in reagent.preprocessing.transforms)</a>
+</li>
       <li><a href="api/reagent.training.gradient_free.html#reagent.training.gradient_free.evolution_pool.EvolutionPool.apply_global_reward">apply_global_reward() (reagent.training.gradient_free.evolution_pool.EvolutionPool method)</a>
 </li>
       <li><a href="api/reagent.training.html#reagent.training.parameters.SACTrainerParameters.apply_kld_on_mean">apply_kld_on_mean (reagent.training.parameters.SACTrainerParameters attribute)</a>
@@ -745,6 +752,8 @@
         <li><a href="api/reagent.training.html#reagent.training.parameters.CRRTrainerParameters.asdict">(reagent.training.parameters.CRRTrainerParameters method)</a>
 </li>
         <li><a href="api/reagent.training.html#reagent.training.parameters.DQNTrainerParameters.asdict">(reagent.training.parameters.DQNTrainerParameters method)</a>
+</li>
+        <li><a href="api/reagent.training.html#reagent.training.parameters.LinUCBTrainerParameters.asdict">(reagent.training.parameters.LinUCBTrainerParameters method)</a>
 </li>
         <li><a href="api/reagent.training.html#reagent.training.parameters.ParametricDQNTrainerParameters.asdict">(reagent.training.parameters.ParametricDQNTrainerParameters method)</a>
 </li>
@@ -849,9 +858,13 @@
 </li>
       <li><a href="api/reagent.core.html#reagent.core.parameters.BaselineParameters">BaselineParameters (class in reagent.core.parameters)</a>
 </li>
+      <li><a href="api/reagent.mab.html#reagent.mab.thompson_sampling.BaseThompsonSampling">BaseThompsonSampling (class in reagent.mab.thompson_sampling)</a>
+</li>
       <li><a href="api/reagent.mab.html#reagent.mab.ucb.BaseUCB">BaseUCB (class in reagent.mab.ucb)</a>
 </li>
       <li><a href="api/reagent.gym.preprocessors.html#reagent.gym.preprocessors.replay_buffer_inserters.BasicReplayBufferInserter">BasicReplayBufferInserter (class in reagent.gym.preprocessors.replay_buffer_inserters)</a>
+</li>
+      <li><a href="api/reagent.models.html#reagent.models.linear_regression.batch_quadratic_form">batch_quadratic_form() (in module reagent.models.linear_regression)</a>
 </li>
       <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.NeuralDualDICE.batch_size">batch_size (reagent.ope.estimators.sequential_estimators.NeuralDualDICE attribute)</a>
 </li>
@@ -886,6 +899,10 @@
 </li>
       </ul></li>
       <li><a href="api/reagent.training.html#reagent.training.dqn_trainer.BCQConfig">BCQConfig (class in reagent.training.dqn_trainer)</a>
+</li>
+      <li><a href="api/reagent.mab.html#reagent.mab.simulation.BernoilliMAB">BernoilliMAB (class in reagent.mab.simulation)</a>
+</li>
+      <li><a href="api/reagent.mab.html#reagent.mab.thompson_sampling.BernoulliBetaThompson">BernoulliBetaThompson (class in reagent.mab.thompson_sampling)</a>
 </li>
       <li><a href="api/reagent.lite.html#reagent.lite.optimizer.ComboOptimizerBase.best_solutions">best_solutions() (reagent.lite.optimizer.ComboOptimizerBase method)</a>
 </li>
@@ -1253,6 +1270,8 @@
 </li>
       <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.contextual_bandits_estimators.SwitchEstimator.CANDIDATES">CANDIDATES (reagent.ope.estimators.contextual_bandits_estimators.SwitchEstimator attribute)</a>
 </li>
+      <li><a href="api/reagent.preprocessing.html#reagent.preprocessing.transforms.Cat">Cat (class in reagent.preprocessing.transforms)</a>
+</li>
       <li><a href="api/reagent.net_builder.categorical_dqn.html#reagent.net_builder.categorical_dqn.categorical.Categorical">Categorical (class in reagent.net_builder.categorical_dqn.categorical)</a>
 
       <ul>
@@ -1268,6 +1287,8 @@
       <li><a href="api/reagent.net_builder.html#reagent.net_builder.categorical_dqn_net_builder.CategoricalDQNNetBuilder">CategoricalDQNNetBuilder (class in reagent.net_builder.categorical_dqn_net_builder)</a>
 </li>
       <li><a href="api/reagent.net_builder.html#reagent.net_builder.unions.CategoricalDQNNetBuilder__Union">CategoricalDQNNetBuilder__Union (class in reagent.net_builder.unions)</a>
+</li>
+      <li><a href="api/reagent.core.html#reagent.core.types.CBInput">CBInput (class in reagent.core.types)</a>
 </li>
       <li><a href="api/reagent.core.html#reagent.core.parameters.CEMTrainerParameters.cem_num_iterations">cem_num_iterations (reagent.core.parameters.CEMTrainerParameters attribute)</a>
 </li>
@@ -1352,6 +1373,8 @@
       <li><a href="api/reagent.lite.html#reagent.lite.optimizer.ComboOptimizerBase">ComboOptimizerBase (class in reagent.lite.optimizer)</a>
 </li>
       <li><a href="api/reagent.ope.test.html#reagent.ope.test.cartpole.ComboPolicy">ComboPolicy (class in reagent.ope.test.cartpole)</a>
+</li>
+      <li><a href="api/reagent.mab.html#reagent.mab.simulation.compare_bandit_algos">compare_bandit_algos() (in module reagent.mab.simulation)</a>
 </li>
       <li><a href="api/reagent.preprocessing.html#reagent.preprocessing.transforms.Compose">Compose (class in reagent.preprocessing.transforms)</a>
 </li>
@@ -1442,6 +1465,8 @@
 </li>
         <li><a href="api/reagent.training.html#reagent.training.C51Trainer.configure_optimizers">(reagent.training.C51Trainer method)</a>
 </li>
+        <li><a href="api/reagent.training.cb.html#reagent.training.cb.linucb_trainer.LinUCBTrainer.configure_optimizers">(reagent.training.cb.linucb_trainer.LinUCBTrainer method)</a>
+</li>
         <li><a href="api/reagent.training.html#reagent.training.cem_trainer.CEMTrainer.configure_optimizers">(reagent.training.cem_trainer.CEMTrainer method)</a>
 </li>
         <li><a href="api/reagent.training.html#reagent.training.CEMTrainer.configure_optimizers">(reagent.training.CEMTrainer method)</a>
@@ -1525,6 +1550,8 @@
         <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.slate_estimators.LogSample.context">(reagent.ope.estimators.slate_estimators.LogSample attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api/reagent.core.html#reagent.core.types.CBInput.context_action_features">context_action_features (reagent.core.types.CBInput attribute)</a>
+</li>
       <li><a href="api/reagent.net_builder.synthetic_reward.html#reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramConvNetSyntheticReward.context_size">context_size (reagent.net_builder.synthetic_reward.ngram_synthetic_reward.NGramConvNetSyntheticReward attribute)</a>
 
       <ul>
@@ -2623,6 +2650,8 @@
 </li>
       <li><a href="api/reagent.core.html#reagent.core.registry_meta.RegistryMeta.fill_union">fill_union() (reagent.core.registry_meta.RegistryMeta method)</a>
 </li>
+      <li><a href="api/reagent.preprocessing.html#reagent.preprocessing.transforms.Filter">Filter (class in reagent.preprocessing.transforms)</a>
+</li>
       <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_schedulers.OneCycleLR.final_div_factor">final_div_factor (reagent.optimizer.uninferrable_schedulers.OneCycleLR attribute)</a>
 </li>
       <li><a href="api/reagent.net_builder.slate_ranking.html#reagent.net_builder.slate_ranking.slate_ranking_scorer.SlateRankingScorer.final_layer">final_layer (reagent.net_builder.slate_ranking.slate_ranking_scorer.SlateRankingScorer attribute)</a>
@@ -2696,6 +2725,14 @@
       <li><a href="api/reagent.core.html#reagent.core.types.TensorFeatureData.forward">forward() (reagent.core.types.TensorFeatureData method)</a>
 
       <ul>
+        <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.GreedyAlgo.forward">(reagent.mab.mab_algorithm.GreedyAlgo method)</a>
+</li>
+        <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.MABAlgo.forward">(reagent.mab.mab_algorithm.MABAlgo method)</a>
+</li>
+        <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.RandomActionsAlgo.forward">(reagent.mab.mab_algorithm.RandomActionsAlgo method)</a>
+</li>
+        <li><a href="api/reagent.mab.html#reagent.mab.thompson_sampling.BaseThompsonSampling.forward">(reagent.mab.thompson_sampling.BaseThompsonSampling method)</a>
+</li>
         <li><a href="api/reagent.mab.html#reagent.mab.ucb.BaseUCB.forward">(reagent.mab.ucb.BaseUCB method)</a>
 </li>
         <li><a href="api/reagent.model_managers.discrete.html#reagent.model_managers.discrete.discrete_crr.ActorDQN.forward">(reagent.model_managers.discrete.discrete_crr.ActorDQN method)</a>
@@ -2751,6 +2788,8 @@
         <li><a href="api/reagent.models.html#reagent.models.FullyConnectedNetwork.forward">(reagent.models.FullyConnectedNetwork method)</a>
 </li>
         <li><a href="api/reagent.models.html#reagent.models.GaussianFullyConnectedActor.forward">(reagent.models.GaussianFullyConnectedActor method)</a>
+</li>
+        <li><a href="api/reagent.models.html#reagent.models.linear_regression.LinearRegressionUCB.forward">(reagent.models.linear_regression.LinearRegressionUCB method)</a>
 </li>
         <li><a href="api/reagent.models.html#reagent.models.mdn_rnn.MDNRNN.forward">(reagent.models.mdn_rnn.MDNRNN method)</a>
 </li>
@@ -2911,6 +2950,8 @@
 
       <ul>
         <li><a href="api/reagent.core.html#reagent.core.types.BaseInput.from_dict">(reagent.core.types.BaseInput static method)</a>
+</li>
+        <li><a href="api/reagent.core.html#reagent.core.types.CBInput.from_dict">(reagent.core.types.CBInput class method)</a>
 </li>
         <li><a href="api/reagent.core.html#reagent.core.types.DiscreteDqnInput.from_dict">(reagent.core.types.DiscreteDqnInput class method)</a>
 </li>
@@ -3079,7 +3120,7 @@
         <li><a href="api/reagent.replay_memory.html#reagent.replay_memory.sum_tree.SumTree.get">(reagent.replay_memory.sum_tree.SumTree method)</a>
 </li>
       </ul></li>
-      <li><a href="api/reagent.mab.html#reagent.mab.ucb.BaseUCB.get_action">get_action() (reagent.mab.ucb.BaseUCB method)</a>
+      <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.MABAlgo.get_action">get_action() (reagent.mab.mab_algorithm.MABAlgo method)</a>
 </li>
       <li><a href="api/reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper.get_action_extractor">get_action_extractor() (reagent.gym.envs.env_wrapper.EnvWrapper method)</a>
 </li>
@@ -3091,7 +3132,9 @@
         <li><a href="api/reagent.replay_memory.html#reagent.replay_memory.ReplayBuffer.get_add_args_signature">(reagent.replay_memory.ReplayBuffer method)</a>
 </li>
       </ul></li>
-      <li><a href="api/reagent.mab.html#reagent.mab.ucb.BaseUCB.get_avg_reward_values">get_avg_reward_values() (reagent.mab.ucb.BaseUCB method)</a>
+      <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.get_arm_indices">get_arm_indices() (in module reagent.mab.mab_algorithm)</a>
+</li>
+      <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.MABAlgo.get_avg_reward_values">get_avg_reward_values() (reagent.mab.mab_algorithm.MABAlgo method)</a>
 </li>
       <li><a href="api/reagent.mab.html#reagent.mab.ucb.get_bernoulli_tuned_ucb_scores">get_bernoulli_tuned_ucb_scores() (in module reagent.mab.ucb)</a>
 </li>
@@ -3305,6 +3348,8 @@
       </ul></li>
       <li><a href="api/reagent.data.html#reagent.data.manual_data_module.get_sample_range">get_sample_range() (in module reagent.data.manual_data_module)</a>
 </li>
+      <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.MABAlgo.get_scores_from_batch">get_scores_from_batch() (reagent.mab.mab_algorithm.MABAlgo class method)</a>
+</li>
       <li><a href="api/reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper.get_serving_action_extractor">get_serving_action_extractor() (reagent.gym.envs.env_wrapper.EnvWrapper method)</a>
 </li>
       <li><a href="api/reagent.gym.envs.html#reagent.gym.envs.env_wrapper.EnvWrapper.get_serving_obs_preprocessor">get_serving_obs_preprocessor() (reagent.gym.envs.env_wrapper.EnvWrapper method)</a>
@@ -3364,16 +3409,14 @@
 </li>
         <li><a href="api/reagent.mab.html#reagent.mab.ucb.UCB1.get_ucb_scores">(reagent.mab.ucb.UCB1 method)</a>
 </li>
-        <li><a href="api/reagent.mab.html#reagent.mab.ucb.UCBTuned.get_ucb_scores">(reagent.mab.ucb.UCBTuned method)</a>
-</li>
       </ul></li>
-      <li><a href="api/reagent.mab.html#reagent.mab.ucb.BaseUCB.get_ucb_scores_from_batch">get_ucb_scores_from_batch() (reagent.mab.ucb.BaseUCB class method)</a>
-</li>
       <li><a href="api/reagent.training.html#reagent.training.imitator_training.get_valid_actions_from_imitator">get_valid_actions_from_imitator() (in module reagent.training.imitator_training)</a>
 </li>
       <li><a href="api/reagent.training.html#reagent.training.sac_trainer.CRRWeightFn.get_weight_from_advantage">get_weight_from_advantage() (reagent.training.sac_trainer.CRRWeightFn method)</a>
 </li>
       <li><a href="api/reagent.workflow.html#reagent.workflow.env.get_workflow_id">get_workflow_id() (in module reagent.workflow.env)</a>
+</li>
+      <li><a href="api/reagent.preprocessing.html#reagent.preprocessing.transforms.GetEye">GetEye (class in reagent.preprocessing.transforms)</a>
 </li>
       <li><a href="api/reagent.gym.envs.pomdp.html#reagent.gym.envs.pomdp.pocman.Ghost">Ghost (class in reagent.gym.envs.pomdp.pocman)</a>
 </li>
@@ -3394,6 +3437,8 @@
       <li><a href="api/reagent.core.html#reagent.core.parameters.RankingParameters.greedy_serving">greedy_serving (reagent.core.parameters.RankingParameters attribute)</a>
 </li>
       <li><a href="api/reagent.gym.policies.samplers.html#reagent.gym.policies.samplers.discrete_sampler.GreedyActionSampler">GreedyActionSampler (class in reagent.gym.policies.samplers.discrete_sampler)</a>
+</li>
+      <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.GreedyAlgo">GreedyAlgo (class in reagent.mab.mab_algorithm)</a>
 </li>
       <li><a href="api/reagent.ope.test.html#reagent.ope.test.gridworld.GridWorld">GridWorld (class in reagent.ope.test.gridworld)</a>
 </li>
@@ -3581,9 +3626,11 @@
       </ul></li>
       <li><a href="api/reagent.workflow.html#reagent.workflow.gym_batch_rl.initialize_seed">initialize_seed() (in module reagent.workflow.gym_batch_rl)</a>
 </li>
-      <li><a href="api/reagent.core.html#reagent.core.types.DiscreteDqnInput.input_prototype">input_prototype() (reagent.core.types.DiscreteDqnInput class method)</a>
+      <li><a href="api/reagent.core.html#reagent.core.types.CBInput.input_prototype">input_prototype() (reagent.core.types.CBInput class method)</a>
 
       <ul>
+        <li><a href="api/reagent.core.html#reagent.core.types.DiscreteDqnInput.input_prototype">(reagent.core.types.DiscreteDqnInput class method)</a>
+</li>
         <li><a href="api/reagent.core.html#reagent.core.types.PolicyGradientInput.input_prototype">(reagent.core.types.PolicyGradientInput class method)</a>
 </li>
         <li><a href="api/reagent.model_managers.discrete.html#reagent.model_managers.discrete.discrete_crr.ActorDQN.input_prototype">(reagent.model_managers.discrete.discrete_crr.ActorDQN method)</a>
@@ -3633,6 +3680,8 @@
         <li><a href="api/reagent.models.html#reagent.models.FullyConnectedNetwork.input_prototype">(reagent.models.FullyConnectedNetwork method)</a>
 </li>
         <li><a href="api/reagent.models.html#reagent.models.GaussianFullyConnectedActor.input_prototype">(reagent.models.GaussianFullyConnectedActor method)</a>
+</li>
+        <li><a href="api/reagent.models.html#reagent.models.linear_regression.LinearRegressionUCB.input_prototype">(reagent.models.linear_regression.LinearRegressionUCB method)</a>
 </li>
         <li><a href="api/reagent.models.html#reagent.models.mlp_scorer.MLPScorer.input_prototype">(reagent.models.mlp_scorer.MLPScorer method)</a>
 </li>
@@ -3947,7 +3996,13 @@
 </li>
       <li><a href="api/reagent.ope.trainers.html#reagent.ope.trainers.linear_trainers.LinearNet">LinearNet (class in reagent.ope.trainers.linear_trainers)</a>
 </li>
+      <li><a href="api/reagent.models.html#reagent.models.linear_regression.LinearRegressionUCB">LinearRegressionUCB (class in reagent.models.linear_regression)</a>
+</li>
       <li><a href="api/reagent.ope.trainers.html#reagent.ope.trainers.linear_trainers.LinearTrainer">LinearTrainer (class in reagent.ope.trainers.linear_trainers)</a>
+</li>
+      <li><a href="api/reagent.training.cb.html#reagent.training.cb.linucb_trainer.LinUCBTrainer">LinUCBTrainer (class in reagent.training.cb.linucb_trainer)</a>
+</li>
+      <li><a href="api/reagent.training.html#reagent.training.parameters.LinUCBTrainerParameters">LinUCBTrainerParameters (class in reagent.training.parameters)</a>
 </li>
       <li><a href="api/reagent.ope.test.html#reagent.ope.test.yandex_web_search.LoggedQuery.list">list (reagent.ope.test.yandex_web_search.LoggedQuery property)</a>
 </li>
@@ -3991,10 +4046,10 @@
       </ul></li>
       <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.contextual_bandits_estimators.LogSample.log_action">log_action (reagent.ope.estimators.contextual_bandits_estimators.LogSample attribute)</a>
 </li>
-      <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.contextual_bandits_estimators.LogSample.log_action_probabilities">log_action_probabilities (reagent.ope.estimators.contextual_bandits_estimators.LogSample attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.contextual_bandits_estimators.LogSample.log_action_probabilities">log_action_probabilities (reagent.ope.estimators.contextual_bandits_estimators.LogSample attribute)</a>
+</li>
       <li><a href="api/reagent.models.html#reagent.models.categorical_dqn.CategoricalDQN.log_dist">log_dist() (reagent.models.categorical_dqn.CategoricalDQN method)</a>
 
       <ul>
@@ -4004,6 +4059,8 @@
       <li><a href="api/reagent.core.html#reagent.core.types.ActorOutput.log_prob">log_prob (reagent.core.types.ActorOutput attribute)</a>
 
       <ul>
+        <li><a href="api/reagent.core.html#reagent.core.types.CBInput.log_prob">(reagent.core.types.CBInput attribute)</a>
+</li>
         <li><a href="api/reagent.core.html#reagent.core.types.PolicyGradientInput.log_prob">(reagent.core.types.PolicyGradientInput attribute)</a>
 </li>
         <li><a href="api/reagent.gym.html#reagent.gym.types.Transition.log_prob">(reagent.gym.types.Transition attribute)</a>
@@ -4151,6 +4208,10 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/reagent.mab.html#reagent.mab.simulation.MAB">MAB (class in reagent.mab.simulation)</a>
+</li>
+      <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.MABAlgo">MABAlgo (class in reagent.mab.mab_algorithm)</a>
+</li>
       <li><a href="api/reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimateSet.magic">magic (reagent.evaluation.cpe.CpeEstimateSet attribute)</a>
 </li>
       <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.MAGICEstimator">MAGICEstimator (class in reagent.ope.estimators.sequential_estimators)</a>
@@ -4355,6 +4416,26 @@
 </li>
       <li><a href="api/reagent.gym.envs.pomdp.html#reagent.gym.envs.pomdp.pocman.Ghost.max_y">max_y (reagent.gym.envs.pomdp.pocman.Ghost attribute)</a>
 </li>
+      <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_optimizers.Adam.maximize">maximize (reagent.optimizer.uninferrable_optimizers.Adam attribute)</a>
+
+      <ul>
+        <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_optimizers.Adamax.maximize">(reagent.optimizer.uninferrable_optimizers.Adamax attribute)</a>
+</li>
+        <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_optimizers.AdamW.maximize">(reagent.optimizer.uninferrable_optimizers.AdamW attribute)</a>
+</li>
+        <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_optimizers.LBFGS.maximize">(reagent.optimizer.uninferrable_optimizers.LBFGS attribute)</a>
+</li>
+        <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_optimizers.NAdam.maximize">(reagent.optimizer.uninferrable_optimizers.NAdam attribute)</a>
+</li>
+        <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_optimizers.RAdam.maximize">(reagent.optimizer.uninferrable_optimizers.RAdam attribute)</a>
+</li>
+        <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_optimizers.Rprop.maximize">(reagent.optimizer.uninferrable_optimizers.Rprop attribute)</a>
+</li>
+        <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_optimizers.SGD.maximize">(reagent.optimizer.uninferrable_optimizers.SGD attribute)</a>
+</li>
+        <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_optimizers.SparseAdam.maximize">(reagent.optimizer.uninferrable_optimizers.SparseAdam attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api/reagent.core.html#reagent.core.parameters.RLParameters.maxq_learning">maxq_learning (reagent.core.parameters.RLParameters attribute)</a>
 
       <ul>
@@ -4789,6 +4870,12 @@
 </li>
         <li><a href="api/reagent.mab.html#module-reagent.mab">reagent.mab</a>
 </li>
+        <li><a href="api/reagent.mab.html#module-reagent.mab.mab_algorithm">reagent.mab.mab_algorithm</a>
+</li>
+        <li><a href="api/reagent.mab.html#module-reagent.mab.simulation">reagent.mab.simulation</a>
+</li>
+        <li><a href="api/reagent.mab.html#module-reagent.mab.thompson_sampling">reagent.mab.thompson_sampling</a>
+</li>
         <li><a href="api/reagent.mab.html#module-reagent.mab.ucb">reagent.mab.ucb</a>
 </li>
         <li><a href="api/reagent.model_managers.html#module-reagent.model_managers">reagent.model_managers</a>
@@ -4876,6 +4963,8 @@
         <li><a href="api/reagent.models.html#module-reagent.models.embedding_bag_concat">reagent.models.embedding_bag_concat</a>
 </li>
         <li><a href="api/reagent.models.html#module-reagent.models.fully_connected_network">reagent.models.fully_connected_network</a>
+</li>
+        <li><a href="api/reagent.models.html#module-reagent.models.linear_regression">reagent.models.linear_regression</a>
 </li>
         <li><a href="api/reagent.models.html#module-reagent.models.mdn_rnn">reagent.models.mdn_rnn</a>
 </li>
@@ -5135,6 +5224,10 @@
 </li>
         <li><a href="api/reagent.training.html#module-reagent.training.c51_trainer">reagent.training.c51_trainer</a>
 </li>
+        <li><a href="api/reagent.training.cb.html#module-reagent.training.cb">reagent.training.cb</a>
+</li>
+        <li><a href="api/reagent.training.cb.html#module-reagent.training.cb.linucb_trainer">reagent.training.cb.linucb_trainer</a>
+</li>
         <li><a href="api/reagent.training.html#module-reagent.training.cem_trainer">reagent.training.cem_trainer</a>
 </li>
         <li><a href="api/reagent.training.cfeval.html#module-reagent.training.cfeval">reagent.training.cfeval</a>
@@ -5289,6 +5382,8 @@
       <li><a href="api/reagent.gym.policies.html#reagent.gym.policies.random_policies.MultiDiscreteRandomPolicy">MultiDiscreteRandomPolicy (class in reagent.gym.policies.random_policies)</a>
 </li>
       <li><a href="api/reagent.models.html#reagent.models.seq2slate.MultiHeadedAttention">MultiHeadedAttention (class in reagent.models.seq2slate)</a>
+</li>
+      <li><a href="api/reagent.mab.html#reagent.mab.simulation.multiple_evaluations_bandit_algo">multiple_evaluations_bandit_algo() (in module reagent.mab.simulation)</a>
 </li>
       <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_schedulers.MultiplicativeLR">MultiplicativeLR (class in reagent.optimizer.uninferrable_schedulers)</a>
 
@@ -5490,10 +5585,10 @@
 </li>
       <li><a href="api/reagent.workflow.html#reagent.workflow.types.ValidationResult__Union.no_validation_results">no_validation_results (reagent.workflow.types.ValidationResult__Union attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/reagent.core.html#reagent.core.types.NoDuplicatedWarningLogger">NoDuplicatedWarningLogger (class in reagent.core.types)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/reagent.training.html#reagent.training.parameters.TD3TrainerParameters.noise_clip">noise_clip (reagent.training.parameters.TD3TrainerParameters attribute)</a>
 
       <ul>
@@ -5525,6 +5620,8 @@
       <li><a href="api/reagent.models.html#reagent.models.no_soft_update_embedding.NoSoftUpdateEmbedding.norm_type">norm_type (reagent.models.no_soft_update_embedding.NoSoftUpdateEmbedding attribute)</a>
 </li>
       <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.Transition.Status.NORMAL">NORMAL (reagent.ope.estimators.sequential_estimators.Transition.Status attribute)</a>
+</li>
+      <li><a href="api/reagent.mab.html#reagent.mab.thompson_sampling.NormalGammaThompson">NormalGammaThompson (class in reagent.mab.thompson_sampling)</a>
 </li>
       <li><a href="api/reagent.gym.envs.html#reagent.gym.envs.changing_arms.ChangingArms.normalization_data">normalization_data (reagent.gym.envs.changing_arms.ChangingArms property)</a>
 
@@ -5597,7 +5694,11 @@
       <li><a href="api/reagent.ope.test.unit_tests.html#reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators.NUM_ACTIONS">NUM_ACTIONS (reagent.ope.test.unit_tests.test_contextual_bandit_estimators.TestSwitchEstimators attribute)</a>
 </li>
       <li><a href="api/reagent.training.html#reagent.training.dqn_trainer_base.DQNTrainerBaseLightning.num_actions">num_actions (reagent.training.dqn_trainer_base.DQNTrainerBaseLightning property)</a>
+
+      <ul>
+        <li><a href="api/reagent.training.html#reagent.training.parameters.LinUCBTrainerParameters.num_actions">(reagent.training.parameters.LinUCBTrainerParameters attribute)</a>
 </li>
+      </ul></li>
       <li><a href="api/reagent.gym.envs.html#reagent.gym.envs.changing_arms.ChangingArms.num_arms">num_arms (reagent.gym.envs.changing_arms.ChangingArms attribute)</a>
 
       <ul>
@@ -5828,10 +5929,10 @@
 </li>
       <li><a href="api/reagent.gym.preprocessors.html#reagent.gym.preprocessors.trainer_preprocessor.one_hot_actions">one_hot_actions() (in module reagent.gym.preprocessors.trainer_preprocessor)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/reagent.ope.test.html#reagent.ope.test.multiclass_bandits.UCIMultiClassDataset.one_hots">one_hots (reagent.ope.test.multiclass_bandits.UCIMultiClassDataset property)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.slate_estimators.Slate.one_hots">one_hots() (reagent.ope.estimators.slate_estimators.Slate method)</a>
 </li>
       <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_schedulers.OneCycleLR">OneCycleLR (class in reagent.optimizer.uninferrable_schedulers)</a>
@@ -5947,6 +6048,8 @@
       <li><a href="api/reagent.prediction.html#reagent.prediction.predictor_wrapper.OSSPredictorUnwrapper">OSSPredictorUnwrapper (class in reagent.prediction.predictor_wrapper)</a>
 </li>
       <li><a href="api/reagent.prediction.html#reagent.prediction.predictor_wrapper.OSSSparsePredictorUnwrapper">OSSSparsePredictorUnwrapper (class in reagent.prediction.predictor_wrapper)</a>
+</li>
+      <li><a href="api/reagent.preprocessing.html#reagent.preprocessing.transforms.OuterProduct">OuterProduct (class in reagent.preprocessing.transforms)</a>
 </li>
       <li><a href="api/reagent.models.html#reagent.models.seq2slate.Seq2SlateNet.output_arch">output_arch (reagent.models.seq2slate.Seq2SlateNet attribute)</a>
 
@@ -6077,6 +6180,8 @@
       <li><a href="api/reagent.workflow.html#reagent.workflow.utils.PetastormLightningDataModule">PetastormLightningDataModule (class in reagent.workflow.utils)</a>
 </li>
       <li><a href="api/reagent.models.html#reagent.models.synthetic_reward.PETransformerEncoderLayer">PETransformerEncoderLayer (class in reagent.models.synthetic_reward)</a>
+</li>
+      <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.place_values_at_indices">place_values_at_indices() (in module reagent.mab.mab_algorithm)</a>
 </li>
       <li><a href="api/reagent.core.html#reagent.core.parameters.CEMTrainerParameters.plan_horizon_length">plan_horizon_length (reagent.core.parameters.CEMTrainerParameters attribute)</a>
 </li>
@@ -6259,6 +6364,8 @@
       <ul>
         <li><a href="api/reagent.training.html#reagent.training.C51Trainer.precision">(reagent.training.C51Trainer attribute)</a>
 </li>
+        <li><a href="api/reagent.training.cb.html#reagent.training.cb.linucb_trainer.LinUCBTrainer.precision">(reagent.training.cb.linucb_trainer.LinUCBTrainer attribute)</a>
+</li>
         <li><a href="api/reagent.training.html#reagent.training.CEMTrainer.precision">(reagent.training.CEMTrainer attribute)</a>
 </li>
         <li><a href="api/reagent.training.cfeval.html#reagent.training.cfeval.bandit_reward_network_trainer.BanditRewardNetTrainer.precision">(reagent.training.cfeval.bandit_reward_network_trainer.BanditRewardNetTrainer attribute)</a>
@@ -6340,6 +6447,8 @@
 
       <ul>
         <li><a href="api/reagent.training.html#reagent.training.C51Trainer.prepare_data_per_node">(reagent.training.C51Trainer attribute)</a>
+</li>
+        <li><a href="api/reagent.training.cb.html#reagent.training.cb.linucb_trainer.LinUCBTrainer.prepare_data_per_node">(reagent.training.cb.linucb_trainer.LinUCBTrainer attribute)</a>
 </li>
         <li><a href="api/reagent.training.html#reagent.training.CEMTrainer.prepare_data_per_node">(reagent.training.CEMTrainer attribute)</a>
 </li>
@@ -6633,6 +6742,8 @@
       <li><a href="api/reagent.gym.envs.html#reagent.gym.envs.toy_vm.random_document">random_document() (in module reagent.gym.envs.toy_vm)</a>
 </li>
       <li><a href="api/reagent.ope.test.html#reagent.ope.test.gridworld.GridWorld.random_grid">random_grid() (reagent.ope.test.gridworld.GridWorld class method)</a>
+</li>
+      <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.RandomActionsAlgo">RandomActionsAlgo (class in reagent.mab.mab_algorithm)</a>
 </li>
       <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.RandomRLPolicy">RandomRLPolicy (class in reagent.ope.estimators.sequential_estimators)</a>
 </li>
@@ -7414,6 +7525,27 @@
 </li>
       </ul></li>
       <li>
+    reagent.mab.mab_algorithm
+
+      <ul>
+        <li><a href="api/reagent.mab.html#module-reagent.mab.mab_algorithm">module</a>
+</li>
+      </ul></li>
+      <li>
+    reagent.mab.simulation
+
+      <ul>
+        <li><a href="api/reagent.mab.html#module-reagent.mab.simulation">module</a>
+</li>
+      </ul></li>
+      <li>
+    reagent.mab.thompson_sampling
+
+      <ul>
+        <li><a href="api/reagent.mab.html#module-reagent.mab.thompson_sampling">module</a>
+</li>
+      </ul></li>
+      <li>
     reagent.mab.ucb
 
       <ul>
@@ -7719,6 +7851,13 @@
 
       <ul>
         <li><a href="api/reagent.models.html#module-reagent.models.fully_connected_network">module</a>
+</li>
+      </ul></li>
+      <li>
+    reagent.models.linear_regression
+
+      <ul>
+        <li><a href="api/reagent.models.html#module-reagent.models.linear_regression">module</a>
 </li>
       </ul></li>
       <li>
@@ -8627,6 +8766,20 @@
 </li>
       </ul></li>
       <li>
+    reagent.training.cb
+
+      <ul>
+        <li><a href="api/reagent.training.cb.html#module-reagent.training.cb">module</a>
+</li>
+      </ul></li>
+      <li>
+    reagent.training.cb.linucb_trainer
+
+      <ul>
+        <li><a href="api/reagent.training.cb.html#module-reagent.training.cb.linucb_trainer">module</a>
+</li>
+      </ul></li>
+      <li>
     reagent.training.cem_trainer
 
       <ul>
@@ -9038,6 +9191,8 @@
       </ul></li>
       <li><a href="api/reagent.core.html#reagent.core.registry_meta.RegistryMeta">RegistryMeta (class in reagent.core.registry_meta)</a>
 </li>
+      <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.reindex_multiple_tensors">reindex_multiple_tensors() (in module reagent.mab.mab_algorithm)</a>
+</li>
       <li><a href="api/reagent.model_managers.policy_gradient.html#reagent.model_managers.policy_gradient.Reinforce">Reinforce (class in reagent.model_managers.policy_gradient)</a>
 
       <ul>
@@ -9069,6 +9224,8 @@
 </li>
       </ul></li>
       <li><a href="api/reagent.ope.test.html#reagent.ope.test.mslr_slate.MSLRDatasets.relevances">relevances (reagent.ope.test.mslr_slate.MSLRDatasets property)</a>
+</li>
+      <li><a href="api/reagent.preprocessing.html#reagent.preprocessing.transforms.Rename">Rename (class in reagent.preprocessing.transforms)</a>
 </li>
       <li><a href="api/reagent.evaluation.feature_importance.html#reagent.evaluation.feature_importance.feature_importance_perturbation.FeatureImportancePerturbation.repeat">repeat (reagent.evaluation.feature_importance.feature_importance_perturbation.FeatureImportancePerturbation attribute)</a>
 </li>
@@ -9147,6 +9304,8 @@
 </li>
         <li><a href="api/reagent.gym.tests.html#reagent.gym.tests.test_gym_replay_buffer.TestEnv.reset">(reagent.gym.tests.test_gym_replay_buffer.TestEnv method)</a>
 </li>
+        <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.MABAlgo.reset">(reagent.mab.mab_algorithm.MABAlgo method)</a>
+</li>
         <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.NeuralDualDICE.reset">(reagent.ope.estimators.sequential_estimators.NeuralDualDICE method)</a>
 </li>
         <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.ValueFunction.reset">(reagent.ope.estimators.sequential_estimators.ValueFunction method)</a>
@@ -9182,6 +9341,8 @@
 
       <ul>
         <li><a href="api/reagent.core.html#reagent.core.types.BaseInput.reward">(reagent.core.types.BaseInput attribute)</a>
+</li>
+        <li><a href="api/reagent.core.html#reagent.core.types.CBInput.reward">(reagent.core.types.CBInput attribute)</a>
 </li>
         <li><a href="api/reagent.core.html#reagent.core.types.MemoryNetworkOutput.reward">(reagent.core.types.MemoryNetworkOutput attribute)</a>
 </li>
@@ -9985,6 +10146,8 @@
       <li><a href="api/reagent.core.html#reagent.core.parameters_seq2slate.LearningMethod.SIMULATION">SIMULATION (reagent.core.parameters_seq2slate.LearningMethod attribute)</a>
 </li>
       <li><a href="api/reagent.core.html#reagent.core.parameters_seq2slate.SimulationParameters">SimulationParameters (class in reagent.core.parameters_seq2slate)</a>
+</li>
+      <li><a href="api/reagent.mab.html#reagent.mab.simulation.single_evaluation_bandit_algo">single_evaluation_bandit_algo() (in module reagent.mab.simulation)</a>
 </li>
       <li><a href="api/reagent.gym.envs.html#reagent.gym.envs.RecSim.single_selection">single_selection (reagent.gym.envs.RecSim attribute)</a>
 
@@ -11254,16 +11417,24 @@
 </li>
       <li><a href="api/reagent.data.html#reagent.data.manual_data_module.TrainEvalSampleRanges">TrainEvalSampleRanges (class in reagent.data.manual_data_module)</a>
 </li>
-      <li><a href="api/reagent.mab.html#reagent.mab.ucb.BaseUCB.training">training (reagent.mab.ucb.BaseUCB attribute)</a>
+      <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.GreedyAlgo.training">training (reagent.mab.mab_algorithm.GreedyAlgo attribute)</a>
 
       <ul>
+        <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.MABAlgo.training">(reagent.mab.mab_algorithm.MABAlgo attribute)</a>
+</li>
+        <li><a href="api/reagent.mab.html#reagent.mab.mab_algorithm.RandomActionsAlgo.training">(reagent.mab.mab_algorithm.RandomActionsAlgo attribute)</a>
+</li>
+        <li><a href="api/reagent.mab.html#reagent.mab.thompson_sampling.BaseThompsonSampling.training">(reagent.mab.thompson_sampling.BaseThompsonSampling attribute)</a>
+</li>
+        <li><a href="api/reagent.mab.html#reagent.mab.thompson_sampling.BernoulliBetaThompson.training">(reagent.mab.thompson_sampling.BernoulliBetaThompson attribute)</a>
+</li>
+        <li><a href="api/reagent.mab.html#reagent.mab.thompson_sampling.NormalGammaThompson.training">(reagent.mab.thompson_sampling.NormalGammaThompson attribute)</a>
+</li>
+        <li><a href="api/reagent.mab.html#reagent.mab.ucb.BaseUCB.training">(reagent.mab.ucb.BaseUCB attribute)</a>
+</li>
         <li><a href="api/reagent.mab.html#reagent.mab.ucb.MetricUCB.training">(reagent.mab.ucb.MetricUCB attribute)</a>
 </li>
         <li><a href="api/reagent.mab.html#reagent.mab.ucb.UCB1.training">(reagent.mab.ucb.UCB1 attribute)</a>
-</li>
-        <li><a href="api/reagent.mab.html#reagent.mab.ucb.UCBTuned.training">(reagent.mab.ucb.UCBTuned attribute)</a>
-</li>
-        <li><a href="api/reagent.mab.html#reagent.mab.ucb.UCBTunedBernoulli.training">(reagent.mab.ucb.UCBTunedBernoulli attribute)</a>
 </li>
         <li><a href="api/reagent.model_managers.discrete.html#reagent.model_managers.discrete.discrete_crr.ActorDQN.training">(reagent.model_managers.discrete.discrete_crr.ActorDQN attribute)</a>
 </li>
@@ -11320,6 +11491,8 @@
         <li><a href="api/reagent.models.html#reagent.models.FullyConnectedNetwork.training">(reagent.models.FullyConnectedNetwork attribute)</a>
 </li>
         <li><a href="api/reagent.models.html#reagent.models.GaussianFullyConnectedActor.training">(reagent.models.GaussianFullyConnectedActor attribute)</a>
+</li>
+        <li><a href="api/reagent.models.html#reagent.models.linear_regression.LinearRegressionUCB.training">(reagent.models.linear_regression.LinearRegressionUCB attribute)</a>
 </li>
         <li><a href="api/reagent.models.html#reagent.models.mdn_rnn.MDNRNN.training">(reagent.models.mdn_rnn.MDNRNN attribute)</a>
 </li>
@@ -11479,6 +11652,8 @@
 </li>
         <li><a href="api/reagent.training.html#reagent.training.C51Trainer.training">(reagent.training.C51Trainer attribute)</a>
 </li>
+        <li><a href="api/reagent.training.cb.html#reagent.training.cb.linucb_trainer.LinUCBTrainer.training">(reagent.training.cb.linucb_trainer.LinUCBTrainer attribute)</a>
+</li>
         <li><a href="api/reagent.training.html#reagent.training.cem_trainer.CEMTrainer.training">(reagent.training.cem_trainer.CEMTrainer attribute)</a>
 </li>
         <li><a href="api/reagent.training.html#reagent.training.CEMTrainer.training">(reagent.training.CEMTrainer attribute)</a>
@@ -11556,9 +11731,11 @@
 </li>
       <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.sequential_estimators.NeuralDualDICE.training_samples">training_samples (reagent.ope.estimators.sequential_estimators.NeuralDualDICE attribute)</a>
 </li>
-      <li><a href="api/reagent.training.html#reagent.training.multi_stage_trainer.MultiStageTrainer.training_step">training_step() (reagent.training.multi_stage_trainer.MultiStageTrainer method)</a>
+      <li><a href="api/reagent.training.cb.html#reagent.training.cb.linucb_trainer.LinUCBTrainer.training_step">training_step() (reagent.training.cb.linucb_trainer.LinUCBTrainer method)</a>
 
       <ul>
+        <li><a href="api/reagent.training.html#reagent.training.multi_stage_trainer.MultiStageTrainer.training_step">(reagent.training.multi_stage_trainer.MultiStageTrainer method)</a>
+</li>
         <li><a href="api/reagent.training.html#reagent.training.MultiStageTrainer.training_step">(reagent.training.MultiStageTrainer method)</a>
 </li>
         <li><a href="api/reagent.training.html#reagent.training.ppo_trainer.PPOTrainer.training_step">(reagent.training.ppo_trainer.PPOTrainer method)</a>
@@ -11630,15 +11807,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/reagent.mab.html#reagent.mab.ucb.UCB1">UCB1 (class in reagent.mab.ucb)</a>
 </li>
-      <li><a href="api/reagent.mab.html#reagent.mab.ucb.UCBTuned">UCBTuned (class in reagent.mab.ucb)</a>
-</li>
-      <li><a href="api/reagent.mab.html#reagent.mab.ucb.UCBTunedBernoulli">UCBTunedBernoulli (class in reagent.mab.ucb)</a>
-</li>
       <li><a href="api/reagent.ope.test.html#reagent.ope.test.multiclass_bandits.UCIMultiClassDataset">UCIMultiClassDataset (class in reagent.ope.test.multiclass_bandits)</a>
 </li>
       <li><a href="api/reagent.prediction.ranking.html#reagent.prediction.ranking.predictor_wrapper.DeterminantalPointProcessPredictorWrapper.unchosen_dets">unchosen_dets() (reagent.prediction.ranking.predictor_wrapper.DeterminantalPointProcessPredictorWrapper method)</a>
 </li>
       <li><a href="api/reagent.core.html#reagent.core.parameters_seq2slate.IPSClampMethod.UNIVERSAL">UNIVERSAL (reagent.core.parameters_seq2slate.IPSClampMethod attribute)</a>
+</li>
+      <li><a href="api/reagent.preprocessing.html#reagent.preprocessing.transforms.UnsqueezeRepeat">UnsqueezeRepeat (class in reagent.preprocessing.transforms)</a>
 </li>
       <li><a href="api/reagent.core.html#reagent.core.multiprocess_utils.unwrap_function_outputs">unwrap_function_outputs() (in module reagent.core.multiprocess_utils)</a>
 </li>
@@ -11707,6 +11882,8 @@
 </li>
         <li><a href="api/reagent.lite.html#reagent.lite.optimizer.RandomSearchOptimizer.update_params">(reagent.lite.optimizer.RandomSearchOptimizer method)</a>
 </li>
+        <li><a href="api/reagent.training.cb.html#reagent.training.cb.linucb_trainer.LinUCBTrainer.update_params">(reagent.training.cb.linucb_trainer.LinUCBTrainer method)</a>
+</li>
       </ul></li>
       <li><a href="api/reagent.lite.html#reagent.lite.optimizer.BayesianMLPEnsemblerOptimizer.update_predictor">update_predictor() (reagent.lite.optimizer.BayesianMLPEnsemblerOptimizer method)</a>
 </li>
@@ -11732,6 +11909,8 @@
 
       <ul>
         <li><a href="api/reagent.training.html#reagent.training.C51Trainer.use_amp">(reagent.training.C51Trainer attribute)</a>
+</li>
+        <li><a href="api/reagent.training.cb.html#reagent.training.cb.linucb_trainer.LinUCBTrainer.use_amp">(reagent.training.cb.linucb_trainer.LinUCBTrainer attribute)</a>
 </li>
         <li><a href="api/reagent.training.html#reagent.training.CEMTrainer.use_amp">(reagent.training.CEMTrainer attribute)</a>
 </li>
@@ -11805,6 +11984,8 @@
 </li>
       </ul></li>
       <li><a href="api/reagent.workflow.html#reagent.workflow.types.ResourceOptions.use_gpu">use_gpu (reagent.workflow.types.ResourceOptions property)</a>
+</li>
+      <li><a href="api/reagent.training.html#reagent.training.parameters.LinUCBTrainerParameters.use_interaction_features">use_interaction_features (reagent.training.parameters.LinUCBTrainerParameters attribute)</a>
 </li>
       <li><a href="api/reagent.net_builder.continuous_actor.html#reagent.net_builder.continuous_actor.gaussian_fully_connected.GaussianFullyConnected.use_l2_normalization">use_l2_normalization (reagent.net_builder.continuous_actor.gaussian_fully_connected.GaussianFullyConnected attribute)</a>
 </li>
@@ -12046,6 +12227,8 @@
 </li>
       <li><a href="api/reagent.gym.envs.wrappers.html#reagent.gym.envs.wrappers.recsim.ValueWrapper">ValueWrapper (class in reagent.gym.envs.wrappers.recsim)</a>
 </li>
+      <li><a href="api/reagent.mab.html#reagent.mab.ucb.BaseUCB.var">var (reagent.mab.ucb.BaseUCB property)</a>
+</li>
       <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.estimator.ResultDiffs.variance">variance (reagent.ope.estimators.estimator.ResultDiffs property)</a>
 </li>
       <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_schedulers.CosineAnnealingLR.verbose">verbose (reagent.optimizer.uninferrable_schedulers.CosineAnnealingLR attribute)</a>
@@ -12094,12 +12277,16 @@
 </li>
       <li><a href="api/reagent.core.html#reagent.core.types.NoDuplicatedWarningLogger.warning">warning() (reagent.core.types.NoDuplicatedWarningLogger method)</a>
 </li>
-      <li><a href="api/reagent.models.html#reagent.models.no_soft_update_embedding.NoSoftUpdateEmbedding.weight">weight (reagent.models.no_soft_update_embedding.NoSoftUpdateEmbedding attribute)</a>
+      <li><a href="api/reagent.core.html#reagent.core.types.CBInput.weight">weight (reagent.core.types.CBInput attribute)</a>
 
       <ul>
+        <li><a href="api/reagent.models.html#reagent.models.no_soft_update_embedding.NoSoftUpdateEmbedding.weight">(reagent.models.no_soft_update_embedding.NoSoftUpdateEmbedding attribute)</a>
+</li>
         <li><a href="api/reagent.ope.estimators.html#reagent.ope.estimators.estimator.EstimatorSampleResult.weight">(reagent.ope.estimators.estimator.EstimatorSampleResult attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api/reagent.preprocessing.html#reagent.preprocessing.types.InputColumn.WEIGHT">WEIGHT (reagent.preprocessing.types.InputColumn attribute)</a>
+</li>
       <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_optimizers.Adam.weight_decay">weight_decay (reagent.optimizer.uninferrable_optimizers.Adam attribute)</a>
 
       <ul>
@@ -12114,14 +12301,14 @@
         <li><a href="api/reagent.optimizer.html#reagent.optimizer.uninferrable_optimizers.SGD.weight_decay">(reagent.optimizer.uninferrable_optimizers.SGD attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/reagent.training.html#reagent.training.parameters.RewardNetworkTrainerParameters.weighted_by_inverse_propensity">weighted_by_inverse_propensity (reagent.training.parameters.RewardNetworkTrainerParameters attribute)</a>
 
       <ul>
         <li><a href="api/reagent.training.html#reagent.training.RewardNetworkTrainerParameters.weighted_by_inverse_propensity">(reagent.training.RewardNetworkTrainerParameters attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/reagent.evaluation.html#reagent.evaluation.cpe.CpeEstimateSet.weighted_doubly_robust">weighted_doubly_robust (reagent.evaluation.cpe.CpeEstimateSet attribute)</a>
 </li>
       <li><a href="api/reagent.evaluation.html#reagent.evaluation.weighted_sequential_doubly_robust_estimator.WeightedSequentialDoublyRobustEstimator">WeightedSequentialDoublyRobustEstimator (class in reagent.evaluation.weighted_sequential_doubly_robust_estimator)</a>
@@ -12218,7 +12405,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+    <p>&#169; Copyright 2022, Meta Platforms, Inc.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

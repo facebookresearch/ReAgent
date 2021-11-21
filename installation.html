@@ -18,7 +18,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="ReAgent Serving Platform (RASP)" href="rasp_tutorial.html" />
+    <link rel="next" title="Usage" href="usage.html" />
     <link rel="prev" title="ReAgent: Applied Reinforcement Learning Platform" href="index.html" /> 
 </head>
 
@@ -42,15 +42,14 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#reagent-cli-python-api">ReAgent CLI &amp; Python API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#spark-preprocessing-jar">Spark preprocessing JAR</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#rasp">RASP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rasp-not-actively-maintained">RASP (Not Actively Maintained)</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rasp_tutorial.html">RASP (Not Actively Maintained)</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="distributed.html">Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
@@ -138,7 +137,7 @@ under <a class="reference external" href="https://app.circleci.com/pipelines/git
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -s <span class="s2">&quot;https://get.sdkman.io&quot;</span> <span class="p">|</span> bash
 <span class="nb">source</span> <span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/.sdkman/bin/sdkman-init.sh&quot;</span>
 sdk version
-sdk install java <span class="m">8</span>.0.272.hs-adpt
+sdk install java <span class="m">8</span>.0.292.hs-adpt
 sdk install scala
 sdk install maven
 </pre></div>
@@ -152,8 +151,8 @@ sdk install maven
 </pre></div>
 </div>
 </section>
-<section id="rasp">
-<h2>RASP<a class="headerlink" href="#rasp" title="Permalink to this headline"></a></h2>
+<section id="rasp-not-actively-maintained">
+<h2>RASP (Not Actively Maintained)<a class="headerlink" href="#rasp-not-actively-maintained" title="Permalink to this headline"></a></h2>
 <p>RASP (ReAgent Serving Platform) is a decision-serving library. It also has standlone binary. It depends on libtorch,
 which cannot be statically linked at the moment. Therefore, we don’t have a pre-built version.</p>
 <p>To build the CLI, you’ll need <a class="reference external" href="https://cmake.org/">CMake</a> and the following libraries:</p>
@@ -192,13 +191,13 @@ make
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="ReAgent: Applied Reinforcement Learning Platform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="rasp_tutorial.html" class="btn btn-neutral float-right" title="ReAgent Serving Platform (RASP)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2021, Meta Platforms, Inc..</p>
+    <p>&#169; Copyright 2022, Meta Platforms, Inc.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
