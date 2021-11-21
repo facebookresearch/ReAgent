@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-import os
 import pprint
 from os.path import abspath, dirname, join
 from typing import Dict, Optional

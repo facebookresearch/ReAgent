@@ -9,7 +9,6 @@ import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import NormalizationData, NormalizationKey, param_hash
 from reagent.model_managers.actor_critic_base import ActorCriticBase
-from reagent.models.base import ModelBase
 from reagent.net_builder.continuous_actor.gaussian_fully_connected import (
     GaussianFullyConnected,
 )

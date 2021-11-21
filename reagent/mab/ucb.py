@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+
 import math
 from abc import ABC, abstractmethod
 from typing import Optional, List

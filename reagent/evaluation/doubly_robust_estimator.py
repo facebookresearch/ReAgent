@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import itertools
 import logging
 from dataclasses import dataclass
 from typing import Dict, NamedTuple, Optional, Tuple, Union

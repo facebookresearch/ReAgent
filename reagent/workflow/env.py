@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Dict, List
+from typing import List
 
 from reagent.workflow.types import ModuleNameToEntityId
 

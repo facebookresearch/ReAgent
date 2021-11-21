@@ -3,9 +3,6 @@
 
 import logging
 
-import numpy.testing as npt
-import torch
-
 
 logger = logging.getLogger(__name__)
 
