@@ -4,25 +4,17 @@ from typing import Dict, List, Optional, Tuple
 
 import reagent.core.types as rlt
 from reagent.core.dataclasses import dataclass
-from reagent.core.parameters import NormalizationData, NormalizationKey
-from reagent.data import DataFetcher, ReAgentDataModule
+from reagent.core.parameters import NormalizationData
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.top_k_sampler import TopKSampler
 from reagent.gym.policies.scorers.slate_q_scorer import slate_q_scorer
 from reagent.model_managers.model_manager import ModelManager
-from reagent.models.base import ModelBase
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.reporting.slate_q_reporter import SlateQReporter
 from reagent.training import ReAgentLightningModule
 from reagent.workflow.types import (
-    Dataset,
     PreprocessingOptions,
-    ReaderOptions,
-    ResourceOptions,
-    RewardOptions,
-    RLTrainingOutput,
-    TableSpec,
 )
 
 

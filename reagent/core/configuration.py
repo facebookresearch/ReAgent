@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import functools
 from dataclasses import MISSING, Field, fields

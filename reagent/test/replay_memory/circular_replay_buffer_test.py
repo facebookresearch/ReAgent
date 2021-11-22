@@ -16,8 +16,7 @@
 # limitations under the License.
 """Tests for circular_replay_buffer.py."""
 
-import gzip
-import os
+
 import tempfile
 import unittest
 

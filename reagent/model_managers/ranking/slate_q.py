@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
 from typing import Optional, Dict
@@ -7,7 +8,6 @@ import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import param_hash, NormalizationData, NormalizationKey
 from reagent.model_managers.slate_q_base import SlateQBase
-from reagent.models.base import ModelBase
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
 from reagent.training import ReAgentLightningModule

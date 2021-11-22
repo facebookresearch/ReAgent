@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from typing import List, Optional
 
-import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import NormalizationData, param_hash, ConvNetParameters
 from reagent.models.base import ModelBase
