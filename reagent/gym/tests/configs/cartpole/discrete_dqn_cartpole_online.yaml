@@ -16,7 +16,7 @@ model:
       minibatches_per_step: 1
       optimizer:
         Adam:
-          lr: 0.05
+          lr: 0.01
     net_builder:
       FullyConnected:
         sizes:
@@ -29,8 +29,8 @@ model:
       calc_cpe_in_training: false
 replay_memory_size: 100000
 train_every_ts: 1
-train_after_ts: 20000
-num_train_episodes: 30
+train_after_ts: 30000
+num_train_episodes: 120
 num_eval_episodes: 20
 passing_score_bar: 100.0
 use_gpu: false
