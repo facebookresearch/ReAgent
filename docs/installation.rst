@@ -65,7 +65,7 @@ Now, you can build our preprocessing JAR
 
    mvn -f preprocessing/pom.xml clean package
 
-RASP
+RASP (Not Actively Maintained)
 ^^^^
 
 RASP (ReAgent Serving Platform) is a decision-serving library. It also has standlone binary. It depends on libtorch,
