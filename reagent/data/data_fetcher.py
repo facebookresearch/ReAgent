@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+
 import logging
 from typing import List, Optional, Tuple
 

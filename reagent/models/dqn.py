@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-from typing import Optional, Union
+from typing import Optional
 
-import numpy as np
 import torch
 from reagent.core import types as rlt
 from reagent.models.fully_connected_network import (

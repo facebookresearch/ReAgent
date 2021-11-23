@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import argparse
 import json
@@ -9,7 +10,6 @@ import random
 import sys
 import time
 from typing import (
-    Dict,
     Iterable,
     List,
     Mapping,
@@ -17,7 +17,6 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    Union,
 )
 
 import numpy as np

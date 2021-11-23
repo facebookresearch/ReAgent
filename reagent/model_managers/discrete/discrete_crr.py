@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 # Note: this file is modeled after td3.py
 
 import logging
 from typing import Dict, Optional
 
-import numpy as np
 import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field

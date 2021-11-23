@@ -6,7 +6,6 @@ import unittest
 
 import numpy as np
 import torch
-import torch
 from reagent.core.parameters import (
     NormalizationData,
     NormalizationParameters,

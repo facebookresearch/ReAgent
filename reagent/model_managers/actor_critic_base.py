@@ -5,7 +5,6 @@ import logging
 from dataclasses import replace
 from typing import Dict, List, Optional, Tuple
 
-import numpy as np
 import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
