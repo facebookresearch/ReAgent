@@ -1064,6 +1064,13 @@ class RewardNetworkOutput(TensorDataClass):
 
 
 @dataclass
+class SyntheticRewardNetworkOutput(TensorDataClass):
+    predicted_reward: torch.Tensor
+    mask: torch.Tensor
+    output: torch.Tensor
+
+
+@dataclass
 class FrechetSortConfig:
     shape: float
     equiv_len: int

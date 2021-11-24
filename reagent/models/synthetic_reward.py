@@ -262,7 +262,11 @@ class SyntheticRewardNet(ModelBase):
         output_masked = output * mask
 
         pred_reward = output_masked.sum(dim=1, keepdim=True)
-        return rlt.RewardNetworkOutput(predicted_reward=pred_reward)
+        return rlt.SyntheticRewardNetworkOutput(
+            predicted_reward=pred_reward,
+            mask=mask,
+            output=output,
+        )
 
     def export_mlp(self):
         """
