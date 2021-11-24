@@ -10,6 +10,7 @@ import numpy as np
 import numpy.testing as npt
 import torch
 from parameterized.parameterized import parameterized
+from pytorch_lightning import seed_everything
 from reagent.mab.mab_algorithm import (
     get_arm_indices,
     place_values_at_indices,
@@ -49,6 +50,9 @@ ALL_MAB_ALGOS = ALL_UCB_ALGOS + ALL_THOMPSON_ALGOS
 
 
 class TestMAButils(unittest.TestCase):
+    def setUp(self):
+        seed_everything(1)
+
     def test_get_arm_indices_happy_case(self):
         ids_of_all_arms = ["a", "b", "c", "z", "4"]
         ids_of_arms_in_batch = ["z", "4", "b"]
