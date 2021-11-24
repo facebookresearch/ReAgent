@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   reagent.training.cb
    reagent.training.cfeval
    reagent.training.gradient_free
    reagent.training.ranking
