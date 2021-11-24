@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
-
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.training.c51_trainer import C51Trainer
 from reagent.training.cem_trainer import CEMTrainer
 from reagent.training.cfeval import BanditRewardNetTrainer
@@ -68,3 +68,10 @@ __all__ = [
     "PPOTrainer",
     "PPOTrainerParameters",
 ]
+
+if IS_FB_ENVIRONMENT:
+    from reagent.training.fb.signal_loss_reward_decomp_trainer import (  # noqa
+        SignalLossRewardDecompTrainer,
+    )
+
+    __all__.append("SignalLossRewardDecompTrainer")
