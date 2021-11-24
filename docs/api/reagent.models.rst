@@ -100,6 +100,14 @@ reagent.models.fully\_connected\_network module
    :undoc-members:
    :show-inheritance:
 
+reagent.models.linear\_regression module
+----------------------------------------
+
+.. automodule:: reagent.models.linear_regression
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 reagent.models.mdn\_rnn module
 ------------------------------
 

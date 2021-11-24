@@ -10,9 +10,12 @@ batches, we use *off-policy* algorithms.  To test a new policy without deploying
 *counter-factual policy evaluation (CPE)*\ , a set of techniques for estimating a policy based on the
 actions of another policy.
 
+This tutorial is tested in our CircleCI `end-to-end tests <https://github.com/facebookresearch/ReAgent/blob/62661e35b62b06ed161e661b906616a2d389eb3a/.circleci/config.yml#L79-L128>`_.
+If there is anything not kept up-to-date in this tutorial, please always refer to the latest code.
+
+
 Quick Start
 -----------
-
 We have set up `Click <https://click.palletsprojects.com/en/7.x/>`_ commands to run our RL workflow. The basic usage pattern is
 
 .. code-block::
