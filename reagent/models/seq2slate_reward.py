@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from reagent.core import types as rlt
 from reagent.core.torch_utils import gather
-from reagent.model_utils.seq2slate_utils import DECODER_START_SYMBOL, subsequent_mask
+from reagent.model_utils.seq2slate_utils import subsequent_mask
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate import (
     Decoder,

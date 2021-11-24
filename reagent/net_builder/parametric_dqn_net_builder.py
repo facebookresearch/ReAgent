@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import abc
 
 import torch
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.parameters import NormalizationData
-from reagent.core.registry_meta import RegistryMeta
 from reagent.models.base import ModelBase
 from reagent.prediction.predictor_wrapper import ParametricDqnWithPreprocessor
 from reagent.preprocessing.preprocessor import Preprocessor

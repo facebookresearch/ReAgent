@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import itertools
 import logging
 
 from reagent.core import aggregators as agg
-from reagent.core.observers import IntervalAggregatingObserver, ValueListObserver
+from reagent.core.observers import IntervalAggregatingObserver
 from reagent.reporting.reporter_base import ReporterBase
 from reagent.workflow.training_reports import ActorCriticTrainingReport
 

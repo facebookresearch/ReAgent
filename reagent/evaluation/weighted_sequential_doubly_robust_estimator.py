@@ -6,7 +6,6 @@ import logging
 
 import numpy as np
 import scipy as sp
-import torch
 from reagent.evaluation.cpe import CpeEstimate
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 

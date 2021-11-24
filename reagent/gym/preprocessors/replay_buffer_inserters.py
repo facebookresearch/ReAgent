@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Any, Callable, List, Tuple
+from typing import Callable, List, Tuple
 
 import gym
 import numpy as np

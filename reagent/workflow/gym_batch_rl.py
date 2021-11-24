@@ -3,7 +3,6 @@
 
 import json
 import logging
-import random
 from typing import Optional
 
 import gym

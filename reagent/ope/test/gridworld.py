@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
 import random
@@ -13,7 +14,6 @@ from reagent.ope.estimators.sequential_estimators import (
     IPSEstimator,
     MAGICEstimator,
     NeuralDualDICE,
-    RandomRLPolicy,
     RewardProbability,
     RLEstimatorInput,
     State,
