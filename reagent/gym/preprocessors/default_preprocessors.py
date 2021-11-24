@@ -4,7 +4,7 @@
 """ Get default preprocessors for training time. """
 
 import logging
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 import reagent.core.types as rlt

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
+# Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import itertools
 import logging
-from collections import OrderedDict
 from typing import List, Optional
 
 import torch
 from reagent.core import aggregators as agg
-from reagent.core.observers import IntervalAggregatingObserver, ValueListObserver
+from reagent.core.observers import IntervalAggregatingObserver
 from reagent.reporting.reporter_base import (
     ReporterBase,
 )

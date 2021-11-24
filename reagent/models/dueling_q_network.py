@@ -2,9 +2,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
-import numpy as np
 import torch
 from reagent.core import types as rlt
 from reagent.core.tensorboardX import SummaryWriterContext
