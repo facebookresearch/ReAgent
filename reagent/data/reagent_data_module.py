@@ -9,9 +9,24 @@ from reagent.core.parameters import NormalizationData
 
 
 class ReAgentDataModule(pl.LightningDataModule):
+    def __init__(self):
+        super().__init__()
+
     @abc.abstractmethod
     def get_normalization_data_map(
         self,
         keys: Optional[List[str]] = None,
     ) -> Dict[str, NormalizationData]:
+        pass
+
+    @abc.abstractproperty
+    def train_dataset(self):
+        pass
+
+    @abc.abstractproperty
+    def eval_dataset(self):
+        pass
+
+    @abc.abstractproperty
+    def test_dataset(self):
         pass

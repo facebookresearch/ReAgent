@@ -268,7 +268,7 @@ class ManualDataModule(ReAgentDataModule):
     def train_dataloader(self):
         self._num_train_data_loader_calls += 1
         return self.get_dataloader(
-            self._train_dataset,
+            self.train_dataset,
             identity=f"train_{self._num_train_data_loader_calls}",
         )
 
@@ -285,10 +285,23 @@ class ManualDataModule(ReAgentDataModule):
         return self._get_eval_dataset(identity=f"val_{self._num_val_data_loader_calls}")
 
     def _get_eval_dataset(self, identity: str):
-        test_dataset = getattr(self, "_eval_dataset", None)
-        if not test_dataset:
+        eval_dataset = self.eval_dataset
+        if not eval_dataset:
             return None
-        return self.get_dataloader(test_dataset, identity)
+        return self.get_dataloader(eval_dataset, identity)
+
+    @property
+    def train_dataset(self):
+        return getattr(self, "_train_dataset", None)
+
+    @property
+    def eval_dataset(self):
+        return getattr(self, "_eval_dataset", None)
+
+    @property
+    def test_dataset(self):
+        # TODO: we currently use the same data for test and validation.
+        return self.eval_dataset
 
 
 def _closing_iter(dataloader):
