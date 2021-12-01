@@ -137,7 +137,7 @@ def train_eval_lightning(
         logger=OssTensorboardLogger(save_dir="pl_log_tensorboard", name=logger_name),
         max_epochs=num_epochs * 1000,
         gpus=int(use_gpu),
-        reload_dataloaders_every_epoch=True,
+        reload_dataloaders_every_n_epochs=1,
         resume_from_checkpoint=checkpoint_path,
         callbacks=[StoppingEpochCallback(num_epochs)],
     )
