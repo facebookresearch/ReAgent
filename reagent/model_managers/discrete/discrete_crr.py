@@ -196,7 +196,7 @@ class DiscreteCRR(DiscreteDQNBase):
     # in utils.py
 
     def serving_module_names(self):
-        module_names = ["default_model", "dqn", "actor_dqn"]
+        module_names = ["default_model", "dqn", "actor_dqn", "reward"]
         if len(self.action_names) == 2:
             module_names.append("binary_difference_scorer")
         return module_names
@@ -219,6 +219,7 @@ class DiscreteCRR(DiscreteDQNBase):
             "dqn": self._build_dqn_module(
                 trainer_module.q1_network, normalization_data_map
             ),
+            "reward": self.build_reward_module(trainer_module, normalization_data_map),
             "actor_dqn": self._build_dqn_module(
                 ActorDQN(trainer_module.actor_network), normalization_data_map
             ),
@@ -284,6 +285,23 @@ class DiscreteCRR(DiscreteDQNBase):
             self.state_feature_config,
             normalization_data_map[NormalizationKey.STATE],
             action_feature_ids=list(range(len(self.action_names))),
+        )
+
+    def build_reward_module(
+        self,
+        trainer_module: DiscreteCRRTrainer,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
+        """
+        Returns a TorchScript predictor module
+        """
+        net_builder = self.cpe_net_builder.value
+        assert trainer_module.reward_network is not None
+        return net_builder.build_serving_module(
+            trainer_module.reward_network,
+            normalization_data_map[NormalizationKey.STATE],
+            action_names=self.action_names,
+            state_feature_config=self.state_feature_config,
         )
 
 

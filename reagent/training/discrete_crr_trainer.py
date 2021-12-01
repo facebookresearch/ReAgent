@@ -135,6 +135,8 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
                 # pyre-fixme[16]: Optional type has no attribute `__getitem__`.
                 self.reward_boosts[0, i] = rl.reward_boost[k]
 
+        # The function below adds reward_network as a member object to DQNTrainerBaseLightning,
+        # from which DiscreteCRRTrainer is derived.
         self._initialize_cpe(
             reward_network,
             q_network_cpe,
