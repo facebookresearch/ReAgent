@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import abc
+import os
 import unittest
 
 from reagent.core.configuration import make_config_class, resolve_defaults
@@ -76,3 +77,29 @@ class TestConfigParsing(unittest.TestCase):
         raw_config = {"union": {"Bar": {}}}
         config = Config(**raw_config)
         self.assertEqual(config.union.value.foo(), 10)
+
+    def test_frozen_registry(self):
+        with self.assertRaises(RuntimeError):
+
+            @dataclass
+            class Baz(FooRegistry):
+                def foo(self):
+                    return 20
+
+        self.assertListEqual(sorted(FooRegistry.REGISTRY.keys()), ["Bar", "Foo"])
+
+    def test_frozen_registry_skip(self):
+        _environ = dict(os.environ)
+        os.environ.update({"SKIP_FROZEN_REGISTRY_CHECK": "1"})
+        try:
+
+            @dataclass
+            class Baz(FooRegistry):
+                def foo(self):
+                    return 20
+
+        finally:
+            os.environ.clear()
+            os.environ.update(_environ)
+
+        self.assertListEqual(sorted(FooRegistry.REGISTRY.keys()), ["Bar", "Foo"])
