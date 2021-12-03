@@ -28,6 +28,9 @@ from reagent.net_builder.unions import (
     DiscreteActorNetBuilder__Union,
     DiscreteDQNNetBuilder__Union,
 )
+from reagent.prediction.cfeval.predictor_wrapper import (
+    BanditRewardNetPredictorWrapper,
+)
 from reagent.reporting.discrete_crr_reporter import DiscreteCRRReporter
 from reagent.training import DiscreteCRRTrainer, CRRTrainerParameters
 from reagent.training import ReAgentLightningModule
@@ -199,6 +202,8 @@ class DiscreteCRR(DiscreteDQNBase):
         module_names = ["default_model", "dqn", "actor_dqn"]
         if len(self.action_names) == 2:
             module_names.append("binary_difference_scorer")
+        if self.eval_parameters.calc_cpe_in_training:
+            module_names.append("reward_model")
         return module_names
 
     def build_serving_modules(
@@ -229,6 +234,14 @@ class DiscreteCRR(DiscreteDQNBase):
                     "binary_difference_scorer": self._build_binary_difference_scorer(
                         ActorDQN(trainer_module.actor_network), normalization_data_map
                     ),
+                }
+            )
+        if self.eval_parameters.calc_cpe_in_training:
+            serving_modules.update(
+                {
+                    "reward_model": self.build_reward_module(
+                        trainer_module, normalization_data_map
+                    )
                 }
             )
         return serving_modules
@@ -284,6 +297,21 @@ class DiscreteCRR(DiscreteDQNBase):
             self.state_feature_config,
             normalization_data_map[NormalizationKey.STATE],
             action_feature_ids=list(range(len(self.action_names))),
+        )
+
+    def build_reward_module(
+        self,
+        trainer_module: DiscreteCRRTrainer,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
+        assert trainer_module.reward_network is not None
+        net_builder = self.cpe_net_builder.value
+        return net_builder.build_serving_module(
+            trainer_module.reward_network,
+            normalization_data_map[NormalizationKey.STATE],
+            action_names=self.action_names,
+            state_feature_config=self.state_feature_config,
+            predictor_wrapper_type=BanditRewardNetPredictorWrapper,
         )
 
 

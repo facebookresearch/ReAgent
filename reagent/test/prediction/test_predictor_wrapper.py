@@ -10,6 +10,9 @@ import reagent.models as models
 import torch
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode, Seq2SlateOutputArch
 from reagent.models.seq2slate import Seq2SlateTransformerNet
+from reagent.prediction.cfeval.predictor_wrapper import (
+    BanditRewardNetPredictorWrapper,
+)
 from reagent.prediction.predictor_wrapper import (
     ActorPredictorWrapper,
     ActorWithPreprocessor,
@@ -400,3 +403,36 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         ranked_idx, _, _ = wrapper(quality_scores, feature_vectors)
         npt.assert_array_almost_equal(ranked_idx, [1, 0, 2])
+
+    def test_reward_model_wrapper(self):
+        ids = range(1, 5)
+        state_normalization_parameters = {i: _cont_norm() for i in ids}
+        state_preprocessor = Preprocessor(state_normalization_parameters, False)
+        action_dim = 2
+        model = models.FullyConnectedDQN(
+            state_dim=len(state_normalization_parameters),
+            action_dim=action_dim,
+            sizes=[16],
+            activations=["relu"],
+        )
+        state_feature_config = rlt.ModelFeatureConfig(
+            float_feature_infos=[
+                rlt.FloatFeatureInfo(feature_id=i, name=f"feat_{i}") for i in ids
+            ]
+        )
+        model_with_preprocessor = DiscreteDqnWithPreprocessor(
+            model, state_preprocessor, state_feature_config
+        )
+        action_names = ["L", "R"]
+        wrapper = BanditRewardNetPredictorWrapper(
+            model_with_preprocessor, action_names, state_feature_config
+        )
+        input_prototype = model_with_preprocessor.input_prototype()[0]
+        reward_predictions, mask = wrapper(input_prototype)
+        self.assertEqual(reward_predictions.shape, (1, 2))
+
+        state_with_presence = input_prototype.float_features_with_presence
+        expected_output = model(
+            rlt.FeatureData(state_preprocessor(*state_with_presence))
+        )
+        self.assertTrue((expected_output == reward_predictions).all())
