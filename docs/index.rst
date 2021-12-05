@@ -23,7 +23,7 @@ ReAgent is an open source end-to-end platform for applied reinforcement learning
 ReAgent is built in Python and uses PyTorch for modeling and training and TorchScript for model serving. The platform contains
 workflows to train popular deep RL algorithms and includes data preprocessing, feature transformation, distributed training,
 counterfactual policy evaluation, and optimized serving. For more detailed information about ReAgent, please read
-`releases post <https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/>`_
+`release post <https://research.fb.com/publications/horizon-facebooks-open-source-applied-reinforcement-learning-platform/>`_
 and `white paper <https://arxiv.org/abs/1811.00260>`_.
 
 The source code is available here: `Source code <https://github.com/facebookresearch/ReAgent>`_.
