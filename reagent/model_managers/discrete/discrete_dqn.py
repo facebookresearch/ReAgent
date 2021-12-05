@@ -11,9 +11,12 @@ from reagent.model_managers.discrete_dqn_base import DiscreteDQNBase
 from reagent.net_builder.discrete_dqn.dueling import Dueling
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
+from reagent.prediction.cfeval.predictor_wrapper import (
+    BanditRewardNetPredictorWrapper,
+)
 from reagent.reporting.discrete_dqn_reporter import DiscreteDQNReporter
-from reagent.training import DQNTrainer, DQNTrainerParameters
-from reagent.training import ReAgentLightningModule
+from reagent.training import DQNTrainer, DQNTrainerParameters, ReAgentLightningModule
+from reagent.training.dqn_trainer_base import DQNTrainerBaseLightning
 from reagent.workflow.types import RewardOptions
 
 
@@ -118,6 +121,8 @@ class DiscreteDQN(DiscreteDQNBase):
         module_names = ["default_model"]
         if len(self.action_names) == 2:
             module_names.append("binary_difference_scorer")
+        if self.eval_parameters.calc_cpe_in_training:
+            module_names.append("reward_model")
         return module_names
 
     def build_serving_modules(
@@ -136,6 +141,14 @@ class DiscreteDQN(DiscreteDQNBase):
                 {
                     "binary_difference_scorer": self._build_binary_difference_scorer(
                         trainer_module.q_network, normalization_data_map
+                    )
+                }
+            )
+        if self.eval_parameters.calc_cpe_in_training:
+            serving_modules.update(
+                {
+                    "reward_model": self.build_reward_module(
+                        trainer_module, normalization_data_map
                     )
                 }
             )
@@ -171,4 +184,19 @@ class DiscreteDQN(DiscreteDQNBase):
             normalization_data_map[NormalizationKey.STATE],
             action_names=self.action_names,
             state_feature_config=self.state_feature_config,
+        )
+
+    def build_reward_module(
+        self,
+        trainer_module: DQNTrainerBaseLightning,
+        normalization_data_map: Dict[str, NormalizationData],
+    ) -> torch.nn.Module:
+        assert trainer_module.reward_network is not None
+        net_builder = self.cpe_net_builder.value
+        return net_builder.build_serving_module(
+            trainer_module.reward_network,
+            normalization_data_map[NormalizationKey.STATE],
+            action_names=self.action_names,
+            state_feature_config=self.state_feature_config,
+            predictor_wrapper_type=BanditRewardNetPredictorWrapper,
         )
