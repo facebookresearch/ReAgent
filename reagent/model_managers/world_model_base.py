@@ -69,6 +69,7 @@ class WorldModelDataModule(ManualDataModule):
             for ffi in self.model_manager.state_feature_config.float_feature_infos
         ]
         logger.info(f"Overriding state allowedlist_features: {state_features}")
+        assert len(state_features) > 0, "No state feature is specified"
         state_preprocessing_options = replace(
             state_preprocessing_options, allowedlist_features=state_features
         )
