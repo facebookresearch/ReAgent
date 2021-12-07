@@ -269,6 +269,12 @@ class DoublyRobustEstimator:
         logger.info(
             f"Normalized Direct method score = {direct_method_score * normalizer}"
         )
+        avg_model_reward_for_logged_actions = float(
+            torch.mean(isd.model_rewards_for_logged_action)
+        )
+        logger.info(
+            f"Adjusted Direct method score = {direct_method_score / avg_model_reward_for_logged_actions}"
+        )
         direct_method_std_error = bootstrapped_std_error_of_mean(
             direct_method_values.squeeze(),
             sample_percent=hp.bootstrap_sample_percent,
