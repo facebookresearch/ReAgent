@@ -272,6 +272,13 @@ class DoublyRobustEstimator:
         avg_model_reward_for_logged_actions = float(
             torch.mean(isd.model_rewards_for_logged_action)
         )
+        # The reward model could have learned to assign larger rewards than the logged rewards
+        # to all observed actions, in which case direct_method_score would be inflated.
+        # Hence, it is probably more useful to look at the adjusted score, which is obtained by
+        # dividing the normalized score by (avg_model_reward_for_logged_actions)/(average logged reward).
+        # Since the "normalizer" variable gives the average logged reward, this adjustment is equivalent
+        # to dividing direct_method_score by avg_model_reward_for_logged_actions, because the
+        # normalizer variable cancels out.
         logger.info(
             f"Adjusted Direct method score = {direct_method_score / avg_model_reward_for_logged_actions}"
         )
