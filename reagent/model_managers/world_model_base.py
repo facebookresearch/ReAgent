@@ -31,28 +31,6 @@ logger = logging.getLogger(__name__)
 class WorldModelBase(ModelManager):
     reward_boost: Optional[Dict[str, float]] = None
 
-    # TODO: Add get_data_module() method once methods in
-    # `WorldModelDataModule` class are implemented
-    # def get_data_module(
-    #     self,
-    #     *,
-    #     input_table_spec: Optional[TableSpec] = None,
-    #     reward_options: Optional[RewardOptions] = None,
-    #     reader_options: Optional[ReaderOptions] = None,
-    #     setup_data: Optional[Dict[str, bytes]] = None,
-    #     saved_setup_data: Optional[Dict[str, bytes]] = None,
-    #     resource_options: Optional[ResourceOptions] = None,
-    # ) -> Optional[ReAgentDataModule]:
-    #     return WorldModelDataModule(
-    #         input_table_spec=input_table_spec,
-    #         reward_options=reward_options,
-    #         setup_data=setup_data,
-    #         saved_setup_data=saved_setup_data,
-    #         reader_options=reader_options,
-    #         resource_options=resource_options,
-    #         model_manager=self,
-    #     )
-
 
 class WorldModelDataModule(ManualDataModule):
     @property
