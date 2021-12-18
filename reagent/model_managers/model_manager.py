@@ -140,9 +140,10 @@ class ModelManager:
 
         rank = get_rank()
         if rank == 0:
-            # pyre-ignore
             trainer_logger = lightning_trainer.logger
+            # pyre-fixme[16]: `Optional` has no attribute `line_plot_aggregated`.
             logger_data = trainer_logger.line_plot_aggregated
+            # pyre-fixme[16]: `Optional` has no attribute `clear_local_data`.
             trainer_logger.clear_local_data()
             if reporter is None:
                 training_report = None
