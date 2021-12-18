@@ -31,7 +31,6 @@ class Concat(nn.Module):
         return torch.cat((state, action), dim=-1)
 
 
-# pyre-fixme[11]: Annotation `Sequential` is not defined as a type.
 class SequentialMultiArguments(nn.Sequential):
     """Sequential which can take more than 1 argument in forward function"""
 
@@ -306,8 +305,6 @@ class SingleStepSyntheticRewardNet(nn.Module):
         self.dnn = SequentialMultiArguments(*modules)
 
     def forward(self, state: torch.Tensor, action: torch.Tensor):
-        # pyre-fixme[29]: `SequentialMultiArguments` is not a function.
-        # shape: batch_size, seq_len
         return self.dnn(state, action).squeeze(2).transpose(0, 1)
 
 

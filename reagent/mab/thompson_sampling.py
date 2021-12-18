@@ -28,7 +28,7 @@ class BernoulliBetaThompson(BaseThompsonSampling):
         """
         Get samples from the posterior distributions of arm rewards
         """
-        return torch.distributions.beta.Beta(  # pyre-ignore[20]
+        return torch.distributions.beta.Beta(
             1 + self.total_sum_reward_per_arm,
             1 + self.total_n_obs_per_arm - self.total_sum_reward_per_arm,
         ).sample()
@@ -118,7 +118,7 @@ class NormalGammaThompson(BaseThompsonSampling):
         """
         precisions = (
             self.lambda_0 + self.total_n_obs_per_arm
-        ) * torch.distributions.gamma.Gamma(  # pyre-ignore[20]
+        ) * torch.distributions.gamma.Gamma(
             0.5 * (self.total_n_obs_per_arm + self.alpha_0), self.gamma_rates
         ).sample()
         return torch.distributions.normal.Normal(
