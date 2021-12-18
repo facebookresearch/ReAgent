@@ -210,6 +210,8 @@ class Seq2SlateTrainer(ReAgentLightningModule):
         if self.baseline_net:
             baseline_net = self.baseline_net
             b = baseline_net(batch).detach()
+            # pyre-fixme[6]: Expected `Tensor` for 2nd param but got
+            #  `Optional[torch.Tensor]`.
             eval_baseline_loss = F.mse_loss(b, batch.slate_reward).cpu().reshape(1)
         else:
             b = torch.zeros_like(batch.slate_reward)
