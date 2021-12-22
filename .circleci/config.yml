@@ -421,7 +421,7 @@ jobs:
 
   rasp_test_mac:
     macos:
-      xcode: 11.3.0
+      xcode: 13.2.1
     steps:
       - checkout_merge
       - rasp_build_deps:
