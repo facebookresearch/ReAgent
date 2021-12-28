@@ -323,7 +323,9 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         q1_loss = self.compute_td_loss(self.q1_network, state, action, target_q_values)
 
         # Show td_loss on the progress bar and in tensorboard graphs:
-        self.log("td_loss", q1_loss, prog_bar=True)
+        self.log(
+            "td_loss", q1_loss, prog_bar=True, batch_size=training_batch.batch_size()
+        )
         yield q1_loss
 
         if self.q2_network:
@@ -348,8 +350,18 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         # )
 
         # Show actor_loss on the progress bar and also in Tensorboard graphs
-        self.log("actor_loss_without_reg", actor_loss_without_reg, prog_bar=True)
-        self.log("actor_loss", actor_loss, prog_bar=True)
+        self.log(
+            "actor_loss_without_reg",
+            actor_loss_without_reg,
+            prog_bar=True,
+            batch_size=training_batch.batch_size(),
+        )
+        self.log(
+            "actor_loss",
+            actor_loss,
+            prog_bar=True,
+            batch_size=training_batch.batch_size(),
+        )
         yield actor_loss
 
         yield from self._calculate_cpes(
@@ -426,8 +438,12 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
         )
         td_loss = self.compute_td_loss(self.q1_network, state, action, target_q_values)
 
-        self.log("eval_actor_loss_without_reg", actor_loss_without_reg)
-        self.log("eval_actor_loss", actor_loss)
-        self.log("eval_td_loss", td_loss)
+        self.log(
+            "eval_actor_loss_without_reg",
+            actor_loss_without_reg,
+            batch_size=batch.batch_size(),
+        )
+        self.log("eval_actor_loss", actor_loss, batch_size=batch.batch_size())
+        self.log("eval_td_loss", td_loss, batch_size=batch.batch_size())
 
         return super().validation_step(batch, batch_idx)

@@ -269,5 +269,7 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
 
         # Use the soft update rule to update the target networks
         result = self.soft_update_result()
-        self.log("td_loss", value_loss, prog_bar=True)
+        self.log(
+            "td_loss", value_loss, prog_bar=True, batch_size=training_batch.batch_size()
+        )
         yield result

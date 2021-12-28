@@ -161,7 +161,9 @@ class TD3Trainer(RLTrainerMixin, ReAgentLightningModule):
                 next_q_value=next_q_value,
                 target_q_value=target_q_value,
             )
-        self.log("td_loss", q1_loss, prog_bar=True)
+        self.log(
+            "td_loss", q1_loss, prog_bar=True, batch_size=training_batch.batch_size()
+        )
         yield q1_loss
 
         if self.q2_network:
