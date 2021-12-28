@@ -677,6 +677,7 @@ class BaseInput(TensorDataClass):
     not_terminal: torch.Tensor
 
     def __len__(self):
+        assert self.state.float_features.ndim == 2
         return self.state.float_features.size()[0]
 
     def batch_size(self):
@@ -929,7 +930,11 @@ class PolicyGradientInput(TensorDataClass):
         )
 
     def __len__(self):
+        assert self.action.ndim == 2
         return len(self.action)
+
+    def batch_size(self):
+        return len(self)
 
 
 @dataclass
@@ -947,6 +952,10 @@ class BanditRewardModelInput(TensorDataClass):
             reward=batch["reward"],
             action_prob=batch.get("action_probability", None),
         )
+
+    def batch_size(self):
+        assert self.state.float_features.ndim == 2
+        return self.state.float_features.size()[0]
 
 
 @dataclass
@@ -979,16 +988,6 @@ class MemoryNetworkInput(BaseInput):
             return self.state.float_features.size()[1]
         else:
             raise NotImplementedError()
-
-
-@dataclass
-class PreprocessedTrainingBatch(TensorDataClass):
-    training_input: Union[PreprocessedRankingInput]
-    # TODO: deplicate this and move into individual ones.
-    extras: ExtraData = field(default_factory=ExtraData)
-
-    def batch_size(self):
-        return self.training_input.state.float_features.size()[0]
 
 
 @dataclass

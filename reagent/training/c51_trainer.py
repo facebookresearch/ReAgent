@@ -181,7 +181,9 @@ class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
                 model_values=all_q_values,
                 model_action_idxs=model_action_idxs,
             )
-            self.log("td_loss", loss, prog_bar=True)
+            self.log(
+                "td_loss", loss, prog_bar=True, batch_size=training_batch.batch_size()
+            )
 
         yield loss
         result = self.soft_update_result()
