@@ -129,7 +129,7 @@ class UCBTuned(BaseUCB):
                 2 * log_t_over_ni
             )  # additional term to make the estimate conservative (unlikely to underestimate)
         )
-        return avg_rewards + torch.sqrt(
+        return avg_rewards + self.alpha * torch.sqrt(
             log_t_over_ni * torch.fmin(per_arm_var_est, torch.tensor(0.25))
         )
 
