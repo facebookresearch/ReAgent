@@ -116,6 +116,9 @@ class TestMAButils(unittest.TestCase):
 
 
 class TestMAB(unittest.TestCase):
+    def setUp(self):
+        seed_everything(1)
+
     @parameterized.expand(ALL_MAB_ALGOS)
     def test_batch_training(self, name, cls):
         n_arms = 5
@@ -318,6 +321,9 @@ class TestMAB(unittest.TestCase):
 
 
 class TestSimulation(unittest.TestCase):
+    def setUp(self):
+        seed_everything(1)
+
     def test_single_evaluation(self):
         bandit = BernoilliMAB(100, torch.tensor([0.3, 0.5]))
         algo = UCB1(n_arms=2)
@@ -384,7 +390,11 @@ class TestSimulation(unittest.TestCase):
             bandit_cls=BernoilliMAB,
             n_bandits=5,
             max_steps=max_steps,
-            algo_kwargs={"n_arms": 2},
+            algo_kwargs=[
+                {"n_arms": 2, "estimate_variance": False},
+                {"n_arms": 2},
+                {"n_arms": 2},
+            ],
             bandit_kwargs={"probs": torch.Tensor([0.1, 0.2])},
         )
 
@@ -400,5 +410,6 @@ class TestSimulation(unittest.TestCase):
             # make sure regret is non-decreasing
             self.assertGreaterEqual(np.diff(traj, prepend=0).min(), 0)
 
-        # UCB1 should be much worse than MetricUCB in this setting
+        # UCB1 should be much worse than MetricUCB in this setting because UCB1 assumes
+        #   variance is equal to 1, while MetricUCB estimates it
         self.assertGreater(regret_trajectories[0][-1], regret_trajectories[1][-1])
