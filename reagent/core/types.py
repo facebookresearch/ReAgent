@@ -959,6 +959,25 @@ class BanditRewardModelInput(TensorDataClass):
 
 
 @dataclass
+class BehavioralCloningModelInput(TensorDataClass):
+    state: FeatureData
+    action: torch.Tensor
+    possible_actions_mask: Optional[torch.Tensor] = None
+
+    @classmethod
+    def from_dict(cls, batch: Dict[str, torch.Tensor]):
+        return cls(
+            state=FeatureData(float_features=batch["state"]),
+            action=batch["action"],
+            possible_actions_mask=batch.get("possible_actions_mask", None),
+        )
+
+    def batch_size(self):
+        assert self.state.float_features.ndim == 2
+        return self.state.float_features.size()[0]
+
+
+@dataclass
 class MemoryNetworkInput(BaseInput):
     action: torch.Tensor
     valid_step: Optional[torch.Tensor] = None
