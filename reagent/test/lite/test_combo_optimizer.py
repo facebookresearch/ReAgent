@@ -16,7 +16,7 @@ from reagent.lite.optimizer import (
     QLearningOptimizer,
     NeverGradOptimizer,
     RandomSearchOptimizer,
-    BayesianOptimizer,
+    BayesianOptimizerBase,
     BayesianMLPEnsemblerOptimizer,
     GREEDY_TEMP,
     sol_to_tensors,
@@ -566,7 +566,7 @@ class TestComboOptimizer(unittest.TestCase):
         input_param = discrete_input_param()
         gt_net = create_ground_truth_net(input_param)
         obj_func = create_discrete_choice_obj_func(input_param, gt_net)
-        optimizer = BayesianOptimizer(
+        optimizer = BayesianOptimizerBase(
             param=input_param,
             obj_func=obj_func,
             start_temp=1.0,

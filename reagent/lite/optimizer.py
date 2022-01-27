@@ -316,7 +316,7 @@ class RandomSearchOptimizer(ComboOptimizerBase):
         super().__init__(
             param,
             obj_func,
-            batch_size,
+            batch_size=batch_size,
         )
 
     def sample(
@@ -421,7 +421,7 @@ class NeverGradOptimizer(ComboOptimizerBase):
         super().__init__(
             param,
             obj_func,
-            batch_size,
+            batch_size=batch_size,
         )
 
     def _init(self) -> None:
@@ -599,9 +599,9 @@ class GumbelSoftmaxOptimizer(LogitBasedComboOptimizerBase):
             start_temp,
             min_temp,
             obj_func,
-            learning_rate,
-            anneal_rate,
-            batch_size,
+            learning_rate=learning_rate,
+            anneal_rate=anneal_rate,
+            batch_size=batch_size,
             # no reward scaling in gumbel softmax
             obj_exp_offset_scale=None,
         )
@@ -704,10 +704,10 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
             start_temp,
             min_temp,
             obj_func,
-            learning_rate,
-            anneal_rate,
-            batch_size,
-            obj_exp_offset_scale,
+            learning_rate=learning_rate,
+            anneal_rate=anneal_rate,
+            batch_size=batch_size,
+            obj_exp_offset_scale=obj_exp_offset_scale,
         )
 
     def sample(
@@ -860,8 +860,8 @@ class QLearningOptimizer(ComboOptimizerBase):
         super().__init__(
             param,
             obj_func,
-            batch_size,
-            obj_exp_offset_scale,
+            batch_size=batch_size,
+            obj_exp_offset_scale=obj_exp_offset_scale,
         )
 
     def _init(self) -> None:
@@ -1012,7 +1012,7 @@ class QLearningOptimizer(ComboOptimizerBase):
         return sampled_solutions, sampled_reward
 
 
-class BayesianOptimizer(ComboOptimizerBase):
+class BayesianOptimizerBase(ComboOptimizerBase):
     """
     Bayessian Optimization with mutation optimization and acquisition function.
     The method is motivated from BANANAS, White, 2020.
@@ -1036,15 +1036,14 @@ class BayesianOptimizer(ComboOptimizerBase):
         mutation_type (str): type of mutation, e.g., random.
 
         temp (float): percentage of mutation - how many variables will be mutated.
-
     """
 
     def __init__(
         self,
         param: ng.p.Dict,
-        start_temp: float,
-        min_temp: float,
         obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]] = None,
+        start_temp: float = 1.0,
+        min_temp: float = 0.1,
         acq_type: str = "its",
         mutation_type: str = "random",
         anneal_rate: float = ANNEAL_RATE,
@@ -1060,8 +1059,8 @@ class BayesianOptimizer(ComboOptimizerBase):
         super().__init__(
             param,
             obj_func,
-            batch_size,
-            obj_exp_offset_scale,
+            batch_size=batch_size,
+            obj_exp_offset_scale=obj_exp_offset_scale,
         )
 
     def sample(
@@ -1072,14 +1071,28 @@ class BayesianOptimizer(ComboOptimizerBase):
         For example, with random mutation, variables are randomly selected,
         and their values are randomly set with respect to their domains.
         """
-        assert temp is not None, "temp is needed for Bayesian Optimizer"
+        assert temp is not None, "temperature is needed for Bayesian Optimizer"
         best_solutions = self.best_solutions(batch_size)
-        batch_size = len(best_solutions)
-        sampled_sol = [sol for _, sol in best_solutions]
+        # best_solutions come in as (reward, solution) tuples
+        # we only need solutions so we strip reward
+        best_solutions = [sol for _, sol in best_solutions]
+        if len(best_solutions) < batch_size:
+            logger.warning(
+                "Less than batch_size solutions are sampled to be mutated. Will duplicate thse solutions."
+            )
+            dup_times = batch_size // len(best_solutions) + 1
+            best_solutions = (best_solutions * dup_times)[:batch_size]
+            assert batch_size == len(best_solutions)
+
+        # Convert best_solutions to Dict[str, tensor] format
         sampled_solutions = {}
         for k in sorted(self.param.keys()):
-            sampled_solutions[k] = torch.cat([sol[k].reshape(1) for sol in sampled_sol])
+            sampled_solutions[k] = torch.cat(
+                [sol[k].reshape(1) for sol in best_solutions]
+            )
+
         if self.mutation_type == "random":
+            # keys to mutate for each solution
             mutated_keys = [
                 np.random.choice(
                     sorted(self.param.keys()),
@@ -1091,14 +1104,18 @@ class BayesianOptimizer(ComboOptimizerBase):
             mutated_solutions = {}
             for key in sorted(self.param.keys()):
                 mutated_solutions[key] = sampled_solutions[key].clone()
-                indices = torch.tensor(
-                    [idx for idx, k in enumerate(mutated_keys) if key in k]
+                sol_indices = torch.tensor(
+                    [
+                        sol_idx
+                        for sol_idx, mutated_keys_for_one_sol in enumerate(mutated_keys)
+                        if key in mutated_keys_for_one_sol
+                    ]
                 )
-                if len(indices):
-                    mutated_solutions[key][indices] = torch.randint(
+                if len(sol_indices):
+                    mutated_solutions[key][sol_indices] = torch.randint(
                         # pyre-fixme[16]: `Parameter` has no attribute `choices`.
                         len(self.param[key].choices),
-                        (len(indices),),
+                        (len(sol_indices),),
                     )
         else:
             raise NotImplementedError()
@@ -1123,7 +1140,7 @@ class BayesianOptimizer(ComboOptimizerBase):
         return acquisition_reward.view(-1)
 
 
-class BayesianMLPEnsemblerOptimizer(BayesianOptimizer):
+class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
     """
     Bayessian Optimizer with ensemble of mlp networks, random mutation, and ITS.
     The Method is motivated by the BANANAS optimization method, White, 2019.
@@ -1155,14 +1172,39 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizer):
         start_temp (float): initial temperature (ratio) for mutation, e.g., with 1.0 all variables will be initally mutated.
 
         min_temp (float): lowest temperature (ratio) for mutation, e.g., with 0.0 no mutation will occur.
+
+
+    Example:
+        >>> _ = torch.manual_seed(0)
+        >>> np.random.seed(0)
+        >>> BATCH_SIZE = 4
+        >>> ng_param = ng.p.Dict(choice1=ng.p.Choice(["blue", "green", "red"]))
+        >>>
+        >>> def obj_func(sampled_sol: Dict[str, torch.Tensor]):
+        ...     reward = torch.ones(BATCH_SIZE, 1)
+        ...     for i in range(BATCH_SIZE):
+        ...         # the best action is "red"
+        ...         if sampled_sol['choice1'][i] == 2:
+        ...             reward[i, 0] = 0.0
+        ...     return reward
+        ...
+        >>> optimizer = BayesianMLPEnsemblerOptimizer(
+        ...     ng_param, obj_func, batch_size=BATCH_SIZE,
+        ...     acq_type="its", mutation_type="random",
+        ...     num_mutations=4,
+        ... )
+        >>> for i in range(30):
+        ...     res = optimizer.optimize_step()
+        ...
+        >>> assert optimizer.sample(1, temp=0)['choice1'] == 2
     """
 
     def __init__(
         self,
         param: ng.p.Dict,
-        start_temp: float = 1.0,
-        min_temp: float = 0.0,
         obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]] = None,
+        start_temp: float = 1.0,
+        min_temp: float = 0.1,
         acq_type: str = "its",
         mutation_type: str = "random",
         anneal_rate: float = ANNEAL_RATE,
@@ -1182,16 +1224,17 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizer):
         self.num_ensemble = num_ensemble
         self.input_dim = 0
         self.predictor = None
+        self.last_predictor_loss_mean = None
         super().__init__(
             param,
-            start_temp,
-            min_temp,
             obj_func,
-            acq_type,
-            mutation_type,
-            anneal_rate,
-            batch_size,
-            obj_exp_offset_scale,
+            start_temp=start_temp,
+            min_temp=min_temp,
+            acq_type=acq_type,
+            mutation_type=mutation_type,
+            anneal_rate=anneal_rate,
+            batch_size=batch_size,
+            obj_exp_offset_scale=obj_exp_offset_scale,
         )
 
     def _init(self) -> None:
@@ -1243,7 +1286,7 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizer):
 
     def update_predictor(
         self, sampled_solutions: Dict[str, torch.Tensor], sampled_reward: torch.Tensor
-    ) -> List[float]:
+    ):
         x = sol_to_tensors(sampled_solutions, self.param)
         y = sampled_reward
         losses = []
@@ -1258,9 +1301,11 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizer):
                 optimizer.step()
             losses.append(loss.detach())
             model.eval()
-        return np.mean(losses)
+        self.last_predictor_loss_mean = np.mean(losses)
 
     def update_params(self, reward: torch.Tensor):
+        sampled_solutions = self.last_sample_internal_res
+        self.update_predictor(sampled_solutions, reward)
         self.temp = np.maximum(self.temp * self.anneal_rate, self.min_temp)
         self.last_sample_internal_res = None
 
@@ -1268,6 +1313,9 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizer):
         sampled_solutions = self.sample_internal(self.batch_size)[0]
         sampled_reward, _ = self.obj_func(sampled_solutions)
         sampled_reward = sampled_reward.detach()
-        loss = self.update_predictor(sampled_solutions, sampled_reward)
         self.update_params(sampled_reward)
-        return sampled_solutions, sampled_reward, loss
+
+        last_predictor_loss_mean = self.last_predictor_loss_mean
+        self.last_predictor_loss_mean = None
+
+        return sampled_solutions, sampled_reward, last_predictor_loss_mean
