@@ -118,6 +118,33 @@ class BestResultsQueue:
 
 
 class ComboOptimizerBase:
+    """
+    The class contains a series of API to be shared between various combonatorial optimization
+    optimizers.
+
+    Basic usage:
+    1. Create a parameter space and obj function to be minimized
+    2. Create optimizer = SomeComboOptimizer(param, obj_func, ...)
+    3. Call optimizer.optimize_step() until the budget exhausts
+
+    optimize_step() encapsulates two main steps:
+    a. sample_internal(), which samples promising solutions to query during training.
+    b. update_params(), which updates the optimizer's parameters using the rewards obtained
+        on the sampled solutions from sample_internal()
+
+    The user is free to manually calling sample_internal() and update_params() separately
+    instead of calling optimize_step(). While calling optimize_step() is more succinct in
+    code, calling sample_internal() and update_params() separately allows more flexibility
+    (e.g., the user may perform any additional customized logic between the two functions).
+
+    Once the training is done (i.e., the user no longer has the budget to call optimize_step()),
+    the user can use optimizer.sample() to sample solutions based on the learned optimizer.
+    The user can also use optimizer.best_solutions() to return the top best solutions discovered
+    during the training.
+
+    Each optimizer has its own doc string test for further reference.
+    """
+
     def __init__(
         self,
         param: ng.p.Dict,
@@ -186,9 +213,11 @@ class ComboOptimizerBase:
     ) -> Tuple:
         """
         Record and return sampled solutions and any other important
-        information for learning.
+        information during learning / training. The return type is a tuple,
+        whose first element is always the sampled solutions (Dict[str, torch.Tensor]).
 
-        It samples self.batch_size number of solutions, unless batch_size is provided.
+        It samples self.batch_size number of solutions (i.e., the batch size used during
+        training), unless batch_size is provided.
         """
         raise NotImplementedError()
 
