@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 from io import BytesIO
-from typing import Dict
+from typing import Dict, List
 
 import numpy as np
 import torch
+from reagent.core.torchrec_types import KeyedJaggedTensor, JaggedTensor
 
 
 def dict_to_tensor(batch: Dict[str, np.ndarray], device: str = "cpu"):
@@ -97,3 +98,84 @@ def gather(data, index_2d):
 
 def get_device(model):
     return next(model.parameters()).device
+
+
+def split_sequence_keyed_jagged_tensor(
+    x: KeyedJaggedTensor, num_steps: int
+) -> List[KeyedJaggedTensor]:
+    """
+    Input:
+    x (KeyedJaggedTensor): represents a batch of sequential sparse data.
+        Analogous to a batch of sequential dense data with shape:
+        batch_size x num_steps x num_dense_feature
+
+    Return:
+        Split data into individual steps and return a list of KeyedJaggedTensor
+        (the length of the list equals to num_steps)
+
+    Example:
+    Input KeyedJaggedTensor (x):
+        x = KeyedJaggedTensor(
+            keys=["Key0", "Key1", "Key2"],
+            values=[V0, V1, V2, V3, V4, V5, V6, V7, V8, V9]
+            lengths=[2, 0, 1, 1, 1, 1, 3, 0, 0, 1, 0, 0]
+        )
+    which represents a minibatch of 2 data points with three keys and two steps:
+                   data0_step0    data0_step1    data1_step0     data1_step1
+        "Key0"       [V0,V1]          None           [V2]            [V3]
+        "Key1"         [V4]           [V5]        [V6,V7,V8]         None
+        "Key2"         None           [V9]           None            None
+
+    It will be split and returned as a list of two KeyedJaggedTensor:
+    [
+        # step 0
+        KeyedJaggedTensor(
+            keys=["Key0", "Key1", "Key2"],
+            values=[V0, V1, V2, V4, V6, V7, V8]
+            lengths=[2, 1, 1, 3, 0, 0]
+        ),
+        # step 1
+        KeyedJaggedTensor(
+            keys=["Key0", "Key1", "Key2"],
+            values=[V3, V5, V9]
+            lengths=[0, 1, 1, 0, 1, 0]
+        )
+    ]
+    """
+    keys = x.keys()
+    has_weights = x._weights is not None
+    split_dict = {}
+    for i in range(num_steps):
+        split_dict[i] = {}
+    for key in keys:
+        keyed_x: JaggedTensor = x[key]
+        weights = keyed_x._weights
+        values = keyed_x.values()
+        lengths = keyed_x.lengths()
+
+        # Because len(lengths) == batch_size * num_steps
+        assert len(lengths) % num_steps == 0
+
+        splitted_values = torch.split(values, lengths.tolist())
+        if has_weights:
+            splitted_weights = torch.split(weights, lengths.tolist())
+        for i in range(num_steps):
+            split_dict[i][key] = (
+                lengths[i::num_steps],
+                torch.cat(splitted_values[i::num_steps]),
+                torch.cat(splitted_weights[i::num_steps]) if has_weights else None,
+            )
+
+    result: List[KeyedJaggedTensor] = []
+    for i in range(num_steps):
+        result.append(
+            KeyedJaggedTensor(
+                keys=keys,
+                lengths=torch.cat([split_dict[i][k][0] for k in keys]),
+                values=torch.cat([split_dict[i][k][1] for k in keys]),
+                weights=torch.cat([split_dict[i][k][2] for k in keys])
+                if has_weights
+                else None,
+            )
+        )
+    return result

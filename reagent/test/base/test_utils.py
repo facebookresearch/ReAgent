@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+import os
 import unittest
 
 import numpy.testing as npt
 import torch
-from reagent.core.torch_utils import masked_softmax, rescale_torch_tensor
+from reagent.core.torch_utils import (
+    masked_softmax,
+    rescale_torch_tensor,
+    split_sequence_keyed_jagged_tensor,
+)
+from reagent.core.torchrec_types import KeyedJaggedTensor
 
 
 class TestUtils(unittest.TestCase):
@@ -70,3 +76,39 @@ class TestUtils(unittest.TestCase):
         out = masked_softmax(x, mask, temperature)
         expected_out = torch.tensor([[0.0, 0.0, 0.0], [0.4223, 0.1554, 0.4223]])
         npt.assert_array_almost_equal(out, expected_out, 4)
+
+    @unittest.skipIf("SANDCASTLE" not in os.environ, "Skipping test in OSS.")
+    def test_split_sequence_keyed_jagged_tensor(self):
+        """Test the example in the docstring of split_sequence_keyed_jagged_tensor"""
+        keys = ["Key0", "Key1", "Key2"]
+        values = torch.arange(10).float()
+        weights = values / 10.0
+        lengths = torch.tensor([2, 0, 1, 1, 1, 1, 3, 0, 0, 1, 0, 0])
+        num_steps = 2
+
+        def verify_output(out):
+            self.assertEquals(out[0].keys(), keys)
+            assert torch.allclose(
+                out[0].values(), torch.tensor([0.0, 1.0, 2.0, 4.0, 6.0, 7.0, 8.0])
+            )
+            assert torch.allclose(out[0].lengths(), torch.tensor([2, 1, 1, 3, 0, 0]))
+            if out[0]._weights is not None:
+                assert torch.allclose(
+                    out[0].weights(), torch.tensor([0.0, 0.1, 0.2, 0.4, 0.6, 0.7, 0.8])
+                )
+            assert torch.allclose(out[1].values(), torch.tensor([3.0, 5.0, 9.0]))
+            assert torch.allclose(out[1].lengths(), torch.tensor([0, 1, 1, 0, 1, 0]))
+            if out[1]._weights is not None:
+                assert torch.allclose(out[1].weights(), torch.tensor([0.3, 0.5, 0.9]))
+
+        # Test id list data
+        x0 = KeyedJaggedTensor(keys=keys, values=values, lengths=lengths)
+        y0 = split_sequence_keyed_jagged_tensor(x0, num_steps)
+        verify_output(y0)
+
+        # Test id score list data
+        x1 = KeyedJaggedTensor(
+            keys=keys, values=values, lengths=lengths, weights=weights
+        )
+        y1 = split_sequence_keyed_jagged_tensor(x1, num_steps)
+        verify_output(y1)
