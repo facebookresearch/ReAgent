@@ -374,6 +374,7 @@ class TestSimulation(unittest.TestCase):
             max_steps=max_steps,
             algo_kwargs={"n_arms": 2},
             bandit_kwargs={"probs": torch.Tensor([0.3, 0.5])},
+            num_processes=1,
         )
 
         self.assertIsInstance(regret_trajectory, np.ndarray)
