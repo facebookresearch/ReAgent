@@ -54,9 +54,8 @@ class GaussianFullyConnected(ContinuousActorNetBuilder):
         embedding_concat = None
         if embedding_dim is not None:
             embedding_concat = models.EmbeddingBagConcat(
-                state_dim=state_dim,
+                state_dense_dim=state_dim,
                 model_feature_config=state_feature_config,
-                embedding_dim=embedding_dim,
             )
             input_dim = embedding_concat.output_dim
 

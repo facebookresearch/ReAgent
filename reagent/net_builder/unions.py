@@ -39,6 +39,9 @@ from .synthetic_reward.sequence_synthetic_reward import (
 from .synthetic_reward.single_step_synthetic_reward import (
     SingleStepSyntheticReward as SingleStepSyntheticRewardType,
 )
+from .synthetic_reward.single_step_synthetic_reward_sparse_arch import (
+    SingleStepSparseArchSyntheticReward as SingleStepSparseArchSyntheticRewardType,
+)
 from .synthetic_reward.transformer_synthetic_reward import (
     TransformerSyntheticReward as TransformerSyntheticRewardType,
 )
@@ -90,6 +93,9 @@ class ValueNetBuilder__Union(TaggedUnion):
 @wrap_oss_with_dataclass
 class SyntheticRewardNetBuilder__Union(TaggedUnion):
     SingleStepSyntheticReward: Optional[SingleStepSyntheticRewardType] = None
+    SingleStepSparseArchSyntheticReward: Optional[
+        SingleStepSparseArchSyntheticRewardType
+    ] = None
     NGramSyntheticReward: Optional[NGramSyntheticRewardType] = None
     NGramConvNetSyntheticReward: Optional[NGramConvNetSyntheticRewardType] = None
     SequenceSyntheticReward: Optional[SequenceSyntheticRewardType] = None
