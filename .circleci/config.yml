@@ -138,24 +138,30 @@ commands:
         default: false
     steps:
       - run:
-          # ubuntu-1604-cuda-10.2:202012-01 image has python2.7 by default
-          # we need to use python3.8 for tests
+          # ubuntu-1604-cuda-10.2:202012-01 image (the image we are using)
+          # has python2.7 by default. However, we need to use python3.8
+          # for tests. Therefore, we need to install python3.8 first.
           command: |
             pyenv install -v 3.8.1
             pyenv global 3.8.1
             sudo apt update
-            sudo apt install cmake
-            sudo apt install swig
             pip install --upgrade pip --progress-bar off
-            pip install --upgrade wheel setuptools --progress-bar off
+            pip install --upgrade cmake wheel setuptools --progress-bar off
+            sudo apt install swig
             pip install tox==3.20.1 --progress-bar off
       - when:
           condition: << parameters.install_gym >>
           steps:
+            # when/unless clauses act as if ... else ...
+            # if is_ubuntu_gpu is True, we install cuda-supported pytorch
+            # otherwise, we install cpu-supported pytorch
             - when:
                 condition: << parameters.is_ubuntu_gpu >>
                 steps:
                   - run:
+                      # pip install .[gym,test] will trigger to install packages specified in setup.cfg
+                      # "-e" option will activate the development mode (a symlink to the code in ReAgent
+                      # will be created in site-packages directory)
                       command: |
                         pip install -e .[gym,test] --pre -f https://download.pytorch.org/whl/nightly/cu102/torch_nightly.html --progress-bar off
             - unless:
@@ -164,6 +170,7 @@ commands:
                   - run:
                       command: |
                         pip install -e .[gym,test] --pre -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html --progress-bar off
+
 
   run_unittest:
     description: Run unittests, coverage and save results

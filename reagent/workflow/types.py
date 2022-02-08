@@ -23,14 +23,6 @@ from reagent.preprocessing.normalization import (
 )
 
 
-try:
-    from reagent.fb.models.model_feature_config_builder import (  # noqa
-        ConfigeratorModelFeatureConfigProvider,
-    )
-except ImportError:
-    pass
-
-
 ModuleNameToEntityId = Dict[str, int]
 
 
