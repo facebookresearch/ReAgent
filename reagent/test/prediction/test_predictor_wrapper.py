@@ -22,6 +22,7 @@ from reagent.prediction.predictor_wrapper import (
     ParametricDqnWithPreprocessor,
     Seq2SlatePredictorWrapper,
     Seq2SlateWithPreprocessor,
+    FAKE_STATE_FEATURE_ID,
 )
 from reagent.prediction.ranking.predictor_wrapper import (
     DeterminantalPointProcessPredictorWrapper,
@@ -98,19 +99,20 @@ class TestPredictorWrapper(unittest.TestCase):
             ],
             id_list_feature_configs=[
                 rlt.IdListFeatureConfig(
-                    name="A", feature_id=10, id_mapping_name="A_mapping"
+                    name="id_list_feature_A",
+                    feature_id=FAKE_STATE_FEATURE_ID,
+                    id_mapping_name="Table_A",
                 )
             ],
             id_mapping_config={
-                "A_mapping": rlt.IdMappingUnion(
-                    explicit_mapping=rlt.ExplicitMapping(ids=[0, 1, 2])
+                "Table_A": rlt.IdMappingConfig(
+                    embedding_table_size=100, embedding_dim=32, hashing=False
                 )
             },
         )
         embedding_concat = models.EmbeddingBagConcat(
-            state_dim=len(state_normalization_parameters),
+            state_dense_dim=len(state_normalization_parameters),
             model_feature_config=state_feature_config,
-            embedding_dim=8,
         )
         dqn = models.Sequential(
             embedding_concat,
@@ -147,7 +149,7 @@ class TestPredictorWrapper(unittest.TestCase):
         expected_output = dqn(
             rlt.FeatureData(
                 float_features=state_preprocessor(*state_with_presence),
-                id_list_features=state_id_list_features,
+                id_list_features_raw=state_id_list_features,
             )
         )
         self.assertTrue((expected_output == q_values).all())

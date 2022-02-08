@@ -2,10 +2,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
+import os
 import unittest
 
 import torch
 from reagent.core import parameters as rlp
+from reagent.core.torchrec_types import EmbeddingBagConfig, EmbeddingBagCollection
 from reagent.models.synthetic_reward import (
     SingleStepSyntheticRewardNet,
     SequenceSyntheticRewardNet,
@@ -14,6 +16,10 @@ from reagent.models.synthetic_reward import (
     NGramConvolutionalNetwork,
     SyntheticRewardNet,
     _gen_mask,
+)
+from reagent.models.synthetic_reward_sparse_arch import (
+    SingleStepSyntheticSparseArchRewardNet,
+    SyntheticRewardSparseArchNet,
 )
 
 
@@ -222,3 +228,59 @@ class TestSyntheticReward(unittest.TestCase):
 
         output_activation = export_net.output_activation
         assert output_activation._get_name() == "LeakyReLU"
+
+    @unittest.skipIf("SANDCASTLE" not in os.environ, "Skipping test in OSS.")
+    def test_single_step_sparse_arch_synthetic_reward(self):
+        state_dense_dim = 10
+        action_dense_dim = 2
+        dense_sizes = [256, 32]
+        dense_activations = ["sigmoid", "relu"]
+        overall_sizes = [128, 1]
+        overall_activations = ["sigmoid", "relu"]
+        # Fake embedding bag configs
+        embedding_table_size = 1000
+        embedding_dim = 32
+        num_sparse_features = 2  # refer to watched_ids and liked_ids below
+        embedding_bag_configs = [
+            EmbeddingBagConfig(
+                name="video_id",
+                feature_names=["watched_ids", "liked_ids"],
+                num_embeddings=embedding_table_size,
+                embedding_dim=embedding_dim,
+            )
+        ]
+        embedding_bag_col = EmbeddingBagCollection(
+            device=torch.device("meta"), tables=embedding_bag_configs
+        )
+        reward_net = SyntheticRewardSparseArchNet(
+            SingleStepSyntheticSparseArchRewardNet(
+                state_dense_dim=state_dense_dim,
+                action_dense_dim=action_dense_dim,
+                dense_sizes=dense_sizes,
+                dense_activations=dense_activations,
+                overall_sizes=overall_sizes,
+                overall_activations=overall_activations,
+                embedding_bag_collection=embedding_bag_col,
+            )
+        )
+        net = reward_net.export_mlp()
+        assert net.state_dense_arch[0].in_features == state_dense_dim
+        assert net.state_dense_arch[0].out_features == dense_sizes[0]
+        assert net.state_dense_arch[2].in_features == dense_sizes[0]
+        assert net.state_dense_arch[2].out_features == dense_sizes[1]
+        assert net.action_dense_arch[0].in_features == action_dense_dim
+        assert net.action_dense_arch[0].out_features == dense_sizes[0]
+        assert net.action_dense_arch[2].in_features == dense_sizes[0]
+        assert net.action_dense_arch[2].out_features == dense_sizes[1]
+        assert net.sparse_arch.embedding_bag_collection == embedding_bag_col
+        # the dim of the input to overall arch is 2D + 2F + F choose 2
+        # See the explanation in SingleStepSyntheticSparseArchRewardNet
+        assert (
+            net.overall_arch[0].in_features
+            == 2 * dense_sizes[1]
+            + 2 * num_sparse_features
+            + num_sparse_features * (num_sparse_features - 1) / 2
+        )
+        assert net.overall_arch[0].out_features == overall_sizes[0]
+        assert net.overall_arch[2].in_features == overall_sizes[0]
+        assert net.overall_arch[2].out_features == overall_sizes[1]

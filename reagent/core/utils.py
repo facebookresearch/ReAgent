@@ -8,7 +8,7 @@ from typing import List, Dict
 
 import reagent.core.types as rlt
 import torch
-from torchrec import EmbeddingBagConfig
+from reagent.core.torchrec_types import EmbeddingBagConfig
 
 logger = logging.getLogger(__name__)
 

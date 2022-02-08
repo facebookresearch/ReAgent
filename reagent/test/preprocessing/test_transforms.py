@@ -295,28 +295,69 @@ class TestTransforms(unittest.TestCase):
             out["b:1"], b_TN.view(b_batch_size, expected_length, b_dim)
         )
 
-    @patch("reagent.preprocessing.transforms.make_sparse_preprocessor")
-    def test_MapIDListFeatures(self, mock_make_sparse_preprocessor):
+    def test_IDListFeatures_and_IDScoreListFeatures(self):
+        ID_LIST_FEATURE_ID = 0
+        ID_SCORE_LIST_FEATURE_ID = 1
+        EMBEDDING_TABLE_SIZE = 100
+        EMBEDDING_DIM = 128
         data = {
-            InputColumn.STATE_ID_LIST_FEATURES: {0: [torch.tensor(1), torch.tensor(2)]},
+            InputColumn.STATE_ID_LIST_FEATURES: {
+                ID_LIST_FEATURE_ID: [
+                    torch.tensor([0, 3]),
+                    torch.tensor([0, 1, 2, 3, 4]),
+                ]
+            },
+            InputColumn.NEXT_STATE_ID_LIST_FEATURES: {
+                ID_LIST_FEATURE_ID: [
+                    torch.tensor([0, 1]),
+                    torch.tensor([0, 1]),
+                ]
+            },
             InputColumn.STATE_ID_SCORE_LIST_FEATURES: {
-                1: [
-                    torch.tensor(1),
-                    torch.tensor(2),
-                    torch.tensor(3),
+                ID_SCORE_LIST_FEATURE_ID: [
+                    torch.tensor([0, 3]),
+                    torch.tensor([0, 1, 2, 3, 4]),
+                    torch.tensor([0.0, 0.1, 0.2, 0.3, 0.4]),
+                ]
+            },
+            InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES: {
+                ID_SCORE_LIST_FEATURE_ID: [
+                    torch.tensor([0, 2]),
+                    torch.tensor([0, 1, 2]),
+                    torch.tensor([0.0, 0.1, 0.2]),
                 ]
             },
         }
-        mock_make_sparse_preprocessor.return_value.preprocess_id_list.return_value = {
-            InputColumn.STATE_ID_LIST_FEATURES: [torch.tensor(2), torch.tensor(3)]
-        }
-        mock_make_sparse_preprocessor.return_value.preprocess_id_score_list.return_value = {
-            InputColumn.STATE_ID_SCORE_LIST_FEATURES: [
-                torch.tensor(4),
-                torch.tensor(5),
-                torch.tensor(6),
-            ]
-        }
+        state_feature_config = rlt.ModelFeatureConfig(
+            float_feature_infos=[],
+            id_list_feature_configs=[
+                rlt.IdListFeatureConfig(
+                    name=f"id_list_feature_{ID_LIST_FEATURE_ID}",
+                    feature_id=ID_LIST_FEATURE_ID,
+                    id_mapping_name=f"id_list_feature_table_{ID_LIST_FEATURE_ID}",
+                )
+            ],
+            id_score_list_feature_configs=[
+                rlt.IdScoreListFeatureConfig(
+                    name=f"id_score_list_feature_{ID_SCORE_LIST_FEATURE_ID}",
+                    feature_id=ID_SCORE_LIST_FEATURE_ID,
+                    id_mapping_name=f"id_score_list_feature_table_{ID_SCORE_LIST_FEATURE_ID}",
+                )
+            ],
+            id_mapping_config={
+                f"id_list_feature_table_{ID_LIST_FEATURE_ID}": rlt.IdMappingConfig(
+                    embedding_table_size=EMBEDDING_TABLE_SIZE,
+                    embedding_dim=EMBEDDING_DIM,
+                    hashing=False,
+                ),
+                f"id_score_list_feature_table_{ID_SCORE_LIST_FEATURE_ID}": rlt.IdMappingConfig(
+                    embedding_table_size=EMBEDDING_TABLE_SIZE,
+                    embedding_dim=EMBEDDING_DIM,
+                    hashing=False,
+                ),
+            },
+        )
+
         state_id_list_columns: List[str] = [
             InputColumn.STATE_ID_LIST_FEATURES,
             InputColumn.NEXT_STATE_ID_LIST_FEATURES,
@@ -325,75 +366,73 @@ class TestTransforms(unittest.TestCase):
             InputColumn.STATE_ID_SCORE_LIST_FEATURES,
             InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES,
         ]
-        state_feature_config = rlt.ModelFeatureConfig(
-            id_list_feature_configs=[
-                rlt.IdListFeatureConfig(
-                    name=InputColumn.STATE_ID_LIST_FEATURES,
-                    feature_id=0,
-                    id_mapping_name="state_id_list_features_mapping",
-                )
+
+        transform_id_list_features = transforms.IDListFeatures(
+            keys=state_id_list_columns,
+            # both columns share the same feature configs
+            feature_configs=[
+                state_feature_config.id_list_feature_configs,
+                state_feature_config.id_list_feature_configs,
             ],
-            id_score_list_feature_configs=[
-                rlt.IdScoreListFeatureConfig(
-                    name=InputColumn.STATE_ID_SCORE_LIST_FEATURES,
-                    feature_id=1,
-                    id_mapping_name="state_id_score_list_features_mapping",
-                )
+            id_mapping_configs=[
+                state_feature_config.id_mapping_config,
+                state_feature_config.id_mapping_config,
             ],
-            id_mapping_config={
-                "state_id_list_features_mapping": rlt.IdMappingUnion(
-                    explicit_mapping=rlt.ExplicitMapping(ids=[0, 1, 2])
-                ),
-                "state_id_score_list_features_mapping": rlt.IdMappingUnion(
-                    explicit_mapping=rlt.ExplicitMapping(ids=[3, 4, 5])
-                ),
-            },
         )
 
-        map_id_list_features = transforms.MapIDListFeatures(
-            id_list_keys=state_id_list_columns,
-            id_score_list_keys=state_id_score_list_columns,
-            feature_config=state_feature_config,
-            device=torch.device("cpu"),
-        )
-        out = map_id_list_features(data)
-        # output should contain all k in id_list_keys & id_score_list_keys
-        self.assertEqual(len(out), 4)
-        # The key should contain none if data don't have it
-        self.assertIsNone(
-            out[InputColumn.NEXT_STATE_ID_LIST_FEATURES], "It should be filtered out"
-        )
-        # The value of data changed based on sparse-preprocess mapping
-        self.assertEqual(
-            out[InputColumn.STATE_ID_LIST_FEATURES],
-            {InputColumn.STATE_ID_LIST_FEATURES: [torch.tensor(2), torch.tensor(3)]},
-        )
-        # Testing assertion in the call method
-        wrong_data = {
-            InputColumn.STATE_ID_LIST_FEATURES: [torch.tensor(1), torch.tensor(2)],
-            InputColumn.STATE_ID_SCORE_LIST_FEATURES: [
-                torch.tensor(1),
-                torch.tensor(2),
-                torch.tensor(3),
+        transform_id_score_list_features = transforms.IDScoreListFeatures(
+            keys=state_id_score_list_columns,
+            feature_configs=[
+                state_feature_config.id_score_list_feature_configs,
+                state_feature_config.id_score_list_feature_configs,
             ],
-        }
-        with self.assertRaises(AssertionError):
-            map_id_list_features(wrong_data)
-        # Testing assertion in the constructor
-        state_id_list_columns: List[str] = [
+            id_mapping_configs=[
+                state_feature_config.id_mapping_config,
+                state_feature_config.id_mapping_config,
+            ],
+        )
+        out = transform_id_score_list_features(
+            transform_id_list_features(deepcopy(data))
+        )
+
+        for column in [
+            InputColumn.STATE_ID_SCORE_LIST_FEATURES,
+            InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES,
+        ]:
+            self.assertEqual(
+                out[column].keys(),
+                [x.name for x in state_feature_config.id_score_list_feature_configs],
+            )
+            assert torch.allclose(
+                out[column].values(),
+                data[column][ID_SCORE_LIST_FEATURE_ID][1],
+            )
+            assert torch.allclose(
+                out[column].weights(),
+                data[column][ID_SCORE_LIST_FEATURE_ID][2],
+            )
+            assert torch.allclose(
+                # KeyedJaggedTensor's offset has one more element at the end
+                out[column].offsets()[:-1],
+                data[column][ID_SCORE_LIST_FEATURE_ID][0],
+            )
+
+        for column in [
             InputColumn.STATE_ID_LIST_FEATURES,
             InputColumn.NEXT_STATE_ID_LIST_FEATURES,
-        ]
-        state_id_score_list_columns: List[str] = [
-            InputColumn.STATE_ID_LIST_FEATURES,
-            InputColumn.NEXT_STATE_ID_LIST_FEATURES,
-        ]
-        with self.assertRaises(AssertionError):
-            transforms.MapIDListFeatures(
-                id_list_keys=state_id_list_columns,
-                id_score_list_keys=state_id_score_list_columns,
-                feature_config=state_feature_config,
-                device=torch.device("cpu"),
+        ]:
+            self.assertEqual(
+                out[column].keys(),
+                [x.name for x in state_feature_config.id_list_feature_configs],
+            )
+            assert torch.allclose(
+                out[column].values(),
+                data[column][ID_LIST_FEATURE_ID][1],
+            )
+            assert torch.allclose(
+                # KeyedJaggedTensor's offset has one more element at the end
+                out[column].offsets()[:-1],
+                data[column][ID_LIST_FEATURE_ID][0],
             )
 
     def test_OneHotActions(self):

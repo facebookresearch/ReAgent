@@ -168,7 +168,7 @@ def create_string_game_data(
         if batch_seq_count == batch_size:
             batches[batch_count] = rlt.MemoryNetworkInput(
                 reward=batch_reward,
-                action=batch_action,
+                action=rlt.FeatureData(float_features=batch_action),
                 state=rlt.FeatureData(float_features=batch_state),
                 next_state=rlt.FeatureData(
                     float_features=torch.zeros_like(batch_state)
@@ -194,7 +194,9 @@ def create_string_game_data(
 
 
 def train_seq2reward_model(training_data, learning_rate=0.01, num_epochs=5):
-    SEQ_LEN, batch_size, NUM_ACTION = next(iter(training_data)).action.shape
+    SEQ_LEN, batch_size, NUM_ACTION = next(
+        iter(training_data)
+    ).action.float_features.shape
     assert SEQ_LEN == 6 and NUM_ACTION == 2
 
     seq2reward_network = Seq2RewardNetwork(
@@ -224,7 +226,7 @@ def train_seq2reward_model(training_data, learning_rate=0.01, num_epochs=5):
 
 
 def eval_seq2reward_model(eval_data, seq2reward_trainer):
-    SEQ_LEN, batch_size, NUM_ACTION = next(iter(eval_data)).action.shape
+    SEQ_LEN, batch_size, NUM_ACTION = next(iter(eval_data)).action.float_features.shape
 
     initial_state = torch.Tensor([[0, 0]])
     initial_state_q_values = torch.squeeze(
@@ -265,7 +267,9 @@ def eval_seq2reward_model(eval_data, seq2reward_trainer):
 def train_seq2reward_compress_model(
     training_data, seq2reward_network, learning_rate=0.1, num_epochs=5
 ):
-    SEQ_LEN, batch_size, NUM_ACTION = next(iter(training_data)).action.shape
+    SEQ_LEN, batch_size, NUM_ACTION = next(
+        iter(training_data)
+    ).action.float_features.shape
     assert SEQ_LEN == 6 and NUM_ACTION == 2
 
     compress_net_builder = FullyConnected(sizes=[8, 8])
@@ -303,7 +307,7 @@ def train_seq2reward_compress_model(
 
 
 def eval_seq2reward_compress_model(eval_data, compress_model_trainer):
-    SEQ_LEN, batch_size, NUM_ACTION = next(iter(eval_data)).action.shape
+    SEQ_LEN, batch_size, NUM_ACTION = next(iter(eval_data)).action.float_features.shape
     total_mse_loss = 0
     total_q_values = torch.zeros(NUM_ACTION)
     total_action_distribution = torch.zeros(NUM_ACTION)
