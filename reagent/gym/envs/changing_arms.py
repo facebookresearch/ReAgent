@@ -89,11 +89,11 @@ class ChangingArms(EnvWrapper):
             # dense value
             float_features=dense_val,
             # (offset, value)
-            id_list_features={
+            id_list_features_raw={
                 "legal": (torch.tensor([0], dtype=torch.long), id_list_val)
             },
             # (offset, key, value)
-            id_score_list_features={
+            id_score_list_features_raw={
                 "mu_changes": (
                     torch.tensor([0], dtype=torch.long),
                     torch.arange(self.num_arms, dtype=torch.long),
@@ -181,9 +181,9 @@ class ChangingArms(EnvWrapper):
             # dense value
             float_features=dense_val,
             # (offset, value)
-            id_list_features={"legal": (id_list_offsets, id_list_val)},
+            id_list_features_raw={"legal": (id_list_offsets, id_list_val)},
             # (offset, key, value)
-            id_score_list_features={
+            id_score_list_features_raw={
                 "mu_changes": (
                     id_score_list_offsets,
                     id_score_list_keys,

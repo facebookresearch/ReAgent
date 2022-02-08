@@ -212,7 +212,7 @@ class Seq2RewardTrainer(ReAgentLightningModule):
 
         seq2reward_output = self.seq2reward_network(
             training_batch.state,
-            rlt.FeatureData(training_batch.action),
+            training_batch.action,
             valid_step,
         )
         predicted_acc_reward = seq2reward_output.acc_reward

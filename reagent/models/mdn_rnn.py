@@ -153,7 +153,7 @@ class MDNRNNMemoryPool:
             state=rlt.FeatureData(float_features=state),
             reward=reward,
             time_diff=torch.ones_like(reward).float(),
-            action=action,
+            action=rlt.FeatureData(float_features=action),
             next_state=rlt.FeatureData(float_features=next_state),
             not_terminal=not_terminal,
             step=None,
