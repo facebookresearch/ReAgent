@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
-
+import os
 import unittest
 from copy import deepcopy
 from typing import List
@@ -295,6 +295,7 @@ class TestTransforms(unittest.TestCase):
             out["b:1"], b_TN.view(b_batch_size, expected_length, b_dim)
         )
 
+    @unittest.skipIf("SANDCASTLE" not in os.environ, "Skipping test in OSS.")
     def test_IDListFeatures_and_IDScoreListFeatures(self):
         ID_LIST_FEATURE_ID = 0
         ID_SCORE_LIST_FEATURE_ID = 1
