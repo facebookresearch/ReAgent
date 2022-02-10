@@ -59,6 +59,12 @@ else:
         def __init__(self, embedding_bag_collection):
             pass
 
+        def __call__(self, x):
+            pass
+
     class InteractionArch:
-        def __init__(self, num_sparse_features):
+        def __init__(self, sparse_feature_names):
+            pass
+
+        def __call__(self, dense_features=None, sparse_features=None):
             pass
