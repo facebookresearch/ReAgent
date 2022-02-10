@@ -2,13 +2,16 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Dict
 
 import numpy as np
 import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.parameters import NormalizationData
+from reagent.core.torchrec_types import (
+    KeyedJaggedTensor,
+)
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.preprocessing.sparse_preprocessor import make_sparse_preprocessor
 
@@ -125,9 +128,221 @@ class DenseNormalization:
         return data
 
 
+def _build_id_2_embedding_size(
+    keys: List[str],
+    feature_configs: List[List[rlt.BaseDataClass]],
+    id_mapping_configs: List[Dict[str, rlt.IdMappingConfig]],
+):
+    """Sparse feature id -> embedding_table_size in corresponding id_mapping_config"""
+    id_2_embedding_size = {}
+    for key, feature_config, id_mapping_config in zip(
+        keys, feature_configs, id_mapping_configs
+    ):
+        id_2_embedding_size[key] = {
+            config.feature_id: id_mapping_config[
+                config.id_mapping_name
+            ].embedding_table_size
+            for config in feature_config
+        }
+    return id_2_embedding_size
+
+
+def _build_id_2_hashing(
+    keys: List[str],
+    feature_configs: List[List[rlt.BaseDataClass]],
+    id_mapping_configs: List[Dict[str, rlt.IdMappingConfig]],
+):
+    """Sparse feature id -> hashing boolean in corresponding id_mapping_config"""
+    id_2_hashing = {}
+    for key, feature_config, id_mapping_config in zip(
+        keys, feature_configs, id_mapping_configs
+    ):
+        id_2_hashing[key] = {
+            config.feature_id: id_mapping_config[config.id_mapping_name].hashing
+            for config in feature_config
+        }
+    return id_2_hashing
+
+
+def _build_id_2_name(
+    keys: List[str],
+    feature_configs: List[List[rlt.BaseDataClass]],
+):
+    """Sparse feature id -> sparse feature name"""
+    id_2_name = {}
+    for key, feature_config in zip(keys, feature_configs):
+        id_2_name[key] = {config.feature_id: config.name for config in feature_config}
+    return id_2_name
+
+
+class IDListFeatures:
+    """
+    Process data read by SparseFeatureMetadata(sparse_feature_type=MULTI_CATEGORY) to KeyedJaggedTensor
+
+    For source data format {key: (offsets, ids)}, see examples in fbcode/caffe2/caffe2/fb/proto/io_metadata.thrift:
+    https://fburl.com/code/ndbg93s0
+
+    For target data format, see examples in fbcode/torchrec/sparse/jagged_tensor.py:
+    https://fburl.com/code/iad11zzc
+    """
+
+    def __init__(
+        self,
+        keys: List[str],
+        feature_configs: List[List[rlt.IdListFeatureConfig]],
+        id_mapping_configs: List[Dict[str, rlt.IdMappingConfig]],
+    ):
+        """
+        Args:
+            keys (List[str]): a list of columns to apply this transform
+            feature_configs: a list of feature configs, corresponding to each column in keys
+            id_mapping_configs: a list of id mapping configs, corresponding to each column in keys
+        """
+        self.keys = keys
+        self.feature_configs = feature_configs
+        self.id_mapping_configs = id_mapping_configs
+        assert len(self.feature_configs) > 0, "No id list feature config provided"
+        self._id_2_embed_size = _build_id_2_embedding_size(
+            keys,
+            # pyre-fixme[6]: For 2nd param expected `List[List[BaseDataClass]]` but
+            #  got `List[List[IdListFeatureConfig]]`.
+            feature_configs,
+            id_mapping_configs,
+        )
+        self._id_2_hashing = _build_id_2_hashing(
+            keys,
+            # pyre-fixme[6]: For 2nd param expected `List[List[BaseDataClass]]` but
+            #  got `List[List[IdListFeatureConfig]]`.
+            feature_configs,
+            id_mapping_configs,
+        )
+        # pyre-fixme[6]: For 2nd param expected `List[List[BaseDataClass]]` but got
+        #  `List[List[IdListFeatureConfig]]`.
+        self._id_2_name = _build_id_2_name(keys, feature_configs)
+
+    def __call__(self, data):
+        for k in self.keys:
+            jagged_tensor_keys: List[str] = []
+            values: List[torch.Tensor] = []
+            lengths: List[torch.Tensor] = []
+
+            for feature_id in data[k].keys():
+                feature_name = self._id_2_name[k][feature_id]
+                jagged_tensor_keys.append(feature_name)
+                offset, ids = data[k][feature_id]
+                offset = torch.cat([offset, torch.tensor([len(ids)])])
+                lengths.append(offset[1:] - offset[:-1])
+                hashing = self._id_2_hashing[k][feature_id]
+                if hashing:
+                    embed_size = self._id_2_embed_size[k][feature_id]
+                    hashed_ids = torch.ops.fb.sigrid_hash(
+                        ids,
+                        salt=0,
+                        maxValue=embed_size,
+                        hashIntoInt32=False,
+                    )
+                    values.append(hashed_ids)
+                else:
+                    values.append(ids)
+
+            data[k] = KeyedJaggedTensor(
+                keys=jagged_tensor_keys,
+                values=torch.cat(values),
+                lengths=torch.cat(lengths),
+            )
+
+        return data
+
+
+class IDScoreListFeatures:
+    """
+    Process data read by SparseFeatureMetadata(sparse_feature_type=WEIGHTED_MULTI_CATEGORY) to KeyedJaggedTensor
+
+    For source data format {key: (offsets, ids, weights)}, see examples in fbcode/caffe2/caffe2/fb/proto/io_metadata.thrift:
+    https://fburl.com/code/ndbg93s0
+
+    For target data format, see examples in fbcode/torchrec/sparse/jagged_tensor.py:
+    https://fburl.com/code/iad11zzc
+    """
+
+    def __init__(
+        self,
+        keys: List[str],
+        feature_configs: List[List[rlt.IdScoreListFeatureConfig]],
+        id_mapping_configs: List[Dict[str, rlt.IdMappingConfig]],
+    ):
+        """
+        Args:
+            keys (List[str]): a list of columns to apply this transform
+            feature_configs: a list of feature configs, corresponding to each column in keys
+            id_mapping_configs: a list of id mapping configs, corresponding to each column in keys
+        """
+        self.keys = keys
+        self.feature_configs = feature_configs
+        self.id_mapping_configs = id_mapping_configs
+        assert len(self.keys) == len(
+            self.feature_configs
+        ), "There should be as many keys as feature_configs"
+        self._id_2_embed_size = _build_id_2_embedding_size(
+            keys,
+            # pyre-fixme[6]: For 2nd param expected `List[List[BaseDataClass]]` but
+            #  got `List[List[IdScoreListFeatureConfig]]`.
+            feature_configs,
+            id_mapping_configs,
+        )
+        self._id_2_hashing = _build_id_2_hashing(
+            keys,
+            # pyre-fixme[6]: For 2nd param expected `List[List[BaseDataClass]]` but
+            #  got `List[List[IdScoreListFeatureConfig]]`.
+            feature_configs,
+            id_mapping_configs,
+        )
+        # pyre-fixme[6]: For 2nd param expected `List[List[BaseDataClass]]` but got
+        #  `List[List[IdScoreListFeatureConfig]]`.
+        self._id_2_name = _build_id_2_name(keys, feature_configs)
+
+    def __call__(self, data):
+        for k in self.keys:
+            jagged_tensor_keys: List[str] = []
+            values: List[torch.Tensor] = []
+            lengths: List[torch.Tensor] = []
+            weights: List[torch.Tensor] = []
+
+            for feature_id in data[k].keys():
+                feature_name = self._id_2_name[k][feature_id]
+                jagged_tensor_keys.append(feature_name)
+                offset, ids, weight = data[k][feature_id]
+                offset = torch.cat([offset, torch.tensor([len(ids)])])
+                lengths.append(offset[1:] - offset[:-1])
+                weights.append(weight)
+                hashing = self._id_2_hashing[k][feature_id]
+                if hashing:
+                    embed_size = self._id_2_embed_size[k][feature_id]
+                    hashed_ids = torch.ops.fb.sigrid_hash(
+                        ids,
+                        salt=0,
+                        maxValue=embed_size,
+                        hashIntoInt32=False,
+                    )
+                    values.append(hashed_ids)
+                else:
+                    values.append(ids)
+
+            data[k] = KeyedJaggedTensor(
+                keys=jagged_tensor_keys,
+                values=torch.cat(values),
+                lengths=torch.cat(lengths),
+                weights=torch.cat(weights),
+            )
+
+        return data
+
+
 class MapIDListFeatures:
     """
-    Applies a SparsePreprocessor (see sparse_preprocessor.SparsePreprocessor)
+    Deprecated: Applies a SparsePreprocessor (see sparse_preprocessor.SparsePreprocessor)
+
+    This class should be deprecated in favor of IDListFeatures and IDScoreListFeatures
     """
 
     def __init__(
