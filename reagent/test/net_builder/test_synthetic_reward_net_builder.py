@@ -66,7 +66,7 @@ def _create_input():
 
     input = rlt.MemoryNetworkInput(
         state=rlt.FeatureData(state),
-        action=action,
+        action=rlt.FeatureData(action),
         valid_step=valid_step,
         # the rest fields will not be used
         next_state=torch.tensor([]),
@@ -88,12 +88,12 @@ def _create_preprocessed_input(
         torch.ones(SEQ_LEN * BATCH_SIZE, STATE_DIM),
     ).reshape(SEQ_LEN, BATCH_SIZE, STATE_DIM)
     preprocessed_action = action_preprocessor(
-        input.action.reshape(SEQ_LEN * BATCH_SIZE, ACTION_DIM),
+        input.action.float_features.reshape(SEQ_LEN * BATCH_SIZE, ACTION_DIM),
         torch.ones(SEQ_LEN * BATCH_SIZE, ACTION_DIM),
     ).reshape(SEQ_LEN, BATCH_SIZE, ACTION_DIM)
     return rlt.MemoryNetworkInput(
         state=rlt.FeatureData(preprocessed_state),
-        action=preprocessed_action,
+        action=rlt.FeatureData(preprocessed_action),
         valid_step=input.valid_step,
         next_state=input.next_state,
         reward=input.reward,
@@ -258,7 +258,8 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
         # pyre-fixme[29]: `Union[torch.Tensor, torch.nn.Module]` is not a function.
         export_net = reward_net.export_mlp().cpu().eval()
         export_output = export_net(
-            preprocessed_input.state.float_features, preprocessed_input.action
+            preprocessed_input.state.float_features,
+            preprocessed_input.action.float_features,
         )
         predictor_wrapper = builder.build_serving_module(
             SEQ_LEN,
@@ -269,7 +270,11 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
         self.assertIsInstance(predictor_wrapper, SyntheticRewardPredictorWrapper)
         for i in range(BATCH_SIZE):
             input_to_predictor = torch.cat(
-                (input.state.float_features[:, i, :], input.action[:, i, :]), dim=1
+                (
+                    input.state.float_features[:, i, :],
+                    input.action.float_features[:, i, :],
+                ),
+                dim=1,
             )
             input_to_predictor_presence = torch.ones(SEQ_LEN, STATE_DIM + ACTION_DIM)
             predictor_output = predictor_wrapper(
