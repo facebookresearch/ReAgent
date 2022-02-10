@@ -248,11 +248,11 @@ class SyntheticRewardNet(ModelBase):
         # state shape: seq_len, batch_size, state_dim
         state = training_batch.state.float_features
         # action shape: seq_len, batch_size, action_dim
-        action = training_batch.action
+        action = training_batch.action.float_features
 
         # shape: batch_size, 1
         valid_step = training_batch.valid_step
-        seq_len, batch_size, _ = training_batch.action.shape
+        seq_len, batch_size, _ = training_batch.action.float_features.shape
 
         # output shape: batch_size, seq_len
         output = self.net(state, action)
@@ -305,6 +305,8 @@ class SingleStepSyntheticRewardNet(nn.Module):
         self.dnn = SequentialMultiArguments(*modules)
 
     def forward(self, state: torch.Tensor, action: torch.Tensor):
+        # state shape: seq_len, batch_size, state_dim
+        # action shape: seq_len, batch_size, action_dim
         return self.dnn(state, action).squeeze(2).transpose(0, 1)
 
 
