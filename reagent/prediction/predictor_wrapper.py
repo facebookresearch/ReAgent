@@ -27,11 +27,15 @@ from torch import nn
 logger = logging.getLogger(__name__)
 _DEFAULT_FEATURE_IDS = []
 
+FAKE_STATE_FEATURE_ID = 1111111
 FAKE_STATE_ID_LIST_FEATURES = {
-    42: (torch.zeros(1, dtype=torch.long), torch.tensor([], dtype=torch.long))
+    FAKE_STATE_FEATURE_ID: (
+        torch.zeros(1, dtype=torch.long),
+        torch.tensor([], dtype=torch.long),
+    )
 }
 FAKE_STATE_ID_SCORE_LIST_FEATURES = {
-    42: (
+    FAKE_STATE_FEATURE_ID: (
         torch.zeros(1, dtype=torch.long),
         torch.tensor([], dtype=torch.long),
         torch.tensor([], dtype=torch.float),
@@ -47,8 +51,8 @@ def serving_to_feature_data(
     float_features_with_presence, id_list_features, id_score_list_features = serving
     return rlt.FeatureData(
         float_features=dense_preprocessor(*float_features_with_presence),
-        id_list_features=sparse_preprocessor.preprocess_id_list(id_list_features),
-        id_score_list_features=sparse_preprocessor.preprocess_id_score_list(
+        id_list_features_raw=sparse_preprocessor.preprocess_id_list(id_list_features),
+        id_score_list_features_raw=sparse_preprocessor.preprocess_id_score_list(
             id_score_list_features
         ),
     )
@@ -61,18 +65,21 @@ def sparse_input_prototype(
 ):
     name2id = state_feature_config.name2id
     model_prototype = model.input_prototype()
-    # Terrible hack to make JIT tracing works. Python dict doesn't have type
-    # so we need to insert something so JIT tracer can infer the type.
     state_id_list_features = FAKE_STATE_ID_LIST_FEATURES
     state_id_score_list_features = FAKE_STATE_ID_SCORE_LIST_FEATURES
+
     if isinstance(model_prototype, rlt.FeatureData):
-        if model_prototype.id_list_features:
+        if state_feature_config.id_list_feature_configs:
+            assert model_prototype.id_list_features_raw
             state_id_list_features = {
-                name2id[k]: v for k, v in model_prototype.id_list_features.items()
+                name2id[k]: v for k, v in model_prototype.id_list_features_raw.items()
             }
-        if model_prototype.id_score_list_features:
+
+        if state_feature_config.id_score_list_feature_configs:
+            assert model_prototype.id_score_list_features_raw
             state_id_score_list_features = {
-                name2id[k]: v for k, v in model_prototype.id_score_list_features.items()
+                name2id[k]: v
+                for k, v in model_prototype.id_score_list_features_raw.items()
             }
 
     input = rlt.ServingFeatureData(
