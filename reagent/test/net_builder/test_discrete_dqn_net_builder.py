@@ -2,11 +2,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import unittest
-from typing import Optional
 
 from reagent.core import types as rlt
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.parameters import NormalizationData, NormalizationParameters
+from reagent.core.torchrec_types import PoolingType
 from reagent.net_builder import discrete_dqn
 from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
 from reagent.preprocessing.identify_types import CONTINUOUS
@@ -24,19 +24,10 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
     def _test_discrete_dqn_net_builder(
         self,
         chooser: DiscreteDQNNetBuilder__Union,
-        state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
+        state_feature_config: rlt.ModelFeatureConfig,
         serving_module_class=DiscreteDqnPredictorWrapper,
     ) -> None:
         builder = chooser.value
-        state_dim = 3
-        state_feature_config = state_feature_config or rlt.ModelFeatureConfig(
-            float_feature_infos=[
-                rlt.FloatFeatureInfo(name=f"f{i}", feature_id=i)
-                for i in range(state_dim)
-            ]
-        )
-        state_dim = len(state_feature_config.float_feature_infos)
-
         state_normalization_data = NormalizationData(
             dense_normalization_parameters={
                 fi.feature_id: NormalizationParameters(
@@ -45,7 +36,6 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
                 for fi in state_feature_config.float_feature_infos
             }
         )
-
         action_names = ["L", "R"]
         q_network = builder.build_q_network(
             state_feature_config, state_normalization_data, len(action_names)
@@ -63,20 +53,31 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
         chooser = DiscreteDQNNetBuilder__Union(
             FullyConnected=discrete_dqn.fully_connected.FullyConnected()
         )
-        self._test_discrete_dqn_net_builder(chooser)
+        state_feature_config = rlt.ModelFeatureConfig(
+            float_feature_infos=[
+                rlt.FloatFeatureInfo(name=f"f{i}", feature_id=i) for i in range(3)
+            ]
+        )
+        self._test_discrete_dqn_net_builder(chooser, state_feature_config)
 
     def test_dueling(self):
         # Intentionally used this long path to make sure we included it in __init__.py
         chooser = DiscreteDQNNetBuilder__Union(Dueling=discrete_dqn.dueling.Dueling())
-        self._test_discrete_dqn_net_builder(chooser)
+        state_feature_config = rlt.ModelFeatureConfig(
+            float_feature_infos=[
+                rlt.FloatFeatureInfo(name=f"f{i}", feature_id=i) for i in range(3)
+            ]
+        )
+        self._test_discrete_dqn_net_builder(chooser, state_feature_config)
 
     def test_fully_connected_with_embedding(self):
         # Intentionally used this long path to make sure we included it in __init__.py
         chooser = DiscreteDQNNetBuilder__Union(
             FullyConnectedWithEmbedding=discrete_dqn.fully_connected_with_embedding.FullyConnectedWithEmbedding()
         )
-        self._test_discrete_dqn_net_builder(chooser)
 
+        EMBEDDING_TABLE_SIZE = 10
+        EMBEDDING_DIM = 32
         # only id_list
         state_feature_config = rlt.ModelFeatureConfig(
             float_feature_infos=[
@@ -88,8 +89,11 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
                 )
             ],
             id_mapping_config={
-                "A_mapping": rlt.IdMappingUnion(
-                    explicit_mapping=rlt.ExplicitMapping(ids=[0, 1, 2])
+                "A_mapping": rlt.IdMappingConfig(
+                    embedding_table_size=EMBEDDING_TABLE_SIZE,
+                    embedding_dim=EMBEDDING_DIM,
+                    hashing=False,
+                    pooling_type=PoolingType.SUM,
                 )
             },
         )
@@ -97,7 +101,30 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
             chooser, state_feature_config=state_feature_config
         )
 
-        # with id_score_list
+        # only id_score_list
+        state_feature_config = rlt.ModelFeatureConfig(
+            float_feature_infos=[
+                rlt.FloatFeatureInfo(name=str(i), feature_id=i) for i in range(1, 5)
+            ],
+            id_score_list_feature_configs=[
+                rlt.IdScoreListFeatureConfig(
+                    name="A", feature_id=10, id_mapping_name="A_mapping"
+                )
+            ],
+            id_mapping_config={
+                "A_mapping": rlt.IdMappingConfig(
+                    embedding_table_size=EMBEDDING_TABLE_SIZE,
+                    embedding_dim=EMBEDDING_DIM,
+                    hashing=False,
+                    pooling_type=PoolingType.SUM,
+                )
+            },
+        )
+        self._test_discrete_dqn_net_builder(
+            chooser, state_feature_config=state_feature_config
+        )
+
+        # id_list + id_score_list
         state_feature_config = rlt.ModelFeatureConfig(
             float_feature_infos=[
                 rlt.FloatFeatureInfo(name=str(i), feature_id=i) for i in range(1, 5)
@@ -113,8 +140,11 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
                 )
             ],
             id_mapping_config={
-                "A_mapping": rlt.IdMappingUnion(
-                    explicit_mapping=rlt.ExplicitMapping(ids=[0, 1, 2])
+                "A_mapping": rlt.IdMappingConfig(
+                    embedding_table_size=EMBEDDING_TABLE_SIZE,
+                    embedding_dim=EMBEDDING_DIM,
+                    hashing=False,
+                    pooling_type=PoolingType.SUM,
                 )
             },
         )

@@ -51,7 +51,7 @@ def create_data(
         reward = (reward_matrix * mask).sum(dim=1).reshape(-1, 1)
         data[i] = rlt.MemoryNetworkInput(
             state=rlt.FeatureData(state),
-            action=action,
+            action=rlt.FeatureData(action),
             valid_step=valid_step,
             reward=reward,
             # the rest fields will not be used
@@ -111,7 +111,7 @@ def create_sequence_data(state_dim, action_dim, seq_len, batch_size, num_batches
 
         data[i] = rlt.MemoryNetworkInput(
             state=rlt.FeatureData(state),
-            action=action,
+            action=rlt.FeatureData(action),
             valid_step=valid_step,
             reward=reward,
             # the rest fields will not be used

@@ -7,14 +7,15 @@ import torch
 import torch.nn as nn
 from reagent.core import types as rlt
 from reagent.core.torch_utils import split_sequence_keyed_jagged_tensor
+from reagent.core.torchrec_types import EmbeddingBagCollection
 from reagent.core.torchrec_types import (
     KeyedJaggedTensor,
 )
+from reagent.core.torchrec_types import SparseArch, InteractionArch
 from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import ACTIVATION_MAP
 from reagent.models.synthetic_reward import _gen_mask
-from torchrec.models.dlrm import SparseArch, InteractionArch
-from torchrec.modules.embedding_modules import EmbeddingBagCollection
+
 
 logger = logging.getLogger(__name__)
 
