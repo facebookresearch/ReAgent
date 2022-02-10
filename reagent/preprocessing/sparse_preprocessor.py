@@ -12,87 +12,72 @@ import torch
 logger = logging.getLogger(__name__)
 
 
-@torch.jit.script
-def map_id_list(raw_values: torch.Tensor, id2index: Dict[int, int]) -> torch.Tensor:
-    # TODO(kaiwenw): handle case where raw_ids not in mapping
-    # (i.e. id2index[val.item()] not found)
-    return torch.tensor([id2index[x.item()] for x in raw_values], dtype=torch.long)
-
-
-@torch.jit.script
-def map_id_score_list(
-    raw_keys: torch.Tensor, raw_values: torch.Tensor, id2index: Dict[int, int]
-) -> Tuple[torch.Tensor, torch.Tensor]:
-    # TODO(kaiwenw): handle case where raw_ids not in mapping
-    # (i.e. id2index[val.item()] not found)
-    return (
-        torch.tensor([id2index[x.item()] for x in raw_keys], dtype=torch.long),
-        raw_values,
-    )
-
-
 class MapIDList(torch.nn.Module):
     @abc.abstractmethod
-    def forward(self, raw_values: torch.Tensor) -> torch.Tensor:
+    def forward(self, raw_ids: torch.Tensor) -> torch.Tensor:
         pass
 
 
 class MapIDScoreList(torch.nn.Module):
     @abc.abstractmethod
     def forward(
-        self, raw_keys: torch.Tensor, raw_values: torch.Tensor
+        self, raw_ids: torch.Tensor, raw_values: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         pass
 
 
-class ExplicitMapIDList(MapIDList):
-    def __init__(self, id2index: Dict[int, int]):
+class ExactMapIDList(MapIDList):
+    def __init__(self):
         super().__init__()
-        self.id2index: Dict[int, int] = torch.jit.Attribute(id2index, Dict[int, int])
 
-    def forward(self, raw_values: torch.Tensor) -> torch.Tensor:
-        # TODO(kaiwenw): handle case where raw_ids not in mapping
-        # (i.e. id2index[val.item()] not found)
-        return torch.tensor(
-            [self.id2index[x.item()] for x in raw_values], dtype=torch.long
-        )
+    def forward(self, raw_ids: torch.Tensor) -> torch.Tensor:
+        return raw_ids
 
 
-class ExplicitMapIDScoreList(MapIDScoreList):
-    def __init__(self, id2index: Dict[int, int]):
+class ExactMapIDScoreList(MapIDScoreList):
+    def __init__(self):
         super().__init__()
-        self.id2index: Dict[int, int] = torch.jit.Attribute(id2index, Dict[int, int])
 
     def forward(
-        self, raw_keys: torch.Tensor, raw_values: torch.Tensor
+        self, raw_ids: torch.Tensor, raw_values: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        # TODO(kaiwenw): handle case where raw_ids not in mapping
-        # (i.e. id2index[val.item()] not found)
         return (
-            torch.tensor([self.id2index[x.item()] for x in raw_keys], dtype=torch.long),
+            raw_ids,
             raw_values,
         )
 
 
-class ModuloMapIDList(MapIDList):
-    def __init__(self, modulo: int):
+class HashingMapIDList(MapIDList):
+    def __init__(self, embedding_table_size):
         super().__init__()
-        self.modulo = modulo
+        self.embedding_table_size = embedding_table_size
 
-    def forward(self, raw_values: torch.Tensor) -> torch.Tensor:
-        return torch.remainder(raw_values.to(torch.long), self.modulo)
+    def forward(self, raw_ids: torch.Tensor) -> torch.Tensor:
+        hashed_ids = torch.ops.fb.sigrid_hash(
+            raw_ids,
+            salt=0,
+            maxValue=self.embedding_table_size,
+            hashIntoInt32=False,
+        )
+        return hashed_ids
 
 
-class ModuloMapIDScoreList(MapIDScoreList):
-    def __init__(self, modulo: int):
+class HashingMapIDScoreList(MapIDScoreList):
+    def __init__(self, embedding_table_size):
         super().__init__()
-        self.modulo = modulo
+        self.embedding_table_size = embedding_table_size
 
     def forward(
-        self, raw_keys: torch.Tensor, raw_values: torch.Tensor
+        self, raw_ids: torch.Tensor, raw_values: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
+        hashed_ids = torch.ops.fb.sigrid_hash(
+            raw_ids,
+            salt=0,
+            maxValue=self.embedding_table_size,
+            hashIntoInt32=False,
+        )
         return (
-            torch.remainder(raw_keys.to(torch.long), self.modulo),
+            hashed_ids,
             raw_values,
         )
 
@@ -106,13 +91,11 @@ def make_sparse_preprocessor(
     name2id: Dict[str, int] = feature_config.name2id
 
     def _make_id_list_mapper(config: rlt.IdListFeatureConfig) -> MapIDList:
-        mapping_config = feature_config.id_mapping_config[config.id_mapping_name].value
-        if isinstance(mapping_config, rlt.ExplicitMapping):
-            return ExplicitMapIDList(mapping_config.id2index)
-        elif isinstance(mapping_config, rlt.ModuloMapping):
-            return ModuloMapIDList(mapping_config.table_size)
+        mapping_config = feature_config.id_mapping_config[config.id_mapping_name]
+        if mapping_config.hashing:
+            return HashingMapIDList(mapping_config.embedding_table_size)
         else:
-            raise NotImplementedError(f"Unsupported {mapping_config}")
+            return ExactMapIDList()
 
     id_list_mappers = {
         config.feature_id: _make_id_list_mapper(config)
@@ -122,13 +105,11 @@ def make_sparse_preprocessor(
     def _make_id_score_list_mapper(
         config: rlt.IdScoreListFeatureConfig,
     ) -> MapIDScoreList:
-        mapping_config = feature_config.id_mapping_config[config.id_mapping_name].value
-        if isinstance(mapping_config, rlt.ExplicitMapping):
-            return ExplicitMapIDScoreList(mapping_config.id2index)
-        elif isinstance(mapping_config, rlt.ModuloMapping):
-            return ModuloMapIDScoreList(mapping_config.table_size)
+        mapping_config = feature_config.id_mapping_config[config.id_mapping_name]
+        if mapping_config.hashing:
+            return HashingMapIDScoreList(mapping_config.embedding_table_size)
         else:
-            raise NotImplementedError(f"Unsupported {mapping_config}")
+            return ExactMapIDScoreList()
 
     id_score_list_mappers = {
         config.feature_id: _make_id_score_list_mapper(config)

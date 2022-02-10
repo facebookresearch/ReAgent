@@ -64,7 +64,7 @@ class FeatureImportanceEvaluator(object):
 
         self.trainer.memory_network.mdnrnn.eval()
         state_features = batch.state.float_features
-        action_features = batch.action
+        action_features = batch.action.float_features
         seq_len, batch_size, state_dim = state_features.size()
         action_dim = action_features.size()[2]
         action_feature_num = self.action_feature_num
@@ -81,7 +81,7 @@ class FeatureImportanceEvaluator(object):
         state_feature_boundaries = self.sorted_state_feature_start_indices + [state_dim]
 
         for i in range(action_feature_num):
-            action_features = batch.action.reshape(
+            action_features = batch.action.float_features.reshape(
                 (batch_size * seq_len, action_dim)
             ).data.clone()
 
@@ -108,7 +108,7 @@ class FeatureImportanceEvaluator(object):
             action_features = action_features.reshape((seq_len, batch_size, action_dim))
             new_batch = MemoryNetworkInput(
                 state=batch.state,
-                action=action_features,
+                action=FeatureData(action_features),
                 next_state=batch.next_state,
                 reward=batch.reward,
                 time_diff=torch.ones_like(batch.reward).float(),
@@ -197,15 +197,13 @@ class FeatureSensitivityEvaluator(object):
         feature_sensitivity = torch.zeros(state_feature_num)
 
         # the input of world_model has seq-len as the first dimension
-        mdnrnn_output = self.trainer.memory_network(
-            batch.state, FeatureData(batch.action)
-        )
+        mdnrnn_output = self.trainer.memory_network(batch.state, batch.action)
         predicted_next_state_means = mdnrnn_output.mus
 
         shuffled_mdnrnn_output = self.trainer.memory_network(
             batch.state,
             # shuffle the actions
-            FeatureData(batch.action[:, torch.randperm(batch_size), :]),
+            FeatureData(batch.action.float_features[:, torch.randperm(batch_size), :]),
         )
         shuffled_predicted_next_state_means = shuffled_mdnrnn_output.mus
 
