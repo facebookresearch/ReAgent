@@ -13,14 +13,15 @@ import reagent.core.result_types  # noqa
 import torch
 import torch.nn.functional as F
 from reagent.core.base_dataclass import BaseDataClass
-from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
-from reagent.core.registry_meta import wrap_oss_with_dataclass
-from reagent.core.tagged_union import TaggedUnion
 from reagent.core.torch_utils import gather
+from reagent.core.torchrec_types import (
+    KeyedJaggedTensor,
+)
 from reagent.model_utils.seq2slate_utils import DECODER_START_SYMBOL, subsequent_mask
 from reagent.preprocessing.types import InputColumn
+from torchrec import PoolingType
 
 
 if IS_FB_ENVIRONMENT:
@@ -125,19 +126,23 @@ ServingIdScoreListFeature = Dict[int, IdScoreListFeatureValue]
 
 @pydantic_dataclass
 class IdListFeatureConfig(BaseDataClass):
+    # Feature name
     name: str
     # integer feature ID
     feature_id: int
-    # name of the embedding table to use
+    # Name of the embedding table to use. Multiple feature ids may share
+    # the same embedding table.
     id_mapping_name: str
 
 
 @pydantic_dataclass
 class IdScoreListFeatureConfig(BaseDataClass):
+    # Feature name
     name: str
-    # integer feature ID
+    # Integer feature ID
     feature_id: int
-    # name of the embedding table to use
+    # Name of the embedding table to use. Multiple feature ids may share
+    # the same embedding table.
     id_mapping_name: str
 
 
@@ -148,51 +153,33 @@ class FloatFeatureInfo(BaseDataClass):
 
 
 @pydantic_dataclass
-class ExplicitMapping(object):
-    __hash__ = param_hash
+class IdMappingConfig:
+    # Embedding table size.
+    embedding_table_size: int
 
-    ids: List[int] = field(default_factory=list)
+    # Output embedding dimensions
+    embedding_dim: int
 
-    def __post_init_post_parse__(self):
-        """
-        used in preprocessing
-        ids list represents mapping from idx -> value
-        we want the reverse: from feature to embedding table indices
-        """
-        self._id2index: Dict[int, int] = {}
+    # Whether to perform hashing to make id fall in the range of embedding_table_size
+    # If False, the user is at their own risk of raw ids going beyond the range
+    hashing: bool = True
 
-    @property
-    def id2index(self) -> Dict[int, int]:
-        # pyre-fixme[16]: `IdMapping` has no attribute `_id2index`.
-        if not self._id2index:
-            self._id2index = {id: i for i, id in enumerate(self.ids)}
-        return self._id2index
+    pooling_type: PoolingType = PoolingType.MEAN
 
-    @property
-    def table_size(self):
-        return len(self.ids)
-
-
-@pydantic_dataclass
-class ModuloMapping:
-    """
-    Map IDs to [0, table_size) via modulo `table_size`
-    """
-
-    table_size: int
-
-
-@wrap_oss_with_dataclass
-class IdMappingUnion(TaggedUnion):
-    explicit_mapping: Optional[ExplicitMapping] = None
-    modulo: Optional[ModuloMapping] = None
+    def __eq__(self, other):
+        return (
+            self.embedding_table_size == other.embedding_table_size
+            and self.embedding_dim == other.embedding_dim
+            and self.hashing == other.hashing
+            and self.pooling_type == other.pooling_type
+        )
 
 
 @pydantic_dataclass
 class ModelFeatureConfig(BaseDataClass):
     float_feature_infos: List[FloatFeatureInfo] = field(default_factory=list)
-    # table name -> id mapping
-    id_mapping_config: Dict[str, IdMappingUnion] = field(default_factory=dict)
+    # id_mapping_name -> id mapping config
+    id_mapping_config: Dict[str, IdMappingConfig] = field(default_factory=dict)
     # id_list_feature_configs is feature_id -> list of values
     id_list_feature_configs: List[IdListFeatureConfig] = field(default_factory=list)
     # id_score_list_feature_configs is feature_id -> (keys -> values)
@@ -209,6 +196,12 @@ class ModelFeatureConfig(BaseDataClass):
             assert len(ids) == len(set(ids)), f"duplicates in ids: {ids}"
             assert len(names) == len(set(names)), f"duplicates in names: {names}"
             assert len(ids) == len(names), f"{len(ids)} != {len(names)}"
+            id_mapping_names = [config.id_mapping_name for config in both_lists]
+            assert set(id_mapping_names) == set(self.id_mapping_config.keys()), (
+                f"id_mapping_names in id_list_feature_configs/id_score_list_feature_configs "
+                f"({set(id_mapping_names)}) not match with those in "
+                f"id_mapping_config ({set(self.id_mapping_config.keys())})"
+            )
 
         self._id2name = {config.feature_id: config.name for config in both_lists}
         self._name2id = {config.name: config.feature_id for config in both_lists}
@@ -297,8 +290,16 @@ class DocList(TensorDataClass):
 class FeatureData(TensorDataClass):
     # For dense features, shape is (batch_size, feature_dim)
     float_features: torch.Tensor
-    id_list_features: IdListFeature = dataclasses.field(default_factory=dict)
-    id_score_list_features: IdScoreListFeature = dataclasses.field(default_factory=dict)
+    # For sparse features saved in KeyedJaggedTensor format
+    id_list_features: Optional[KeyedJaggedTensor] = None
+    id_score_list_features: Optional[KeyedJaggedTensor] = None
+
+    # For sparse features saved in dictionary format
+    id_list_features_raw: IdListFeature = dataclasses.field(default_factory=dict)
+    id_score_list_features_raw: IdScoreListFeature = dataclasses.field(
+        default_factory=dict
+    )
+
     # For sequence, shape is (stack_size, batch_size, feature_dim)
     stacked_float_features: Optional[torch.Tensor] = None
     # For ranking algos,
@@ -326,6 +327,7 @@ class FeatureData(TensorDataClass):
     def has_float_features_only(self) -> bool:
         return (
             not self.id_list_features
+            and not self.id_score_list_features
             and self.time_since_first is None
             and self.candidate_docs is None
         )
@@ -695,15 +697,13 @@ class BaseInput(TensorDataClass):
 
     @staticmethod
     def from_dict(batch):
-        id_list_features = batch.get(InputColumn.STATE_ID_LIST_FEATURES, None) or {}
-        id_score_list_features = (
-            batch.get(InputColumn.STATE_ID_SCORE_LIST_FEATURES, None) or {}
+        id_list_features = batch.get(InputColumn.STATE_ID_LIST_FEATURES, None)
+        id_score_list_features = batch.get(
+            InputColumn.STATE_ID_SCORE_LIST_FEATURES, None
         )
-        next_id_list_features = (
-            batch.get(InputColumn.NEXT_STATE_ID_LIST_FEATURES, None) or {}
-        )
-        next_id_score_list_features = (
-            batch.get(InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES, None) or {}
+        next_id_list_features = batch.get(InputColumn.NEXT_STATE_ID_LIST_FEATURES, None)
+        next_id_score_list_features = batch.get(
+            InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES, None
         )
         # TODO: handle value/mask of DocList
         filler_mask_val = None
@@ -979,7 +979,7 @@ class BehavioralCloningModelInput(TensorDataClass):
 
 @dataclass
 class MemoryNetworkInput(BaseInput):
-    action: torch.Tensor
+    action: FeatureData
     valid_step: Optional[torch.Tensor] = None
     extras: ExtraData = field(default_factory=ExtraData)
 
@@ -992,7 +992,7 @@ class MemoryNetworkInput(BaseInput):
             next_state=FeatureData(
                 float_features=d["next_state"],
             ),
-            action=d["action"],
+            action=FeatureData(float_features=d["action"]),
             reward=d["reward"],
             time_diff=d["time_diff"],
             not_terminal=d["not_terminal"],
