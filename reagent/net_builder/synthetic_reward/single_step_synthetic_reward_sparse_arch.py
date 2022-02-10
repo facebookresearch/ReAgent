@@ -7,6 +7,7 @@ import reagent.core.types as rlt
 import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import NormalizationData, param_hash
+from reagent.core.torchrec_types import EmbeddingBagConfig, EmbeddingBagCollection
 from reagent.core.utils import embedding_bag_configs_from_feature_configs
 from reagent.models.base import ModelBase
 from reagent.models.synthetic_reward_sparse_arch import (
@@ -15,7 +16,6 @@ from reagent.models.synthetic_reward_sparse_arch import (
 )
 from reagent.net_builder.synthetic_reward_net_builder import SyntheticRewardNetBuilder
 from reagent.preprocessing.normalization import get_num_output_features
-from torchrec import EmbeddingBagConfig, EmbeddingBagCollection
 
 
 @dataclass
