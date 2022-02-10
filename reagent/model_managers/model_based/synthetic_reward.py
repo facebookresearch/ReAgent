@@ -21,9 +21,6 @@ from reagent.net_builder.synthetic_reward.single_step_synthetic_reward import (
     SingleStepSyntheticReward,
 )
 from reagent.net_builder.unions import SyntheticRewardNetBuilder__Union
-from reagent.preprocessing.normalization import (
-    get_feature_config,
-)
 from reagent.preprocessing.types import InputColumn
 from reagent.reporting.reward_network_reporter import RewardNetworkReporter
 from reagent.training import ReAgentLightningModule
@@ -66,8 +63,12 @@ class SyntheticReward(ModelManager):
     eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
     state_preprocessing_options: Optional[PreprocessingOptions] = None
     action_preprocessing_options: Optional[PreprocessingOptions] = None
-    state_float_features: Optional[List[Tuple[int, str]]] = None
-    parametric_action_float_features: Optional[List[Tuple[int, str]]] = None
+    state_feature_config: rlt.ModelFeatureConfig = field(
+        default_factory=rlt.ModelFeatureConfig
+    )
+    parametric_action_feature_config: rlt.ModelFeatureConfig = field(
+        default_factory=rlt.ModelFeatureConfig
+    )
     discrete_action_names: Optional[List[str]] = None
     # max sequence length to look back to distribute rewards
     max_seq_len: int = 5
@@ -96,14 +97,6 @@ class SyntheticReward(ModelManager):
                 "Please set action allowlist features in parametric_action_float_features field of "
                 "config instead"
             )
-
-    @property
-    def state_feature_config(self) -> rlt.ModelFeatureConfig:
-        return get_feature_config(self.state_float_features)
-
-    @property
-    def action_feature_config(self) -> rlt.ModelFeatureConfig:
-        return get_feature_config(self.parametric_action_float_features)
 
     def get_data_module(
         self,
@@ -139,6 +132,8 @@ class SyntheticReward(ModelManager):
             normalization_data_map[NormalizationKey.STATE],
             action_normalization_data=action_normalization_data,
             discrete_action_names=self.discrete_action_names,
+            state_feature_config=self.state_feature_config,
+            action_feature_config=self.parametric_action_feature_config,
         )
 
         trainer = RewardNetTrainer(
@@ -175,6 +170,8 @@ class SyntheticReward(ModelManager):
             normalization_data_map[NormalizationKey.STATE],
             action_normalization_data=action_normalization_data,
             discrete_action_names=self.discrete_action_names,
+            state_feature_config=self.state_feature_config,
+            action_feature_config=self.parametric_action_feature_config,
         )
 
 
@@ -186,6 +183,7 @@ class SyntheticRewardDataModule(ManualDataModule):
     def run_feature_identification(
         self, input_table_spec: TableSpec
     ) -> Dict[str, NormalizationData]:
+        """Identify dense feature normalization parameters"""
         state_preprocessing_options = (
             self.model_manager.state_preprocessing_options or PreprocessingOptions()
         )
@@ -213,7 +211,7 @@ class SyntheticRewardDataModule(ManualDataModule):
         )
         action_features = [
             ffi.feature_id
-            for ffi in self.model_manager.action_feature_config.float_feature_infos
+            for ffi in self.model_manager.parametric_action_feature_config.float_feature_infos
         ]
         logger.info(f"action allowedlist_features: {action_features}")
         action_preprocessing_options = replace(
