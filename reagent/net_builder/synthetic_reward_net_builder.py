@@ -4,6 +4,7 @@
 import abc
 from typing import List, Optional
 
+import reagent.core.types as rlt
 import torch
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.parameters import NormalizationData
@@ -28,9 +29,15 @@ class SyntheticRewardNetBuilder:
     @abc.abstractmethod
     def build_synthetic_reward_network(
         self,
+        # dense state features
         state_normalization_data: NormalizationData,
+        # dense action features
         action_normalization_data: Optional[NormalizationData] = None,
         discrete_action_names: Optional[List[str]] = None,
+        # sparse state features will be read from state_feature_config
+        state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
+        # sparse action features will be read from action_feature_config
+        action_feature_config: Optional[rlt.ModelFeatureConfig] = None,
     ) -> ModelBase:
         pass
 
@@ -41,6 +48,10 @@ class SyntheticRewardNetBuilder:
         state_normalization_data: NormalizationData,
         action_normalization_data: Optional[NormalizationData] = None,
         discrete_action_names: Optional[List[str]] = None,
+        # sparse state features will be read from state_feature_config
+        state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
+        # sparse action features will be read from action_feature_config
+        action_feature_config: Optional[rlt.ModelFeatureConfig] = None,
     ) -> torch.nn.Module:
         """
         Returns a TorchScript predictor module

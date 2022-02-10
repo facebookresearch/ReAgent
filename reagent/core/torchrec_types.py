@@ -19,6 +19,13 @@ else:
         def keys(self):
             pass
 
+        def values(self):
+            pass
+
+        @classmethod
+        def concat(cls, a, b):
+            pass
+
     class JaggedTensor:
         def __init__(self):
             self._weights = None

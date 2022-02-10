@@ -3,6 +3,7 @@
 
 from typing import List, Optional
 
+import reagent.core.types as rlt
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import NormalizationData, param_hash, ConvNetParameters
 from reagent.models.base import ModelBase
@@ -30,6 +31,8 @@ class NGramSyntheticReward(SyntheticRewardNetBuilder):
         state_normalization_data: NormalizationData,
         action_normalization_data: Optional[NormalizationData] = None,
         discrete_action_names: Optional[List[str]] = None,
+        state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
+        action_feature_config: Optional[rlt.ModelFeatureConfig] = None,
     ) -> ModelBase:
         state_dim = get_num_output_features(
             state_normalization_data.dense_normalization_parameters
@@ -77,6 +80,8 @@ class NGramConvNetSyntheticReward(SyntheticRewardNetBuilder):
         state_normalization_data: NormalizationData,
         action_normalization_data: Optional[NormalizationData] = None,
         discrete_action_names: Optional[List[str]] = None,
+        state_feature_config: Optional[rlt.ModelFeatureConfig] = None,
+        action_feature_config: Optional[rlt.ModelFeatureConfig] = None,
     ) -> ModelBase:
         state_dim = get_num_output_features(
             state_normalization_data.dense_normalization_parameters
