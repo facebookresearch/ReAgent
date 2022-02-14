@@ -25,6 +25,7 @@ class Adam(OptimizerConfig):
     weight_decay: float = 0
     amsgrad: bool = False
     maximize: bool = False
+    foreach: Optional[bool] = None
 
 
 @dataclass(frozen=True)
@@ -35,6 +36,7 @@ class NAdam(OptimizerConfig):
     weight_decay: float = 0
     momentum_decay: float = 4e-3
     maximize: bool = False
+    foreach: Optional[bool] = None
 
 
 @dataclass(frozen=True)
@@ -44,6 +46,7 @@ class RAdam(OptimizerConfig):
     eps: float = 1e-08
     weight_decay: float = 0
     maximize: bool = False
+    foreach: Optional[bool] = None
 
 
 @dataclass(frozen=True)
@@ -54,6 +57,7 @@ class SGD(OptimizerConfig):
     dampening: float = 0.0
     nesterov: bool = False
     maximize: bool = False
+    foreach: Optional[bool] = None
 
 
 @dataclass(frozen=True)
@@ -64,6 +68,7 @@ class AdamW(OptimizerConfig):
     weight_decay: float = 0.01
     amsgrad: bool = False
     maximize: bool = False
+    foreach: Optional[bool] = None
 
 
 @dataclass(frozen=True)
@@ -81,6 +86,7 @@ class Adamax(OptimizerConfig):
     eps: float = 1e-08
     weight_decay: float = 0
     maximize: bool = False
+    foreach: Optional[bool] = None
 
 
 @dataclass(frozen=True)
@@ -101,3 +107,4 @@ class Rprop(OptimizerConfig):
     etas: Tuple[float, float] = (0.5, 1.2)
     step_sizes: Tuple[float, float] = (1e-06, 50)
     maximize: bool = False
+    foreach: Optional[bool] = None
