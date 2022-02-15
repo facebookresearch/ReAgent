@@ -5,7 +5,7 @@ import torch
 
 
 class SoftUpdate(torch.optim.Optimizer):
-    def __init__(self, target_params, source_params, tau=0.1):
+    def __init__(self, target_params, source_params, tau: float = 0.1) -> None:
         """
         Perform soft-update on target_params. Soft-update gradually blends
         source_params into target_params with this update equation:

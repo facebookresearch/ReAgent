@@ -35,5 +35,5 @@ class SlateRewardTransformer(SlateRewardNetBuilder):
         return seq2slate_reward_net
 
     @property
-    def expect_slate_wise_reward(self):
+    def expect_slate_wise_reward(self) -> bool:
         return self.fit_slate_wise_reward

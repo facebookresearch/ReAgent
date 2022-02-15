@@ -18,7 +18,7 @@ class SimulatedWorldModel(nn.Module):
         num_gaussians,
         lstm_num_hidden_layers,
         lstm_num_hiddens,
-    ):
+    ) -> None:
         super().__init__()
         self.action_dim = action_dim
         self.state_dim = state_dim
@@ -30,7 +30,7 @@ class SimulatedWorldModel(nn.Module):
         self.init_hidden()
         self.eval()
 
-    def init_lstm(self):
+    def init_lstm(self) -> None:
         self.lstm = nn.LSTM(
             input_size=self.action_dim + self.state_dim,
             hidden_size=self.lstm_num_hiddens,
@@ -41,14 +41,14 @@ class SimulatedWorldModel(nn.Module):
             self.lstm_num_hiddens, self.state_dim * self.num_gaussians + 1
         )
 
-    def init_hidden(self, batch_size=1):
+    def init_hidden(self, batch_size: int = 1) -> None:
         # (num_layers * num_directions, batch, hidden_size)
         self.hidden = (
             torch.zeros(self.lstm_num_hidden_layers, batch_size, self.lstm_num_hiddens),
             torch.zeros(self.lstm_num_hidden_layers, batch_size, self.lstm_num_hiddens),
         )
 
-    def init_weight(self):
+    def init_weight(self) -> None:
         torch.manual_seed(3212)
         for _, p in self.lstm.named_parameters():
             nn.init.normal_(p, 0, 1)

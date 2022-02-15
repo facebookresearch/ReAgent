@@ -16,7 +16,7 @@ from reagent.test.preprocessing.preprocessing_util import (
 
 
 class TestTypeIdentification(unittest.TestCase):
-    def test_identification(self):
+    def test_identification(self) -> None:
         feature_value_map = read_data()
 
         types = {}

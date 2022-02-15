@@ -19,13 +19,13 @@ class RunningStats:
         topk(k) - returns the kth highest value for k < capacity
     """
 
-    def __init__(self, lst=None, capacity: int = 1000):
+    def __init__(self, lst=None, capacity: int = 1000) -> None:
         self.k = 0
         self.running_mean = 0
         self.sum_squares = 0
         self.__call__(lst)
 
-    def update(self, x):
+    def update(self, x) -> None:
         if x is None:
             return
         self.k += 1
@@ -33,19 +33,19 @@ class RunningStats:
         newS = self.sum_squares + (x - self.running_mean) * (x - newM)
         self.running_mean, self.sum_squares = newM, newS
 
-    def consume(self, lst):
+    def consume(self, lst) -> None:
         lst = iter(lst)
         for x in lst:
             self.update(x)
 
-    def __call__(self, x):
+    def __call__(self, x) -> None:
         if hasattr(x, "__iter__"):
             self.consume(x)
         else:
             self.update(x)
 
     @property
-    def mean(self):
+    def mean(self) -> int:
         return self.running_mean
 
     @property
@@ -53,10 +53,10 @@ class RunningStats:
         return self.mean, self.std / math.sqrt(self.k)
 
     @property
-    def std(self):
+    def std(self) -> float:
         if self.k == 1:
             return 0
         return math.sqrt(self.sum_squares / (self.k - 1))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<Welford: {} +- {}>".format(self.mean, self.std)

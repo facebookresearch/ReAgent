@@ -9,7 +9,7 @@ from reagent.core.tracker import observable
 
 
 class TestObservable(unittest.TestCase):
-    def test_observable(self):
+    def test_observable(self) -> None:
         @observable(td_loss=float, str_val=str)
         class DummyClass:
             def __init__(self, a, b, c=10):
@@ -28,8 +28,10 @@ class TestObservable(unittest.TestCase):
         self.assertEqual(instance.c, 10)
 
         observers = [ValueListObserver("td_loss") for _i in range(3)]
+        # pyre-fixme[16]: `DummyClass` has no attribute `add_observers`.
         instance.add_observers(observers)
         # Adding twice should not result in double update
+        # pyre-fixme[16]: `DummyClass` has no attribute `add_observer`.
         instance.add_observer(observers[0])
 
         for i in range(10):
@@ -38,7 +40,7 @@ class TestObservable(unittest.TestCase):
         for observer in observers:
             self.assertEqual(observer.values, [float(i) for i in range(10)])
 
-    def test_no_observable_values(self):
+    def test_no_observable_values(self) -> None:
         try:
 
             @observable()

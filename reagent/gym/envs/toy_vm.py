@@ -38,13 +38,13 @@ def simulate_reward(
     return reward
 
 
-def random_document(prng):
+def random_document(prng) -> Document:
     p, q, r = prng.rand(), prng.rand(), prng.rand()
     return Document(expit(logit(p) + 1), q, expit(logit(r) - 2))
 
 
 class ToyVMEnv(gym.Env):
-    def __init__(self, slate_size: int):
+    def __init__(self, slate_size: int) -> None:
         self.slate_size = slate_size
         self.action_space = gym.spaces.MultiDiscrete(
             [self.slate_size] * self.slate_size
@@ -96,7 +96,7 @@ class ToyVMEnv(gym.Env):
         return self._sample_candidates()
 
 
-def zero_augment(user, doc):
+def zero_augment(user, doc) -> float:
     return 0.0
 
 

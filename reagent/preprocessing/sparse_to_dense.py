@@ -11,7 +11,7 @@ from reagent.preprocessing import normalization
 class SparseToDenseProcessor:
     def __init__(
         self, sorted_features: List[int], set_missing_value_to_zero: bool = False
-    ):
+    ) -> None:
         self.sorted_features = sorted_features
         self.set_missing_value_to_zero = set_missing_value_to_zero
 
@@ -26,7 +26,7 @@ class StringKeySparseToDenseProcessor(SparseToDenseProcessor):
 
     def __init__(
         self, sorted_features: List[int], set_missing_value_to_zero: bool = False
-    ):
+    ) -> None:
         super().__init__(sorted_features, set_missing_value_to_zero)
         self._sparse_to_dense = PythonSparseToDenseProcessor(
             sorted_features, set_missing_value_to_zero
@@ -48,7 +48,7 @@ class StringKeySparseToDenseProcessor(SparseToDenseProcessor):
 class PythonSparseToDenseProcessor(SparseToDenseProcessor):
     def __init__(
         self, sorted_features: List[int], set_missing_value_to_zero: bool = False
-    ):
+    ) -> None:
         super().__init__(sorted_features, set_missing_value_to_zero)
         self.feature_to_index: Dict[int, int] = {
             f: i for i, f in enumerate(sorted_features)

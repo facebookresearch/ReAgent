@@ -25,15 +25,18 @@ def _get_state(step_idx, max_steps):
 
 
 class PossibleActionsMaskTester(gym.Env):
-    def __init__(self):
+    def __init__(self) -> None:
         self.max_steps = 20
         self.action_num = 4
         self.cur_step = -1
         self.observation_space = Box(0.0, 1.0, shape=(self.max_steps,))
         self.action_space = Discrete(n=self.action_num)
 
-    def _update_possible_actions_mask(self):
+    def _update_possible_actions_mask(self) -> None:
+        # pyre-fixme[16]: `PossibleActionsMaskTester` has no attribute `legal_action`.
         self.legal_action = np.random.randint(self.action_num)
+        # pyre-fixme[16]: `PossibleActionsMaskTester` has no attribute
+        #  `possible_actions_mask`.
         self.possible_actions_mask = np.zeros(self.action_num, dtype=bool)
         self.possible_actions_mask[self.legal_action] = True
 

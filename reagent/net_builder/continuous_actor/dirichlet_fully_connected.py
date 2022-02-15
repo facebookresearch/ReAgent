@@ -21,7 +21,7 @@ class DirichletFullyConnected(ContinuousActorNetBuilder):
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     use_batch_norm: bool = False
 
-    def __post_init_post_parse__(self):
+    def __post_init_post_parse__(self) -> None:
         super().__init__()
         assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "

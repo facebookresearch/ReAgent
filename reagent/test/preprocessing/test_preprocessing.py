@@ -36,7 +36,7 @@ class TestPreprocessing(unittest.TestCase):
             return identify_types.CONTINUOUS_ACTION
         return None
 
-    def test_prepare_normalization_and_normalize(self):
+    def test_prepare_normalization_and_normalize(self) -> None:
         feature_value_map = read_data()
 
         normalization_parameters = {}
@@ -150,7 +150,7 @@ class TestPreprocessing(unittest.TestCase):
             else:
                 raise NotImplementedError()
 
-    def test_normalize_dense_matrix_enum(self):
+    def test_normalize_dense_matrix_enum(self) -> None:
         normalization_parameters = {
             1: NormalizationParameters(
                 identify_types.ENUM,
@@ -192,7 +192,7 @@ class TestPreprocessing(unittest.TestCase):
             normalized_feature_matrix,
         )
 
-    def test_persistency(self):
+    def test_persistency(self) -> None:
         feature_value_map = read_data()
         normalization_parameters = {}
         for name, values in feature_value_map.items():
@@ -235,7 +235,7 @@ class TestPreprocessing(unittest.TestCase):
                         getattr(normalization_parameters[k], field),
                     )
 
-    def test_quantile_boundary_logic(self):
+    def test_quantile_boundary_logic(self) -> None:
         """Test quantile logic when feaure value == quantile boundary."""
         input = torch.tensor([[0.0], [80.0], [100.0]])
         norm_params = NormalizationParameters(
@@ -256,7 +256,7 @@ class TestPreprocessing(unittest.TestCase):
 
         self.assertTrue(np.all(np.isclose(output, expected_output)))
 
-    def test_preprocessing_network(self):
+    def test_preprocessing_network(self) -> None:
         feature_value_map = read_data()
 
         normalization_parameters = {}
@@ -320,7 +320,7 @@ class TestPreprocessing(unittest.TestCase):
                 ),
             )
 
-    def test_type_override_binary(self):
+    def test_type_override_binary(self) -> None:
         # Take a feature that should be identified as probability
         feature_value_map = read_data()
         probability_values = feature_value_map[PROBABILITY_FEATURE_ID]
@@ -331,7 +331,7 @@ class TestPreprocessing(unittest.TestCase):
         )
         self.assertEqual(parameter.feature_type, "BINARY")
 
-    def test_type_override_continuous(self):
+    def test_type_override_continuous(self) -> None:
         # Take a feature that should be identified as BOXCOX
         feature_value_map = read_data()
         probability_values = feature_value_map[BOXCOX_FEATURE_ID]
@@ -342,7 +342,7 @@ class TestPreprocessing(unittest.TestCase):
         )
         self.assertEqual(parameter.feature_type, "CONTINUOUS")
 
-    def test_type_override_boxcox(self):
+    def test_type_override_boxcox(self) -> None:
         # Take a feature that should be identified as CONTINUOUS
         feature_value_map = read_data()
         probability_values = feature_value_map[CONTINUOUS_FEATURE_ID]
@@ -353,7 +353,7 @@ class TestPreprocessing(unittest.TestCase):
         )
         self.assertEqual(parameter.feature_type, "BOXCOX")
 
-    def test_type_override_quantile(self):
+    def test_type_override_quantile(self) -> None:
         # Take a feature that should be identified as CONTINUOUS
         feature_value_map = read_data()
         probability_values = feature_value_map[BOXCOX_FEATURE_ID]
@@ -364,7 +364,7 @@ class TestPreprocessing(unittest.TestCase):
         )
         self.assertEqual(parameter.feature_type, "QUANTILE")
 
-    def test_columnvector(self):
+    def test_columnvector(self) -> None:
         def format_input2output(test_keys, inp_form):
             test_data = {}
             for ky in test_keys:

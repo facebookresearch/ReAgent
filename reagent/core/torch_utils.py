@@ -58,7 +58,7 @@ def softmax(x, temperature):
     return torch.nn.functional.softmax(x, dim=1)
 
 
-def masked_softmax(x, mask, temperature):
+def masked_softmax(x, mask: float, temperature):
     """Compute softmax values for each sets of scores in x."""
     x = x / temperature
     mask_min_x = x - ((1.0 - mask) * 1e20)

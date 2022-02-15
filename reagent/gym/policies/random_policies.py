@@ -27,12 +27,12 @@ def make_random_policy_for_env(env: gym.Env) -> Policy:
 
 
 class DiscreteRandomPolicy(Policy):
-    def __init__(self, num_actions: int):
+    def __init__(self, num_actions: int) -> None:
         """Random actor for accumulating random offline data."""
         self.num_actions = num_actions
 
     @classmethod
-    def create_for_env(cls, env: gym.Env):
+    def create_for_env(cls, env: gym.Env) -> "DiscreteRandomPolicy":
         action_space = env.action_space
         if isinstance(action_space, gym.spaces.Discrete):
             return cls(num_actions=action_space.n)
@@ -64,7 +64,7 @@ class DiscreteRandomPolicy(Policy):
 
 
 class MultiDiscreteRandomPolicy(Policy):
-    def __init__(self, num_action_vec: List[int]):
+    def __init__(self, num_action_vec: List[int]) -> None:
         self.num_action_vec = num_action_vec
         self.dists = [
             torch.distributions.Categorical(torch.ones(n) / n)
@@ -72,7 +72,7 @@ class MultiDiscreteRandomPolicy(Policy):
         ]
 
     @classmethod
-    def create_for_env(cls, env: gym.Env):
+    def create_for_env(cls, env: gym.Env) -> "MultiDiscreteRandomPolicy":
         action_space = env.action_space
         if not isinstance(action_space, gym.spaces.MultiDiscrete):
             raise ValueError(f"Invalid action space: {action_space}")
@@ -100,7 +100,7 @@ class MultiDiscreteRandomPolicy(Policy):
 
 
 class ContinuousRandomPolicy(Policy):
-    def __init__(self, low: torch.Tensor, high: torch.Tensor):
+    def __init__(self, low: torch.Tensor, high: torch.Tensor) -> None:
         self.low = low
         self.high = high
         assert (
@@ -109,7 +109,7 @@ class ContinuousRandomPolicy(Policy):
         self.dist = torch.distributions.uniform.Uniform(self.low, self.high)
 
     @classmethod
-    def create_for_env(cls, env: gym.Env):
+    def create_for_env(cls, env: gym.Env) -> "ContinuousRandomPolicy":
         action_space = env.action_space
         if isinstance(action_space, gym.spaces.Discrete):
             raise NotImplementedError(

@@ -31,7 +31,7 @@ class BaseUCB(MABAlgo, ABC):
         *,
         n_arms: Optional[int] = None,
         arm_ids: Optional[List[str]] = None,
-    ):
+    ) -> None:
         super().__init__(
             n_arms=n_arms,
             arm_ids=arm_ids,

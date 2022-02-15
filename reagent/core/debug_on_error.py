@@ -4,7 +4,7 @@
 import sys
 
 
-def start():
+def start() -> None:
     def info(type, value, tb):
         if hasattr(sys, "ps1") or not sys.stderr.isatty():
             # we are in interactive mode or we don't have a tty-like

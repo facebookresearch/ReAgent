@@ -22,7 +22,7 @@ class FullyConnected(DiscreteActorNetBuilder):
     action_activation: str = "tanh"
     exploration_variance: Optional[float] = None
 
-    def __post_init_post_parse__(self):
+    def __post_init_post_parse__(self) -> None:
         super().__init__()
         assert len(self.sizes) == len(self.activations), (
             f"Must have the same numbers of sizes and activations; got: "

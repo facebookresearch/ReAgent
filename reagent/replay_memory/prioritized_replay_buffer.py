@@ -32,13 +32,13 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
 
     def __init__(
         self,
-        stack_size,
-        replay_capacity,
-        batch_size,
-        update_horizon=1,
-        gamma=0.99,
-        max_sample_attempts=1000,
-    ):
+        stack_size: int,
+        replay_capacity: int,
+        batch_size: int,
+        update_horizon: int = 1,
+        gamma: float = 0.99,
+        max_sample_attempts: int = 1000,
+    ) -> None:
         """Initializes PrioritizedReplayBuffer.
         Args:
           stack_size: int, number of frames to use in state stack.
@@ -57,7 +57,7 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
         self._max_sample_attempts = max_sample_attempts
         self.sum_tree = sum_tree.SumTree(replay_capacity)
 
-    def _add(self, **kwargs):
+    def _add(self, **kwargs) -> None:
         """Internal add method to add to the underlying memory arrays.
         The arguments need to match add_arg_signature.
         If priority is none, it is set to the maximum priority ever seen.
@@ -77,6 +77,7 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
                     kwargs[element.name]
                 )
 
+        # pyre-fixme[61]: `priority` is undefined, or not always defined.
         self.sum_tree.set(self.cursor(), priority)
         super(PrioritizedReplayBuffer, self)._add_transition(transition)
 
@@ -143,7 +144,7 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
 
         return self._batch_type(*batch_arrays)
 
-    def set_priority(self, indices, priorities):
+    def set_priority(self, indices, priorities) -> None:
         """Sets the priority of the given elements according to Schaul et al.
         Args:
           indices: np.array with dtype int32, of indices in range

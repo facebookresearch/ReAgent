@@ -9,7 +9,7 @@ from reagent.gym.types import Sampler, Scorer
 
 
 class Policy:
-    def __init__(self, scorer: Scorer, sampler: Sampler):
+    def __init__(self, scorer: Scorer, sampler: Sampler) -> None:
         """
         The Policy composes the scorer and sampler to create actions.
 

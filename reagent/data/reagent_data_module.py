@@ -9,7 +9,7 @@ from reagent.core.parameters import NormalizationData
 
 
 class ReAgentDataModule(pl.LightningDataModule):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @abc.abstractmethod

@@ -52,8 +52,9 @@ class TestParametricDQNNetBuilder(unittest.TestCase):
         )
         self.assertIsInstance(serving_module, ParametricDqnPredictorWrapper)
 
-    def test_fully_connected(self):
+    def test_fully_connected(self) -> None:
         # Intentionally used this long path to make sure we included it in __init__.py
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         chooser = ParametricDQNNetBuilder__Union(
             FullyConnected=parametric_dqn.fully_connected.FullyConnected()
         )

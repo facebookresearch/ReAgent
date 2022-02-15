@@ -8,7 +8,7 @@ from gym import spaces
 from gym_minigrid.minigrid import DIR_TO_VEC
 
 
-NUM_DIRECTIONS = len(DIR_TO_VEC)
+NUM_DIRECTIONS: int = len(DIR_TO_VEC)
 
 
 class SimpleObsWrapper(gym.core.ObservationWrapper):
@@ -16,7 +16,7 @@ class SimpleObsWrapper(gym.core.ObservationWrapper):
     Encode the agent's position & direction in a one-hot vector
     """
 
-    def __init__(self, env):
+    def __init__(self, env) -> None:
         super().__init__(env)
 
         self.observation_space = spaces.Box(

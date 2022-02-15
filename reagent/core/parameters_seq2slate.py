@@ -15,7 +15,7 @@ class LearningMethod(Enum):
     SIMULATION = "simulation"
 
     @property
-    def expect_slate_wise_reward(self):
+    def expect_slate_wise_reward(self) -> bool:
         return self in (
             LearningMethod.REINFORCEMENT_LEARNING,
             LearningMethod.SIMULATION,

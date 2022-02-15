@@ -19,7 +19,7 @@ class A:
         self.a = a
         self.b = b
 
-    def __call__(self):
+    def __call__(self) -> int:
         return self.a * self.b
 
 
@@ -45,7 +45,7 @@ class Foo(FooRegistry):
 
 @dataclass
 class Bar(FooRegistry):
-    def foo(self):
+    def foo(self) -> int:
         return 10
 
 
@@ -63,22 +63,26 @@ class Config:
 
 
 class TestConfigParsing(unittest.TestCase):
-    def test_parse_foo_default(self):
+    def test_parse_foo_default(self) -> None:
         raw_config = {}
         config = Config(**raw_config)
         self.assertEqual(config.union.value.foo(), 2)
 
-    def test_parse_foo(self):
+    def test_parse_foo(self) -> None:
         raw_config = {"union": {"Foo": {"a_param": {"a": 6}}}}
+        # pyre-fixme[6]: For 1st param expected `FooUnion` but got `Dict[str,
+        #  Dict[str, Dict[str, int]]]`.
         config = Config(**raw_config)
         self.assertEqual(config.union.value.foo(), 12)
 
-    def test_parse_bar(self):
+    def test_parse_bar(self) -> None:
         raw_config = {"union": {"Bar": {}}}
+        # pyre-fixme[6]: For 1st param expected `FooUnion` but got `Dict[str,
+        #  Dict[typing.Any, typing.Any]]`.
         config = Config(**raw_config)
         self.assertEqual(config.union.value.foo(), 10)
 
-    def test_frozen_registry(self):
+    def test_frozen_registry(self) -> None:
         with self.assertRaises(RuntimeError):
 
             @dataclass
@@ -88,7 +92,7 @@ class TestConfigParsing(unittest.TestCase):
 
         self.assertListEqual(sorted(FooRegistry.REGISTRY.keys()), ["Bar", "Foo"])
 
-    def test_frozen_registry_skip(self):
+    def test_frozen_registry_skip(self) -> None:
         _environ = dict(os.environ)
         os.environ.update({"SKIP_FROZEN_REGISTRY_CHECK": "1"})
         try:

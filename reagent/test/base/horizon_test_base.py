@@ -19,14 +19,14 @@ SEED = 0
 
 
 class HorizonTestBase(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         SummaryWriterContext._reset_globals()
         logging.basicConfig(level=logging.INFO)
         np.random.seed(SEED)
         torch.manual_seed(SEED)
         random.seed(SEED)
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         SummaryWriterContext._reset_globals()
 
     @classmethod

@@ -57,7 +57,7 @@ def seq2slate_input_prototype_to_ranking_input(
 
 
 class TestPredictorWrapper(unittest.TestCase):
-    def test_discrete_wrapper(self):
+    def test_discrete_wrapper(self) -> None:
         ids = range(1, 5)
         state_normalization_parameters = {i: _cont_norm() for i in ids}
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
@@ -89,7 +89,7 @@ class TestPredictorWrapper(unittest.TestCase):
         expected_output = dqn(rlt.FeatureData(state_preprocessor(*state_with_presence)))
         self.assertTrue((expected_output == q_values).all())
 
-    def test_discrete_wrapper_with_id_list(self):
+    def test_discrete_wrapper_with_id_list(self) -> None:
         state_normalization_parameters = {i: _cont_norm() for i in range(1, 5)}
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
         action_dim = 2
@@ -154,7 +154,7 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         self.assertTrue((expected_output == q_values).all())
 
-    def test_parametric_wrapper(self):
+    def test_parametric_wrapper(self) -> None:
         state_normalization_parameters = {i: _cont_norm() for i in range(1, 5)}
         action_normalization_parameters = {i: _cont_norm() for i in range(5, 9)}
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
@@ -183,7 +183,7 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         self.assertTrue((expected_output == q_value).all())
 
-    def test_actor_wrapper(self):
+    def test_actor_wrapper(self) -> None:
         state_normalization_parameters = {i: _cont_norm() for i in range(1, 5)}
         action_normalization_parameters = {
             i: _cont_action_norm() for i in range(101, 105)
@@ -212,7 +212,7 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         self.assertTrue((expected_output == action).all())
 
-    def validate_seq2slate_output(self, expected_output, wrapper_output):
+    def validate_seq2slate_output(self, expected_output, wrapper_output) -> None:
         ranked_per_seq_probs, ranked_tgt_out_idx = (
             expected_output.ranked_per_seq_probs,
             expected_output.ranked_tgt_out_idx,
@@ -223,17 +223,19 @@ class TestPredictorWrapper(unittest.TestCase):
         self.assertTrue(ranked_per_seq_probs == wrapper_output[0])
         self.assertTrue(torch.all(torch.eq(ranked_tgt_out_idx, wrapper_output[1])))
 
-    def test_seq2slate_transformer_frechet_sort_wrapper(self):
+    def test_seq2slate_transformer_frechet_sort_wrapper(self) -> None:
         self._test_seq2slate_wrapper(
             model="transformer", output_arch=Seq2SlateOutputArch.FRECHET_SORT
         )
 
-    def test_seq2slate_transformer_autoregressive_wrapper(self):
+    def test_seq2slate_transformer_autoregressive_wrapper(self) -> None:
         self._test_seq2slate_wrapper(
             model="transformer", output_arch=Seq2SlateOutputArch.AUTOREGRESSIVE
         )
 
-    def _test_seq2slate_wrapper(self, model: str, output_arch: Seq2SlateOutputArch):
+    def _test_seq2slate_wrapper(
+        self, model: str, output_arch: Seq2SlateOutputArch
+    ) -> None:
         state_normalization_parameters = {i: _cont_norm() for i in range(1, 5)}
         candidate_normalization_parameters = {i: _cont_norm() for i in range(101, 106)}
         state_preprocessor = Preprocessor(state_normalization_parameters, False)
@@ -307,7 +309,7 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         self.validate_seq2slate_output(expected_output, wrapper_output)
 
-    def test_determinantal_point_process_wrapper_linear_kernel(self):
+    def test_determinantal_point_process_wrapper_linear_kernel(self) -> None:
         # The second and third items are identical (similarity=1)
         # So the second and third items have strong repulsion
         # The expected ranked indices should be 2, 0, 1
@@ -355,7 +357,7 @@ class TestPredictorWrapper(unittest.TestCase):
         ranked_idx, _, _ = wrapper(quality_scores, feature_vectors)
         npt.assert_array_almost_equal(ranked_idx, [1, 0, 2])
 
-    def test_determinantal_point_process_wrapper_rbf_kernel(self):
+    def test_determinantal_point_process_wrapper_rbf_kernel(self) -> None:
         # The second and third items are identical (similarity=1)
         # So the second and third items have strong repulsion
         # The expected ranked indices should be 2, 0, 1
@@ -406,7 +408,7 @@ class TestPredictorWrapper(unittest.TestCase):
         ranked_idx, _, _ = wrapper(quality_scores, feature_vectors)
         npt.assert_array_almost_equal(ranked_idx, [1, 0, 2])
 
-    def test_reward_model_wrapper(self):
+    def test_reward_model_wrapper(self) -> None:
         ids = range(1, 5)
         state_normalization_parameters = {i: _cont_norm() for i in ids}
         state_preprocessor = Preprocessor(state_normalization_parameters, False)

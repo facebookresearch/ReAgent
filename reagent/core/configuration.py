@@ -143,7 +143,7 @@ def resolve_defaults(func):
     return wrapper
 
 
-def param_hash(p):
+def param_hash(p) -> int:
     """
     Use this to make parameters hashable. This is required because __hash__()
     is not inherited when subclass redefines __eq__(). We only need this when

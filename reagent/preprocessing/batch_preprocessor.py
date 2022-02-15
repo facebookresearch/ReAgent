@@ -24,7 +24,7 @@ def batch_to_device(batch: Dict[str, torch.Tensor], device: torch.device):
 class DiscreteDqnBatchPreprocessor(BatchPreprocessor):
     def __init__(
         self, num_actions: int, state_preprocessor: Preprocessor, use_gpu: bool = False
-    ):
+    ) -> None:
         super().__init__()
         self.num_actions = num_actions
         self.state_preprocessor = state_preprocessor
@@ -70,7 +70,7 @@ class ParametricDqnBatchPreprocessor(BatchPreprocessor):
         state_preprocessor: Preprocessor,
         action_preprocessor: Preprocessor,
         use_gpu: bool,
-    ):
+    ) -> None:
         super().__init__()
         self.state_preprocessor = state_preprocessor
         self.action_preprocessor = action_preprocessor
@@ -118,7 +118,7 @@ class PolicyNetworkBatchPreprocessor(BatchPreprocessor):
         state_preprocessor: Preprocessor,
         action_preprocessor: Preprocessor,
         use_gpu: bool = False,
-    ):
+    ) -> None:
         super().__init__()
         self.state_preprocessor = state_preprocessor
         self.action_preprocessor = action_preprocessor

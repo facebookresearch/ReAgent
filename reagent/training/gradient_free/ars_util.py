@@ -63,12 +63,12 @@ class ARSOptimizer:
     def __init__(
         self,
         feature_dim,
-        n_pert=10,
-        rand_ars_params=False,
-        alpha=1,
-        noise=1,
+        n_pert: int = 10,
+        rand_ars_params: bool = False,
+        alpha: int = 1,
+        noise: int = 1,
         b_top=None,
-    ):
+    ) -> None:
         self.feature_dim = feature_dim
         self.ars_params = (
             np.random.randn(feature_dim) if rand_ars_params else np.zeros(feature_dim)
@@ -79,7 +79,7 @@ class ARSOptimizer:
         self.b_top = b_top if b_top is not None else n_pert
         self.perturbations = []
 
-    def update_ars_params(self, rewards: torch.Tensor):
+    def update_ars_params(self, rewards: torch.Tensor) -> None:
         """
         reward should be something like
         [reward_pert1_pos, reward_pert1_neg, reward_pert2_pos, reward_pert2_neg, ...]

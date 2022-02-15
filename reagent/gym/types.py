@@ -45,15 +45,15 @@ def get_optional_fields(cls) -> List[str]:
 class Trajectory(rlt.BaseDataClass):
     transitions: List[Transition] = field(default_factory=list)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.optional_field_exist: Dict[str, bool] = {
             f: False for f in get_optional_fields(Transition)
         }
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.transitions)
 
-    def add_transition(self, transition: Transition):
+    def add_transition(self, transition: Transition) -> None:
         if len(self) == 0:
             # remember which optional fields should be filled
             for f in self.optional_field_exist:

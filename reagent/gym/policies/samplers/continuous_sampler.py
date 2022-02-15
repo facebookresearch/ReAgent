@@ -7,7 +7,7 @@ from reagent.gym.types import GaussianSamplerScore, Sampler
 
 
 class GaussianSampler(Sampler):
-    def __init__(self, actor_network):
+    def __init__(self, actor_network) -> None:
         self.actor_network = actor_network
 
     def _sample_action(self, loc: torch.Tensor, scale_log: torch.Tensor):

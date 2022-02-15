@@ -10,7 +10,7 @@ from reagent.models.fully_connected_network import (
 )
 
 
-INVALID_ACTION_CONSTANT = -1e10
+INVALID_ACTION_CONSTANT: float = -1e10
 
 
 class FullyConnectedDQN(FloatFeatureFullyConnected):
@@ -27,7 +27,7 @@ class FullyConnectedDQN(FloatFeatureFullyConnected):
         dropout_ratio: float = 0.0,
         normalized_output: bool = False,
         use_layer_norm: bool = False,
-    ):
+    ) -> None:
         super().__init__(
             state_dim=state_dim,
             output_dim=action_dim,

@@ -14,17 +14,17 @@ from reagent.preprocessing.types import InputColumn
 
 
 class TestTransforms(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         # add custom compare function for torch.Tensor
         self.addTypeEqualityFunc(torch.Tensor, TestTransforms.are_torch_tensor_equal)
 
     @staticmethod
-    def are_torch_tensor_equal(tensor_0, tensor_1, msg=None):
+    def are_torch_tensor_equal(tensor_0, tensor_1, msg=None) -> bool:
         if torch.all(tensor_0 == tensor_1):
             return True
         raise TestTransforms.failureException("non-equal pytorch tensors found", msg)
 
-    def assertTorchTensorEqual(self, tensor_0, tensor_1, msg=None):
+    def assertTorchTensorEqual(self, tensor_0, tensor_1, msg=None) -> None:
         self.assertIsInstance(
             tensor_0, torch.Tensor, "first argument is not a torch.Tensor"
         )
@@ -33,7 +33,7 @@ class TestTransforms(unittest.TestCase):
         )
         self.assertEqual(tensor_0, tensor_1, msg=msg)
 
-    def assertDictComparatorEqual(self, a, b, cmp):
+    def assertDictComparatorEqual(self, a, b, cmp) -> None:
         """
         assertDictEqual() compares args with ==. This allows caller to override
         comparator via cmp argument.
@@ -45,7 +45,7 @@ class TestTransforms(unittest.TestCase):
         for key in a.keys():
             self.assertTrue(cmp(a[key], b[key]), msg=f"Different at key {key}")
 
-    def assertDictOfTensorEqual(self, a, b):
+    def assertDictOfTensorEqual(self, a, b) -> None:
         """
         Helper method to compare dicts with values of type Tensor.
 
@@ -58,7 +58,7 @@ class TestTransforms(unittest.TestCase):
 
         self.assertDictComparatorEqual(a, b, _tensor_cmp)
 
-    def test_Compose(self):
+    def test_Compose(self) -> None:
         t1, t2 = Mock(return_value=2), Mock(return_value=3)
         compose = transforms.Compose(t1, t2)
         data = 1
@@ -67,7 +67,7 @@ class TestTransforms(unittest.TestCase):
         t2.assert_called_with(2)
         self.assertEqual(out, 3)
 
-    def test_ValuePresence(self):
+    def test_ValuePresence(self) -> None:
         vp = transforms.ValuePresence()
         d1 = {"a": 1, "a_presence": 0, "b": 2}
         d2 = {"a_presence": 0, "b": 2}
@@ -76,7 +76,7 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(o1, {"a": (1, 0), "b": 2})
         self.assertEqual(o2, {"a_presence": 0, "b": 2})
 
-    def test_MaskByPresence(self):
+    def test_MaskByPresence(self) -> None:
         keys = ["a", "b"]
         mbp = transforms.MaskByPresence(keys)
         data = {
@@ -100,10 +100,12 @@ class TestTransforms(unittest.TestCase):
             }
             out = mbp(data3)
 
-    def test_StackDenseFixedSizeArray(self):
+    def test_StackDenseFixedSizeArray(self) -> None:
         # happy path: value is type Tensor; check cast to float
         value = torch.eye(4).to(dtype=torch.int)  # start as int
         data = {"a": value}
+        # pyre-fixme[6]: For 1st param expected `List[str]` but got `_dict_keys[str,
+        #  typing.Any]`.
         out = transforms.StackDenseFixedSizeArray(data.keys(), size=4)(data)
         expected = {"a": value.to(dtype=torch.float)}
         self.assertDictOfTensorEqual(out, expected)
@@ -121,6 +123,8 @@ class TestTransforms(unittest.TestCase):
                 (torch.tensor([[1, 1, 1], [0, 0, 0]]), presence),
             ],
         }
+        # pyre-fixme[6]: For 1st param expected `List[str]` but got `_dict_keys[str,
+        #  List[Tuple[typing.Any, typing.Any]]]`.
         out = transforms.StackDenseFixedSizeArray(data.keys(), size=3)(data)
         expected = {
             "a": torch.tile(torch.arange(4).view(-1, 1).to(dtype=torch.float), (1, 3)),
@@ -141,13 +145,13 @@ class TestTransforms(unittest.TestCase):
             sdf = transforms.StackDenseFixedSizeArray(["a"], size=2)
             sdf({"a": torch.zeros(2, 2, 2)})
 
-    def test_Lambda(self):
+    def test_Lambda(self) -> None:
         lam = transforms.Lambda(keys=["a", "b", "c"], fn=lambda x: x + 1)
         data = {"a": 1, "b": 2, "c": 3, "d": 4}
         out = lam(data)
         self.assertEqual(out, {"a": 2, "b": 3, "c": 4, "d": 4})
 
-    def test_SelectValuePresenceColumns(self):
+    def test_SelectValuePresenceColumns(self) -> None:
         block = np.reshape(np.arange(16), (4, 4))
         data = {"a": (block, block + 16), "c": 1}
         svp = transforms.SelectValuePresenceColumns(
@@ -160,12 +164,16 @@ class TestTransforms(unittest.TestCase):
             "c": 1,
         }
         for key in ["a", "b"]:
+            # pyre-fixme[16]: Item `int` of `Union[int, Tuple[typing.Any,
+            #  typing.Any]]` has no attribute `__getitem__`.
             self.assertTrue(np.all(out[key][0] == expected[key][0]))
+            # pyre-fixme[16]: Item `int` of `Union[int, Tuple[typing.Any,
+            #  typing.Any]]` has no attribute `__getitem__`.
             self.assertTrue(np.all(out[key][1] == expected[key][1]))
         self.assertEqual(out["c"], expected["c"])
 
     @patch("reagent.preprocessing.transforms.Preprocessor")
-    def test_DenseNormalization(self, Preprocessor):
+    def test_DenseNormalization(self, Preprocessor) -> None:
         a_out = torch.tensor(1)
         b_out = torch.tensor(2)
         c_out = torch.tensor(3.0)
@@ -190,8 +198,9 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(torch.stack(in_2), torch.stack(b_in))
 
     @patch("reagent.preprocessing.transforms.Preprocessor")
-    def test_FixedLengthSequenceDenseNormalization(self, Preprocessor):
+    def test_FixedLengthSequenceDenseNormalization(self, Preprocessor) -> None:
         # test key mapping
+        # pyre-fixme[16]: `Generator` has no attribute `manual_seed`.
         rand_gen = torch.Generator().manual_seed(0)
 
         a_batch_size = 2
@@ -267,9 +276,15 @@ class TestTransforms(unittest.TestCase):
         # original keys should keep their value
         for key in ("a", "b"):
             # no change in the output
+            # pyre-fixme[16]: Item `int` of `Union[Dict[int,
+            #  typing.Union[typing.Tuple[torch.Tensor, typing.Tuple[typing.Any,
+            #  typing.Any]], int]], int]` has no attribute `__getitem__`.
             assertKeySeqIdItem(out[key][1], data_copy[key][1])
 
             # no change in untouched seq id
+            # pyre-fixme[16]: Item `int` of `Union[Dict[int,
+            #  typing.Union[typing.Tuple[torch.Tensor, typing.Tuple[typing.Any,
+            #  typing.Any]], int]], int]` has no attribute `__getitem__`.
             self.assertEqual(out[key][2], data_copy[key][2])
 
         # no change in the non-processed key
@@ -296,7 +311,7 @@ class TestTransforms(unittest.TestCase):
         )
 
     @unittest.skipIf("SANDCASTLE" not in os.environ, "Skipping test in OSS.")
-    def test_IDListFeatures_and_IDScoreListFeatures(self):
+    def test_IDListFeatures_and_IDScoreListFeatures(self) -> None:
         ID_LIST_FEATURE_ID = 0
         ID_SCORE_LIST_FEATURE_ID = 1
         EMBEDDING_TABLE_SIZE = 100
@@ -436,7 +451,7 @@ class TestTransforms(unittest.TestCase):
                 data[column][ID_LIST_FEATURE_ID][0],
             )
 
-    def test_OneHotActions(self):
+    def test_OneHotActions(self) -> None:
         keys = ["0", "1", "2"]
         num_actions = 2
         oha = transforms.OneHotActions(keys, num_actions)
@@ -449,7 +464,7 @@ class TestTransforms(unittest.TestCase):
         }
         self.assertDictOfTensorEqual(data_out, expected)
 
-    def test_FixedLengthSequences(self):
+    def test_FixedLengthSequences(self) -> None:
         # of form {sequence_id: (offsets, Tuple(Tensor, Tensor))}
         a_T = (torch.tensor([0, 1]), torch.tensor([1, 0]))
         b_T = (torch.tensor([1, 1]), torch.tensor([1, 0]))
@@ -513,7 +528,7 @@ class TestTransforms(unittest.TestCase):
                 keys=["a", "b"], sequence_id=1, to_keys=["to_a"]
             )
 
-    def test_SlateView(self):
+    def test_SlateView(self) -> None:
         # Unit tests for the SlateView class
         sv = transforms.SlateView(keys=["a"], slate_size=-1)
 
@@ -576,10 +591,10 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(out["a"].shape, torch.Size([2, 2, 3]))
         self.assertDictOfTensorEqual({"a": a_out_223}, out)
 
-    def _check_same_keys(self, dict_a, dict_b):
+    def _check_same_keys(self, dict_a, dict_b) -> None:
         self.assertSetEqual(set(dict_a.keys()), set(dict_b.keys()))
 
-    def test_AppendConstant(self):
+    def test_AppendConstant(self) -> None:
         data = {
             "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
             "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
@@ -592,7 +607,7 @@ class TestTransforms(unittest.TestCase):
             t_data["a"], torch.tensor([[1.5, 9.0, 4.5], [1.5, 3.4, 3.9]])
         )
 
-    def test_UnsqueezeRepeat(self):
+    def test_UnsqueezeRepeat(self) -> None:
         data = {
             "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
             "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
@@ -611,7 +626,7 @@ class TestTransforms(unittest.TestCase):
             ),
         )
 
-    def test_OuterProduct(self):
+    def test_OuterProduct(self) -> None:
         data = {
             "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
             "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
@@ -629,7 +644,7 @@ class TestTransforms(unittest.TestCase):
             ).flatten()
         self.assertTorchTensorEqual(t_data["ab"], expected_out)
 
-    def test_GetEye(self):
+    def test_GetEye(self) -> None:
         data = {
             "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
             "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
@@ -642,7 +657,7 @@ class TestTransforms(unittest.TestCase):
 
         self.assertTorchTensorEqual(t_data["c"], torch.eye(4))
 
-    def test_Cat(self):
+    def test_Cat(self) -> None:
         data = {
             "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
             "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
@@ -655,7 +670,7 @@ class TestTransforms(unittest.TestCase):
 
         self.assertTorchTensorEqual(t_data["c"], torch.cat([data["a"], data["b"]], 0))
 
-    def test_Rename(self):
+    def test_Rename(self) -> None:
         data = {
             "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
             "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
@@ -667,7 +682,7 @@ class TestTransforms(unittest.TestCase):
 
         self.assertTorchTensorEqual(t_data["aa"], data["a"])
 
-    def test_Filter(self):
+    def test_Filter(self) -> None:
         data = {
             "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
             "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]),
@@ -684,7 +699,7 @@ class TestTransforms(unittest.TestCase):
         self.assertTorchTensorEqual(data["a"], t_data["a"])
         self.assertListEqual(sorted(t_data.keys()), ["a"])
 
-    def test_broadcast_tensors_for_cat(self):
+    def test_broadcast_tensors_for_cat(self) -> None:
         tensors = [
             torch.tensor([[3.0, 4.0, 5.0], [4.5, 4.3, 5.9]]),
             torch.tensor([[2.0, 9.0, 8.0]]),

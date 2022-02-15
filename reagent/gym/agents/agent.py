@@ -24,7 +24,7 @@ class Agent:
         obs_preprocessor=_id,
         action_extractor=_id,
         device: Optional[torch.device] = None,
-    ):
+    ) -> None:
         """
         The Agent orchestrates the interactions on our RL components, given
         the interactions with the environment.
@@ -52,8 +52,8 @@ class Agent:
         device: Union[str, torch.device] = "cpu",
         obs_preprocessor=None,
         action_extractor=None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> "Agent":
         """
         If `policy` is not given, we will try to create a random policy
         """
@@ -85,8 +85,8 @@ class Agent:
         *,
         obs_preprocessor=None,
         action_extractor=None,
-        **kwargs,
-    ):
+        **kwargs
+    ) -> "Agent":
         # device shouldn't be provided as serving is CPU only
         if obs_preprocessor is None:
             obs_preprocessor = env.get_serving_obs_preprocessor()
@@ -119,12 +119,12 @@ class Agent:
             log_prob = log_prob.cpu().squeeze(0).item()
         return self.action_extractor(actor_output), log_prob
 
-    def post_step(self, transition: Transition):
+    def post_step(self, transition: Transition) -> None:
         """to be called after step(action)"""
         if self.post_transition_callback is not None:
             self.post_transition_callback(transition)
 
-    def post_episode(self, trajectory: Trajectory, info: Dict):
+    def post_episode(self, trajectory: Trajectory, info: Dict) -> None:
         """to be called after step(action)"""
         if self.post_episode_callback is not None:
             self.post_episode_callback(trajectory, info)

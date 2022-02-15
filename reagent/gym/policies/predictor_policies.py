@@ -74,7 +74,9 @@ def create_predictor_policy_from_model(serving_module, **kwargs) -> Policy:
 
 
 class DiscreteDQNPredictorPolicy(Policy):
-    def __init__(self, wrapped_dqn_predictor, rl_parameters: Optional[RLParameters]):
+    def __init__(
+        self, wrapped_dqn_predictor, rl_parameters: Optional[RLParameters]
+    ) -> None:
         if rl_parameters and rl_parameters.softmax_policy:
             self.sampler = SoftmaxActionSampler(temperature=rl_parameters.temperature)
         else:
@@ -105,7 +107,7 @@ class DiscreteDQNPredictorPolicy(Policy):
 
 
 class ActorPredictorPolicy(Policy):
-    def __init__(self, predictor):
+    def __init__(self, predictor) -> None:
         self.predictor = predictor
 
     @torch.no_grad()

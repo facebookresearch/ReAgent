@@ -17,7 +17,7 @@ CONTINUOUS_ACTION_FEATURE_ID = 9
 CONTINUOUS_ACTION_FEATURE_ID_2 = 10
 
 
-def id_to_type(id):
+def id_to_type(id) -> str:
     if id == BINARY_FEATURE_ID or id == BINARY_FEATURE_ID_2:
         return "BINARY"
     if id == BOXCOX_FEATURE_ID:

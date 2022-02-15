@@ -10,7 +10,7 @@ from reagent.models.base import ModelBase
 
 
 class Seq2RewardNetwork(ModelBase):
-    def __init__(self, state_dim, action_dim, num_hiddens, num_hidden_layers):
+    def __init__(self, state_dim, action_dim, num_hiddens, num_hidden_layers) -> None:
         super().__init__()
 
         self.state_dim = state_dim
@@ -67,7 +67,7 @@ class Seq2RewardNetwork(ModelBase):
 
         return rlt.Seq2RewardOutput(acc_reward=acc_reward)
 
-    def get_initial_hidden_state(self, state, batch_size=1):
+    def get_initial_hidden_state(self, state, batch_size: int = 1):
         # state embedding with linear mapping
         # repeat state to fill num_hidden_layers at first dimension
         state = state.repeat(self.num_hidden_layers, 1, 1)
