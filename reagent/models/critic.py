@@ -19,7 +19,7 @@ class FullyConnectedCritic(ModelBase):
         use_batch_norm: bool = False,
         use_layer_norm: bool = False,
         output_dim: int = 1,
-    ):
+    ) -> None:
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
         assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)

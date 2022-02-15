@@ -49,7 +49,7 @@ class NormalGammaThompson(BaseThompsonSampling):
         *,
         n_arms: Optional[int] = None,
         arm_ids: Optional[List[str]] = None,
-    ):
+    ) -> None:
         super().__init__(
             randomize_ties=randomize_ties,
             n_arms=n_arms,
@@ -61,7 +61,7 @@ class NormalGammaThompson(BaseThompsonSampling):
         self.lambda_0 = 1.0  # initial value of the lambda parameter
         self.gamma_rates = torch.ones(self.n_arms)
 
-    def add_single_observation(self, arm_id: str, reward: float):
+    def add_single_observation(self, arm_id: str, reward: float) -> None:
         super().add_single_observation(arm_id=arm_id, reward=reward)
         arm_idx = self.arm_ids.index(arm_id)
         lambda_ = (
@@ -78,7 +78,7 @@ class NormalGammaThompson(BaseThompsonSampling):
         sum_reward_per_arm: Tensor,
         sum_reward_squared_per_arm: Tensor,
         arm_ids: Optional[List[str]] = None,
-    ):
+    ) -> None:
         (
             n_obs_per_arm,
             sum_reward_per_arm,

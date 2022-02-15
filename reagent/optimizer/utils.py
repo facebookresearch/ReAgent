@@ -6,7 +6,7 @@ import inspect
 import torch
 
 
-def is_strict_subclass(a, b):
+def is_strict_subclass(a: object, b: object):
     if not inspect.isclass(a) or not inspect.isclass(b):
         return False
     return issubclass(a, b) and a != b

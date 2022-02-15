@@ -15,7 +15,7 @@ class LocalCacheLogger:
             str, Union[float, torch.Tensor, Dict[str, Union[float, torch.Tensor]]]
         ],
         step: Optional[int] = None,
-    ):
+    ) -> None:
         for plot_name, plot_value_or_dict in metrics.items():
             if isinstance(plot_value_or_dict, dict):
                 if plot_name not in tb_logger.line_plot_buffer:
@@ -36,7 +36,7 @@ class LocalCacheLogger:
         line_name: str,
         plot_value: Union[float, torch.Tensor],
         step: Optional[int],
-    ):
+    ) -> None:
         """Adds a point to a multi-line plot given the plot name, the line name, and optionally the step (x coordinate)."""
         if isinstance(plot_value, torch.Tensor):
             plot_value = plot_value.item()
@@ -79,7 +79,7 @@ class LocalCacheLogger:
         line_name: str,
         x: int,
         y: float,
-    ):
+    ) -> None:
         if plot_name in plot_store and line_name in plot_store[plot_name]:
             plot_store[plot_name][line_name].append((x, y))
         elif plot_name in plot_store:
@@ -100,7 +100,7 @@ class OssTensorboardLogger(TensorBoardLogger):
         default_hp_metric: bool = True,
         prefix: str = "",
         **kwargs
-    ):
+    ) -> None:
         super().__init__(
             save_dir,
             name,
@@ -125,7 +125,7 @@ class OssTensorboardLogger(TensorBoardLogger):
         super().log_metrics(metrics, step)
         LocalCacheLogger.store_metrics(self, metrics, step)
 
-    def clear_local_data(self):
+    def clear_local_data(self) -> None:
         # We don't call clear here because it's a lot of data and someone else probably owns it
         self.line_plot_aggregated = {}
         self.line_plot_buffer = {}

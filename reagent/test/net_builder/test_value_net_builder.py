@@ -12,7 +12,8 @@ from reagent.preprocessing.identify_types import CONTINUOUS
 
 
 class TestValueNetBuilder(unittest.TestCase):
-    def test_fully_connected(self):
+    def test_fully_connected(self) -> None:
+        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         chooser = ValueNetBuilder__Union(
             FullyConnected=value.fully_connected.FullyConnected()
         )

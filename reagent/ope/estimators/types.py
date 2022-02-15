@@ -13,7 +13,7 @@ import torch
 from torch import Tensor
 
 
-def is_array(obj):
+def is_array(obj) -> bool:
     return isinstance(obj, Tensor) or isinstance(obj, np.ndarray)
 
 
@@ -26,19 +26,23 @@ ValueType = TypeVar("ValueType")
 class TypeWrapper(Generic[ValueType]):
     value: ValueType
 
-    def __index__(self):
+    def __index__(self) -> int:
         try:
+            # pyre-fixme[6]: For 1st param expected `Union[_SupportsTrunc, bytes,
+            #  str, SupportsInt, SupportsIndex]` but got `ValueType`.
             return int(self.value)
         except Exception:
             raise ValueError(f"{self} cannot be used as index")
 
-    def __int__(self):
+    def __int__(self) -> int:
         try:
+            # pyre-fixme[6]: For 1st param expected `Union[_SupportsTrunc, bytes,
+            #  str, SupportsInt, SupportsIndex]` but got `ValueType`.
             return int(self.value)
         except Exception:
             raise ValueError(f"{self} cannot be converted to int")
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         if (
             isinstance(self.value, int)
             or isinstance(self.value, float)
@@ -54,7 +58,7 @@ class TypeWrapper(Generic[ValueType]):
         else:
             raise TypeError
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, TypeWrapper):
             return False
         if isinstance(self.value, Tensor):
@@ -67,7 +71,7 @@ class TypeWrapper(Generic[ValueType]):
         else:
             return self.value == other.value
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self.__eq__(other)
 
     def __lt__(self, other):
@@ -80,7 +84,7 @@ class TypeWrapper(Generic[ValueType]):
         else:
             return self.value < other.value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}{{value[{self.value}]}}"
 
 
@@ -94,7 +98,9 @@ class Objects(Generic[KeyType, ValueType], ABC):
         values: list of their values
     """
 
-    def __init__(self, values: Union[Mapping[KeyType, ValueType], Sequence[ValueType]]):
+    def __init__(
+        self, values: Union[Mapping[KeyType, ValueType], Sequence[ValueType]]
+    ) -> None:
         self._key_to_index = None
         self._index_to_key = None
         self._init_values(values)
@@ -102,7 +108,7 @@ class Objects(Generic[KeyType, ValueType], ABC):
 
     def _init_values(
         self, values: Union[Mapping[KeyType, ValueType], Sequence[ValueType]]
-    ):
+    ) -> None:
         if isinstance(values, Sequence):
             # pyre-fixme[16]: `Objects` has no attribute `_values`.
             self._values = list(values)
@@ -113,7 +119,7 @@ class Objects(Generic[KeyType, ValueType], ABC):
         else:
             raise TypeError(f"Unsupported values type {type(values)}")
 
-    def _reset(self):
+    def _reset(self) -> None:
         self._unzipped = None
         self._keys = None
 
@@ -124,7 +130,7 @@ class Objects(Generic[KeyType, ValueType], ABC):
         else:
             return self._values[key]
 
-    def __setitem__(self, key: KeyType, value: ValueType):
+    def __setitem__(self, key: KeyType, value: ValueType) -> None:
         if self._key_to_index is not None:
             # pyre-fixme[16]: `Objects` has no attribute `_values`.
             self._values[self._key_to_index[key]] = value
@@ -155,7 +161,7 @@ class Objects(Generic[KeyType, ValueType], ABC):
         return len(self._values)
 
     @property
-    def is_sequence(self):
+    def is_sequence(self) -> bool:
         return self._key_to_index is None
 
     @property
@@ -196,7 +202,8 @@ class Objects(Generic[KeyType, ValueType], ABC):
     def values(self):
         return self._values_copy
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        # pyre-fixme[16]: `Objects` has no attribute `_values`.
         return f"{self.__class__.__name__}{{values[{self._values}]}}"
 
 
@@ -213,7 +220,7 @@ class Values(Objects[KeyType, float]):
     def __init__(
         self,
         values: Union[Mapping[KeyType, float], Sequence[float], np.ndarray, Tensor],
-    ):
+    ) -> None:
         # pyre-fixme[6]: Expected `Union[Mapping[Variable[KeyType],
         #  Variable[ValueType]], Sequence[Variable[ValueType]]]` for 1st param but got
         #  `Union[Mapping[Variable[KeyType], float], Sequence[float], Tensor,
@@ -223,7 +230,7 @@ class Values(Objects[KeyType, float]):
     def _init_values(
         self,
         values: Union[Mapping[KeyType, float], Sequence[float], np.ndarray, Tensor],
-    ):
+    ) -> None:
         if isinstance(values, Tensor):
             # pyre-fixme[16]: `Values` has no attribute `_values`.
             self._values = values.to(dtype=torch.double)
@@ -238,10 +245,13 @@ class Values(Objects[KeyType, float]):
         else:
             raise TypeError(f"Unsupported values type {type(values)}")
 
-    def _reset(self):
+    def _reset(self) -> None:
         super()._reset()
+        # pyre-fixme[16]: `Values` has no attribute `_probabilities`.
         self._probabilities = None
+        # pyre-fixme[16]: `Values` has no attribute `_is_normalized`.
         self._is_normalized = False
+        # pyre-fixme[16]: `Values` has no attribute `_sorted`.
         self._sorted = None
 
     def __getitem__(self, key: KeyType) -> float:
@@ -318,14 +328,17 @@ class Values(Objects[KeyType, float]):
             raise TypeError(f"Unsupported values type {type(values)}")
         return copy
 
-    def _normalize(self):
+    def _normalize(self) -> None:
+        # pyre-fixme[16]: `Values` has no attribute `_is_normalized`.
         if self._is_normalized:
+            # pyre-fixme[16]: `Values` has no attribute `_probabilities`.
             if self._probabilities is None:
                 raise ValueError(f"Invalid distribution {type(self._values)}")
             return
         self._is_normalized = True
         self._probabilities = None
         try:
+            # pyre-fixme[16]: `Values` has no attribute `_values`.
             dist = self._values.detach().clamp(min=0.0)
             dist /= dist.sum()
             self._probabilities = dist
@@ -343,7 +356,7 @@ class Values(Objects[KeyType, float]):
         else:
             return 0.0
 
-    def sample(self, size=1) -> Sequence[KeyType]:
+    def sample(self, size: int = 1) -> Sequence[KeyType]:
         self._normalize()
         if self._index_to_key is not None:
             l = [
@@ -358,7 +371,7 @@ class Values(Objects[KeyType, float]):
             ]
         return l
 
-    def greedy(self, size=1) -> Sequence[KeyType]:
+    def greedy(self, size: int = 1) -> Sequence[KeyType]:
         sorted_keys, _ = self.sort()
         return sorted_keys[:size]
 
@@ -368,7 +381,7 @@ class Items(Generic[ValueType], ABC):
     List of items
     """
 
-    def __init__(self, items: Union[Sequence[ValueType], int]):
+    def __init__(self, items: Union[Sequence[ValueType], int]) -> None:
         if isinstance(items, int):
             assert items > 0
             self._items = [self._new_item(i) for i in range(items)]
@@ -380,13 +393,13 @@ class Items(Generic[ValueType], ABC):
     def __getitem__(self, i) -> ValueType:
         return self._items[i]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._items)
 
     def __iter__(self):
         return iter(self._items)
 
-    def __int__(self):
+    def __int__(self) -> int:
         if self._reverse_lookup is None:
             return len(self._items)
         else:
@@ -397,7 +410,7 @@ class Items(Generic[ValueType], ABC):
         pass
 
     @property
-    def is_sequence(self):
+    def is_sequence(self) -> bool:
         return self._reverse_lookup is None
 
     def index_of(self, item: ValueType) -> int:
@@ -487,7 +500,7 @@ class Policy(ABC):
     Policy interface
     """
 
-    def __init__(self, action_space: ActionSpace, device=None):
+    def __init__(self, action_space: ActionSpace, device=None) -> None:
         self._action_space = action_space
         self._device = device
 
@@ -499,7 +512,7 @@ class Policy(ABC):
         return self._query(context)
 
     @property
-    def action_space(self):
+    def action_space(self) -> ActionSpace:
         return self._action_space
 
 
@@ -521,7 +534,7 @@ class PredictResults:
 
 
 class Trainer(ABC):
-    def __init__(self):
+    def __init__(self) -> None:
         self._model = None
 
     @staticmethod
@@ -545,7 +558,7 @@ class Trainer(ABC):
             w_na = w_na[cs] if w_na is not None else None
         return x_na, y_na, w_na
 
-    def reset(self):
+    def reset(self) -> None:
         self._model = None
 
     @property
@@ -569,7 +582,7 @@ class Trainer(ABC):
     def score(self, x: Tensor, y: Tensor, weight: Optional[Tensor] = None) -> float:
         pass
 
-    def save_model(self, file: str):
+    def save_model(self, file: str) -> None:
         if self._model is None:
             logging.error(f"{self.__class__.__name__}.save_model: _model is None ")
             return
@@ -579,7 +592,7 @@ class Trainer(ABC):
         except Exception:
             logging.error(f"{file} cannot be accessed.")
 
-    def load_model(self, file: str):
+    def load_model(self, file: str) -> None:
         try:
             logging.info(f"{self.__class__.__name__}.load_model: {file}")
             with open(file, "rb") as f:

@@ -11,7 +11,7 @@ from reagent.models.no_soft_update_embedding import NoSoftUpdateEmbedding
 
 
 class Model(nn.Module):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.embedding = NoSoftUpdateEmbedding(10, 3)
 
@@ -20,7 +20,7 @@ class Model(nn.Module):
 
 
 class TestNoSoftUpdteEmbedding(unittest.TestCase):
-    def test_no_soft_update(self):
+    def test_no_soft_update(self) -> None:
         model = Model()
         target_model = copy.deepcopy(model)
 

@@ -16,7 +16,7 @@ from reagent.net_builder.slate_ranking_net_builder import SlateRankingNetBuilder
 
 
 class ScoreCap(nn.Module):
-    def __init__(self, cap: float):
+    def __init__(self, cap: float) -> None:
         super().__init__()
         self.cap = cap
 
@@ -30,7 +30,7 @@ class FinalLayer:
     sigmoid: bool = False
     tanh: bool = False
 
-    def __post_init_post_parse__(self):
+    def __post_init_post_parse__(self) -> None:
         assert (
             sum(map(lambda x: int(bool(x)), asdict(self).values())) <= 1
         ), f"More than one option set {self}"

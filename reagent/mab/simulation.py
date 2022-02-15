@@ -37,7 +37,7 @@ class MAB(ABC):
         pass
 
     @property
-    def n_arms(self):
+    def n_arms(self) -> int:
         return len(self.expected_rewards)
 
 
@@ -57,7 +57,7 @@ class BernoilliMAB(MAB):
         max_steps: int,
         probs: torch.Tensor,
         arm_ids: Optional[List[str]] = None,
-    ):
+    ) -> None:
         """ """
         assert probs.max() <= 1.0
         assert probs.min() >= 0.0

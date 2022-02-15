@@ -20,7 +20,7 @@ class Environment(Model):
     Environment for RL
     """
 
-    def __init__(self, max_horizon: int = -1):
+    def __init__(self, max_horizon: int = -1) -> None:
         self._current_state: Optional[State] = None
         self._steps_taken: int = 0
         self._max_horizon = max_horizon
@@ -85,7 +85,7 @@ class Environment(Model):
 
 
 class PolicyLogGenerator(object):
-    def __init__(self, env: Environment, policy: RLPolicy):
+    def __init__(self, env: Environment, policy: RLPolicy) -> None:
         self._env = env
         self._policy = policy
 

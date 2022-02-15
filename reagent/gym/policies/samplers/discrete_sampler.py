@@ -28,7 +28,7 @@ class SoftmaxActionSampler(Sampler):
         temperature: float = 1.0,
         temperature_decay: float = 1.0,
         minimum_temperature: float = 0.1,
-    ):
+    ) -> None:
         assert temperature > 0, f"Invalid non-positive temperature {temperature}."
         self.temperature = temperature
         self.temperature_decay = temperature_decay
@@ -129,7 +129,7 @@ class EpsilonGreedyActionSampler(Sampler):
 
     def __init__(
         self, epsilon: float, epsilon_decay: float = 1.0, minimum_epsilon: float = 0.0
-    ):
+    ) -> None:
         self.epsilon = float(epsilon)
         assert epsilon_decay <= 1
         self.epsilon_decay = epsilon_decay

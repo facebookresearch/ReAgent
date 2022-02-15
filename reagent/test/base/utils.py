@@ -95,9 +95,10 @@ def default_normalizer(feats, min_value=None, max_value=None):
     return normalization
 
 
-def write_lists_to_csv(path, *args):
+def write_lists_to_csv(path, *args) -> None:
     rows = zip(*args)
     with open(path, "w") as f:
+        # pyre-fixme[6]: For 1st param expected `_Writer` but got `TextIOWrapper`.
         writer = csv.writer(f)
         for row in rows:
             writer.writerow(row)

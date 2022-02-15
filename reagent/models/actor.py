@@ -13,12 +13,12 @@ from reagent.models.fully_connected_network import FullyConnectedNetwork
 from torch.distributions import Dirichlet
 from torch.distributions.normal import Normal
 
-LOG_PROB_MIN = -2.0
+LOG_PROB_MIN: float = -2.0
 LOG_PROB_MAX = 2.0
 
 
 class StochasticActor(ModelBase):
-    def __init__(self, scorer, sampler):
+    def __init__(self, scorer, sampler) -> None:
         super().__init__()
         self.scorer = scorer
         self.sampler = sampler
@@ -44,7 +44,7 @@ class FullyConnectedActor(ModelBase):
         use_batch_norm: bool = False,
         action_activation: str = "tanh",
         exploration_variance: Optional[float] = None,
-    ):
+    ) -> None:
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
         assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
@@ -107,7 +107,7 @@ class GaussianFullyConnectedActor(ModelBase):
         use_batch_norm: bool = False,
         use_layer_norm: bool = False,
         use_l2_normalization: bool = False,
-    ):
+    ) -> None:
         """
         Args:
             use_l2_normalization: if True, divides action by l2 norm.
@@ -243,7 +243,9 @@ class DirichletFullyConnectedActor(ModelBase):
     # Used to prevent concentration from being 0
     EPSILON = 1e-6
 
-    def __init__(self, state_dim, action_dim, sizes, activations, use_batch_norm=False):
+    def __init__(
+        self, state_dim, action_dim, sizes, activations, use_batch_norm: bool = False
+    ) -> None:
         """
         AKA the multivariate beta distribution. Used in cases where actor's action
         must sum to 1.

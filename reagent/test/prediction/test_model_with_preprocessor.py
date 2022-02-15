@@ -16,23 +16,23 @@ from reagent.test.prediction.test_prediction_utils import (
 
 
 class TestModelWithPreprocessor(unittest.TestCase):
-    def verify_results(self, expected_output, scripted_output):
+    def verify_results(self, expected_output, scripted_output) -> None:
         for i, j in zip(expected_output, scripted_output):
             npt.assert_array_equal(i.detach(), j.detach())
 
-    def test_seq2slate_transformer_frechet_sort_model_with_preprocessor(self):
+    def test_seq2slate_transformer_frechet_sort_model_with_preprocessor(self) -> None:
         self._test_seq2slate_model_with_preprocessor(
             model="transformer", output_arch=Seq2SlateOutputArch.FRECHET_SORT
         )
 
-    def test_seq2slate_transformer_autoregressive_model_with_preprocessor(self):
+    def test_seq2slate_transformer_autoregressive_model_with_preprocessor(self) -> None:
         self._test_seq2slate_model_with_preprocessor(
             model="transformer", output_arch=Seq2SlateOutputArch.AUTOREGRESSIVE
         )
 
     def _test_seq2slate_model_with_preprocessor(
         self, model: str, output_arch: Seq2SlateOutputArch
-    ):
+    ) -> None:
         state_normalization_parameters = {i: _cont_norm() for i in range(1, 5)}
         candidate_normalization_parameters = {i: _cont_norm() for i in range(101, 106)}
         state_preprocessor = Preprocessor(state_normalization_parameters, False)

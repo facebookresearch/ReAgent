@@ -123,7 +123,9 @@ class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
                 next_q_values = (next_dist * self.support).sum(2)
 
             next_action = self.argmax_with_mask(
-                next_q_values, possible_next_actions_mask
+                next_q_values,
+                # pyre-fixme[6]: For 2nd param expected `int` but got `FloatTensor`.
+                possible_next_actions_mask,
             )
             next_dist = next_dist[range(rewards.shape[0]), next_action.reshape(-1)]
         else:
@@ -165,6 +167,7 @@ class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
         all_q_values = (log_dist.exp() * self.support).sum(2).detach()
         model_action_idxs = self.argmax_with_mask(
             all_q_values,
+            # pyre-fixme[6]: For 2nd param expected `int` but got `Tensor`.
             possible_actions_mask if self.maxq_learning else training_batch.action,
         )
 
@@ -199,8 +202,9 @@ class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
         )
         return rewards + reward_boosts
 
-    def argmax_with_mask(self, q_values, possible_actions_mask):
+    def argmax_with_mask(self, q_values, possible_actions_mask: int):
         # Set q-values of impossible actions to a very large negative number.
+        # pyre-fixme[16]: `int` has no attribute `shape`.
         q_values = q_values.reshape(possible_actions_mask.shape)
         q_values = q_values + RLTrainerMixin.ACTION_NOT_POSSIBLE_VAL * (
             1 - possible_actions_mask

@@ -9,7 +9,7 @@ from reagent.core.aggregators import ActionCountAggregator
 
 
 class ActionCountAggregatorTest(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.actions = ["A", "B", "C"]
         key = "logged_action"
         self.aggregator = ActionCountAggregator(key, self.actions)
@@ -26,14 +26,14 @@ class ActionCountAggregatorTest(unittest.TestCase):
         for x in logged_actions:
             self.aggregator(key, x)
 
-    def test_get_distributions(self):
+    def test_get_distributions(self) -> None:
         distr = self.aggregator.get_distributions()
         self.assertEqual(len(distr), 3)
         self.assertEqual(distr["A"], [0.3, 0.4])
         self.assertEqual(distr["B"], [0.3, 0.4])
         self.assertEqual(distr["C"], [0.4, 0.2])
 
-    def test_get_cumulative_distributions(self):
+    def test_get_cumulative_distributions(self) -> None:
         distr = self.aggregator.get_cumulative_distributions()
         self.assertEqual(len(distr), 3)
         self.assertEqual(distr["A"], 0.35)

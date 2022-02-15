@@ -53,7 +53,7 @@ class SumTree(object):
     tree, but is a little more user-friendly.
     """
 
-    def __init__(self, capacity: int):
+    def __init__(self, capacity: int) -> None:
         """Creates the sum tree data structure for the given replay capacity.
         Args:
           capacity: int, the maximum number of elements that can be stored in this

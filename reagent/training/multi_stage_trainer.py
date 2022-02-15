@@ -20,8 +20,8 @@ class MultiStageTrainer(ReAgentLightningModule):
         epochs: List[int],
         assign_reporter_function=None,
         flush_reporter_function=None,
-        automatic_optimization=True,
-    ):
+        automatic_optimization: bool = True,
+    ) -> None:
         super().__init__(automatic_optimization=automatic_optimization)
         # NB: wrapping in a ModuleList so the state can be saved
         self._trainers = nn.ModuleList(trainers)
@@ -49,7 +49,7 @@ class MultiStageTrainer(ReAgentLightningModule):
     def multi_stage_total_epochs(self):
         return self._trainer_acc_epochs[-1]
 
-    def set_reporter(self, reporter):
+    def set_reporter(self, reporter) -> None:
         super().set_reporter(reporter)
         if self._assign_reporter_function:
             self._assign_reporter_function(self._trainers, reporter)
@@ -75,7 +75,7 @@ class MultiStageTrainer(ReAgentLightningModule):
 
         return mapping
 
-    def _flush_reporter(self, reporter, epoch):
+    def _flush_reporter(self, reporter, epoch) -> None:
         """
         By default, assume CompoundReporter with the same
         number of reporters as trainers
@@ -87,7 +87,8 @@ class MultiStageTrainer(ReAgentLightningModule):
             for r in reporter._reporters:
                 r.flush(epoch)
 
-    def on_fit_start(self):
+    def on_fit_start(self) -> None:
+        # pyre-fixme[16]: `MultiStageTrainer` has no attribute `_starting_epoch`.
         self._starting_epoch = self.trainer.current_epoch
         # Connecting pl.Trainer to stage trainers
         for t in self._trainers:
@@ -96,7 +97,7 @@ class MultiStageTrainer(ReAgentLightningModule):
 
         self.reporter.set_flush_function(self._flush_reporter_function)
 
-    def on_fit_end(self):
+    def on_fit_end(self) -> None:
         del self._starting_epoch
         # Disconnecting
         for t in self._trainers:
@@ -105,20 +106,21 @@ class MultiStageTrainer(ReAgentLightningModule):
 
         self.reporter.set_flush_function(None)
 
-    def on_test_start(self):
+    def on_test_start(self) -> None:
+        # pyre-fixme[16]: `MultiStageTrainer` has no attribute `_starting_epoch`.
         self._starting_epoch = self.trainer.current_epoch
         self._in_testing_loop = True
 
         for t in self._trainers:
             t.on_test_start()
 
-    def on_test_end(self):
+    def on_test_end(self) -> None:
         del self._starting_epoch
         self._in_testing_loop = False
         for t in self._trainers:
             t.on_test_end()
 
-    def _get_trainer_idx_from_epoch(self):
+    def _get_trainer_idx_from_epoch(self) -> int:
         # Cycling through the trainers
         epoch = (self.trainer.current_epoch - self._starting_epoch) % (
             self._trainer_acc_epochs[-1]
@@ -143,7 +145,7 @@ class MultiStageTrainer(ReAgentLightningModule):
             batch, batch_idx, optimizer_idx - offset
         )
 
-    def training_epoch_end(self, outputs):
+    def training_epoch_end(self, outputs) -> None:
         epoch_trainer_idx = self._get_trainer_idx_from_epoch()
         self._trainers[epoch_trainer_idx].training_epoch_end(outputs)
 
@@ -151,7 +153,7 @@ class MultiStageTrainer(ReAgentLightningModule):
         epoch_trainer_idx = self._get_trainer_idx_from_epoch()
         return self._trainers[epoch_trainer_idx].validation_step(*args, **kwargs)
 
-    def validation_epoch_end(self, outputs):
+    def validation_epoch_end(self, outputs) -> None:
         epoch_trainer_idx = self._get_trainer_idx_from_epoch()
         self._trainers[epoch_trainer_idx].validation_epoch_end(outputs)
 
@@ -161,7 +163,7 @@ class MultiStageTrainer(ReAgentLightningModule):
             for i, trainer in enumerate(self._trainers)
         }
 
-    def test_epoch_end(self, outputs):
+    def test_epoch_end(self, outputs) -> None:
         for i, trainer in enumerate(self._trainers):
             trainer.test_epoch_end([o[str(i)] for o in outputs])
 
@@ -175,7 +177,7 @@ class MultiStageTrainer(ReAgentLightningModule):
         on_tpu: int = False,
         using_native_amp: int = False,
         using_lbfgs: int = False,
-    ):
+    ) -> None:
         assert epoch == self.trainer.current_epoch
         epoch_trainer_idx = self._get_trainer_idx_from_epoch()
         optimizer_trainer_idx, offset = self._optimizer_step_to_trainer_idx[

@@ -12,7 +12,7 @@ from reagent.preprocessing.preprocessor import Preprocessor
 
 
 class TestPostprocessing(unittest.TestCase):
-    def test_continuous_action(self):
+    def test_continuous_action(self) -> None:
         normalization_params = {
             i: NormalizationParameters(
                 feature_type=CONTINUOUS_ACTION, min_value=-5.0 * i, max_value=10.0 * i
@@ -29,7 +29,7 @@ class TestPostprocessing(unittest.TestCase):
         y = postprocessor(preprocessor(x, presence))
         npt.assert_allclose(x, y, rtol=1e-4)
 
-    def test_do_not_preprocess(self):
+    def test_do_not_preprocess(self) -> None:
         normalization_params = {
             i: NormalizationParameters(feature_type=DO_NOT_PREPROCESS)
             for i in range(1, 5)

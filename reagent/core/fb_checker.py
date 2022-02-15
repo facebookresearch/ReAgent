@@ -4,7 +4,7 @@ import importlib.util
 import os
 
 
-def is_fb_environment():
+def is_fb_environment() -> bool:
     if importlib.util.find_spec("fblearner") is not None:
         if not bool(int(os.environ.get("FORCE_OSS_ENVIRONMENT", False))):
             return True

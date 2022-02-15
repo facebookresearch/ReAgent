@@ -8,7 +8,7 @@ from reagent.gym.types import Sampler
 
 
 class TopKSampler(Sampler):
-    def __init__(self, k: int):
+    def __init__(self, k: int) -> None:
         self.k = k
 
     def sample_action(self, scores: torch.Tensor) -> rlt.ActorOutput:

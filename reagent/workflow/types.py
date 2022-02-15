@@ -56,7 +56,7 @@ class ResourceOptions:
     gpu: int = 1
 
     @property
-    def use_gpu(self):
+    def use_gpu(self) -> bool:
         return self.gpu > 0
 
     ## Below is for internal use

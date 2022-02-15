@@ -15,7 +15,7 @@ from reagent.core.torchrec_types import KeyedJaggedTensor
 
 
 class TestUtils(unittest.TestCase):
-    def test_rescale_torch_tensor(self):
+    def test_rescale_torch_tensor(self) -> None:
         rows, cols = 3, 5
         original_tensor = torch.randint(low=10, high=40, size=(rows, cols)).float()
         prev_max_tensor = torch.ones(1, 5) * 40.0
@@ -44,7 +44,7 @@ class TestUtils(unittest.TestCase):
         comparison_tensor = torch.eq(original_tensor, reconstructed_original_tensor)
         self.assertTrue(torch.sum(comparison_tensor), rows * cols)
 
-    def test_masked_softmax(self):
+    def test_masked_softmax(self) -> None:
         # Postive value case
         x = torch.tensor([[15.0, 6.0, 9.0], [3.0, 2.0, 1.0]])
         temperature = 1
@@ -78,7 +78,7 @@ class TestUtils(unittest.TestCase):
         npt.assert_array_almost_equal(out, expected_out, 4)
 
     @unittest.skipIf("SANDCASTLE" not in os.environ, "Skipping test in OSS.")
-    def test_split_sequence_keyed_jagged_tensor(self):
+    def test_split_sequence_keyed_jagged_tensor(self) -> None:
         """Test the example in the docstring of split_sequence_keyed_jagged_tensor"""
         keys = ["Key0", "Key1", "Key2"]
         values = torch.arange(10).float()

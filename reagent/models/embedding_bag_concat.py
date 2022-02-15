@@ -20,7 +20,7 @@ class EmbeddingBagConcat(ModelBase):
         self,
         state_dense_dim: int,
         model_feature_config: rlt.ModelFeatureConfig,
-    ):
+    ) -> None:
         super().__init__()
         assert state_dense_dim > 0, "state_dense_dim must be > 0, got {}".format(
             state_dense_dim

@@ -27,7 +27,7 @@ from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.normalizers import only_continuous_normalizer
 
 
-ABS_LOW = -1000.0
+ABS_LOW: float = -1000.0
 ABS_HIGH = 1000.0
 
 MU_LOW = 0.0
@@ -35,8 +35,8 @@ MU_HIGH = 1000.0
 
 
 # illegal move causes game to end with a big BOOM!!!
-INVALID_MOVE_PENALTY = -1000.0
-IDLE_PENALTY = -500.0
+INVALID_MOVE_PENALTY: float = -1000.0
+IDLE_PENALTY: float = -500.0
 
 NUM_ARMS = 5
 # keep these constant for now
@@ -196,7 +196,7 @@ class ChangingArms(EnvWrapper):
 class ChangingArmsEnv(gym.Env):
     """This is just the gym environment, without extra functionality"""
 
-    def __init__(self, num_arms):
+    def __init__(self, num_arms) -> None:
         self.seed(0)
         self.num_arms = num_arms
         self.max_steps = MAX_STEPS
@@ -230,7 +230,7 @@ class ChangingArmsEnv(gym.Env):
         reward = prev - self.mus[action].item()
         return self.state, reward, reached_max_steps, None
 
-    def seed(self, seed: int):
+    def seed(self, seed: int) -> None:
         random.seed(seed)
         torch.manual_seed(seed)
 

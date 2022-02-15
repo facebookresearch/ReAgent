@@ -16,7 +16,7 @@ from reagent.training.cb.linucb_trainer import LinUCBTrainer
 
 
 class TestLinearRegressionUCBUtils(unittest.TestCase):
-    def test_batch_quadratic_form(self):
+    def test_batch_quadratic_form(self) -> None:
         x = torch.tensor([[1.0, 4.3], [3.2, 9.8]])
         A = torch.tensor([[2.0, 1.0], [2.4, 0.5]])
         batch_result = batch_quadratic_form(x, A)
@@ -27,7 +27,7 @@ class TestLinearRegressionUCBUtils(unittest.TestCase):
 
 
 class TestLinearRegressionUCB(unittest.TestCase):
-    def test_call_no_ucb(self):
+    def test_call_no_ucb(self) -> None:
         x = torch.tensor([[1.0, 2.0], [1.0, 3.0]])  # y=x+1
         y = torch.tensor([3.0, 4.0])
         model = LinearRegressionUCB(2, predict_ucb=False, l2_reg_lambda=0.0)
@@ -41,7 +41,7 @@ class TestLinearRegressionUCB(unittest.TestCase):
         self.assertEqual(tuple(out.shape), (2,))
         npt.assert_allclose(out.numpy(), np.array([6.0, 7.0]), rtol=1e-5)
 
-    def test_call_ucb(self):
+    def test_call_ucb(self) -> None:
         x = torch.tensor([[1.0, 2.0], [1.0, 3.0]])  # y=x+1
         y = torch.tensor([3.0, 4.0])
         model = LinearRegressionUCB(2, predict_ucb=True, l2_reg_lambda=0.0)

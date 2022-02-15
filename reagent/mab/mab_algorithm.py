@@ -107,7 +107,7 @@ class MABAlgo(torch.nn.Module, ABC):
         *,
         n_arms: Optional[int] = None,
         arm_ids: Optional[List[str]] = None,
-    ):
+    ) -> None:
         super().__init__()
         if n_arms is not None:
             self.arm_ids = list(map(str, range(n_arms)))
@@ -128,7 +128,7 @@ class MABAlgo(torch.nn.Module, ABC):
         sum_reward_per_arm: Tensor,
         sum_reward_squared_per_arm: Tensor,
         arm_ids: Optional[List[str]] = None,
-    ):
+    ) -> None:
         (
             n_obs_per_arm,
             sum_reward_per_arm,
@@ -148,7 +148,7 @@ class MABAlgo(torch.nn.Module, ABC):
         self.total_sum_reward_squared_per_arm += sum_reward_squared_per_arm
         self.total_n_obs_all_arms += int(n_obs_per_arm.sum().item())
 
-    def add_single_observation(self, arm_id: str, reward: float):
+    def add_single_observation(self, arm_id: str, reward: float) -> None:
         """
         Add a single observation (arm played, reward) to the bandit
 
@@ -177,7 +177,7 @@ class MABAlgo(torch.nn.Module, ABC):
             best_idx = torch.argmax(scores)
         return self.arm_ids[best_idx]
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the MAB to the initial (empty) state.
         """
@@ -223,7 +223,7 @@ class MABAlgo(torch.nn.Module, ABC):
         )
         return b()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         t = ", ".join(
             f"{v:.3f} ({int(n)})"
             for v, n in zip(self.get_avg_reward_values(), self.total_n_obs_per_arm)

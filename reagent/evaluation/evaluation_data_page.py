@@ -228,7 +228,10 @@ class EvaluationDataPage(rlt.TensorDataClass):
         model_values = model_values.reshape(possible_actions_mask.shape)
         optimal_q_values = optimal_q_values.reshape(possible_actions_mask.shape)
         model_propensities = masked_softmax(
-            optimal_q_values, possible_actions_mask, trainer.rl_temperature
+            optimal_q_values,
+            # pyre-fixme[6]: For 2nd param expected `float` but got `Tensor`.
+            possible_actions_mask,
+            trainer.rl_temperature,
         )
 
         rewards_and_metric_rewards = trainer.reward_network(
@@ -342,7 +345,10 @@ class EvaluationDataPage(rlt.TensorDataClass):
             model_outputs, possible_actions_mask
         )[1]
         model_propensities = masked_softmax(
-            model_outputs, possible_actions_mask, trainer.rl_temperature
+            model_outputs,
+            # pyre-fixme[6]: For 2nd param expected `float` but got `Tensor`.
+            possible_actions_mask,
+            trainer.rl_temperature,
         )
         assert model_values.shape == actions.shape, (
             "Invalid shape: " + str(model_values.shape) + " != " + str(actions.shape)

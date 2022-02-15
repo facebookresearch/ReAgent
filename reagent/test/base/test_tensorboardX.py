@@ -12,14 +12,14 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 class TestSummaryWriterContext(HorizonTestBase):
-    def test_noop(self):
+    def test_noop(self) -> None:
         self.assertIsNone(SummaryWriterContext.add_scalar("test", torch.ones(1)))
 
-    def test_with_none(self):
+    def test_with_none(self) -> None:
         with summary_writer_context(None):
             self.assertIsNone(SummaryWriterContext.add_scalar("test", torch.ones(1)))
 
-    def test_writing(self):
+    def test_writing(self) -> None:
         with TemporaryDirectory() as tmp_dir:
             writer = SummaryWriter(tmp_dir)
             writer.add_scalar = MagicMock()
@@ -29,7 +29,7 @@ class TestSummaryWriterContext(HorizonTestBase):
                 "test", torch.ones(1), global_step=0
             )
 
-    def test_writing_stack(self):
+    def test_writing_stack(self) -> None:
         with TemporaryDirectory() as tmp_dir1, TemporaryDirectory() as tmp_dir2:
             writer1 = SummaryWriter(tmp_dir1)
             writer1.add_scalar = MagicMock()
@@ -46,15 +46,16 @@ class TestSummaryWriterContext(HorizonTestBase):
                 "test2", torch.ones(1), global_step=0
             )
 
-    def test_swallowing_exception(self):
+    def test_swallowing_exception(self) -> None:
         with TemporaryDirectory() as tmp_dir:
             writer = SummaryWriter(tmp_dir)
             writer.add_scalar = MagicMock(side_effect=NotImplementedError("test"))
+            # pyre-fixme[16]: `SummaryWriter` has no attribute `exceptions_to_ignore`.
             writer.exceptions_to_ignore = (NotImplementedError, KeyError)
             with summary_writer_context(writer):
                 SummaryWriterContext.add_scalar("test", torch.ones(1))
 
-    def test_not_swallowing_exception(self):
+    def test_not_swallowing_exception(self) -> None:
         with TemporaryDirectory() as tmp_dir:
             writer = SummaryWriter(tmp_dir)
             writer.add_scalar = MagicMock(side_effect=NotImplementedError("test"))
@@ -63,13 +64,13 @@ class TestSummaryWriterContext(HorizonTestBase):
             ), summary_writer_context(writer):
                 SummaryWriterContext.add_scalar("test", torch.ones(1))
 
-    def test_swallowing_histogram_value_error(self):
+    def test_swallowing_histogram_value_error(self) -> None:
         with TemporaryDirectory() as tmp_dir:
             writer = SummaryWriter(tmp_dir)
             with summary_writer_context(writer):
                 SummaryWriterContext.add_histogram("bad_histogram", torch.ones(100, 1))
 
-    def test_global_step(self):
+    def test_global_step(self) -> None:
         with TemporaryDirectory() as tmp_dir:
             writer = SummaryWriter(tmp_dir)
             writer.add_scalar = MagicMock()
@@ -85,7 +86,7 @@ class TestSummaryWriterContext(HorizonTestBase):
             )
             self.assertEqual(2, len(writer.add_scalar.mock_calls))
 
-    def test_add_custom_scalars(self):
+    def test_add_custom_scalars(self) -> None:
         with TemporaryDirectory() as tmp_dir:
             writer = SummaryWriter(tmp_dir)
             writer.add_custom_scalars = MagicMock()

@@ -85,7 +85,7 @@ class RLPolicy(ABC):
     Policy interface
     """
 
-    def __init__(self, action_space: ActionSpace, device=None):
+    def __init__(self, action_space: ActionSpace, device=None) -> None:
         self._action_space = action_space
         self._device = device
 
@@ -106,7 +106,7 @@ class RandomRLPolicy(RLPolicy):
     A random policy which return an action according to uniform distribution
     """
 
-    def __init__(self, action_space: ActionSpace, device=None):
+    def __init__(self, action_space: ActionSpace, device=None) -> None:
         super().__init__(action_space, device)
         self._prob = 1.0 / len(action_space)
 
@@ -125,14 +125,14 @@ class EpsilonGreedyRLPolicy(RLPolicy):
         calculate probabilities for all actions
     """
 
-    def __init__(self, policy: RLPolicy, epsilon: float = 0.0):
+    def __init__(self, policy: RLPolicy, epsilon: float = 0.0) -> None:
         assert policy is not None and 0.0 <= epsilon < 1.0
         super().__init__(policy._device)
         self._policy = policy
         self._exploitation_prob = 1.0 - epsilon
         self._exploration_prob = epsilon / len(policy.action_space)
 
-    def action_dist(self, state) -> ActionDistribution:
+    def action_dist(self, state: State) -> ActionDistribution:
         new_dist = deepcopy(self._policy(state))
         for a, p in new_dist:
             new_dist[a] = p * self._exploitation_prob + self._exploration_prob
@@ -256,7 +256,7 @@ class IPSEstimator(RLEstimator):
         weight_clamper: Optional[Clamper] = None,
         weighted: bool = True,
         device=None,
-    ):
+    ) -> None:
         super().__init__(device)
         self._weight_clamper = (
             weight_clamper if weight_clamper is not None else Clamper()
@@ -399,7 +399,7 @@ class MAGICEstimator(IPSEstimator):
     Algorithm from https://arxiv.org/abs/1604.00923, appendix G.3
     """
 
-    def __init__(self, weight_clamper: Optional[Clamper] = None, device=None):
+    def __init__(self, weight_clamper: Optional[Clamper] = None, device=None) -> None:
         super().__init__(weight_clamper, True, device)
 
     def evaluate(self, input: RLEstimatorInput, **kwargs) -> EstimatorResults:
@@ -556,7 +556,7 @@ class NeuralDualDICE(RLEstimator):
     zeta_net: typing.Any = None
     v_net: typing.Any = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         conjugate_exponent = self.polynomial_degree / (self.polynomial_degree - 1)
         self.f = self._get_convex_f(self.polynomial_degree)
         self.fconjugate = self._get_convex_f(conjugate_exponent)
@@ -648,7 +648,7 @@ class NeuralDualDICE(RLEstimator):
         ).to(device=self.device) ** transition["timestep"].reshape((-1, 1))
         return torch.sum(weights * unweighted_loss) / torch.sum(weights)
 
-    def reset(self):
+    def reset(self) -> None:
         self.v_net = LinearNet(
             self.state_dim + self.action_dim,
             self.hidden_dim,

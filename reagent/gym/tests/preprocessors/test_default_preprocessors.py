@@ -18,7 +18,7 @@ except ModuleNotFoundError:
 
 
 class TestMakeDefaultObsPreprocessor(unittest.TestCase):
-    def test_box(self):
+    def test_box(self) -> None:
         env = Gym(env_name="CartPole-v0")
         obs_preprocessor = env.get_obs_preprocessor()
         obs = env.reset()
@@ -30,7 +30,7 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
         npt.assert_array_almost_equal(obs, state.float_features.squeeze(0))
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_box_cuda(self):
+    def test_box_cuda(self) -> None:
         env = Gym(env_name="CartPole-v0")
         device = torch.device("cuda")
         obs_preprocessor = env.get_obs_preprocessor(device=device)
@@ -45,8 +45,9 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
         npt.assert_array_almost_equal(obs, state.float_features.cpu().squeeze(0))
 
     @unittest.skipIf(not HAS_RECSIM, "Recsim is not installed")
-    def test_recsim_interest_evolution(self):
+    def test_recsim_interest_evolution(self) -> None:
         num_candidate = 10
+        # pyre-fixme[16]: Module `envs` has no attribute `RecSim`.
         env = RecSim(
             num_candidates=num_candidate, slate_size=3, resample_documents=False
         )
@@ -69,8 +70,9 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
             npt.assert_array_almost_equal(v, doc_float_features[0, i])
 
     @unittest.skipIf(not HAS_RECSIM, "Recsim is not installed")
-    def test_recsim_interest_exploration(self):
+    def test_recsim_interest_exploration(self) -> None:
         num_candidate = 10
+        # pyre-fixme[16]: Module `envs` has no attribute `RecSim`.
         env = RecSim(
             num_candidates=num_candidate,
             slate_size=3,

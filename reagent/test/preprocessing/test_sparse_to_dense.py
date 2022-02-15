@@ -12,7 +12,7 @@ from reagent.preprocessing.sparse_to_dense import (
 
 
 class TestSparseToDense(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.sorted_features = [1, 2, 5, 4]
         self.str_keyed_sparse_data = [
             {},
@@ -45,7 +45,7 @@ class TestSparseToDense(unittest.TestCase):
             ]
         )
 
-    def test_int_key_sparse_to_dense(self):
+    def test_int_key_sparse_to_dense(self) -> None:
         # int keys, set_missing_value_to_zero=False
         processor = PythonSparseToDenseProcessor(
             self.sorted_features, set_missing_value_to_zero=False
@@ -54,7 +54,7 @@ class TestSparseToDense(unittest.TestCase):
         assert torch.allclose(value, self.expected_value_missing)
         assert torch.all(presence == self.expected_presence_missing)
 
-    def test_str_key_sparse_to_dense(self):
+    def test_str_key_sparse_to_dense(self) -> None:
         # string keys, set_missing_value_to_zero=True
         processor = StringKeySparseToDenseProcessor(
             self.sorted_features, set_missing_value_to_zero=True

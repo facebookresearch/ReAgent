@@ -43,7 +43,7 @@ BATCH_SIZE = 2
 SEQ_LEN = 4
 
 
-def _create_norm(dim, offset=0):
+def _create_norm(dim, offset: int = 0):
     normalization_data = NormalizationData(
         dense_normalization_parameters={
             i: NormalizationParameters(feature_type=CONTINUOUS, mean=0.0, stddev=1.0)
@@ -106,7 +106,8 @@ def _create_preprocessed_input(
 class TestSyntheticRewardNetBuilder(unittest.TestCase):
     def test_single_step_synthetic_reward_net_builder_discrete_actions(
         self,
-    ):
+    ) -> None:
+        # pyre-fixme[28]: Unexpected keyword argument `SingleStepSyntheticReward`.
         builder = SyntheticRewardNetBuilder__Union(
             SingleStepSyntheticReward=SingleStepSyntheticReward()
         ).value
@@ -114,7 +115,8 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
 
     def test_ngram_fc_synthetic_reward_net_builder_discrete_actions(
         self,
-    ):
+    ) -> None:
+        # pyre-fixme[28]: Unexpected keyword argument `NGramSyntheticReward`.
         builder = SyntheticRewardNetBuilder__Union(
             NGramSyntheticReward=NGramSyntheticReward()
         ).value
@@ -122,13 +124,14 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
 
     def test_ngram_conv_net_synthetic_reward_net_builder_discrete_actions(
         self,
-    ):
+    ) -> None:
         conv_net_params = rlp.ConvNetParameters(
             conv_dims=[256, 128],
             conv_height_kernels=[1, 1],
             pool_types=["max", "max"],
             pool_kernel_sizes=[1, 1],
         )
+        # pyre-fixme[28]: Unexpected keyword argument `NGramConvNetSyntheticReward`.
         builder = SyntheticRewardNetBuilder__Union(
             NGramConvNetSyntheticReward=NGramConvNetSyntheticReward(
                 conv_net_params=conv_net_params
@@ -138,7 +141,8 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
 
     def test_lstm_synthetic_reward_net_builder_discrete_actions(
         self,
-    ):
+    ) -> None:
+        # pyre-fixme[28]: Unexpected keyword argument `SequenceSyntheticReward`.
         builder = SyntheticRewardNetBuilder__Union(
             SequenceSyntheticReward=SequenceSyntheticReward()
         ).value
@@ -146,7 +150,8 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
 
     def test_transformer_synthetic_reward_net_builder_discrete_actions(
         self,
-    ):
+    ) -> None:
+        # pyre-fixme[28]: Unexpected keyword argument `TransformerSyntheticReward`.
         builder = SyntheticRewardNetBuilder__Union(
             TransformerSyntheticReward=TransformerSyntheticReward()
         ).value
@@ -154,7 +159,7 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
 
     def _test_synthetic_reward_net_builder_discrete_actions(
         self, builder: SyntheticRewardNetBuilder
-    ):
+    ) -> None:
         state_normalization_data = _create_norm(STATE_DIM)
         discrete_action_names = ["1", "2"]
         reward_net = builder.build_synthetic_reward_network(
@@ -174,7 +179,8 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
         #     predictor_wrapper, DiscreteSingleStepSyntheticRewardPredictorWrapper
         # )
 
-    def test_single_step_synthetic_reward_net_builder_continuous_actions(self):
+    def test_single_step_synthetic_reward_net_builder_continuous_actions(self) -> None:
+        # pyre-fixme[28]: Unexpected keyword argument `SingleStepSyntheticReward`.
         builder = SyntheticRewardNetBuilder__Union(
             SingleStepSyntheticReward=SingleStepSyntheticReward()
         ).value
@@ -182,7 +188,8 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
 
     def test_ngram_fc_synthetic_reward_net_builder_continuous_actions(
         self,
-    ):
+    ) -> None:
+        # pyre-fixme[28]: Unexpected keyword argument `NGramSyntheticReward`.
         builder = SyntheticRewardNetBuilder__Union(
             NGramSyntheticReward=NGramSyntheticReward()
         ).value
@@ -190,13 +197,14 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
 
     def test_ngram_conv_net_synthetic_reward_net_builder_continuous_actions(
         self,
-    ):
+    ) -> None:
         conv_net_params = rlp.ConvNetParameters(
             conv_dims=[256, 128],
             conv_height_kernels=[1, 1],
             pool_types=["max", "max"],
             pool_kernel_sizes=[1, 1],
         )
+        # pyre-fixme[28]: Unexpected keyword argument `NGramConvNetSyntheticReward`.
         builder = SyntheticRewardNetBuilder__Union(
             NGramConvNetSyntheticReward=NGramConvNetSyntheticReward(
                 conv_net_params=conv_net_params
@@ -206,7 +214,8 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
 
     def test_lstm_synthetic_reward_net_builder_continuous_actions(
         self,
-    ):
+    ) -> None:
+        # pyre-fixme[28]: Unexpected keyword argument `SequenceSyntheticReward`.
         builder = SyntheticRewardNetBuilder__Union(
             SequenceSyntheticReward=SequenceSyntheticReward()
         ).value
@@ -214,7 +223,8 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
 
     def test_transformer_synthetic_reward_net_builder_continuous_actions(
         self,
-    ):
+    ) -> None:
+        # pyre-fixme[28]: Unexpected keyword argument `TransformerSyntheticReward`.
         builder = SyntheticRewardNetBuilder__Union(
             TransformerSyntheticReward=TransformerSyntheticReward()
         ).value
@@ -223,7 +233,7 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
     @torch.no_grad()
     def _test_synthetic_reward_net_builder_continuous_actions(
         self, builder: SyntheticRewardNetBuilder
-    ):
+    ) -> None:
         """
         This test does the following steps:
         1. create a net builder

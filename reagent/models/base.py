@@ -55,6 +55,6 @@ class ModelBase(nn.Module):
         # This is not ideal but makes exporting simple
         return deepcopy(self).cpu()
 
-    def requires_model_parallel(self):
+    def requires_model_parallel(self) -> bool:
         """Return True if this model has large embedding tables which need to be sharded"""
         return False

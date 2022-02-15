@@ -18,7 +18,9 @@ from reagent.ope.utils import RunningAverage
 
 
 class TabularPolicy(RLPolicy):
-    def __init__(self, action_space: ActionSpace, epsilon: float = 0.0, device=None):
+    def __init__(
+        self, action_space: ActionSpace, epsilon: float = 0.0, device=None
+    ) -> None:
         super().__init__(action_space, device)
         self._epsilon = epsilon
         as_size = len(action_space)
@@ -73,7 +75,7 @@ class TabularPolicy(RLPolicy):
 
 
 class TabularValueFunction(ValueFunction):
-    def __init__(self, policy: RLPolicy, model: Model, gamma=0.99):
+    def __init__(self, policy: RLPolicy, model: Model, gamma: float = 0.99) -> None:
         self._policy = policy
         self._model = model
         self._gamma = gamma
@@ -96,14 +98,14 @@ class TabularValueFunction(ValueFunction):
     def state_value(self, state: State) -> float:
         pass
 
-    def reset(self, clear_state_values: bool = False):
+    def reset(self, clear_state_values: bool = False) -> None:
         pass
 
 
 class EstimatedStateValueFunction(ValueFunction):
     def __init__(
         self, policy: RLPolicy, env: Environment, gamma: float, num_episodes: int = 100
-    ):
+    ) -> None:
         self._policy = policy
         self._env = env
         self._gamma = gamma
@@ -111,7 +113,7 @@ class EstimatedStateValueFunction(ValueFunction):
         self._state_values = {}
         self._estimate_value()
 
-    def _estimate_value(self):
+    def _estimate_value(self) -> None:
         tgt_generator = PolicyLogGenerator(self._env, self._policy)
         log = {}
         for state in self._env.states:
@@ -137,7 +139,7 @@ class EstimatedStateValueFunction(ValueFunction):
     def state_value(self, state: State) -> float:
         return self._state_values[state]
 
-    def reset(self):
+    def reset(self) -> None:
         self._state_values = {}
 
 
@@ -148,7 +150,7 @@ class DPValueFunction(TabularValueFunction):
         env: Environment,
         gamma: float = 0.99,
         threshold: float = 0.0001,
-    ):
+    ) -> None:
         super().__init__(policy, env, gamma)
         self._env = env
         self._threshold = threshold
@@ -159,12 +161,12 @@ class DPValueFunction(TabularValueFunction):
             self._evaluate()
         return self._state_value(state)
 
-    def reset(self, clear_state_values: bool = False):
+    def reset(self, clear_state_values: bool = False) -> None:
         self._evaluated = False
         if clear_state_values:
             self._state_values.clear()
 
-    def _evaluate(self):
+    def _evaluate(self) -> None:
         delta = float("inf")
         while delta >= self._threshold:
             delta = 0.0
@@ -186,7 +188,7 @@ class DPValueFunction(TabularValueFunction):
 
 
 class DPTrainer(object):
-    def __init__(self, env: Environment, policy: TabularPolicy):
+    def __init__(self, env: Environment, policy: TabularPolicy) -> None:
         self._env = env
         self._policy = policy
 
@@ -194,7 +196,7 @@ class DPTrainer(object):
     def _state_value(state: State, state_values: Mapping[State, float]) -> float:
         return 0.0 if state not in state_values else state_values[state]
 
-    def train(self, gamma: float = 0.9, threshold: float = 0.0001):
+    def train(self, gamma: float = 0.9, threshold: float = 0.0001) -> DPValueFunction:
         stable = False
         valfunc = DPValueFunction(self._policy, self._env, gamma, threshold)
         while not stable:
@@ -233,7 +235,7 @@ class MonteCarloValueFunction(TabularValueFunction):
         first_visit: bool = True,
         count_threshold: int = 100,
         max_iteration: int = 200,
-    ):
+    ) -> None:
         super().__init__(policy, env, gamma)
         self._env = env
         self._first_visit = first_visit
@@ -242,7 +244,7 @@ class MonteCarloValueFunction(TabularValueFunction):
         self._log_generator = PolicyLogGenerator(env, policy)
         self._state_counts = {}
 
-    def _state_value(self, state: State):
+    def _state_value(self, state: State) -> float:
         i = 0
         state_count = self._state_counts[state] if state in self._state_counts else 0
         while state_count < self._count_threshold and i < self._max_iteration:
@@ -282,7 +284,7 @@ class MonteCarloValueFunction(TabularValueFunction):
             )
         return super()._state_value(state)
 
-    def _update_state_value(self, state: State, g: float):
+    def _update_state_value(self, state: State, g: float) -> None:
         sv = super()._state_value(state)
         sc = self._state_counts[state] if state in self._state_counts else 0
         sc += 1
@@ -293,14 +295,14 @@ class MonteCarloValueFunction(TabularValueFunction):
     def state_value(self, state: State) -> float:
         return self._state_value(state)
 
-    def reset(self, clear_state_values: bool = False):
+    def reset(self, clear_state_values: bool = False) -> None:
         if clear_state_values:
             self._state_values.clear()
             self._state_counts.clear()
 
 
 class MonteCarloTrainer(object):
-    def __init__(self, env: Environment, policy: TabularPolicy):
+    def __init__(self, env: Environment, policy: TabularPolicy) -> None:
         self._env = env
         self._policy = policy
         self._log_generator = PolicyLogGenerator(env, policy)
@@ -311,7 +313,7 @@ class MonteCarloTrainer(object):
         gamma: float = 0.9,
         first_visit: bool = True,
         update_interval: int = 20,
-    ):
+    ) -> None:
         i = 0
         value_counts = {}
         while i < iterations:
@@ -356,7 +358,7 @@ class MonteCarloTrainer(object):
             if i % update_interval == 0 and self._update_policy(value_counts):
                 break
 
-    def _update_state_value(self, value_counts, state, action, g: float):
+    def _update_state_value(self, value_counts, state, action, g: float) -> None:
         key = (state, action)
         sv, sc = value_counts[key] if key in value_counts else (0.0, 0)
         sc += 1

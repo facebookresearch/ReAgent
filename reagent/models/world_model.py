@@ -10,7 +10,7 @@ from reagent.models.mdn_rnn import MDNRNN
 class MemoryNetwork(ModelBase):
     def __init__(
         self, state_dim, action_dim, num_hiddens, num_hidden_layers, num_gaussians
-    ):
+    ) -> None:
         super().__init__()
         self.mdnrnn = MDNRNN(
             state_dim=state_dim,

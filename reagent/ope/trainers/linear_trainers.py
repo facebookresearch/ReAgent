@@ -15,7 +15,7 @@ from torch import Tensor
 
 
 class LinearTrainer(Trainer):
-    def __init__(self, is_classifier: bool = False):
+    def __init__(self, is_classifier: bool = False) -> None:
         super().__init__()
         self._is_classifier = is_classifier
 
@@ -60,7 +60,9 @@ class LassoTrainer(LinearTrainer):
     def name(self) -> str:
         return "lasso"
 
-    def train(self, data: TrainingData, iterations: int = 1, num_samples: int = 0):
+    def train(
+        self, data: TrainingData, iterations: int = 1, num_samples: int = 0
+    ) -> None:
         logging.info("LassoTrainer.train...")
         self._model = None
         best_score = float("-inf")
@@ -95,7 +97,9 @@ class DecisionTreeTrainer(LinearTrainer):
     def name(self) -> str:
         return "decision_tree"
 
-    def train(self, data: TrainingData, iterations: int = 1, num_samples: int = 0):
+    def train(
+        self, data: TrainingData, iterations: int = 1, num_samples: int = 0
+    ) -> None:
         logging.info("DecisionTreeTrainer.train...")
         self._model = None
         best_score = float("-inf")
@@ -137,14 +141,16 @@ class DecisionTreeTrainer(LinearTrainer):
 
 
 class DecisionTreeClassifierTrainer(LinearTrainer):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(True)
 
     @property
     def name(self) -> str:
         return "decision_tree_classifier"
 
-    def train(self, data: TrainingData, iterations: int = 1, num_samples: int = 0):
+    def train(
+        self, data: TrainingData, iterations: int = 1, num_samples: int = 0
+    ) -> None:
         logging.info("DecisionTreeClassifierTrainer.train...")
         self._model = None
         best_score = float("-inf")
@@ -172,7 +178,7 @@ class DecisionTreeClassifierTrainer(LinearTrainer):
 
 
 class LogisticRegressionTrainer(LinearTrainer):
-    def __init__(self, solver: str = "lbfgs"):
+    def __init__(self, solver: str = "lbfgs") -> None:
         super().__init__(True)
         self._solver = solver
 
@@ -180,7 +186,9 @@ class LogisticRegressionTrainer(LinearTrainer):
     def name(self) -> str:
         return "logistic_regression"
 
-    def train(self, data: TrainingData, iterations: int = 1, num_samples: int = 0):
+    def train(
+        self, data: TrainingData, iterations: int = 1, num_samples: int = 0
+    ) -> None:
         logging.info("LogisticRegressionTrainer.train...")
         self._model = None
         best_score = float("-inf")
@@ -209,7 +217,7 @@ class LogisticRegressionTrainer(LinearTrainer):
 
 
 class SGDClassifierTrainer(LinearTrainer):
-    def __init__(self, loss: str = "log", max_iter: int = 1000):
+    def __init__(self, loss: str = "log", max_iter: int = 1000) -> None:
         super().__init__(True)
         self._loss = loss
         self._max_iter = max_iter
@@ -218,7 +226,9 @@ class SGDClassifierTrainer(LinearTrainer):
     def name(self) -> str:
         return "sgd_classifier"
 
-    def train(self, data: TrainingData, iterations: int = 1, num_samples: int = 0):
+    def train(
+        self, data: TrainingData, iterations: int = 1, num_samples: int = 0
+    ) -> None:
         logging.info("SGDClassifierTrainer.train...")
         self._model = None
         best_score = float("-inf")
@@ -252,7 +262,7 @@ class LinearNet(torch.nn.Module):
         D_out: int,
         hidden_layers: int = 2,
         activation=torch.nn.ReLU,
-    ):
+    ) -> None:
         super(LinearNet, self).__init__()
         self._hidden_dim = H
         self._hidden_layers = hidden_layers
@@ -274,7 +284,7 @@ class LinearNet(torch.nn.Module):
 
 
 class NNTrainer(Trainer):
-    def __init__(self, device=None):
+    def __init__(self, device=None) -> None:
         super().__init__()
         self._device = device
         self._loss_fn: Optional[torch.nn.MSELoss] = None
@@ -289,7 +299,7 @@ class NNTrainer(Trainer):
         iterations: int = 100,
         epochs: int = 1,
         num_samples: int = 0,
-    ):
+    ) -> None:
         d_in, d_out = (
             data.train_x.shape[1],
             data.train_y.shape[1] if len(data.train_y.shape) > 1 else 1,
