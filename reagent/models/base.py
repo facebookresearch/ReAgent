@@ -29,7 +29,7 @@ class ModelBase(nn.Module):
         """
         return None
 
-    def get_target_network(self):
+    def get_target_network(self) -> "ModelBase":
         """
         Return a copy of this network to be used as target network
 
@@ -48,7 +48,7 @@ class ModelBase(nn.Module):
         """
         raise NotImplementedError
 
-    def cpu_model(self):
+    def cpu_model(self) -> "ModelBase":
         """
         Override this in DistributedDataParallel models
         """

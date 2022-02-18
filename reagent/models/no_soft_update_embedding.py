@@ -12,5 +12,5 @@ class NoSoftUpdateEmbedding(nn.Embedding):
     table in the target network.
     """
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo) -> "NoSoftUpdateEmbedding":
         return copy.copy(self)
