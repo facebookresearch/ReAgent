@@ -41,7 +41,7 @@ StateType = Union[float, Tuple[float], Tuple[int], np.ndarray, Tensor]
 class State(TypeWrapper[StateType]):
     is_terminal: bool = False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return super().__repr__()[:-1] + f",is_terminal[{self.is_terminal}]}}"
 
 

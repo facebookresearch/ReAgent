@@ -11,4 +11,4 @@ def is_fb_environment() -> bool:
     return False
 
 
-IS_FB_ENVIRONMENT = is_fb_environment()
+IS_FB_ENVIRONMENT: bool = is_fb_environment()
