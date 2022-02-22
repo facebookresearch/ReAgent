@@ -134,6 +134,8 @@ class ReplayBufferDataset(torch.utils.data.IterableDataset):
                 possible_actions_mask = next_possible_actions_mask
                 num_steps += 1
                 global_num_steps += 1
+                if self._agent.post_step:
+                    self._agent.post_step(transition)
             if self._post_episode_callback:
                 self._post_episode_callback(trajectory, info)
 
