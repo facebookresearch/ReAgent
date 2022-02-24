@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-
 import logging
+import pdb
+import sys
 from collections import defaultdict
 from typing import List, Dict
 
@@ -86,3 +87,18 @@ class lazy_property(object):
         value = self._fget(obj)
         setattr(obj, self.__name__, value)
         return value
+
+
+class ForkedPdb(pdb.Pdb):
+    """A Pdb subclass that may be used
+    from a forked multiprocessing child
+
+    """
+
+    def interaction(self, *args, **kwargs):
+        _stdin = sys.stdin
+        try:
+            sys.stdin = open("/dev/stdin")  # noqa
+            pdb.Pdb.interaction(self, *args, **kwargs)
+        finally:
+            sys.stdin = _stdin
