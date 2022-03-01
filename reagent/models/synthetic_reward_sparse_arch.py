@@ -182,10 +182,10 @@ class SingleStepSyntheticSparseArchRewardNet(nn.Module):
         for conf in embedding_bag_collection.embedding_bag_configs:
             sparse_feature_names.extend(conf.feature_names)
         self.inter_arch_sparse_and_state_dense = InteractionArch(
-            sparse_feature_names=sparse_feature_names
+            F,
         )
         self.inter_arch_sparse_and_action_dense = InteractionArch(
-            sparse_feature_names=sparse_feature_names
+            F,
         )
 
         interaction_output_dim = 2 * D + 2 * F + F * (F - 1) // 2
