@@ -35,6 +35,7 @@ from .parameters import (
     CRRTrainerParameters,
     ReinforceTrainerParameters,
     PPOTrainerParameters,
+    BehavioralCloningTrainerParameters,
 )
 
 
@@ -69,6 +70,7 @@ __all__ = [
     "ReinforceTrainerParameters",
     "PPOTrainer",
     "PPOTrainerParameters",
+    "BehavioralCloningTrainerParameters",
 ]
 
 if IS_FB_ENVIRONMENT:

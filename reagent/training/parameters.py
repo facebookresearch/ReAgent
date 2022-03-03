@@ -4,6 +4,7 @@
 from reagent.core.configuration import make_config_class
 from reagent.core.types import BaseDataClass
 
+from .behavioral_cloning_trainer import BehavioralCloningTrainer
 from .c51_trainer import C51Trainer
 from .cb.linucb_trainer import LinUCBTrainer
 from .discrete_crr_trainer import DiscreteCRRTrainer
@@ -125,6 +126,11 @@ class C51TrainerParameters:
 
 @make_config_class(RewardNetTrainer.__init__, blocklist=["reward_net"])
 class RewardNetworkTrainerParameters:
+    pass
+
+
+@make_config_class(BehavioralCloningTrainer.__init__, blocklist=["bc_net"])
+class BehavioralCloningTrainerParameters:
     pass
 
 
