@@ -333,6 +333,7 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
             value_loss = F.mse_loss(state_value, target_value.detach())
             yield value_loss
 
+        # pyre-fixme[16]: `Optional` has no attribute `log_metrics`.
         self.logger.log_metrics(
             {
                 "td_loss": q1_loss,
