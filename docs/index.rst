@@ -10,7 +10,10 @@
 ReAgent: Applied Reinforcement Learning Platform
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
+.. image:: https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB
+   :alt: Support Ukraine - Help Provide Humanitarian Aid to Ukraine.
+   :target: https://opensource.fb.com/support-ukraine
+   
 .. image:: https://circleci.com/gh/facebookresearch/ReAgent/tree/main.svg?style=svg
     :target: https://circleci.com/gh/facebookresearch/ReAgent/tree/main
 
