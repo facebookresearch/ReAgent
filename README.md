@@ -1,5 +1,6 @@
 ![Banner](logo/reagent_banner.png)
 ### Applied Reinforcement Learning @ Facebook
+[![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://opensource.fb.com/support-ukraine)
 [![License](https://img.shields.io/badge/license-BSD%203--Clause-brightgreen)](LICENSE)
 [![CircleCI](https://circleci.com/gh/facebookresearch/ReAgent/tree/main.svg?style=shield)](https://circleci.com/gh/facebookresearch/ReAgent/tree/main)
 [![codecov](https://codecov.io/gh/facebookresearch/ReAgent/branch/main/graph/badge.svg)](https://codecov.io/gh/facebookresearch/ReAgent)
