@@ -10,6 +10,8 @@ import numpy as np
 import pytest
 import pytorch_lightning as pl
 import torch
+
+# pyre-fixme[21]: Could not find module `parameterized`.
 from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
 from reagent.gym.datasets.replay_buffer_dataset import OfflineReplayBufferDataset
@@ -49,7 +51,6 @@ curr_dir = os.path.dirname(__file__)
 
 
 class TestGymOffline(HorizonTestBase):
-    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(GYM_TESTS)
     def test_gym_offline_cpu(self, name: str, config_path: str):
         self.run_from_config(
@@ -59,7 +60,6 @@ class TestGymOffline(HorizonTestBase):
         )
         logger.info(f"{name} passes!")
 
-    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(GYM_TESTS)
     @pytest.mark.serial
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
