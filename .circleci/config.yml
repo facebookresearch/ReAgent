@@ -426,17 +426,6 @@ jobs:
           source: https://download.pytorch.org/libtorch/nightly/cpu/libtorch-cxx11-abi-shared-with-deps-latest.zip
       - rasp_build_test
 
-  rasp_test_mac:
-    macos:
-      xcode: 13.2.1
-    steps:
-      - checkout_merge
-      - rasp_build_deps:
-          miniconda3: https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
-      - install_libtorch:
-          source: https://download.pytorch.org/libtorch/nightly/cpu/libtorch-macos-latest.zip
-      - rasp_build_test
-
   docstring_coverage:
     docker:
       - image: circleci/python:3.8
@@ -465,5 +454,4 @@ workflows:
       - gym_replay_buffer_gpu_unittest_1
       - gym_replay_buffer_gpu_unittest_2
       - rasp_test_linux
-      - rasp_test_mac
       - docstring_coverage
