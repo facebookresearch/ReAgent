@@ -12,6 +12,8 @@ model:
       optimizer:
         Adam:
           lr: 0.001
+      normalize: False
+      subtract_mean: True
     policy_net_builder:
       FullyConnected:
         sizes:
