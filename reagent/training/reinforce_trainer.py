@@ -37,6 +37,7 @@ class ReinforceTrainer(ReAgentLightningModule):
         subtract_mean: bool = True,
         offset_clamp_min: bool = False,
         value_net: Optional[ModelBase] = None,
+        do_log_metrics: bool = False,
     ):
         super().__init__()
         self._actions = actions
@@ -52,10 +53,19 @@ class ReinforceTrainer(ReAgentLightningModule):
         self.optimizer = optimizer
         self.optimizer_value_net = optimizer_value_net
         if value_net is not None:
+            if self.normalize or self.subtract_mean:
+                raise RuntimeError(
+                    "Can't apply a baseline and reward normalization \
+                    (or mean subtraction) simultaneously."
+                )
             self.value_net = value_net
             self.value_loss_fn = torch.nn.MSELoss(reduction="mean")
         else:
             self.value_net = None
+        self.do_log_metrics = do_log_metrics
+        if self.do_log_metrics:
+            self.losses = []
+            self.ips_ratio_means = []
 
     def _check_input(self, training_batch: rlt.PolicyGradientInput):
         assert training_batch.reward.ndim == 1
@@ -99,13 +109,12 @@ class ReinforceTrainer(ReAgentLightningModule):
             offset_reinforcement = whiten(
                 offset_reinforcement, subtract_mean=self.subtract_mean
             )
+        elif self.subtract_mean:
+            offset_reinforcement -= offset_reinforcement.mean()
         if self.offset_clamp_min:
             offset_reinforcement = offset_reinforcement.clamp(min=0)
         if self.value_net is not None:
-            if self.normalize:
-                raise RuntimeError(
-                    "Can't apply a baseline and normalize rewards simultaneously"
-                )
+            assert not (self.normalize or self.subtract_mean)
             baselines = self.value_net(training_batch.state).squeeze()
             yield self.value_loss_fn(baselines, offset_reinforcement)
             # subtract learned value function baselines from rewards
@@ -118,4 +127,26 @@ class ReinforceTrainer(ReAgentLightningModule):
                     max=math.log(float(self.clip_param)),
                 )
             ).float()
-        yield -(offset_reinforcement.float()) @ characteristic_eligibility  # PG "loss"
+
+        loss = -(offset_reinforcement.float()) @ characteristic_eligibility
+        if self.do_log_metrics:
+            detached_loss = loss.detach().cpu().item() / len(offset_reinforcement)
+            self.losses.append(detached_loss)
+            detached_ips_ratio_mean = (
+                characteristic_eligibility.detach().mean().cpu().item()
+            )
+            self.ips_ratio_means.append(detached_ips_ratio_mean)
+        yield loss
+
+    def training_epoch_end(self, training_step_outputs):
+        if self.do_log_metrics:
+            self.logger.log_metrics(
+                {
+                    "training_loss_per_epoch": sum(self.losses) / len(self.losses),
+                    "ips_ratio_mean_per_epoch": sum(self.ips_ratio_means)
+                    / len(self.ips_ratio_means),
+                },
+                self.current_epoch,
+            )
+            self.losses = []
+            self.ips_ratio_means = []
