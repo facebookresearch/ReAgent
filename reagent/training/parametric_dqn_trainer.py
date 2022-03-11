@@ -32,6 +32,7 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
+        log_tensorboard: bool = False,
     ) -> None:
         super().__init__()
         self.rl_parameters = rl
@@ -43,6 +44,7 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
         self.q_network_target = q_network_target
         self.reward_network = reward_network
         self.optimizer = optimizer
+        self.log_tensorboard = log_tensorboard
 
         if rl.q_network_loss == "mse":
             self.q_network_loss = F.mse_loss
@@ -168,12 +170,24 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
         )
         yield reward_loss
 
+        td_loss = td_loss.detach().cpu()
+        reward_loss = reward_loss.detach().cpu()
+        q_values = q_values.detach().cpu()
+        # Logging loss, rewards, and model values
+        # Use reagent reporter
         self.reporter.log(
-            td_loss=td_loss.detach().cpu(),
-            reward_loss=reward_loss.detach().cpu(),
+            td_loss=td_loss,
+            reward_loss=reward_loss,
             logged_rewards=reward,
-            model_values_on_logged_actions=q_values.detach().cpu(),
+            model_values_on_logged_actions=q_values,
         )
+        # Use pytorch-lightning logger
+        if self.log_tensorboard:
+            self.log("loss", {"td_loss": td_loss, "reward_loss": reward_loss})
+            # pyre-ignore
+            tensorboard = self.logger.experiment
+            tensorboard.add_histogram("reward", reward)
+            tensorboard.add_histogram("model_values_on_logged_actions", q_values)
 
         # Use the soft update rule to update target network
         yield self.soft_update_result()
