@@ -1181,8 +1181,9 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
         >>> ng_param = ng.p.Dict(choice1=ng.p.Choice(["blue", "green", "red"]))
         >>>
         >>> def obj_func(sampled_sol: Dict[str, torch.Tensor]):
-        ...     reward = torch.ones(BATCH_SIZE, 1)
-        ...     for i in range(BATCH_SIZE):
+        ...     batch_size = sampled_sol['choice1'].shape[0]
+        ...     reward = torch.ones(batch_size, 1)
+        ...     for i in range(batch_size):
         ...         # the best action is "red"
         ...         if sampled_sol['choice1'][i] == 2:
         ...             reward[i, 0] = 0.0
@@ -1191,7 +1192,7 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
         >>> optimizer = BayesianMLPEnsemblerOptimizer(
         ...     ng_param, obj_func, batch_size=BATCH_SIZE,
         ...     acq_type="its", mutation_type="random",
-        ...     num_mutations=4,
+        ...     num_mutations=8,
         ... )
         >>> for i in range(30):
         ...     res = optimizer.optimize_step()
@@ -1225,6 +1226,9 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
         self.input_dim = 0
         self.predictor = None
         self.last_predictor_loss_mean = None
+        assert (
+            num_mutations >= batch_size
+        ), f"num_mutations ({num_mutations}) >= batch_size ({batch_size}) is not true"
         super().__init__(
             param,
             obj_func,
