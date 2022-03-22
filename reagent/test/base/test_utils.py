@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-import os
 import unittest
 
 import numpy.testing as npt
@@ -11,7 +10,7 @@ from reagent.core.torch_utils import (
     rescale_torch_tensor,
     split_sequence_keyed_jagged_tensor,
 )
-from reagent.core.torchrec_types import KeyedJaggedTensor
+from torchrec.sparse.jagged_tensor import KeyedJaggedTensor
 
 
 class TestUtils(unittest.TestCase):
@@ -77,7 +76,6 @@ class TestUtils(unittest.TestCase):
         expected_out = torch.tensor([[0.0, 0.0, 0.0], [0.4223, 0.1554, 0.4223]])
         npt.assert_array_almost_equal(out, expected_out, 4)
 
-    @unittest.skipIf("SANDCASTLE" not in os.environ, "Skipping test in OSS.")
     def test_split_sequence_keyed_jagged_tensor(self) -> None:
         """Test the example in the docstring of split_sequence_keyed_jagged_tensor"""
         keys = ["Key0", "Key1", "Key2"]
