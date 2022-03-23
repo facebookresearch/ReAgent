@@ -5,9 +5,9 @@ from typing import Dict, List
 
 import torch
 from reagent.core import types as rlt
-from reagent.core.torchrec_types import EmbeddingBagConfig
 from reagent.core.utils import embedding_bag_configs_from_feature_configs
 from reagent.models.base import ModelBase
+from torchrec import EmbeddingBagConfig
 
 
 class EmbeddingBagConcat(ModelBase):

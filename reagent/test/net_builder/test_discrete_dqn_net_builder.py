@@ -6,10 +6,10 @@ import unittest
 from reagent.core import types as rlt
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.parameters import NormalizationData, NormalizationParameters
-from reagent.core.torchrec_types import PoolingType
 from reagent.net_builder import discrete_dqn
 from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
 from reagent.preprocessing.identify_types import CONTINUOUS
+from torchrec import PoolingType
 
 
 if IS_FB_ENVIRONMENT:

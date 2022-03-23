@@ -130,9 +130,9 @@ commands:
   pip_install:
     description: Pip install requirements
     parameters:
-      install_gym:
+      e2e_test:
         type: boolean
-        default: true
+        default: false
       is_ubuntu_gpu:
         type: boolean
         default: false
@@ -150,7 +150,12 @@ commands:
             sudo apt install swig
             pip install tox==3.20.1 --progress-bar off
       - when:
-          condition: << parameters.install_gym >>
+          # If e2e_test is true, we run end-2-end tests which involve spark pipeline operations
+          # and python-based training / evaluation. pip-install and tests will be triggered by
+          # config.yml (this file)
+          # If e2e_test is false, we run python unit tests using tox, which installs
+          # virtual environments by tox.ini
+          condition: << parameters.e2e_test >>
           steps:
             # when/unless clauses act as if ... else ...
             # if is_ubuntu_gpu is True, we install cuda-supported pytorch
@@ -163,13 +168,13 @@ commands:
                       # "-e" option will activate the development mode (a symlink to the code in ReAgent
                       # will be created in site-packages directory)
                       command: |
-                        pip install -e .[gym,test] --pre -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html --progress-bar off
+                        pip install -e .[gym,test,torchrec_gpu] --pre -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html --progress-bar off
             - unless:
                 condition: << parameters.is_ubuntu_gpu >>
                 steps:
                   - run:
                       command: |
-                        pip install -e .[gym,test] --pre -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html --progress-bar off
+                        pip install -e .[gym,test,torchrec_cpu] --pre -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html --progress-bar off
 
 
   run_unittest:
@@ -212,7 +217,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: true
       - run_unittest:
           tox_env: circleci_misc_unittest
@@ -224,7 +229,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: false
       - run_unittest:
           tox_env: circleci_gym_cpu_unittest
@@ -236,7 +241,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: false
       - run_unittest:
           tox_env: circleci_gym_replay_buffer_1_cpu_unittest
@@ -248,7 +253,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: false
       - run_unittest:
           tox_env: circleci_gym_replay_buffer_2_cpu_unittest
@@ -262,7 +267,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: true
       - run_unittest:
           tox_env: circleci_gym_gpu_unittest
@@ -276,7 +281,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: true
       - run_unittest:
           tox_env: circleci_gym_replay_buffer_1_gpu_unittest
@@ -290,7 +295,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: true
       - run_unittest:
           tox_env: circleci_gym_replay_buffer_2_gpu_unittest
@@ -303,7 +308,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: true
+          e2e_test: true
           is_ubuntu_gpu: false
       - end_to_end_test
 
@@ -316,7 +321,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: true
       - run_unittest:
           tox_env: circleci_ranking_unittest
@@ -330,7 +335,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: true
       - run_unittest:
           tox_env: circleci_training_unittest
@@ -344,7 +349,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: true
       - run_unittest:
           tox_env: circleci_prediction_unittest
@@ -358,7 +363,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: true
       - run_unittest:
           tox_env: circleci_world_model_unittest
@@ -370,7 +375,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: false
       - run_unittest:
           tox_env: circleci_lite_api_unittest
@@ -382,7 +387,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: false
+          e2e_test: false
           is_ubuntu_gpu: false
       - run_unittest:
           tox_env: circleci_mab_unittest
@@ -396,7 +401,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: true
+          e2e_test: true
           is_ubuntu_gpu: false
       - end_to_end_test
 
@@ -409,7 +414,7 @@ jobs:
     steps:
       - checkout_merge
       - pip_install:
-          install_gym: true
+          e2e_test: true
           is_ubuntu_gpu: true
       - end_to_end_test
 
