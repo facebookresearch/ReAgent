@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
-import os
 import unittest
 
 import reagent.core.types as rlt
@@ -8,7 +7,6 @@ from reagent.core.utils import embedding_bag_configs_from_feature_configs
 
 
 class TestUtils(unittest.TestCase):
-    @unittest.skipIf("SANDCASTLE" not in os.environ, "Skipping test in OSS.")
     def test_embedding_bag_configs_from_feature_configs(self) -> None:
         TABLE_1_EMBED_SIZE = 100
         TABLE_1_EMBED_DIM = 64

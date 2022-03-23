@@ -2,12 +2,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-import os
 import unittest
 
 import torch
 from reagent.core import parameters as rlp
-from reagent.core.torchrec_types import EmbeddingBagConfig, EmbeddingBagCollection
 from reagent.models.synthetic_reward import (
     SingleStepSyntheticRewardNet,
     SequenceSyntheticRewardNet,
@@ -21,6 +19,7 @@ from reagent.models.synthetic_reward_sparse_arch import (
     SingleStepSyntheticSparseArchRewardNet,
     SyntheticRewardSparseArchNet,
 )
+from torchrec import EmbeddingBagConfig, EmbeddingBagCollection
 
 
 logger = logging.getLogger(__name__)
@@ -229,7 +228,6 @@ class TestSyntheticReward(unittest.TestCase):
         output_activation = export_net.output_activation
         assert output_activation._get_name() == "LeakyReLU"
 
-    @unittest.skipIf("SANDCASTLE" not in os.environ, "Skipping test in OSS.")
     def test_single_step_sparse_arch_synthetic_reward(self):
         state_dense_dim = 10
         action_dense_dim = 2

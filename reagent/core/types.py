@@ -16,12 +16,10 @@ from reagent.core.base_dataclass import BaseDataClass
 from reagent.core.dataclasses import dataclass as pydantic_dataclass
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.torch_utils import gather
-from reagent.core.torchrec_types import (
-    KeyedJaggedTensor,
-    PoolingType,
-)
 from reagent.model_utils.seq2slate_utils import DECODER_START_SYMBOL, subsequent_mask
 from reagent.preprocessing.types import InputColumn
+from torchrec import PoolingType
+from torchrec.sparse.jagged_tensor import KeyedJaggedTensor
 
 
 if IS_FB_ENVIRONMENT:
