@@ -136,17 +136,25 @@ class ReinforceTrainer(ReAgentLightningModule):
                 characteristic_eligibility.detach().mean().cpu().item()
             )
             self.ips_ratio_means.append(detached_ips_ratio_mean)
+            assert self.logger is not None
+            self.logger.log_metrics(
+                {
+                    "Training_loss/per_iteration": detached_loss,
+                    "IPS_ratio_mean/per_iteration": detached_ips_ratio_mean,
+                },
+                step=self.all_batches_processed,
+            )
         yield loss
 
     def training_epoch_end(self, training_step_outputs):
         if self.do_log_metrics:
             self.logger.log_metrics(
                 {
-                    "training_loss_per_epoch": sum(self.losses) / len(self.losses),
-                    "ips_ratio_mean_per_epoch": sum(self.ips_ratio_means)
+                    "Training_loss/per_epoch": sum(self.losses) / len(self.losses),
+                    "IPS_ratio_mean/per_epoch": sum(self.ips_ratio_means)
                     / len(self.ips_ratio_means),
                 },
-                self.current_epoch,
+                step=self.current_epoch,
             )
             self.losses = []
             self.ips_ratio_means = []
