@@ -7,6 +7,8 @@ import unittest
 import uuid
 
 import numpy as np
+
+# pyre-fixme[21]: Could not find module `pytest`.
 import pytest
 import pytorch_lightning as pl
 import torch
