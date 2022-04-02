@@ -191,7 +191,7 @@ def run_test_replay_buffer(
     passing_score_bar: float,
     num_eval_episodes: int,
     use_gpu: bool,
-    minibatch_size: Optional[int] = None,
+    minibatch_size: int,
 ):
     """
     Run an online learning test with a replay buffer. The replay buffer is pre-filled, then the training starts.
@@ -211,13 +211,6 @@ def run_test_replay_buffer(
         normalization_data_map=normalization,
     )
     training_policy = manager.create_policy(trainer, serving=False)
-
-    if not isinstance(trainer, pl.LightningModule):
-        if minibatch_size is None:
-            minibatch_size = trainer.minibatch_size
-        assert minibatch_size == trainer.minibatch_size
-
-    assert minibatch_size is not None
 
     replay_buffer = ReplayBuffer(
         replay_capacity=replay_memory_size, batch_size=minibatch_size

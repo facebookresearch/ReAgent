@@ -31,8 +31,6 @@ train_model:
         maxq_learning: true
         q_network_loss: mse
       double_q_learning: true
-      minibatch_size: 1024
-      minibatches_per_step: 1
       optimizer:
         Adam:
           lr: 0.001

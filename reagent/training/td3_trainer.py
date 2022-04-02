@@ -37,11 +37,9 @@ class TD3Trainer(RLTrainerMixin, ReAgentLightningModule):
         actor_network_optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
-        minibatch_size: int = 64,
         noise_variance: float = 0.2,
         noise_clip: float = 0.5,
         delayed_policy_update: int = 2,
-        minibatches_per_step: int = 1,
     ) -> None:
         """
         Args:
@@ -54,20 +52,15 @@ class TD3Trainer(RLTrainerMixin, ReAgentLightningModule):
             q_network_optimizer (optional): the optimizer class and
                 optimizer hyperparameters for the q network(s) optimizer
             actor_network_optimizer (optional): see q_network_optimizer
-            minibatch_size (optional): the size of the minibatch
             noise_variance (optional): the variance of action noise added to smooth
                 q-value estimates
             noise_clip (optional): the maximum absolute value of action noise added
                 to smooth q-value estimates
             delayed_policy_update (optional): the ratio of q network updates
                 to target and policy network updates
-            minibatches_per_step (optional, TODO: currently unused): the number of minibatch updates
-                per training step
         """
         super().__init__()
         self.rl_parameters = rl
-        self.minibatch_size = minibatch_size
-        self.minibatches_per_step = minibatches_per_step or 1
 
         self.q1_network = q1_network
         self.q1_network_target = copy.deepcopy(self.q1_network)
