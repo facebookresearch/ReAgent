@@ -14,25 +14,25 @@ from reagent.training.reagent_lightning_module import ReAgentLightningModule
 logger = logging.getLogger(__name__)
 
 
-def _get_chosen_action_features(
-    all_action_features: torch.Tensor, chosen_actions: torch.Tensor
+def _get_chosen_arm_features(
+    all_arm_features: torch.Tensor, chosen_arms: torch.Tensor
 ) -> torch.Tensor:
     """
-    Pick the features for chosen actions out of a tensor with features of all actions
+    Pick the features for chosen arms out of a tensor with features of all arms
 
     Args:
-        all_action_features: 3D Tensor of shape (batch_size, num_actions, action_dim) with
-            features of all available actions.
-        chosen_actions: 2D Tensor of shape (batch_size, 1) with dtype long. For each observation
-            it holds the index of the chosen action.
+        all_arm_features: 3D Tensor of shape (batch_size, num_arms, arm_dim) with
+            features of all available arms.
+        chosen_arms: 2D Tensor of shape (batch_size, 1) with dtype long. For each observation
+            it holds the index of the chosen arm.
     Returns:
-        A 2D Tensor of shape (batch_size, action_dim) with features of chosen actions.
+        A 2D Tensor of shape (batch_size, arm_dim) with features of chosen arms.
     """
-    assert all_action_features.ndim == 3
+    assert all_arm_features.ndim == 3
     return torch.gather(
-        all_action_features,
+        all_arm_features,
         1,
-        chosen_actions.unsqueeze(-1).expand(-1, 1, all_action_features.shape[2]),
+        chosen_arms.unsqueeze(-1).expand(-1, 1, all_arm_features.shape[2]),
     ).squeeze(1)
 
 
@@ -40,17 +40,17 @@ class LinUCBTrainer(ReAgentLightningModule):
     """
     The trainer for LinUCB Contextual Bandit model.
     The model estimates a ridge regression (linear) and only supports dense features.
-    The actions are assumed to be one of:
-        - Fixed actions. The same (have the same semantic meaning) actions across all contexts.
-            If actions are fixed, they can't have features associated with them.
-        - Feature actions. We can have different number and identities of actions in each
-            context. The actions must have features to represent their semantic meaning.
+    The arms are assumed to be one of:
+        - Fixed arms. The same (have the same semantic meaning) arms across all contexts.
+            If arms are fixed, they can't have features associated with them.
+        - Feature arms. We can have different number and identities of arms in each
+            context. The arms must have features to represent their semantic meaning.
     Reference: https://arxiv.org/pdf/1003.0146.pdf
 
     Args:
         policy: The policy to be trained. Its scorer has to be LinearRegressionUCB
-        num_actions: The number of actions. If num_actions==-1, the actions are assumed to be feature actions,
-            otherwise they are assumed to be fixed actions.
+        num_arms: The number of arms. If num_arms==-1, the arms are assumed to be feature arms,
+            otherwise they are assumed to be fixed arms.
         use_interaction_features: If True,
     """
 
@@ -58,7 +58,7 @@ class LinUCBTrainer(ReAgentLightningModule):
     def __init__(
         self,
         policy: Policy,
-        num_actions: int = -1,
+        num_arms: int = -1,
         use_interaction_features: bool = True,
     ):
         # turn off automatic_optimization because we are updating parameters manually
@@ -67,12 +67,12 @@ class LinUCBTrainer(ReAgentLightningModule):
             policy.scorer, LinearRegressionUCB
         ), "LinUCBTrainer requires the policy scorer to be LinearRegressionUCB"
         self.scorer = policy.scorer
-        if num_actions == -1:
-            self.fixed_actions = False
+        if num_arms == -1:
+            self.fixed_arms = False
         else:
-            assert num_actions > 1, "num_actions has to be an integer >1"
-            self.fixed_actions = True
-        self.num_actions = num_actions
+            assert num_arms > 1, "num_arms has to be an integer >1"
+            self.fixed_arms = True
+        self.num_arms = num_arms
         self.use_interaction_features = use_interaction_features
 
     def configure_optimizers(self):
@@ -95,16 +95,16 @@ class LinUCBTrainer(ReAgentLightningModule):
         self.scorer.b += torch.matmul(x.t(), y * weight).squeeze()  # dim (DA*DC,)
 
     def _check_input(self, batch: CBInput):
-        assert batch.context_action_features.ndim == 3
+        assert batch.context_arm_features.ndim == 3
         assert batch.reward is not None
         assert batch.action is not None
         assert len(batch.action) == len(batch.reward)
-        assert len(batch.action) == batch.context_action_features.shape[0]
+        assert len(batch.action) == batch.context_arm_features.shape[0]
 
     def training_step(self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0):
         self._check_input(batch)
         assert batch.action is not None  # to satisfy Pyre
-        x = _get_chosen_action_features(batch.context_action_features, batch.action)
+        x = _get_chosen_arm_features(batch.context_arm_features, batch.action)
 
         # update parameters
         assert batch.reward is not None  # to satisfy Pyre
