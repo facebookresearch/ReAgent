@@ -468,7 +468,7 @@ class TestTransforms(unittest.TestCase):
         a_T = (torch.tensor([0, 1]), torch.tensor([1, 0]))
         b_T = (torch.tensor([1, 1]), torch.tensor([1, 0]))
         a_in = {1: (torch.tensor([0]), a_T)}
-        b_in = {1: (torch.tensor([0, 2]), b_T)}
+        b_in = {1: (torch.tensor([0]), b_T)}
         fls1 = transforms.FixedLengthSequences(keys=["a", "b"], sequence_id=1)
         fls2 = transforms.FixedLengthSequences(
             keys=["a", "b"], sequence_id=1, expected_length=2
@@ -510,13 +510,13 @@ class TestTransforms(unittest.TestCase):
         # Testing assertions in the call method
         # TODO testing assert regarding offsets length compared to value
         c_T = (torch.tensor([0, 1]), torch.tensor([1, 1]))
-        with self.assertRaisesRegex(Exception, "Unexpected offsets"):
+        with self.assertRaisesRegex(ValueError, "Expected all batches"):
             # wrong expected length
             fls = transforms.FixedLengthSequences(
                 keys=["a", "b"], sequence_id=1, expected_length=1
             )
             fls({"a": a_in, "b": b_in})
-        with self.assertRaisesRegex(Exception, "Unexpected offsets"):
+        with self.assertRaisesRegex(ValueError, "Expected all batches"):
             # wrong offsets
             c_in = {1: (torch.tensor([0, 1]), c_T)}
             fls = transforms.FixedLengthSequences(keys=["a", "b", "c"], sequence_id=1)

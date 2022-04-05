@@ -43,3 +43,6 @@ class InputColumn(object):
     SCORES = "scores"
     VALID_STEP = "valid_step"
     WEIGHT = "weight"
+    CONTEXT_FEATURES = "context_features"
+    ARM_FEATURES = "arm_features"
+    CONTEXT_ARM_FEATURES = "context_arm_features"
