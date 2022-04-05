@@ -13,22 +13,20 @@ from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
 from reagent.models.linear_regression import LinearRegressionUCB
 from reagent.training.cb.linucb_trainer import (
     LinUCBTrainer,
-    _get_chosen_action_features,
+    _get_chosen_arm_features,
 )
 from reagent.training.parameters import LinUCBTrainerParameters
 
 
 class TestLinUCButils(unittest.TestCase):
-    def test_get_chosen_action_features(self):
-        all_actions_features = torch.tensor(
+    def test_get_chosen_arm_features(self):
+        all_arms_features = torch.tensor(
             [[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]
         )
         actions = torch.tensor([[1], [0]], dtype=torch.long)
-        chosen_action_features = _get_chosen_action_features(
-            all_actions_features, actions
-        )
+        chosen_arm_features = _get_chosen_arm_features(all_arms_features, actions)
         npt.assert_equal(
-            chosen_action_features.numpy(), np.array([[3.0, 4.0], [5.0, 6.0]])
+            chosen_arm_features.numpy(), np.array([[3.0, 4.0], [5.0, 6.0]])
         )
 
 
@@ -36,20 +34,18 @@ class TestLinUCB(unittest.TestCase):
     def setUp(self):
         self.batch_size = 2
         self.state_dim = 2
-        self.action_dim = 2
+        self.arm_dim = 2
 
-        self.num_actions = 2
-        self.params = LinUCBTrainerParameters(num_actions=-1)
+        self.num_arms = 2
+        self.params = LinUCBTrainerParameters(num_arms=-1)
 
-        self.x_dim = (
-            1 + self.state_dim * self.num_actions + self.state_dim + self.num_actions
-        )
+        self.x_dim = 1 + self.state_dim * self.num_arms + self.state_dim + self.num_arms
         policy_network = LinearRegressionUCB(self.x_dim)
         self.policy = Policy(scorer=policy_network, sampler=GreedyActionSampler())
 
         self.trainer = LinUCBTrainer(self.policy, **self.params.asdict())
         self.batch = CBInput(
-            context_action_features=torch.tensor(
+            context_arm_features=torch.tensor(
                 [
                     [
                         [1, 2, 3, 6, 7, 2 * 6, 2 * 7, 3 * 6, 3 * 7],
@@ -75,7 +71,7 @@ class TestLinUCB(unittest.TestCase):
         for i in range(self.batch_size):
             obss.append(
                 CBInput(
-                    context_action_features=self.batch.context_action_features[
+                    context_arm_features=self.batch.context_arm_features[
                         i : i + 1, :, :
                     ],
                     action=self.batch.action[[i]],
@@ -87,8 +83,8 @@ class TestLinUCB(unittest.TestCase):
         scorer_2 = LinearRegressionUCB(self.x_dim)
         policy_1 = Policy(scorer=scorer_1, sampler=GreedyActionSampler())
         policy_2 = Policy(scorer=scorer_2, sampler=GreedyActionSampler())
-        trainer_1 = LinUCBTrainer(policy_1, num_actions=-1)
-        trainer_2 = LinUCBTrainer(policy_2, num_actions=-1)
+        trainer_1 = LinUCBTrainer(policy_1, num_arms=-1)
+        trainer_2 = LinUCBTrainer(policy_2, num_arms=-1)
 
         trainer_1.training_step(obss[0], 0)
         trainer_1.training_step(obss[1], 1)
@@ -104,11 +100,11 @@ class TestLinUCB(unittest.TestCase):
         # make sure that the model parameters match hand-computed values
         scorer = LinearRegressionUCB(self.x_dim)
         policy = Policy(scorer=scorer, sampler=GreedyActionSampler())
-        trainer = LinUCBTrainer(policy, num_actions=-1)
+        trainer = LinUCBTrainer(policy, num_arms=-1)
         trainer.training_step(self.batch, 0)
         # the feature matrix (computed by hand)
-        x = _get_chosen_action_features(
-            self.batch.context_action_features, self.batch.action
+        x = _get_chosen_arm_features(
+            self.batch.context_arm_features, self.batch.action
         ).numpy()
 
         npt.assert_allclose(scorer.A.numpy(), np.eye(self.x_dim) + x.T @ x, rtol=1e-5)
@@ -132,8 +128,8 @@ class TestLinUCB(unittest.TestCase):
         scorer_2 = LinearRegressionUCB(self.x_dim)
         policy_1 = Policy(scorer=scorer_1, sampler=GreedyActionSampler())
         policy_2 = Policy(scorer=scorer_2, sampler=GreedyActionSampler())
-        trainer_1 = LinUCBTrainer(policy_1, num_actions=-1)
-        trainer_2 = LinUCBTrainer(policy_2, num_actions=-1)
+        trainer_1 = LinUCBTrainer(policy_1, num_arms=-1)
+        trainer_2 = LinUCBTrainer(policy_2, num_arms=-1)
 
         trainer_1.training_step(batch_with_weight, 0)
         for i in range(3):

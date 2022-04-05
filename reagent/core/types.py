@@ -1096,7 +1096,7 @@ class FrechetSortConfig:
 
 @dataclass
 class CBInput(TensorDataClass):
-    context_action_features: torch.Tensor
+    context_arm_features: torch.Tensor
     action: Final[Optional[torch.Tensor]] = None
     reward: Final[Optional[torch.Tensor]] = None
     log_prob: Final[Optional[torch.Tensor]] = None
@@ -1107,19 +1107,17 @@ class CBInput(TensorDataClass):
         cls,
         context_dim: int = 2,
         batch_size: int = 10,
-        action_features_dim: int = 3,
-        num_actions: int = 4,
+        arm_features_dim: int = 3,
+        num_arms: int = 4,
     ) -> "CBInput":
         return cls(
-            context_action_features=torch.randn(
-                batch_size, num_actions, action_features_dim
-            )
+            context_arm_features=torch.randn(batch_size, num_arms, arm_features_dim)
         )
 
     @classmethod
     def from_dict(cls, d: Dict[str, torch.Tensor]) -> "CBInput":
         return cls(
-            context_action_features=d["context_action_features"],
+            context_arm_features=d["context_arm_features"],
             action=d.get("action", None),
             reward=d.get("reward", None),
             log_prob=d.get("log_prob", None),
@@ -1127,4 +1125,4 @@ class CBInput(TensorDataClass):
         )
 
     def __len__(self) -> int:
-        return self.context_action_features.shape[0]
+        return self.context_arm_features.shape[0]
