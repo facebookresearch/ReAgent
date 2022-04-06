@@ -531,17 +531,12 @@ class FixedLengthSequences:
                     # If batch size is 1
                     expected_length = value[0].size(0)
                 self.expected_length = expected_length
-            if len(offsets) > 1:
-                lengths = torch.diff(offsets).cpu().numpy()
-                lengths = set(lengths)
-            else:
-                lengths = set()
-            last_len = (
-                value[0].size(0) - offsets[-1]
-            ).item()  # last item - from last offset to the end
-            lengths.add(last_len)
-            expected_length_set = {expected_length}
-            if lengths != expected_length_set:
+
+            # some check that all arrays have the same length
+            last_len = (value[0].size(0) - offsets[-1]).view(1)
+            lengths = torch.cat((torch.diff(offsets), last_len))
+            length = torch.unique(lengths)
+            if not (len(length) == 1 and length == torch.tensor(self.expected_length)):
                 raise ValueError(
                     f"Expected all batches for {key} to have {expected_length} items, but got sizes {lengths}"
                 )
