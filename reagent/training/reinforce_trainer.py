@@ -128,7 +128,7 @@ class ReinforceTrainer(ReAgentLightningModule):
                 )
             ).float()
 
-        loss = -(offset_reinforcement.float()) @ characteristic_eligibility
+        loss = -(offset_reinforcement.float().detach()) @ characteristic_eligibility
         if self.do_log_metrics:
             detached_loss = loss.detach().cpu().item() / len(offset_reinforcement)
             self.losses.append(detached_loss)
