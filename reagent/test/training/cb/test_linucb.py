@@ -37,7 +37,7 @@ class TestLinUCB(unittest.TestCase):
         self.arm_dim = 2
 
         self.num_arms = 2
-        self.params = LinUCBTrainerParameters(num_arms=-1)
+        self.params = LinUCBTrainerParameters()
 
         self.x_dim = 1 + self.state_dim * self.num_arms + self.state_dim + self.num_arms
         policy_network = LinearRegressionUCB(self.x_dim)
@@ -83,8 +83,8 @@ class TestLinUCB(unittest.TestCase):
         scorer_2 = LinearRegressionUCB(self.x_dim)
         policy_1 = Policy(scorer=scorer_1, sampler=GreedyActionSampler())
         policy_2 = Policy(scorer=scorer_2, sampler=GreedyActionSampler())
-        trainer_1 = LinUCBTrainer(policy_1, num_arms=-1)
-        trainer_2 = LinUCBTrainer(policy_2, num_arms=-1)
+        trainer_1 = LinUCBTrainer(policy_1)
+        trainer_2 = LinUCBTrainer(policy_2)
 
         trainer_1.training_step(obss[0], 0)
         trainer_1.training_step(obss[1], 1)
@@ -100,7 +100,7 @@ class TestLinUCB(unittest.TestCase):
         # make sure that the model parameters match hand-computed values
         scorer = LinearRegressionUCB(self.x_dim)
         policy = Policy(scorer=scorer, sampler=GreedyActionSampler())
-        trainer = LinUCBTrainer(policy, num_arms=-1)
+        trainer = LinUCBTrainer(policy)
         trainer.training_step(self.batch, 0)
         # the feature matrix (computed by hand)
         x = _get_chosen_arm_features(
@@ -128,8 +128,8 @@ class TestLinUCB(unittest.TestCase):
         scorer_2 = LinearRegressionUCB(self.x_dim)
         policy_1 = Policy(scorer=scorer_1, sampler=GreedyActionSampler())
         policy_2 = Policy(scorer=scorer_2, sampler=GreedyActionSampler())
-        trainer_1 = LinUCBTrainer(policy_1, num_arms=-1)
-        trainer_2 = LinUCBTrainer(policy_2, num_arms=-1)
+        trainer_1 = LinUCBTrainer(policy_1)
+        trainer_2 = LinUCBTrainer(policy_2)
 
         trainer_1.training_step(batch_with_weight, 0)
         for i in range(3):
