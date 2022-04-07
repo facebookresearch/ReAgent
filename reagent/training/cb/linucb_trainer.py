@@ -40,26 +40,27 @@ class LinUCBTrainer(ReAgentLightningModule):
     """
     The trainer for LinUCB Contextual Bandit model.
     The model estimates a ridge regression (linear) and only supports dense features.
-    The arms are assumed to be one of:
+    The arms can be one of 2 options (specified in FbContBanditBatchPreprocessor):
         - Fixed arms. The same (have the same semantic meaning) arms across all contexts.
-            If arms are fixed, they can't have features associated with them.
+            If arms are fixed, they can't have features associated with them. Used if
+            `arm_normalization_data` not specified in FbContBanditBatchPreprocessor
         - Feature arms. We can have different number and identities of arms in each
             context. The arms must have features to represent their semantic meaning.
+            Used if `arm_normalization_data` is specified in FbContBanditBatchPreprocessor
+            and arm_features column is non-empty
     Reference: https://arxiv.org/pdf/1003.0146.pdf
 
     Args:
         policy: The policy to be trained. Its scorer has to be LinearRegressionUCB
-        num_arms: The number of arms. If num_arms==-1, the arms are assumed to be feature arms,
-            otherwise they are assumed to be fixed arms.
-        use_interaction_features: If True,
+        use_interaction_features: If True, interaction (outer product) of context and
+            arm features is concatenated to features
     """
 
     @resolve_defaults
     def __init__(
         self,
         policy: Policy,
-        num_arms: int = -1,
-        use_interaction_features: bool = True,
+        use_interaction_features: bool = False,
     ):
         # turn off automatic_optimization because we are updating parameters manually
         super().__init__(automatic_optimization=False)
@@ -67,12 +68,6 @@ class LinUCBTrainer(ReAgentLightningModule):
             policy.scorer, LinearRegressionUCB
         ), "LinUCBTrainer requires the policy scorer to be LinearRegressionUCB"
         self.scorer = policy.scorer
-        if num_arms == -1:
-            self.fixed_arms = False
-        else:
-            assert num_arms > 1, "num_arms has to be an integer >1"
-            self.fixed_arms = True
-        self.num_arms = num_arms
         self.use_interaction_features = use_interaction_features
 
     def configure_optimizers(self):
