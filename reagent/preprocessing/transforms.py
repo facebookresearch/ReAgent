@@ -610,7 +610,9 @@ class AppendConstant:
     def __call__(self, data):
         for k in self.keys:
             value = data[k]
-            extra_col = self.const * torch.ones(value.shape[:-1]).unsqueeze(-1)
+            extra_col = self.const * torch.ones(
+                value.shape[:-1], device=value.device
+            ).unsqueeze(-1)
             data[k] = torch.cat((extra_col, value), dim=self.dim)
         return data
 

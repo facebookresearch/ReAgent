@@ -32,7 +32,9 @@ def _get_chosen_arm_features(
     return torch.gather(
         all_arm_features,
         1,
-        chosen_arms.unsqueeze(-1).expand(-1, 1, all_arm_features.shape[2]),
+        chosen_arms.unsqueeze(-1)
+        .expand(-1, 1, all_arm_features.shape[2])
+        .to(all_arm_features.device),
     ).squeeze(1)
 
 
@@ -86,6 +88,11 @@ class LinUCBTrainer(ReAgentLightningModule):
         # weight is number of observations represented by each entry
         if weight is None:
             weight = torch.ones_like(y)
+        weight = weight.to(x.device).float()
+
+        self.scorer.A = self.scorer.A.to(x.device)
+        self.scorer.b = self.scorer.b.to(x.device)
+
         self.scorer.A += torch.matmul(x.t(), x * weight)  # dim (DA*DC, DA*DC)
         self.scorer.b += torch.matmul(x.t(), y * weight).squeeze()  # dim (DA*DC,)
 
