@@ -54,15 +54,12 @@ class LinearRegressionUCB(ModelBase):
         self.input_dim = input_dim
         self.predict_ucb = predict_ucb
         self.ucb_alpha = ucb_alpha
-
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-        self.A = l2_reg_lambda * torch.eye(self.input_dim, device=device)
-        self.b = torch.zeros(self.input_dim, device=device)
-        self.coefs = torch.zeros(self.input_dim, device=device)
-        self.inv_A = torch.zeros(self.input_dim, self.input_dim, device=device)
-        self.coefs_valid_for_A = -torch.ones_like(
-            self.A, device=device
+        self.register_buffer("A", l2_reg_lambda * torch.eye(self.input_dim))
+        self.register_buffer("b", torch.zeros(self.input_dim))
+        self.register_buffer("coefs", torch.zeros(self.input_dim))
+        self.register_buffer("inv_A", torch.zeros(self.input_dim, self.input_dim))
+        self.register_buffer(
+            "coefs_valid_for_A", -torch.ones((self.input_dim, self.input_dim))
         )  # value of A matrix for which self.coefs were estimated
 
     def input_prototype(self) -> torch.Tensor:
