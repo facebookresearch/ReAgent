@@ -1,12 +1,34 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+from typing import Optional
+
 import numpy as np
 import torch
 import torch.nn.functional as F
 
 
 EPS = np.finfo(float).eps.item()
+
+
+def calc_weighted_mean(
+    value: torch.Tensor, weight: Optional[torch.Tensor] = None
+) -> torch.Tensor:
+    if weight is None:
+        return value.mean()
+    else:
+        return value @ weight / weight.sum()
+
+
+def calc_weighted_std(
+    arr: torch.Tensor, weight: Optional[torch.Tensor] = None
+) -> torch.Tensor:
+    if weight is None:
+        return arr.std()
+    else:
+        mu = calc_weighted_mean(arr, weight=weight)
+        std = torch.sqrt(calc_weighted_mean((arr - mu) ** 2, weight=weight))
+        return std
 
 
 def rescale_actions(
@@ -28,11 +50,13 @@ def rescale_actions(
     return ((actions - prev_min) / prev_range) * new_range + new_min
 
 
-def whiten(x: torch.Tensor, subtract_mean: bool) -> torch.Tensor:
+def whiten(
+    x: torch.Tensor, subtract_mean: bool, weight: Optional[torch.Tensor] = None
+) -> torch.Tensor:
     numer = x
     if subtract_mean:
-        numer -= x.mean()
-    return numer / (x.std() + EPS)
+        numer -= calc_weighted_mean(x, weight=weight)
+    return numer / (calc_weighted_std(x, weight=weight) + EPS)
 
 
 def discounted_returns(rewards: torch.Tensor, gamma: float = 0) -> torch.Tensor:

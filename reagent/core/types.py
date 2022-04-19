@@ -902,6 +902,7 @@ class PolicyGradientInput(TensorDataClass):
     reward: torch.Tensor
     log_prob: torch.Tensor
     possible_actions_mask: Optional[torch.Tensor] = None
+    weight: Optional[torch.Tensor] = None
 
     @classmethod
     def input_prototype(cls, action_dim=2, batch_size=10, state_dim=3):
@@ -914,6 +915,7 @@ class PolicyGradientInput(TensorDataClass):
             reward=torch.rand(batch_size),
             log_prob=torch.log(torch.rand(batch_size)),
             possible_actions_mask=torch.ones(batch_size, action_dim),
+            weight=torch.ones(batch_size),
         )
 
     @classmethod
@@ -925,6 +927,7 @@ class PolicyGradientInput(TensorDataClass):
             reward=d["reward"],
             log_prob=d["log_prob"],
             possible_actions_mask=d.get("possible_actions_mask", None),
+            weight=d.get("weight", None),
         )
 
     def __len__(self):
