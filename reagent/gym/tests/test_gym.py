@@ -11,8 +11,6 @@ import numpy as np
 import pytest
 import pytorch_lightning as pl
 import torch
-
-# pyre-fixme[21]: Could not find module `parameterized`.
 from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
 from reagent.gym.datasets.episodic_dataset import (
@@ -100,10 +98,12 @@ curr_dir = os.path.dirname(__file__)
 
 
 class TestGym(HorizonTestBase):
+    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(REPLAY_BUFFER_GYM_TESTS_1)
     def test_replay_buffer_gym_cpu_1(self, name: str, config_path: str):
         self._test_replay_buffer_gym_cpu(name, config_path)
 
+    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(REPLAY_BUFFER_GYM_TESTS_2)
     def test_replay_buffer_gym_cpu_2(self, name: str, config_path: str):
         self._test_replay_buffer_gym_cpu(name, config_path)
@@ -117,12 +117,14 @@ class TestGym(HorizonTestBase):
         )
         logger.info(f"{name} passes!")
 
+    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(REPLAY_BUFFER_GYM_TESTS_1)
     @pytest.mark.serial
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_replay_buffer_gym_gpu_1(self, name: str, config_path: str):
         self._test_replay_buffer_gym_gpu(name, config_path)
 
+    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(REPLAY_BUFFER_GYM_TESTS_2)
     @pytest.mark.serial
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
@@ -138,6 +140,7 @@ class TestGym(HorizonTestBase):
         )
         logger.info(f"{name} passes!")
 
+    # pyre-fixme[16]: Module `parameterized` has no attribute `expand`.
     @parameterized.expand(ONLINE_EPISODE_GYM_TESTS)
     def test_online_episode_gym_cpu(self, name: str, config_path: str):
         logger.info(f"Starting {name} on CPU")

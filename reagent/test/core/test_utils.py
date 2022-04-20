@@ -68,12 +68,9 @@ class TestUtils(unittest.TestCase):
         )
         assert len(embedding_bag_configs) == 2
 
-        # pyre-fixme[16]: `EmbeddingBagConfig` has no attribute `name`.
         assert embedding_bag_configs[0].name == "table_1"
-        # pyre-fixme[16]: `EmbeddingBagConfig` has no attribute `num_embeddings`.
         assert embedding_bag_configs[0].num_embeddings == TABLE_1_EMBED_SIZE
         assert embedding_bag_configs[0].embedding_dim == TABLE_1_EMBED_DIM
-        # pyre-fixme[16]: `EmbeddingBagConfig` has no attribute `feature_names`.
         assert embedding_bag_configs[0].feature_names == [
             "id_list_feature_111",
             "id_list_feature_211",
