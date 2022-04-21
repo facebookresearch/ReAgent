@@ -149,14 +149,14 @@ class EpsilonGreedyActionSampler(Sampler):
         num_valid_actions = valid_actions_ind.float().sum(1, keepdim=True)
 
         rand_prob = self.epsilon / num_valid_actions
-        p = torch.full_like(scores, rand_prob)
+        p = torch.zeros_like(scores) + rand_prob
 
         greedy_prob = 1 - self.epsilon + rand_prob
         p[argmax] = greedy_prob.squeeze()
 
         p[~valid_actions_ind] = 0.0
 
-        assert torch.isclose(p.sum(1) == torch.ones(p.shape[0]))
+        assert torch.allclose(p.sum(1), torch.ones(p.shape[0]))
 
         m = torch.distributions.Categorical(probs=p)
         raw_action = m.sample()
