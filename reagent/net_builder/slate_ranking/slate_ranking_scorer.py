@@ -69,6 +69,8 @@ class SlateRankingScorer(SlateRankingNetBuilder):
         default_factory=FinalLayer
     )  # TODO: if score cap not needed, deprecate
 
+    # pyre-fixme[14]: `build_slate_ranking_network` overrides method defined in
+    #  `SlateRankingNetBuilder` inconsistently.
     def build_slate_ranking_network(
         self, state_dim, candidate_dim, _candidate_size=None, _slate_size=None
     ) -> ModelBase:
