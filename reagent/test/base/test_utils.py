@@ -9,6 +9,8 @@ from reagent.core.torch_utils import (
     masked_softmax,
     rescale_torch_tensor,
     split_sequence_keyed_jagged_tensor,
+    reorder_data_kjt,
+    shift_kjt_by_one,
 )
 from torchrec.sparse.jagged_tensor import KeyedJaggedTensor
 
@@ -85,7 +87,7 @@ class TestUtils(unittest.TestCase):
         num_steps = 2
 
         def verify_output(out):
-            self.assertEquals(out[0].keys(), keys)
+            self.assertEqual(out[0].keys(), keys)
             assert torch.allclose(
                 out[0].values(), torch.tensor([0.0, 1.0, 2.0, 4.0, 6.0, 7.0, 8.0])
             )
@@ -110,3 +112,37 @@ class TestUtils(unittest.TestCase):
         )
         y1 = split_sequence_keyed_jagged_tensor(x1, num_steps)
         verify_output(y1)
+
+    def test_reorder_data_kjt(self) -> None:
+        """Test the example in the docstring of reorder_data_kjt"""
+        keys = ["Key0", "Key1"]
+        values = torch.arange(7).float()
+        weights = values / 10.0
+        lengths = torch.tensor([2, 0, 1, 1, 1, 2])
+
+        x = KeyedJaggedTensor(
+            keys=keys, values=values, lengths=lengths, weights=weights
+        )
+        y = reorder_data_kjt(x, torch.tensor([2, 1, 0]))
+        self.assertEqual(y.keys(), keys)
+        assert torch.allclose(
+            y.values(), torch.tensor([2.0, 0.0, 1.0, 5.0, 6.0, 4.0, 3.0])
+        )
+        assert torch.allclose(y.lengths(), torch.tensor([1, 0, 2, 2, 1, 1]))
+        assert torch.allclose(y.weights(), y.values() / 10.0)
+
+    def test_shift_kjt_by_one(self) -> None:
+        """Test the example in the docstring of shift_kjt_by_one"""
+        keys = ["Key0", "Key1"]
+        values = torch.arange(7).float()
+        weights = values / 10.0
+        lengths = torch.tensor([2, 0, 1, 1, 1, 2])
+
+        x = KeyedJaggedTensor(
+            keys=keys, values=values, lengths=lengths, weights=weights
+        )
+        y = shift_kjt_by_one(x)
+        self.assertEqual(y.keys(), keys)
+        assert torch.allclose(y.values(), torch.tensor([2.0, 4.0, 5.0, 6.0]))
+        assert torch.allclose(y.lengths(), torch.tensor([0, 1, 0, 1, 2, 0]))
+        assert torch.allclose(y.weights(), y.values() / 10.0)
