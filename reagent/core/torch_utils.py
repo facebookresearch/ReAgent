@@ -179,3 +179,121 @@ def split_sequence_keyed_jagged_tensor(
             )
         )
     return result
+
+
+def reorder_data_kjt(x: KeyedJaggedTensor, indices: torch.Tensor):
+    """
+    Reorder the data for each key in a KeyedJaggedTensor
+
+    Input:
+        indices: Long tensor represents the order of returned data for each key
+
+    Example:
+    Input KeyedJaggedTensor (x):
+        x = KeyedJaggedTensor(
+            keys=["Key0", "Key1"],
+            values=[V0, V1, V2, V3, V4, V5, V6]
+            lengths=[2, 0, 1, 1, 1, 2]
+        )
+    which represents data:
+                   data0       data1      data2
+        "Key0"    [V0,V1]       None       [V2]
+        "Key1"      [V3]        [V4]      [V5,V6]
+
+    If we wish to order data as [data2, data1, data0], then this function will return
+                   data0       data1      data2
+        "Key0"     [V2]         None     [V0, V1]
+        "Key1"    [V5,V6]       [V4]       [V3]
+    """
+    num_keys = len(x.keys())
+    num_data = len(indices)
+    assert (
+        len(x.lengths()) == num_keys * num_data
+    ), "The num of data indicated by input arg indices does not match with input KeyedJaggedTensor"
+
+    acc_lengths_per_key = torch.cumsum(torch.tensor(x.length_per_key()), dim=0)
+    values_per_key = torch.tensor_split(x.values(), acc_lengths_per_key)[:-1]
+    val_lens_per_key = torch.chunk(x.lengths(), num_keys)
+    splitted_vals_per_key = [
+        torch.tensor_split(x, torch.cumsum(y, dim=0))[:-1]
+        for x, y in zip(values_per_key, val_lens_per_key)
+    ]
+
+    # Reorder values, lengths, and weights *WITHIN each key*
+    reordered_vals = torch.cat(
+        [torch.cat([x[y] for y in indices.tolist()]) for x in splitted_vals_per_key]
+    )
+    reordered_lengths = torch.cat([x[indices] for x in val_lens_per_key])
+    if x.weights() is not None:
+        weights_per_key = torch.tensor_split(x.weights(), acc_lengths_per_key)[:-1]
+        splitted_weights_per_key = [
+            torch.tensor_split(x, torch.cumsum(y, dim=0))[:-1]
+            for x, y in zip(weights_per_key, val_lens_per_key)
+        ]
+        reordered_weights = torch.cat(
+            [
+                torch.cat([x[y] for y in indices.tolist()])
+                for x in splitted_weights_per_key
+            ]
+        )
+    else:
+        reordered_weights = None
+
+    res = KeyedJaggedTensor(
+        keys=x.keys(),
+        lengths=reordered_lengths,
+        values=reordered_vals,
+        weights=reordered_weights,
+    )
+    return res
+
+
+def shift_kjt_by_one(x: KeyedJaggedTensor):
+    """
+    Shift the data by one for each key in a KeyedJaggedTensor
+    The last data will then always have no value
+
+    Example:
+    Input KeyedJaggedTensor (x):
+        x = KeyedJaggedTensor(
+            keys=["Key0", "Key1"],
+            values=[V0, V1, V2, V3, V4, V5, V6]
+            lengths=[2, 0, 1, 1, 1, 2]
+        )
+    which represents data:
+                   data0       data1      data2
+        "Key0"    [V0,V1]       None       [V2]
+        "Key1"      [V3]        [V4]      [V5,V6]
+
+    If we wish to shift data by one, then this function will return
+                   data0       data1      data2
+        "Key0"     None         [V2]       None
+        "Key1"     [V4]        [V5,V6]     None
+    """
+    num_keys = len(x.keys())
+    acc_lengths_per_key = torch.cumsum(torch.tensor(x.length_per_key()), dim=0)
+    values_per_key = torch.tensor_split(x.values(), acc_lengths_per_key)[:-1]
+    val_lens_per_key = torch.chunk(x.lengths(), num_keys)
+
+    # Shift values, lengths, and weights *WITHIN each key*
+    shifted_vals = torch.cat(
+        [x[y[0] :] for x, y in zip(values_per_key, val_lens_per_key)]
+    )
+    shifted_lengths = torch.cat(
+        [torch.cat([x[1:], torch.tensor([0])]) for x in val_lens_per_key]
+    )
+    if x.weights() is not None:
+        weights_per_key = torch.tensor_split(x.weights(), acc_lengths_per_key)[:-1]
+        shifted_weights = torch.cat(
+            [x[y[0] :] for x, y in zip(weights_per_key, val_lens_per_key)]
+        )
+    else:
+        shifted_weights = None
+
+    res = KeyedJaggedTensor(
+        keys=x.keys(),
+        lengths=shifted_lengths,
+        values=shifted_vals,
+        weights=shifted_weights,
+    )
+    return res
