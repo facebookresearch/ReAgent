@@ -224,7 +224,7 @@ def reorder_data_kjt(x: KeyedJaggedTensor, indices: torch.Tensor):
         [torch.cat([x[y] for y in indices.tolist()]) for x in splitted_vals_per_key]
     )
     reordered_lengths = torch.cat([x[indices] for x in val_lens_per_key])
-    if x.weights() is not None:
+    if x.weights_or_none() is not None:
         weights_per_key = torch.tensor_split(x.weights(), acc_lengths_per_key)[:-1]
         splitted_weights_per_key = [
             torch.tensor_split(x, torch.cumsum(y, dim=0))[:-1]
@@ -282,7 +282,7 @@ def shift_kjt_by_one(x: KeyedJaggedTensor):
     shifted_lengths = torch.cat(
         [torch.cat([x[1:], torch.tensor([0])]) for x in val_lens_per_key]
     )
-    if x.weights() is not None:
+    if x.weights_or_none() is not None:
         weights_per_key = torch.tensor_split(x.weights(), acc_lengths_per_key)[:-1]
         shifted_weights = torch.cat(
             [x[y[0] :] for x, y in zip(weights_per_key, val_lens_per_key)]
