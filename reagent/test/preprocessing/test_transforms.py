@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 import numpy as np
 import reagent.core.types as rlt
 import torch
+import fbgemm_gpu
 from reagent.preprocessing import transforms
 from reagent.preprocessing.types import InputColumn
 
