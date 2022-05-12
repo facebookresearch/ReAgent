@@ -2,11 +2,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Tuple
+from typing import Tuple, Optional
 
 import reagent.core.parameters as rlp
 import reagent.core.types as rlt
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from reagent.core.configuration import resolve_defaults
 from reagent.core.dataclasses import field
@@ -24,7 +25,7 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
         self,
         q_network,
         q_network_target,
-        reward_network,
+        reward_network: Optional[nn.Module] = None,
         # Start ParametricDQNTrainerParameters
         rl: rlp.RLParameters = field(default_factory=rlp.RLParameters),  # noqa: B008
         double_q_learning: bool = True,
@@ -67,9 +68,12 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
         optimizers.append(
             self.optimizer.make_optimizer_scheduler(self.q_network.parameters())
         )
-        optimizers.append(
-            self.optimizer.make_optimizer_scheduler(self.reward_network.parameters())
-        )
+        if self.reward_network is not None:
+            optimizers.append(
+                self.optimizer.make_optimizer_scheduler(
+                    self.reward_network.parameters()
+                )
+            )
         # soft-update
         target_params = list(self.q_network_target.parameters())
         source_params = list(self.q_network.parameters())
@@ -174,14 +178,17 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
             metrics_reward_concat_real_vals = reward
 
         # get reward estimates
-        reward_estimates = self.reward_network(
-            training_batch.state, training_batch.action
-        )
-        reward_loss = F.mse_loss(
-            reward_estimates.squeeze(-1),
-            metrics_reward_concat_real_vals.squeeze(-1),
-        )
-        yield reward_loss
+        if self.reward_network is not None:
+            reward_estimates = self.reward_network(
+                training_batch.state, training_batch.action
+            )
+            reward_loss = F.mse_loss(
+                reward_estimates.squeeze(-1),
+                metrics_reward_concat_real_vals.squeeze(-1),
+            )
+            yield reward_loss
+        else:
+            reward_loss = torch.tensor([0.0])
 
         td_loss = td_loss.detach().cpu()
         reward_loss = reward_loss.detach().cpu()
