@@ -179,12 +179,25 @@ class SingleStepSyntheticSparseArchRewardNet(nn.Module):
         sparse_feature_names = []
         for conf in embedding_bag_collection.embedding_bag_configs:
             sparse_feature_names.extend(conf.feature_names)
-        self.inter_arch_sparse_and_state_dense = InteractionArch(
-            F,
-        )
-        self.inter_arch_sparse_and_action_dense = InteractionArch(
-            F,
-        )
+
+        try:
+            self.inter_arch_sparse_and_state_dense = InteractionArch(
+                F,
+            )
+            self.inter_arch_sparse_and_action_dense = InteractionArch(
+                F,
+            )
+        except TypeError:
+            # HACK: in torchrec OSS version (0.1.0), InteractionArch
+            # only accepts a list of sparse feature names as the input
+            # pyre-ignore
+            self.inter_arch_sparse_and_state_dense = InteractionArch(
+                sparse_feature_names=sparse_feature_names
+            )
+            # pyre-ignore
+            self.inter_arch_sparse_and_action_dense = InteractionArch(
+                sparse_feature_names=sparse_feature_names
+            )
 
         interaction_output_dim = 2 * D + 2 * F + F * (F - 1) // 2
         self.overall_arch = create_dense_arch(
