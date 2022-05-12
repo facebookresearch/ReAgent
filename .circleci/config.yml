@@ -168,13 +168,13 @@ commands:
                       # "-e" option will activate the development mode (a symlink to the code in ReAgent
                       # will be created in site-packages directory)
                       command: |
-                        pip install -e .[gym,test,torchrec_gpu] --pre -f https://download.pytorch.org/whl/nightly/cu113/torch_nightly.html --progress-bar off
+                        pip install -e .[gym,test,torchrec_gpu] --pre --extra-index-url https://download.pytorch.org/whl/cu113 --progress-bar off
             - unless:
                 condition: << parameters.is_ubuntu_gpu >>
                 steps:
                   - run:
                       command: |
-                        pip install -e .[gym,test,torchrec_cpu] --pre -f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html --progress-bar off
+                        pip install -e .[gym,test,torchrec_cpu] --pre --extra-index-url https://download.pytorch.org/whl/cpu --progress-bar off
 
 
   run_unittest:
