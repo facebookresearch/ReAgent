@@ -52,11 +52,12 @@ def normalization_helper(
             return
         allowedlist_feature_set = {int(fid) for fid in allowedlist_features}
         available_features = set(params.keys())
-        assert (
-            allowedlist_feature_set == available_features
-        ), "Could not identify preprocessing type for these features: {}; " "extra features: {}".format(
-            allowedlist_feature_set - available_features,
-            available_features - allowedlist_feature_set,
+        assert allowedlist_feature_set == available_features, (
+            "Could not identify preprocessing type for these features: {}; "
+            "extra features: {}".format(
+                allowedlist_feature_set - available_features,
+                available_features - allowedlist_feature_set,
+            )
         )
 
     def process(rows: List) -> Dict[int, NormalizationParameters]:

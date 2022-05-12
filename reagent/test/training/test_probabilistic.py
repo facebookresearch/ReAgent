@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def toy_function(x):
-    return -(x ** 4) + 3 * x ** 2 - 5 * np.sin(x) + 1
+    return -(x**4) + 3 * x**2 - 5 * np.sin(x) + 1
 
 
 class TestBayesByBackpropTraining(unittest.TestCase):

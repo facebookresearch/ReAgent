@@ -158,14 +158,14 @@ class GaussianFullyConnectedActor(ModelBase):
         The primary reason we don't use Normal class is that it currently
         cannot be exported through ONNX.
         """
-        return -(r ** 2) / 2 - scale_log - self.const
+        return -(r**2) / 2 - scale_log - self.const
 
     def _squash_correction(self, squashed_action):
         """
         Same as
         https://github.com/haarnoja/sac/blob/108a4229be6f040360fcca983113df9c4ac23a6a/sac/policies/gaussian_policy.py#L133
         """
-        return (1 - squashed_action ** 2 + self.eps).log()
+        return (1 - squashed_action**2 + self.eps).log()
 
     def _get_loc_and_scale_log(self, state: rlt.FeatureData):
         loc_scale = self.fc(state.float_features)
@@ -186,7 +186,7 @@ class GaussianFullyConnectedActor(ModelBase):
             torch.tanh(raw_action), -1.0 + self.eps, 1.0 - self.eps
         )
         if self.use_l2_normalization:
-            l2_norm = (squashed_action ** 2).sum(dim=1, keepdim=True).sqrt()
+            l2_norm = (squashed_action**2).sum(dim=1, keepdim=True).sqrt()
             squashed_action = squashed_action / l2_norm
         return squashed_action
 

@@ -32,7 +32,7 @@ def convert_to_one_hots(a, num_classes: int, dtype=torch.int, device=None):
 
 
 class LRUCache(OrderedDict):
-    def __init__(self, maxsize=2 ** 10, *args, **kwds):
+    def __init__(self, maxsize=2**10, *args, **kwds):
         self.maxsize = maxsize
         super().__init__(*args, **kwds)
 

@@ -150,7 +150,7 @@ class CEMPlannerNetwork(nn.Module):
                     ),
                     mem_net=self.mem_net_list[mem_net_idx],
                 )
-                reward_matrix[i, j] = reward * (self.gamma ** j)
+                reward_matrix[i, j] = reward * (self.gamma**j)
 
                 if not not_terminal:
                     logger.debug(

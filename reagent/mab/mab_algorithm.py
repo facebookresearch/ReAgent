@@ -160,7 +160,7 @@ class MABAlgo(torch.nn.Module, ABC):
         arm_idx = self.arm_ids.index(arm_id)
         self.total_n_obs_per_arm[arm_idx] += 1
         self.total_sum_reward_per_arm[arm_idx] += reward
-        self.total_sum_reward_squared_per_arm[arm_idx] += reward ** 2
+        self.total_sum_reward_squared_per_arm[arm_idx] += reward**2
         self.total_n_obs_all_arms += 1
 
     def get_action(self) -> str:

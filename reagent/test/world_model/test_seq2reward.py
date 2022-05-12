@@ -422,7 +422,7 @@ class TestSeq2Reward(unittest.TestCase):
     def _test_gen_permutations(self, SEQ_LEN, NUM_ACTION, expected_outcome):
         # expected shape: SEQ_LEN, PERM_NUM, ACTION_DIM
         result = gen_permutations(SEQ_LEN, NUM_ACTION)
-        assert result.shape == (SEQ_LEN, NUM_ACTION ** SEQ_LEN, NUM_ACTION)
+        assert result.shape == (SEQ_LEN, NUM_ACTION**SEQ_LEN, NUM_ACTION)
         outcome = torch.argmax(result.transpose(0, 1), dim=-1)
         assert torch.all(outcome == expected_outcome)
 

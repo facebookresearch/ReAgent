@@ -33,7 +33,7 @@ class ResultDiffs:
     @property
     def rmse(self) -> Tensor:
         if self._rmse is None:
-            self._rmse = (self._diffs ** 2.0).mean().sqrt()
+            self._rmse = (self._diffs**2.0).mean().sqrt()
         return self._rmse
 
     @property
