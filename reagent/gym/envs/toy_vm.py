@@ -68,7 +68,7 @@ class ToyVMEnv(gym.Env):
 
     def seed(self, seed: Optional[int] = None):
         self._doc_sampler, seed1 = seeding.np_random(seed)
-        _seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
+        _seed2 = seeding.hash_seed(seed1 + 1) % 2**31
         self._reward_prng, seed2 = seeding.np_random(_seed2)
         return [seed1, seed2]
 

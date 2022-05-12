@@ -221,7 +221,7 @@ class Seq2RewardTrainer(ReAgentLightningModule):
         gamma = self.params.gamma
         gamma_mask = (
             torch.Tensor(
-                [[gamma ** i for i in range(seq_len)] for _ in range(batch_size)]
+                [[gamma**i for i in range(seq_len)] for _ in range(batch_size)]
             )
             .transpose(0, 1)
             .to(training_batch.reward.device)

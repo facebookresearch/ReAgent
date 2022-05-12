@@ -124,7 +124,7 @@ class UCBTuned(BaseUCB):
         )
         per_arm_var_est = (
             self.total_sum_reward_squared_per_arm / self.total_n_obs_per_arm
-            - avg_rewards ** 2
+            - avg_rewards**2
             + torch.sqrt(
                 2 * log_t_over_ni
             )  # additional term to make the estimate conservative (unlikely to underestimate)
@@ -145,7 +145,7 @@ def get_bernoulli_ucb_tuned_scores(
     log_t_over_ni = torch.log(torch.sum(n_obs_per_arm)) / n_obs_per_arm
     per_arm_var_est = (
         avg_rewards
-        - avg_rewards ** 2
+        - avg_rewards**2
         + torch.sqrt(
             2 * log_t_over_ni
         )  # additional term to make the estimate conservative (unlikely to underestimate)

@@ -100,7 +100,7 @@ class NormalGammaThompson(BaseThompsonSampling):
         self.gamma_rates += 0.5 * n_obs_per_arm * lambdas / (
             n_obs_per_arm + lambdas
         ) * (mean_rewards_batch - self.mus) ** 2 + 0.5 * (
-            sum_reward_squared_per_arm - n_obs_per_arm * mean_rewards_batch ** 2
+            sum_reward_squared_per_arm - n_obs_per_arm * mean_rewards_batch**2
         )
         self.mus += (sum_reward_per_arm - n_obs_per_arm * self.mus) / (
             n_obs_per_arm + lambdas

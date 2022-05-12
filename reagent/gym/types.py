@@ -82,7 +82,7 @@ class Trajectory(rlt.BaseDataClass):
         num_transitions = len(self)
         assert num_transitions > 0, "called on empty trajectory"
         rewards = self.reward
-        discounts = [gamma ** i for i in range(num_transitions)]
+        discounts = [gamma**i for i in range(num_transitions)]
         return sum(reward * discount for reward, discount in zip(rewards, discounts))
 
     def to_dict(self):

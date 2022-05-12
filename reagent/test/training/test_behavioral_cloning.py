@@ -55,7 +55,7 @@ def get_dummy_batch(action_type, num_batches):
         # ----++++ means label=1
         # ++++---- means label=2
         # ++++++++ means label=3
-        state = state + (1e-8 ** 0.5) * torch.rand_like(state)  # add rand noise
+        state = state + (1e-8**0.5) * torch.rand_like(state)  # add rand noise
         i_th_training_batch = rlt.BehavioralCloningModelInput(
             state=rlt.FeatureData(float_features=state),
             action=action,

@@ -133,7 +133,7 @@ def single_evaluation_bandit_algo(
             expected_rewards.append(bandit.expected_rewards[arm_idx].item())
             batch_n_obs_per_arm[arm_idx] += 1
             batch_sum_reward_per_arm[arm_idx] += reward
-            batch_sum_squared_reward_per_arm[arm_idx] += reward ** 2
+            batch_sum_squared_reward_per_arm[arm_idx] += reward**2
         assert sum(batch_n_obs_per_arm) == steps_before_update
         # perform batch update
         algo.add_batch_observations(

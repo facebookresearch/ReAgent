@@ -591,7 +591,7 @@ class SwitchEstimator(DMEstimator):
         # Picking a small threshold -> using mainly the model-based estimator
         # Picking a large threshold -> using mainly the ips-based estimator
         candidates = [
-            min_w + ((exp_base ** x) / (exp_base ** (num_candidates - 1))) * diff
+            min_w + ((exp_base**x) / (exp_base ** (num_candidates - 1))) * diff
             for x in range(num_candidates)
         ]
         # This prevents the edge case where nearly all scores being min_w prevents

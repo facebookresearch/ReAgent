@@ -98,7 +98,7 @@ class DeterminantalPointProcessPredictorWrapper(torch.jit.ScriptModule):
 
         num_items = quality_scores.shape[0]
         if self.kernel == Kernel.Linear:
-            B = (self.alpha ** 0.5) * quality_scores * feature_vectors
+            B = (self.alpha**0.5) * quality_scores * feature_vectors
             L = torch.mm(B, B.t())
             L[torch.arange(num_items), torch.arange(num_items)] = (
                 quality_scores.squeeze(1) ** 2
@@ -109,7 +109,7 @@ class DeterminantalPointProcessPredictorWrapper(torch.jit.ScriptModule):
                 * torch.mm(quality_scores, quality_scores.t())
                 * torch.exp(
                     -(torch.cdist(feature_vectors, feature_vectors, p=2.0) ** 2)
-                    / (2 * self.sigma ** 2)
+                    / (2 * self.sigma**2)
                 )
             )
         else:

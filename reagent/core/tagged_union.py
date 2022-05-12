@@ -24,7 +24,6 @@ if IS_FB_ENVIRONMENT:
                 raise ValueError(f"Unknown key {key}")
             return cls(**{key: cls.__annotations__[key](**v[key])})
 
-
 else:
 
     from dataclasses import fields

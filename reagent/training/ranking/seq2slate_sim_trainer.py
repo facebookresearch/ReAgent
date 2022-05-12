@@ -146,7 +146,7 @@ class Seq2SlateSimulationTrainer(Seq2SlateTrainer):
                 model_actions_with_offset,
             ).detach()
             assert sr.ndim == 2, f"Slate reward {name} output should be 2-D tensor"
-            sim_slate_reward += weight * (sr ** power)
+            sim_slate_reward += weight * (sr**power)
 
         # guard-rail reward prediction range
         reward_clamp = self.sim_param.reward_clamp
