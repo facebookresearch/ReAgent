@@ -181,8 +181,8 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
             logged_rewards=reward,
             model_values_on_logged_actions=q_values,
         )
-        # Use pytorch-lightning logger
-        if self.log_tensorboard:
+        # Use pytorch-lightning logger on rank 0
+        if self.log_tensorboard and self.logger.experiment:
             self.log("loss", {"td_loss": td_loss, "reward_loss": reward_loss})
             # pyre-ignore
             tensorboard = self.logger.experiment
