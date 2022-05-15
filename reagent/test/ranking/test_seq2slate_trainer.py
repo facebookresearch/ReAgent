@@ -18,7 +18,7 @@ from reagent.core.parameters import Seq2SlateParameters
 from reagent.core.parameters_seq2slate import IPSClamp, IPSClampMethod
 from reagent.model_utils.seq2slate_utils import Seq2SlateOutputArch
 from reagent.models.seq2slate import Seq2SlateMode, Seq2SlateTransformerNet
-from reagent.optimizer.union import Optimizer__Union, classes
+from reagent.optimizer.union import classes, Optimizer__Union
 from reagent.samplers.frechet import FrechetSort
 from reagent.training.ranking.helper import ips_clamp
 from reagent.training.ranking.seq2slate_trainer import Seq2SlateTrainer

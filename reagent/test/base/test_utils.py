@@ -7,10 +7,10 @@ import numpy.testing as npt
 import torch
 from reagent.core.torch_utils import (
     masked_softmax,
-    rescale_torch_tensor,
-    split_sequence_keyed_jagged_tensor,
     reorder_data_kjt,
+    rescale_torch_tensor,
     shift_kjt_by_one,
+    split_sequence_keyed_jagged_tensor,
 )
 from torchrec.sparse.jagged_tensor import KeyedJaggedTensor
 

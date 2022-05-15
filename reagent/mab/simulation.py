@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 from functools import partial
 from multiprocessing import Pool
-from typing import Type, Optional, Dict, List, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
 import torch

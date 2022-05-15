@@ -5,9 +5,7 @@ from typing import Optional
 
 import torch
 from reagent.core import types as rlt
-from reagent.models.fully_connected_network import (
-    FloatFeatureFullyConnected,
-)
+from reagent.models.fully_connected_network import FloatFeatureFullyConnected
 
 
 INVALID_ACTION_CONSTANT: float = -1e10

@@ -4,7 +4,7 @@
 import abc
 import logging
 import pickle
-from typing import NamedTuple, Dict, List, Optional, Tuple
+from typing import Dict, List, NamedTuple, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -23,15 +23,13 @@ except ModuleNotFoundError:
 from reagent.core.parameters import NormalizationData
 from reagent.data.data_fetcher import DataFetcher
 from reagent.data.oss_data_fetcher import OssDataFetcher
-from reagent.preprocessing.batch_preprocessor import (
-    BatchPreprocessor,
-)
+from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.workflow.types import (
     Dataset,
     ReaderOptions,
+    ResourceOptions,
     RewardOptions,
     TableSpec,
-    ResourceOptions,
 )
 
 from .reagent_data_module import ReAgentDataModule

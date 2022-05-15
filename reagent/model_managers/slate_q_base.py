@@ -15,9 +15,7 @@ from reagent.model_managers.model_manager import ModelManager
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.reporting.slate_q_reporter import SlateQReporter
 from reagent.training import ReAgentLightningModule
-from reagent.workflow.types import (
-    PreprocessingOptions,
-)
+from reagent.workflow.types import PreprocessingOptions
 
 
 logger = logging.getLogger(__name__)

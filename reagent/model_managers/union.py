@@ -18,8 +18,8 @@ from .discrete import (
 from .model_based import (
     CrossEntropyMethod as CrossEntropyMethodType,
     Seq2RewardModel as Seq2RewardModelType,
-    WorldModel as WorldModelType,
     SyntheticReward as SyntheticRewardType,
+    WorldModel as WorldModelType,
 )
 from .parametric import ParametricDQN as ParametricDQNType
 from .policy_gradient import PPO as PPOType, Reinforce as ReinforceType

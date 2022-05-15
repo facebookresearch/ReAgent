@@ -5,8 +5,7 @@ from typing import List, Optional
 from reagent.core.dataclasses import dataclass
 from reagent.core.result_types import NoValidationResults
 from reagent.validators.model_validator import ModelValidator
-from reagent.workflow.types import RLTrainingOutput
-from reagent.workflow.types import TableSpec
+from reagent.workflow.types import RLTrainingOutput, TableSpec
 
 
 @dataclass

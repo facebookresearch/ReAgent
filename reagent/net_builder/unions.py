@@ -30,8 +30,8 @@ from .parametric_dqn.fully_connected import (
 from .quantile_dqn.dueling_quantile import DuelingQuantile as DuelingQuantileType
 from .quantile_dqn.quantile import Quantile as QuantileType
 from .synthetic_reward.ngram_synthetic_reward import (
-    NGramSyntheticReward as NGramSyntheticRewardType,
     NGramConvNetSyntheticReward as NGramConvNetSyntheticRewardType,
+    NGramSyntheticReward as NGramSyntheticRewardType,
 )
 from .synthetic_reward.sequence_synthetic_reward import (
     SequenceSyntheticReward as SequenceSyntheticRewardType,

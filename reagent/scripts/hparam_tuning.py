@@ -8,7 +8,7 @@ logging.disable()  # isort:skip
 import copy
 import json
 import os
-from typing import Any, Callable, Dict, List, Tuple, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch.multiprocessing as mp

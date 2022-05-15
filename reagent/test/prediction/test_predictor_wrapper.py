@@ -10,19 +10,17 @@ import reagent.models as models
 import torch
 from reagent.model_utils.seq2slate_utils import Seq2SlateMode, Seq2SlateOutputArch
 from reagent.models.seq2slate import Seq2SlateTransformerNet
-from reagent.prediction.cfeval.predictor_wrapper import (
-    BanditRewardNetPredictorWrapper,
-)
+from reagent.prediction.cfeval.predictor_wrapper import BanditRewardNetPredictorWrapper
 from reagent.prediction.predictor_wrapper import (
     ActorPredictorWrapper,
     ActorWithPreprocessor,
     DiscreteDqnPredictorWrapper,
     DiscreteDqnWithPreprocessor,
+    FAKE_STATE_FEATURE_ID,
     ParametricDqnPredictorWrapper,
     ParametricDqnWithPreprocessor,
     Seq2SlatePredictorWrapper,
     Seq2SlateWithPreprocessor,
-    FAKE_STATE_FEATURE_ID,
 )
 from reagent.prediction.ranking.predictor_wrapper import (
     DeterminantalPointProcessPredictorWrapper,
@@ -30,8 +28,9 @@ from reagent.prediction.ranking.predictor_wrapper import (
 )
 from reagent.preprocessing.postprocessor import Postprocessor
 from reagent.preprocessing.preprocessor import Preprocessor
-from reagent.test.prediction.test_prediction_utils import _cont_norm, _cont_action_norm
 from reagent.test.prediction.test_prediction_utils import (
+    _cont_action_norm,
+    _cont_norm,
     change_cand_size_slate_ranking,
 )
 

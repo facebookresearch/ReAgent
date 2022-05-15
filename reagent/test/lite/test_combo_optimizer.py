@@ -11,14 +11,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 from reagent.lite.optimizer import (
-    PolicyGradientOptimizer,
-    GumbelSoftmaxOptimizer,
-    QLearningOptimizer,
-    NeverGradOptimizer,
-    RandomSearchOptimizer,
-    BayesianOptimizerBase,
     BayesianMLPEnsemblerOptimizer,
+    BayesianOptimizerBase,
     GREEDY_TEMP,
+    GumbelSoftmaxOptimizer,
+    NeverGradOptimizer,
+    PolicyGradientOptimizer,
+    QLearningOptimizer,
+    RandomSearchOptimizer,
     sol_to_tensors,
 )
 

@@ -7,7 +7,7 @@ import os
 
 # Redirection to make import simpler
 from dataclasses import field  # noqa
-from typing import TYPE_CHECKING, Any, Optional
+from typing import Any, Optional, TYPE_CHECKING
 
 import pydantic
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT

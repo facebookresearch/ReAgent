@@ -9,9 +9,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import (
+    ACTIVATION_MAP,
     gaussian_fill_w_gain,
     SlateBatchNorm1d,
-    ACTIVATION_MAP,
 )
 from torch.distributions import Normal
 

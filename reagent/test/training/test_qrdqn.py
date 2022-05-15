@@ -5,7 +5,7 @@ import unittest
 
 import torch
 from reagent.core.parameters import EvaluationParameters, RLParameters
-from reagent.core.types import FeatureData, DiscreteDqnInput, ExtraData
+from reagent.core.types import DiscreteDqnInput, ExtraData, FeatureData
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.models.dqn import FullyConnectedDQN
 from reagent.training.parameters import QRDQNTrainerParameters

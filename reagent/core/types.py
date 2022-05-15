@@ -6,7 +6,7 @@ import logging
 
 # The dataclasses in this file should be vanilla dataclass to have minimal overhead
 from dataclasses import dataclass, field
-from typing import Dict, List, NamedTuple, Optional, Tuple, Final
+from typing import Dict, Final, List, NamedTuple, Optional, Tuple
 
 # Triggering registration to registries
 import reagent.core.result_types  # noqa

@@ -2,16 +2,19 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import param_hash, NormalizationData, NormalizationKey
+from reagent.core.parameters import NormalizationData, NormalizationKey, param_hash
 from reagent.model_managers.slate_q_base import SlateQBase
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
-from reagent.training import ReAgentLightningModule
-from reagent.training import SlateQTrainer, SlateQTrainerParameters
+from reagent.training import (
+    ReAgentLightningModule,
+    SlateQTrainer,
+    SlateQTrainerParameters,
+)
 from reagent.workflow.types import RewardOptions
 
 

@@ -21,9 +21,7 @@ from reagent.gym.policies.scorers.discrete_scorer import parametric_dqn_scorer
 from reagent.model_managers.model_manager import ModelManager
 from reagent.models.base import ModelBase
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
-from reagent.preprocessing.normalization import (
-    get_feature_config,
-)
+from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
 from reagent.training import ReAgentLightningModule
 from reagent.workflow.identify_types_flow import identify_normalization_parameters

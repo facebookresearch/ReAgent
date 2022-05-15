@@ -15,7 +15,7 @@ from reagent.models.synthetic_reward_sparse_arch import (
 )
 from reagent.net_builder.synthetic_reward_net_builder import SyntheticRewardNetBuilder
 from reagent.preprocessing.normalization import get_num_output_features
-from torchrec import EmbeddingBagConfig, EmbeddingBagCollection
+from torchrec import EmbeddingBagCollection, EmbeddingBagConfig
 
 
 @dataclass

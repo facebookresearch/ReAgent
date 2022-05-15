@@ -13,7 +13,7 @@ default values that cannot be inferred:
 Sometimes there are no defaults to infer from, so we got to include those here.
 TODO: remove this file once we can infer everything.
 """
-from typing import List, Optional, Union, Callable, Dict, Any
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from reagent.core.dataclasses import dataclass
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT

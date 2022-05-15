@@ -25,8 +25,7 @@ from reagent.net_builder.unions import (
     ParametricDQNNetBuilder__Union,
 )
 from reagent.reporting.td3_reporter import TD3Reporter
-from reagent.training import ReAgentLightningModule
-from reagent.training import TD3Trainer, TD3TrainerParameters
+from reagent.training import ReAgentLightningModule, TD3Trainer, TD3TrainerParameters
 from reagent.workflow.types import RewardOptions
 
 

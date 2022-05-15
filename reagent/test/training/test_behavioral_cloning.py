@@ -10,8 +10,7 @@ import torch
 from pytorch_lightning import seed_everything
 from reagent.core import types as rlt
 from reagent.models.dqn import FullyConnectedDQN
-from reagent.optimizer.union import Optimizer__Union
-from reagent.optimizer.union import classes
+from reagent.optimizer.union import classes, Optimizer__Union
 from reagent.training.behavioral_cloning_trainer import BehavioralCloningTrainer
 from torch.utils.data import DataLoader
 

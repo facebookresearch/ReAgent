@@ -13,9 +13,7 @@ import pytorch_lightning as pl
 import torch
 from parameterized import parameterized
 from reagent.gym.agents.agent import Agent
-from reagent.gym.datasets.episodic_dataset import (
-    EpisodicDataset,
-)
+from reagent.gym.datasets.episodic_dataset import EpisodicDataset
 from reagent.gym.datasets.replay_buffer_dataset import ReplayBufferDataset
 from reagent.gym.envs import Env__Union
 from reagent.gym.envs.env_wrapper import EnvWrapper

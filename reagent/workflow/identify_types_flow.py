@@ -10,8 +10,8 @@ import reagent.core.types as rlt
 from pyspark.sql.functions import col, collect_list, explode
 from reagent.data.spark_utils import get_spark_session
 from reagent.preprocessing.normalization import (
-    NormalizationParameters,
     get_feature_norm_metadata,
+    NormalizationParameters,
 )
 
 from .types import PreprocessingOptions, TableSpec

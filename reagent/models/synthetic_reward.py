@@ -7,10 +7,8 @@ from typing import List
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from reagent.core import parameters as rlp
-from reagent.core import types as rlt
-from reagent.models import convolutional_network
-from reagent.models import fully_connected_network
+from reagent.core import parameters as rlp, types as rlt
+from reagent.models import convolutional_network, fully_connected_network
 from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import ACTIVATION_MAP
 

@@ -5,7 +5,7 @@ from typing import Dict, List
 
 import numpy as np
 import torch
-from torchrec.sparse.jagged_tensor import KeyedJaggedTensor, JaggedTensor
+from torchrec.sparse.jagged_tensor import JaggedTensor, KeyedJaggedTensor
 
 
 def dict_to_tensor(batch: Dict[str, np.ndarray], device: str = "cpu"):

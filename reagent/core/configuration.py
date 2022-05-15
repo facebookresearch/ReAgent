@@ -2,8 +2,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import functools
-from dataclasses import MISSING, Field, fields
-from inspect import Parameter, isclass, signature
+from dataclasses import Field, fields, MISSING
+from inspect import isclass, Parameter, signature
 from typing import List, Optional, Type, Union
 
 from reagent.core.dataclasses import dataclass

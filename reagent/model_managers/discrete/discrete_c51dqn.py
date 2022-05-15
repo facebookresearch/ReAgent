@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
-from typing import Dict
-from typing import Optional
+from typing import Dict, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import param_hash, NormalizationData, NormalizationKey
+from reagent.core.parameters import NormalizationData, NormalizationKey, param_hash
 from reagent.model_managers.discrete_dqn_base import DiscreteDQNBase
 from reagent.net_builder.categorical_dqn.categorical import Categorical
 from reagent.net_builder.unions import CategoricalDQNNetBuilder__Union
-from reagent.training import C51Trainer, C51TrainerParameters
-from reagent.training import ReAgentLightningModule
+from reagent.training import C51Trainer, C51TrainerParameters, ReAgentLightningModule
 from reagent.workflow.types import RewardOptions
 
 

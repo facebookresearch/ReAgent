@@ -7,9 +7,9 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from reagent.reporting import ReporterBase, CompoundReporter
-from reagent.training import ReAgentLightningModule, MultiStageTrainer
-from torch.utils.data import TensorDataset, DataLoader
+from reagent.reporting import CompoundReporter, ReporterBase
+from reagent.training import MultiStageTrainer, ReAgentLightningModule
+from torch.utils.data import DataLoader, TensorDataset
 
 
 class DummyReporter(ReporterBase):

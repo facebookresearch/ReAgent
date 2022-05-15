@@ -5,13 +5,16 @@ from typing import Dict, Optional
 
 import torch
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import param_hash, NormalizationData, NormalizationKey
+from reagent.core.parameters import NormalizationData, NormalizationKey, param_hash
 from reagent.evaluation.evaluator import get_metrics_to_score
 from reagent.model_managers.parametric_dqn_base import ParametricDQNBase
 from reagent.net_builder.parametric_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import ParametricDQNNetBuilder__Union
-from reagent.training import ParametricDQNTrainer, ParametricDQNTrainerParameters
-from reagent.training import ReAgentLightningModule
+from reagent.training import (
+    ParametricDQNTrainer,
+    ParametricDQNTrainerParameters,
+    ReAgentLightningModule,
+)
 from reagent.workflow.types import RewardOptions
 
 

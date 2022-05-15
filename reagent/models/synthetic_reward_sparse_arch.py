@@ -11,7 +11,7 @@ from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import ACTIVATION_MAP
 from reagent.models.synthetic_reward import _gen_mask
 from torchrec import EmbeddingBagCollection
-from torchrec.models.dlrm import SparseArch, InteractionArch
+from torchrec.models.dlrm import InteractionArch, SparseArch
 from torchrec.sparse.jagged_tensor import KeyedJaggedTensor
 
 

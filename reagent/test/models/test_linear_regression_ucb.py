@@ -8,10 +8,7 @@ import numpy.testing as npt
 import torch
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
-from reagent.models.linear_regression import (
-    LinearRegressionUCB,
-    batch_quadratic_form,
-)
+from reagent.models.linear_regression import batch_quadratic_form, LinearRegressionUCB
 from reagent.training.cb.linucb_trainer import LinUCBTrainer
 
 

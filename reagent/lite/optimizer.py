@@ -6,7 +6,7 @@ import heapq
 import logging
 from collections import defaultdict, deque
 from math import floor
-from typing import Callable, Dict, Tuple, Optional, List, Any
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import nevergrad as ng
 import numpy as np

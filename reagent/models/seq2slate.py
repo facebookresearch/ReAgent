@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 import math
-from typing import Optional, NamedTuple
+from typing import NamedTuple, Optional
 
 import torch
 import torch.nn as nn
@@ -12,16 +12,16 @@ from reagent.core.configuration import param_hash
 from reagent.core.dataclasses import dataclass
 from reagent.core.torch_utils import gather
 from reagent.model_utils.seq2slate_utils import (
-    DECODER_START_SYMBOL,
-    PADDING_SYMBOL,
-    Seq2SlateMode,
-    Seq2SlateOutputArch,
     attention,
-    pytorch_decoder_mask,
     clones,
+    DECODER_START_SYMBOL,
     mask_logits_by_idx,
+    PADDING_SYMBOL,
     per_symbol_to_per_seq_probs,
     print_model_info,
+    pytorch_decoder_mask,
+    Seq2SlateMode,
+    Seq2SlateOutputArch,
 )
 from reagent.models.base import ModelBase
 from torch.nn.parallel.distributed import DistributedDataParallel

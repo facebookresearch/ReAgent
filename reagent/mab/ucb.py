@@ -3,7 +3,7 @@
 
 import math
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import List, Optional
 
 import torch
 from reagent.mab.mab_algorithm import MABAlgo

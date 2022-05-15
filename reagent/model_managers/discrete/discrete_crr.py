@@ -28,12 +28,13 @@ from reagent.net_builder.unions import (
     DiscreteActorNetBuilder__Union,
     DiscreteDQNNetBuilder__Union,
 )
-from reagent.prediction.cfeval.predictor_wrapper import (
-    BanditRewardNetPredictorWrapper,
-)
+from reagent.prediction.cfeval.predictor_wrapper import BanditRewardNetPredictorWrapper
 from reagent.reporting.discrete_crr_reporter import DiscreteCRRReporter
-from reagent.training import DiscreteCRRTrainer, CRRTrainerParameters
-from reagent.training import ReAgentLightningModule
+from reagent.training import (
+    CRRTrainerParameters,
+    DiscreteCRRTrainer,
+    ReAgentLightningModule,
+)
 from reagent.workflow.types import RewardOptions
 
 logger = logging.getLogger(__name__)

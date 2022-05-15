@@ -5,7 +5,7 @@ import logging
 import pdb
 import sys
 from collections import defaultdict
-from typing import List, Dict
+from typing import Dict, List
 
 import reagent.core.types as rlt
 import torch

@@ -21,8 +21,7 @@ from reagent.net_builder.unions import (
 from reagent.net_builder.value.fully_connected import (
     FullyConnected as ValueFullyConnected,
 )
-from reagent.training import ReAgentLightningModule
-from reagent.training import SACTrainer, SACTrainerParameters
+from reagent.training import ReAgentLightningModule, SACTrainer, SACTrainerParameters
 from reagent.workflow.types import RewardOptions
 
 

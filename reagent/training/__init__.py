@@ -23,19 +23,19 @@ from reagent.training.td3_trainer import TD3Trainer
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 
 from .parameters import (
+    BehavioralCloningTrainerParameters,
     C51TrainerParameters,
+    CRRTrainerParameters,
     DQNTrainerParameters,
     ParametricDQNTrainerParameters,
+    PPOTrainerParameters,
     QRDQNTrainerParameters,
+    ReinforceTrainerParameters,
     RewardNetworkTrainerParameters,
     SACTrainerParameters,
     Seq2SlateTrainerParameters,
     SlateQTrainerParameters,
     TD3TrainerParameters,
-    CRRTrainerParameters,
-    ReinforceTrainerParameters,
-    PPOTrainerParameters,
-    BehavioralCloningTrainerParameters,
 )
 
 

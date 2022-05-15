@@ -7,7 +7,7 @@ import unittest
 import numpy as np
 import torch
 from reagent.core.parameters import MDNRNNTrainerParameters
-from reagent.models.mdn_rnn import MDNRNNMemoryPool, gmm_loss
+from reagent.models.mdn_rnn import gmm_loss, MDNRNNMemoryPool
 from reagent.models.world_model import MemoryNetwork
 from reagent.reporting.world_model_reporter import WorldModelReporter
 from reagent.test.world_model.simulated_world_model import SimulatedWorldModel

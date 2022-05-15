@@ -43,7 +43,7 @@ class Trainer:
         self.optimizer.step()
 """
 import inspect
-from typing import List, Dict, Union
+from typing import Dict, List, Union
 
 import torch
 from reagent.core.dataclasses import dataclass, field

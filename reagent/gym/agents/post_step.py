@@ -5,9 +5,7 @@
 import logging
 
 import gym
-from reagent.gym.preprocessors import (
-    make_replay_buffer_inserter,
-)
+from reagent.gym.preprocessors import make_replay_buffer_inserter
 from reagent.gym.types import Transition
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 

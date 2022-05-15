@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from abc import abstractmethod
-from typing import Optional, List
+from typing import List, Optional
 
 import torch
 from reagent.mab.mab_algorithm import MABAlgo, reindex_multiple_tensors

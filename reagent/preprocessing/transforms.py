@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Callable, List, Optional, Dict
+from typing import Callable, Dict, List, Optional
 
 import numpy as np
 import reagent.core.types as rlt

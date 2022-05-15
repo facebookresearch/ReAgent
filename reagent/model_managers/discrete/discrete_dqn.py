@@ -11,9 +11,7 @@ from reagent.model_managers.discrete_dqn_base import DiscreteDQNBase
 from reagent.net_builder.discrete_dqn.dueling import Dueling
 from reagent.net_builder.discrete_dqn.fully_connected import FullyConnected
 from reagent.net_builder.unions import DiscreteDQNNetBuilder__Union
-from reagent.prediction.cfeval.predictor_wrapper import (
-    BanditRewardNetPredictorWrapper,
-)
+from reagent.prediction.cfeval.predictor_wrapper import BanditRewardNetPredictorWrapper
 from reagent.reporting.discrete_dqn_reporter import DiscreteDQNReporter
 from reagent.training import DQNTrainer, DQNTrainerParameters, ReAgentLightningModule
 from reagent.training.dqn_trainer_base import DQNTrainerBaseLightning

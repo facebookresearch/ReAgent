@@ -2,8 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from dataclasses import asdict
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 import torch
 import torch.nn as nn

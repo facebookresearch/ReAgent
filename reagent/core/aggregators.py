@@ -3,7 +3,7 @@
 
 import logging
 from collections import deque
-from typing import Callable, Deque, Dict, List, Optional, Any
+from typing import Any, Callable, Deque, Dict, List, Optional
 
 import numpy as np
 import torch

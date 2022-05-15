@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 import torch
 from reagent.gym.agents.agent import Agent
@@ -11,7 +11,7 @@ from reagent.gym.preprocessors import (
     make_replay_buffer_inserter,
     make_replay_buffer_trainer_preprocessor,
 )
-from reagent.gym.types import Transition, Trajectory
+from reagent.gym.types import Trajectory, Transition
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 
 logger = logging.getLogger(__name__)

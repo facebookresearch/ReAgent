@@ -11,16 +11,16 @@ from reagent.core.dataclasses import dataclass
 from reagent.core.parameters import NormalizationData
 from reagent.data.reagent_data_module import ReAgentDataModule
 from reagent.reporting.reporter_base import ReporterBase
-from reagent.training import ReAgentLightningModule, MultiStageTrainer
+from reagent.training import MultiStageTrainer, ReAgentLightningModule
 from reagent.workflow.types import (
     Dataset,
     ReaderOptions,
     ResourceOptions,
     RewardOptions,
     RLTrainingOutput,
+    RLTrainingReport,
     TableSpec,
 )
-from reagent.workflow.types import RLTrainingReport
 from reagent.workflow.utils import get_rank, train_eval_lightning
 
 

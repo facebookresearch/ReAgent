@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Dict, List, Optional, Tuple, cast
+from typing import cast, Dict, List, Optional, Tuple
 
 import torch
 from reagent.core.parameters import NormalizationParameters

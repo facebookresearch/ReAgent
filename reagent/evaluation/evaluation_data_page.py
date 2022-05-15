@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Optional, cast
+from typing import cast, Optional, TYPE_CHECKING
 
 import numpy as np
 import torch

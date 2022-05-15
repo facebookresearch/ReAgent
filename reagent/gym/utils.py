@@ -16,9 +16,9 @@ from reagent.gym.agents.agent import Agent
 from reagent.gym.agents.post_step import add_replay_buffer_post_step
 from reagent.gym.envs import EnvWrapper
 from reagent.gym.normalizers import (
-    only_continuous_normalizer,
     discrete_action_normalizer,
     only_continuous_action_normalizer,
+    only_continuous_normalizer,
 )
 from reagent.gym.policies.random_policies import make_random_policy_for_env
 from reagent.gym.runners.gymrunner import run_episode

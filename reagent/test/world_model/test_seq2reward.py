@@ -24,10 +24,10 @@ from reagent.gym.utils import create_df_from_replay_buffer
 from reagent.models.seq2reward_model import Seq2RewardNetwork
 from reagent.net_builder.value.fully_connected import FullyConnected
 from reagent.prediction.predictor_wrapper import (
-    Seq2RewardWithPreprocessor,
-    Seq2RewardPlanShortSeqWithPreprocessor,
     FAKE_STATE_ID_LIST_FEATURES,
     FAKE_STATE_ID_SCORE_LIST_FEATURES,
+    Seq2RewardPlanShortSeqWithPreprocessor,
+    Seq2RewardWithPreprocessor,
 )
 from reagent.preprocessing.identify_types import DO_NOT_PREPROCESS
 from reagent.preprocessing.preprocessor import Preprocessor

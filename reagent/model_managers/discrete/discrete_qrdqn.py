@@ -14,8 +14,11 @@ from reagent.net_builder.unions import (
     DiscreteDQNNetBuilder__Union,
     QRDQNNetBuilder__Union,
 )
-from reagent.training import QRDQNTrainer, QRDQNTrainerParameters
-from reagent.training import ReAgentLightningModule
+from reagent.training import (
+    QRDQNTrainer,
+    QRDQNTrainerParameters,
+    ReAgentLightningModule,
+)
 from reagent.workflow.types import RewardOptions
 
 

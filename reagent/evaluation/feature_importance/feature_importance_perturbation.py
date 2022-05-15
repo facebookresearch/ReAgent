@@ -3,7 +3,7 @@
 import copy
 import logging
 from collections import defaultdict
-from typing import Callable, Any, Optional
+from typing import Any, Callable, Optional
 
 import pandas as pd
 import torch

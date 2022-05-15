@@ -5,13 +5,12 @@ import unittest
 
 import numpy.testing as npt
 import torch
-from reagent.core import parameters as rlp
-from reagent.core import types as rlt
+from reagent.core import parameters as rlp, types as rlt
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.parameters import NormalizationData, NormalizationParameters
 from reagent.net_builder.synthetic_reward.ngram_synthetic_reward import (
-    NGramSyntheticReward,
     NGramConvNetSyntheticReward,
+    NGramSyntheticReward,
 )
 from reagent.net_builder.synthetic_reward.sequence_synthetic_reward import (
     SequenceSyntheticReward,
