@@ -15,19 +15,19 @@ import torch.nn.functional as F
 from parameterized import parameterized
 from reagent.model_utils.seq2slate_utils import (
     DECODER_START_SYMBOL,
-    Seq2SlateMode,
-    Seq2SlateOutputArch,
     mask_logits_by_idx,
     per_symbol_to_per_seq_log_probs,
     per_symbol_to_per_seq_probs,
-    subsequent_mask,
     pytorch_decoder_mask,
+    Seq2SlateMode,
+    Seq2SlateOutputArch,
+    subsequent_mask,
 )
 from reagent.test.ranking.seq2slate_utils import (
-    MODEL_TRANSFORMER,
-    ON_POLICY,
     create_batch,
     create_seq2slate_net,
+    MODEL_TRANSFORMER,
+    ON_POLICY,
     rank_on_policy,
     run_seq2slate_tsp,
 )

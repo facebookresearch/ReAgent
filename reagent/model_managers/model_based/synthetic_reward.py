@@ -11,8 +11,8 @@ from reagent.core.parameters import (
     EvaluationParameters,
     NormalizationData,
     NormalizationKey,
+    param_hash,
 )
-from reagent.core.parameters import param_hash
 from reagent.data.data_fetcher import DataFetcher
 from reagent.data.manual_data_module import ManualDataModule
 from reagent.data.reagent_data_module import ReAgentDataModule
@@ -23,16 +23,19 @@ from reagent.net_builder.synthetic_reward.single_step_synthetic_reward import (
 from reagent.net_builder.unions import SyntheticRewardNetBuilder__Union
 from reagent.preprocessing.types import InputColumn
 from reagent.reporting.reward_network_reporter import RewardNetworkReporter
-from reagent.training import ReAgentLightningModule
-from reagent.training import RewardNetTrainer, RewardNetworkTrainerParameters
+from reagent.training import (
+    ReAgentLightningModule,
+    RewardNetTrainer,
+    RewardNetworkTrainerParameters,
+)
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
     ReaderOptions,
+    ResourceOptions,
     RewardOptions,
     TableSpec,
-    ResourceOptions,
 )
 
 logger = logging.getLogger(__name__)

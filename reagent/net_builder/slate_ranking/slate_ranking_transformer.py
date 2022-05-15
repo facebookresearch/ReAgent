@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import TransformerParameters, param_hash
+from reagent.core.parameters import param_hash, TransformerParameters
 from reagent.model_utils.seq2slate_utils import Seq2SlateOutputArch
 from reagent.models.base import ModelBase
 from reagent.models.seq2slate import Seq2SlateTransformerNet

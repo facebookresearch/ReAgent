@@ -5,9 +5,9 @@ import logging
 
 import torch
 from reagent.evaluation.cpe import (
+    bootstrapped_std_error_of_mean,
     CpeEstimate,
     CpeEstimateSet,
-    bootstrapped_std_error_of_mean,
 )
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 from reagent.evaluation.evaluator import Evaluator

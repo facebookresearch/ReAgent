@@ -8,8 +8,7 @@ from typing import List, Optional
 
 from reagent.core.registry_meta import RegistryMeta
 from reagent.core.result_registries import ValidationResult
-from reagent.workflow.types import RLTrainingOutput
-from reagent.workflow.types import TableSpec
+from reagent.workflow.types import RLTrainingOutput, TableSpec
 
 logger = logging.getLogger(__name__)
 

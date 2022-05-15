@@ -2,14 +2,14 @@
 # Copyright 2004-present Facebook. All Rights Reserved.
 
 from reagent.serving.config.builder import (
-    UCB,
     DecisionPlanBuilder,
     EpsilonGreedyRanker,
+    export,
     Frechet,
     InputFromRequest,
     Softmax,
     SoftmaxRanker,
-    export,
+    UCB,
 )
 
 

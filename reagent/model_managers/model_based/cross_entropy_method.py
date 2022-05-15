@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 import numpy as np
 import reagent.core.types as rlt
@@ -10,9 +10,9 @@ import torch
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import (
     CEMTrainerParameters,
-    param_hash,
     NormalizationData,
     NormalizationKey,
+    param_hash,
 )
 from reagent.gym.policies.policy import Policy
 from reagent.model_managers.model_based.world_model import WorldModel

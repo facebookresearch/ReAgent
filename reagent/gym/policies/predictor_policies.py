@@ -18,7 +18,7 @@ from reagent.gym.policies.scorers.discrete_scorer import (
     parametric_dqn_serving_scorer,
 )
 from reagent.gym.policies.scorers.slate_q_scorer import slate_q_serving_scorer
-from reagent.models.actor import LOG_PROB_MIN, LOG_PROB_MAX
+from reagent.models.actor import LOG_PROB_MAX, LOG_PROB_MIN
 
 
 if IS_FB_ENVIRONMENT:

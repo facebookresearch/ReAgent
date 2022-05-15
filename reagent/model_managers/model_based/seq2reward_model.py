@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import (
-    Seq2RewardTrainerParameters,
-    param_hash,
-    NormalizationKey,
     NormalizationData,
+    NormalizationKey,
+    param_hash,
+    Seq2RewardTrainerParameters,
 )
 from reagent.model_managers.world_model_base import WorldModelBase
 from reagent.net_builder.unions import ValueNetBuilder__Union

@@ -9,8 +9,8 @@ from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.parameters import NormalizationData
 from reagent.models.base import ModelBase
 from reagent.prediction.predictor_wrapper import (
-    DiscreteDqnWithPreprocessor,
     BinaryDifferenceScorerWithPreprocessor,
+    DiscreteDqnWithPreprocessor,
 )
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.preprocessing.preprocessor import Preprocessor
@@ -18,13 +18,13 @@ from reagent.preprocessing.preprocessor import Preprocessor
 
 if IS_FB_ENVIRONMENT:
     from reagent.fb.prediction.fb_predictor_wrapper import (
-        FbDiscreteDqnPredictorWrapper as DiscreteDqnPredictorWrapper,
         FbBinaryDifferenceScorerPredictorWrapper as BinaryDifferenceScorerPredictorWrapper,
+        FbDiscreteDqnPredictorWrapper as DiscreteDqnPredictorWrapper,
     )
 else:
     from reagent.prediction.predictor_wrapper import (
-        DiscreteDqnPredictorWrapper,
         BinaryDifferenceScorerPredictorWrapper,
+        DiscreteDqnPredictorWrapper,
     )
 
 

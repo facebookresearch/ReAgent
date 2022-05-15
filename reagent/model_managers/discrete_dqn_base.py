@@ -18,9 +18,7 @@ from reagent.data.manual_data_module import ManualDataModule
 from reagent.data.reagent_data_module import ReAgentDataModule
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
-from reagent.gym.policies.samplers.discrete_sampler import (
-    GreedyActionSampler,
-)
+from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
 from reagent.gym.policies.scorers.discrete_scorer import discrete_dqn_scorer
 from reagent.model_managers.model_manager import ModelManager
 from reagent.models.model_feature_config_provider import RawModelFeatureConfigProvider

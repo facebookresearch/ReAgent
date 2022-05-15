@@ -9,10 +9,9 @@ import reagent.core.types as rlt
 import torch
 import torch.nn.functional as F
 from reagent.core.configuration import resolve_defaults
-from reagent.core.dataclasses import dataclass
-from reagent.core.dataclasses import field
+from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import RLParameters
-from reagent.models.actor import LOG_PROB_MIN, LOG_PROB_MAX
+from reagent.models.actor import LOG_PROB_MAX, LOG_PROB_MIN
 from reagent.optimizer import Optimizer__Union, SoftUpdate
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from reagent.training.rl_trainer_pytorch import RLTrainerMixin

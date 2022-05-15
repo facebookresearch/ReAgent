@@ -25,7 +25,7 @@ The expected Q-value of "A" = 0.5 * 0 + 0.5 * max(0.5 * 0 + 0.5 * max(5, 0), 0) 
 The expected Q-value of "B" = 0.1 * 0 + 0.9 * max(0.5 * 4 + 0.5 * max(0, 0), 0) = 1.8
 """
 import logging
-from collections import deque, defaultdict
+from collections import defaultdict, deque
 
 import numpy as np
 import torch

@@ -7,19 +7,19 @@ import unittest
 import torch
 from reagent.core import parameters as rlp
 from reagent.models.synthetic_reward import (
-    SingleStepSyntheticRewardNet,
-    SequenceSyntheticRewardNet,
-    TransformerSyntheticRewardNet,
-    NGramFullyConnectedNetwork,
-    NGramConvolutionalNetwork,
-    SyntheticRewardNet,
     _gen_mask,
+    NGramConvolutionalNetwork,
+    NGramFullyConnectedNetwork,
+    SequenceSyntheticRewardNet,
+    SingleStepSyntheticRewardNet,
+    SyntheticRewardNet,
+    TransformerSyntheticRewardNet,
 )
 from reagent.models.synthetic_reward_sparse_arch import (
     SingleStepSyntheticSparseArchRewardNet,
     SyntheticRewardSparseArchNet,
 )
-from torchrec import EmbeddingBagConfig, EmbeddingBagCollection
+from torchrec import EmbeddingBagCollection, EmbeddingBagConfig
 
 
 logger = logging.getLogger(__name__)

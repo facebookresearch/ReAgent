@@ -4,7 +4,7 @@ import bisect
 import functools
 import itertools
 from collections import OrderedDict
-from typing import List, Dict, Tuple
+from typing import Dict, List, Tuple
 
 import torch.nn as nn
 from pytorch_lightning.loops.optimization.optimizer_loop import ClosureResult

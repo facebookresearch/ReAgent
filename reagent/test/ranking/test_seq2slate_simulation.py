@@ -9,8 +9,8 @@ import pytest
 import torch
 from reagent.test.ranking.seq2slate_utils import (
     MODEL_TRANSFORMER,
-    SIMULATION,
     run_seq2slate_tsp,
+    SIMULATION,
 )
 
 

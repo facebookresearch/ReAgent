@@ -6,7 +6,7 @@ from typing import List
 
 import numpy as np
 import torch
-from reagent.evaluation.cpe import CpeEstimate, bootstrapped_std_error_of_mean
+from reagent.evaluation.cpe import bootstrapped_std_error_of_mean, CpeEstimate
 from reagent.evaluation.evaluation_data_page import EvaluationDataPage
 
 

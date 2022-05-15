@@ -17,11 +17,11 @@ from reagent.preprocessing.normalization import (
 from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.test.base.utils import NumpyFeatureProcessor
 from reagent.test.preprocessing.preprocessing_util import (
-    CONTINUOUS_FEATURE_ID,
     BOXCOX_FEATURE_ID,
+    CONTINUOUS_FEATURE_ID,
     ENUM_FEATURE_ID,
-    PROBABILITY_FEATURE_ID,
     id_to_type,
+    PROBABILITY_FEATURE_ID,
     read_data,
 )
 from scipy import special

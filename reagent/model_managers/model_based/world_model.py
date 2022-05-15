@@ -6,9 +6,9 @@ from typing import Dict, Optional
 from reagent.core.dataclasses import dataclass, field
 from reagent.core.parameters import (
     MDNRNNTrainerParameters,
-    param_hash,
     NormalizationData,
     NormalizationKey,
+    param_hash,
 )
 from reagent.model_managers.world_model_base import WorldModelBase
 from reagent.models.world_model import MemoryNetwork

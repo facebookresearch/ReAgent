@@ -3,10 +3,10 @@
 
 import unittest
 from tempfile import TemporaryDirectory
-from unittest.mock import MagicMock, call
+from unittest.mock import call, MagicMock
 
 import torch
-from reagent.core.tensorboardX import SummaryWriterContext, summary_writer_context
+from reagent.core.tensorboardX import summary_writer_context, SummaryWriterContext
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from torch.utils.tensorboard import SummaryWriter
 

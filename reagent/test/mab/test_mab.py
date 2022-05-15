@@ -14,26 +14,21 @@ from pytorch_lightning import seed_everything
 from reagent.mab.mab_algorithm import (
     get_arm_indices,
     place_values_at_indices,
-    reindex_multiple_tensors,
     randomized_argmax,
+    reindex_multiple_tensors,
 )
 from reagent.mab.simulation import (
     BernoilliMAB,
-    single_evaluation_bandit_algo,
-    multiple_evaluations_bandit_algo,
     compare_bandit_algos,
+    multiple_evaluations_bandit_algo,
+    single_evaluation_bandit_algo,
 )
 from reagent.mab.thompson_sampling import (
     BaseThompsonSampling,
-    NormalGammaThompson,
     BernoulliBetaThompson,
+    NormalGammaThompson,
 )
-from reagent.mab.ucb import (
-    BaseUCB,
-    MetricUCB,
-    UCB1,
-    UCBTuned,
-)
+from reagent.mab.ucb import BaseUCB, MetricUCB, UCB1, UCBTuned
 
 ALL_UCB_ALGOS = [
     ["MetricUCB", MetricUCB],

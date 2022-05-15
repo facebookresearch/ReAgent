@@ -13,7 +13,7 @@ from reagent.core.parameters import (
     NormalizationData,
     NormalizationKey,
 )
-from reagent.data import DataFetcher, ReAgentDataModule, ManualDataModule
+from reagent.data import DataFetcher, ManualDataModule, ReAgentDataModule
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.model_managers.model_manager import ModelManager

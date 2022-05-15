@@ -7,9 +7,7 @@ from typing import Dict, Optional
 import torch
 from reagent.core import types as rlt
 from reagent.core.dataclasses import dataclass, field
-from reagent.core.parameters import NormalizationData
-from reagent.core.parameters import NormalizationKey
-from reagent.core.parameters import param_hash
+from reagent.core.parameters import NormalizationData, NormalizationKey, param_hash
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.predictor_policies import create_predictor_policy_from_model
 from reagent.gym.policies.samplers.discrete_sampler import SoftmaxActionSampler
@@ -20,12 +18,12 @@ from reagent.net_builder.unions import (
     DiscreteDQNNetBuilder__Union,
     ValueNetBuilder__Union,
 )
-from reagent.training import ReAgentLightningModule
-from reagent.training import ReinforceTrainer, ReinforceTrainerParameters
-from reagent.workflow.types import (
-    ModelFeatureConfigProvider__Union,
-    RewardOptions,
+from reagent.training import (
+    ReAgentLightningModule,
+    ReinforceTrainer,
+    ReinforceTrainerParameters,
 )
+from reagent.workflow.types import ModelFeatureConfigProvider__Union, RewardOptions
 
 
 logger = logging.getLogger(__name__)
