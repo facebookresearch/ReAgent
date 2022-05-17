@@ -194,10 +194,13 @@ class EvaluationDataPage(rlt.TensorDataClass):
         max_num_actions: int,
         metrics: Optional[torch.Tensor] = None,
     ):
+        reward_network = trainer.reward_network
+        assert reward_network is not None, "CFEval requires a trained reward network"
+
         old_q_train_state = trainer.q_network.training
-        old_reward_train_state = trainer.reward_network.training
+        old_reward_train_state = reward_network.training
         trainer.q_network.train(False)
-        trainer.reward_network.train(False)
+        reward_network.train(False)
 
         tiled_state = states.float_features.repeat(1, max_num_actions).reshape(
             -1, states.float_features.shape[1]
@@ -234,9 +237,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
             trainer.rl_temperature,
         )
 
-        rewards_and_metric_rewards = trainer.reward_network(
-            *possible_actions_state_concat
-        )
+        rewards_and_metric_rewards = reward_network(*possible_actions_state_concat)
         model_rewards = rewards_and_metric_rewards[:, :1]
         assert (
             model_rewards.shape[0] * model_rewards.shape[1]
@@ -252,9 +253,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
         model_metrics = rewards_and_metric_rewards[:, 1:]
         model_metrics = model_metrics.reshape(possible_actions_mask.shape[0], -1)
 
-        model_rewards_and_metrics_for_logged_action = trainer.reward_network(
-            states, actions
-        )
+        model_rewards_and_metrics_for_logged_action = reward_network(states, actions)
         model_rewards_for_logged_action = model_rewards_and_metrics_for_logged_action[
             :, :1
         ]
@@ -277,7 +276,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
             model_metrics_values = model_values.repeat(1, num_metrics)
 
         trainer.q_network.train(old_q_train_state)
-        trainer.reward_network.train(old_reward_train_state)
+        reward_network.train(old_reward_train_state)
 
         return cls(
             mdp_id=mdp_ids,
