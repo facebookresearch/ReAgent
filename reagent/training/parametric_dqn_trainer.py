@@ -81,6 +81,18 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
 
         return optimizers
 
+    def _check_input(self, training_batch: rlt.ParametricDqnInput):
+        assert isinstance(training_batch, rlt.ParametricDqnInput)
+        assert training_batch.not_terminal.dim() == training_batch.reward.dim() == 2
+        assert (
+            training_batch.not_terminal.shape[1] == training_batch.reward.shape[1] == 1
+        )
+        assert (
+            training_batch.action.float_features.dim()
+            == training_batch.next_action.float_features.dim()
+            == 2
+        )
+
     @torch.no_grad()
     def get_detached_model_outputs(
         self, state, action
@@ -91,6 +103,7 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
         return q_values, q_values_target
 
     def train_step_gen(self, training_batch: rlt.ParametricDqnInput, batch_idx: int):
+        self._check_input(training_batch)
         reward = training_batch.reward
         not_terminal = training_batch.not_terminal.float()
         discount_tensor = torch.full_like(reward, self.gamma)
