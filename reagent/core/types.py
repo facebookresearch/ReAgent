@@ -850,6 +850,7 @@ class ParametricDqnInput(BaseInput):
     possible_next_actions: FeatureData
     possible_next_actions_mask: torch.Tensor
     extras: Optional[ExtraData] = None
+    weight: Optional[torch.Tensor] = None
 
     @classmethod
     def from_dict(cls, batch):
@@ -869,6 +870,7 @@ class ParametricDqnInput(BaseInput):
             time_diff=batch["time_diff"],
             step=batch["step"],
             extras=batch["extras"],
+            weight=batch.get("weight", None),
         )
 
 
