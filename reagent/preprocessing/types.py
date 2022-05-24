@@ -46,3 +46,4 @@ class InputColumn(object):
     CONTEXT_FEATURES = "context_features"
     ARM_FEATURES = "arm_features"
     CONTEXT_ARM_FEATURES = "context_arm_features"
+    ARMS = "arms"

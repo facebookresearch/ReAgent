@@ -428,6 +428,32 @@ class ColumnVector:
         return data
 
 
+class AppendExtraValues:
+    """
+    Input is of format list(tuple(tensor, tensor)) - list(tuple(value, presence)).
+    Output is of format list(tensor) with only the value extracted for the batch.
+
+    Note that this transform works on array data type only.
+    """
+
+    def __init__(self, keys: List[str]):
+        self.keys = keys
+
+    def __call__(self, data):
+        extra_val_list = []
+        for k in self.keys:
+            raw_list = data[k]
+            assert isinstance(
+                raw_list, list
+            ), f"Extra key - {k} must be of format list(tuple(tensor, tensor))"
+            assert len(raw_list) != 0, f"Extra key - {k} cannot be an empty list"
+            for raw_value in raw_list:
+                value, presence = raw_value
+                extra_val_list.append(value)
+        data[k] = extra_val_list
+        return data
+
+
 class MaskByPresence:
     """
     Expect data to be (value, presence) and return value * presence.
