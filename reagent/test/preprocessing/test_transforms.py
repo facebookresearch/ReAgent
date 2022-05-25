@@ -76,6 +76,23 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(o1, {"a": (1, 0), "b": 2})
         self.assertEqual(o2, {"a_presence": 0, "b": 2})
 
+    def test_AppendExtraValues(self) -> None:
+        keys = ["a"]
+        av = transforms.ExtractValue(keys)
+        data = {
+            "a": [
+                (torch.tensor([1, 2]), torch.tensor([True, True])),
+                (torch.tensor([3, 4]), torch.BoolTensor([False, False])),
+            ]
+        }
+        out = av(data)
+        expected = {"a": [torch.tensor([1, 2]), torch.tensor([3, 4])]}
+        self.assertEqual(out["a"][0], expected["a"][0])
+        self.assertEqual(out["a"][1], expected["a"][1])
+        with self.assertRaisesRegex(Exception, "Extra key - a cannot be an empty list"):
+            empty_list = {"a": []}
+            out = av(empty_list)
+
     def test_MaskByPresence(self) -> None:
         keys = ["a", "b"]
         mbp = transforms.MaskByPresence(keys)

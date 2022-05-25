@@ -1103,6 +1103,8 @@ class CBInput(TensorDataClass):
     reward: Final[Optional[torch.Tensor]] = None
     log_prob: Final[Optional[torch.Tensor]] = None
     weight: Final[Optional[torch.Tensor]] = None
+    arms: Final[Optional[torch.Tensor]] = None
+    mdp_id: Final[Optional[torch.Tensor]] = None
 
     @classmethod
     def input_prototype(
@@ -1124,6 +1126,8 @@ class CBInput(TensorDataClass):
             reward=d.get("reward", None),
             log_prob=d.get("log_prob", None),
             weight=d.get("weight", None),
+            arms=d.get("arms", None),
+            mdp_id=d.get("mdp_id", None),
         )
 
     def __len__(self) -> int:
