@@ -19,6 +19,7 @@ class FullyConnected(ParametricDQNNetBuilder):
     activations: List[str] = field(default_factory=lambda: ["relu", "relu"])
     use_batch_norm: bool = False
     use_layer_norm: bool = False
+    final_activation: str = "linear"
 
     def __post_init_post_parse__(self) -> None:
         super().__init__()
@@ -47,4 +48,5 @@ class FullyConnected(ParametricDQNNetBuilder):
             use_batch_norm=self.use_batch_norm,
             use_layer_norm=self.use_layer_norm,
             output_dim=output_dim,
+            final_activation=self.final_activation,
         )
