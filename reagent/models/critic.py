@@ -19,6 +19,7 @@ class FullyConnectedCritic(ModelBase):
         use_batch_norm: bool = False,
         use_layer_norm: bool = False,
         output_dim: int = 1,
+        final_activation: str = "linear",  # most of the time "linear" is the right final activation to use!
     ) -> None:
         super().__init__()
         assert state_dim > 0, "state_dim must be > 0, got {}".format(state_dim)
@@ -32,7 +33,7 @@ class FullyConnectedCritic(ModelBase):
         )
         self.fc = FullyConnectedNetwork(
             [state_dim + action_dim] + sizes + [output_dim],
-            activations + ["linear"],
+            activations + [final_activation],
             use_batch_norm=use_batch_norm,
             use_layer_norm=use_layer_norm,
         )

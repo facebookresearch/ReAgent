@@ -26,6 +26,7 @@ ACTIVATION_MAP = {
     "leaky_relu": nn.LeakyReLU,
     "linear": nn.Identity,
     "sigmoid": nn.Sigmoid,
+    "softplus": nn.Softplus,
 }
 
 
@@ -81,7 +82,10 @@ class FullyConnectedNetwork(ModelBase):
             # Add Linear
             linear = nn.Linear(in_dim, out_dim)
             # assuming activation is valid
-            gain = torch.nn.init.calculate_gain(activation)
+            try:
+                gain = torch.nn.init.calculate_gain(activation)
+            except ValueError:
+                gain = 1.0  # default value for other activation functions
             if orthogonal_init:
                 # provably better https://openreview.net/forum?id=rkgqN1SYvr
                 nn.init.orthogonal_(linear.weight.data, gain=gain)
