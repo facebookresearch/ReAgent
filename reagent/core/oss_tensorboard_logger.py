@@ -99,7 +99,7 @@ class OssTensorboardLogger(TensorBoardLogger):
         log_graph: bool = False,
         default_hp_metric: bool = True,
         prefix: str = "",
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(
             save_dir,

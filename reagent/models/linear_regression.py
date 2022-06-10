@@ -47,7 +47,7 @@ class LinearRegressionUCB(ModelBase):
         *,
         l2_reg_lambda: float = 1.0,
         predict_ucb: float = False,
-        ucb_alpha: float = 1.0
+        ucb_alpha: float = 1.0,
     ):
         super().__init__()
 

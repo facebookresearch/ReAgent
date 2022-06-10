@@ -12,7 +12,7 @@ def deserialize_and_run(
     serialized_args: List[bytes],
     serialized_kwargs: Dict[str, bytes],
     *args,
-    **kwargs
+    **kwargs,
 ) -> bytes:
     fn: Callable = cloudpickle.loads(serialized_fn)
     d_args: List[Any] = []
