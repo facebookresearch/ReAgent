@@ -119,7 +119,7 @@ class TestCRR(unittest.TestCase):
                 calc_cpe_in_training=(False if no_cpe else True)
             ),
             # pyre-fixme[16]: `QRDQNTrainerParameters` has no attribute `asdict`.
-            **(new_params if new_params is not None else self.params).asdict()
+            **(new_params if new_params is not None else self.params).asdict(),
         )
         trainer.log = self.dummy_log
         return trainer

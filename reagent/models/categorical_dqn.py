@@ -14,7 +14,7 @@ class CategoricalDQN(ModelBase):
         *,
         qmin: float,
         qmax: float,
-        num_atoms: int
+        num_atoms: int,
     ) -> None:
         super().__init__()
         self.distributional_network = distributional_network

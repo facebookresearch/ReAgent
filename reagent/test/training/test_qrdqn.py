@@ -78,7 +78,7 @@ class TestQRDQN(unittest.TestCase):
             metrics_to_score=self.metrics_to_score,
             evaluation=evaluation,
             # pyre-fixme[16]: `QRDQNTrainerParameters` has no attribute `asdict`.
-            **params.asdict()
+            **params.asdict(),
         )
 
     def test_init(self):

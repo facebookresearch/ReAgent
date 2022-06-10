@@ -52,7 +52,7 @@ class Agent:
         device: Union[str, torch.device] = "cpu",
         obs_preprocessor=None,
         action_extractor=None,
-        **kwargs
+        **kwargs,
     ) -> "Agent":
         """
         If `policy` is not given, we will try to create a random policy
@@ -85,7 +85,7 @@ class Agent:
         *,
         obs_preprocessor=None,
         action_extractor=None,
-        **kwargs
+        **kwargs,
     ) -> "Agent":
         # device shouldn't be provided as serving is CPU only
         if obs_preprocessor is None:
