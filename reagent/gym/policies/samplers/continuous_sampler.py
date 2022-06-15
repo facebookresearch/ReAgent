@@ -12,7 +12,6 @@ class GaussianSampler(Sampler):
 
     def _sample_action(self, loc: torch.Tensor, scale_log: torch.Tensor):
         r = torch.randn_like(scale_log, device=scale_log.device)
-        # pyre-fixme[16]: `Tensor` has no attribute `exp`.
         action = torch.tanh(loc + r * scale_log.exp())
         # Since each dim are independent, log-prob is simply sum
         log_prob = self.actor_network._log_prob(r, scale_log)
@@ -32,7 +31,6 @@ class GaussianSampler(Sampler):
         self, loc: torch.Tensor, scale_log: torch.Tensor, squashed_action: torch.Tensor
     ):
         # This is not getting exported; we can use it
-        # pyre-fixme[16]: `Tensor` has no attribute `exp`.
         n = torch.distributions.Normal(loc, scale_log.exp())
         raw_action = self.actor_network._atanh(squashed_action)
         log_prob = n.log_prob(raw_action)

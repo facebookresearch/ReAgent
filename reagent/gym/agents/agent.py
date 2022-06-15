@@ -108,11 +108,15 @@ class Agent:
         # preprocess and convert to batch data
         preprocessed_obs = self.obs_preprocessor(obs)
         if possible_actions_mask is not None:
+            # pyre-fixme[9]: possible_actions_mask has type `Optional[ndarray]`;
+            #  used as `Tensor`.
             possible_actions_mask = torch.tensor(
                 possible_actions_mask, device=self.device
             )
 
         # store intermediate actor output for post_step
+        # pyre-fixme[6]: For 2nd param expected `Optional[Tensor]` but got
+        #  `Optional[ndarray]`.
         actor_output = self.policy.act(preprocessed_obs, possible_actions_mask)
         log_prob = actor_output.log_prob
         if log_prob is not None:

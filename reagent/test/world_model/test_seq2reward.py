@@ -87,6 +87,7 @@ class FakeSeq2RewardNetwork(nn.Module):
         """
         # pyre-fixme[9]: action has type `FeatureData`; used as `Tensor`.
         action = action.float_features.transpose(0, 1)
+        # pyre-fixme[6]: For 1st param expected `Tensor` but got `FeatureData`.
         action_indices = torch.argmax(action, dim=2).tolist()
         acc_reward = torch.tensor(
             list(map(lambda x: float("".join(map(str, x))), action_indices))

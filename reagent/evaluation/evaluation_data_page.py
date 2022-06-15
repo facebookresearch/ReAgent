@@ -123,6 +123,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
             action_mask = torch.all(
                 # pyre-fixme[58]: `-` is not supported for operand types
                 #  `Optional[torch.Tensor]` and `int`.
+                # pyre-fixme[6]: For 1st param expected `Tensor` but got `bool`.
                 (training_input.tgt_out_idx - 2)
                 == (rank_output.ranked_tgt_out_idx - 2),
                 dim=1,

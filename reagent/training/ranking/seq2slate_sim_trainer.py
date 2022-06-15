@@ -118,6 +118,7 @@ class Seq2SlateSimulationTrainer(Seq2SlateTrainer):
             model_propensities = rank_output.ranked_per_seq_probs
             model_actions_with_offset = rank_output.ranked_tgt_out_idx
             model_actions = model_actions_with_offset - 2
+            # pyre-fixme[6]: For 1st param expected `Tensor` but got `bool`.
             if torch.all(model_actions >= 0):
                 valid_output = True
 

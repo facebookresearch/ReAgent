@@ -483,6 +483,8 @@ class MAGICEstimator(IPSEstimator):
         for i in range(100):
             x = torch.nn.functional.softmax(x, dim=1)
             y = torch.mm(torch.mm(x, cov), x.t())
+            # pyre-fixme[6]: For 1st param expected `int` but got `Union[bool,
+            #  float, int]`.
             if abs(y.item() - last_y) < loss_threshold:
                 print(f"{i}: {last_y} -> {y.item()}")
                 break
@@ -643,6 +645,7 @@ class NeuralDualDICE(RLEstimator):
             unweighted_loss = (
                 delta_v * zeta - self.fconjugate(zeta) - (1 - gamma) * init_v
             )
+        # pyre-fixme[58]: `**` is not supported for operand types `Tensor` and `Any`.
         weights = torch.full(
             (unweighted_loss.shape[0], 1), gamma, dtype=torch.float
         ).to(device=self.device) ** transition["timestep"].reshape((-1, 1))

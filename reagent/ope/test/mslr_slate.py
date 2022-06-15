@@ -374,6 +374,9 @@ class MSLRModel(SlateModel):
             relevances = self._relevances[qv[1] : (qv[1] + qv[2])].detach().clone()
         else:
             relevances = (
+                # pyre-fixme[6]: For 1st param expected `Union[None,
+                #  List[typing.Any], int, slice, Tensor, typing.Tuple[typing.Any,
+                #  ...]]` but got `object`.
                 self._relevances[qv[1] : (qv[1] + qv[2])][context.params]
                 .detach()
                 .clone()

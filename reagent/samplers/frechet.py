@@ -157,5 +157,8 @@ class FrechetSort(Sampler):
         else:
             raise RuntimeError(f"p is {p}")
 
+        # pyre-fixme[16]: Item `int` of `Union[typing_extensions.Literal[0],
+        #  Tensor]` has no attribute `isnan`.
         assert not torch.any(log_prob.isnan()), f"Nan in {log_prob}"
+        # pyre-fixme[7]: Expected `Tensor` but got `Union[int, Tensor]`.
         return log_prob

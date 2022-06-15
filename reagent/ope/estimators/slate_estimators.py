@@ -602,6 +602,9 @@ class SlateSlotItemProbabilities(SlateSlotItemValues):
             for i, value in zip(range(slate_size), self._values):
                 item = ps[i].argmax().item()
                 dist = torch.zeros(item_size, dtype=torch.double)
+                # pyre-fixme[6]: For 1st param expected `Union[None,
+                #  List[typing.Any], int, slice, Tensor, typing.Tuple[typing.Any,
+                #  ...]]` but got `Union[bool, float, int]`.
                 dist[item] = 1.0
                 dists.append(value.replace(dist))
                 ps[torch.arange(i + 1, slate_size), item] = 0.0
@@ -722,7 +725,6 @@ class RankingDistribution(RewardDistribution):
             rank = torch.arange(1, ids.shape[0] + 1, dtype=torch.double)
             dist[ids] = torch.pow(
                 2.0,
-                # pyre-fixme[16]: `float` has no attribute `floor_`.
                 (-1.0 * (self._alpha * torch.log2(rank)).floor_()),
             )
         return dist

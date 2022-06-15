@@ -158,6 +158,7 @@ def split_sequence_keyed_jagged_tensor(
 
         splitted_values = torch.split(values, lengths.tolist())
         if has_weights:
+            # pyre-fixme[6]: For 1st param expected `Tensor` but got `Optional[Tensor]`.
             splitted_weights = torch.split(weights, lengths.tolist())
         for i in range(num_steps):
             split_dict[i][key] = (

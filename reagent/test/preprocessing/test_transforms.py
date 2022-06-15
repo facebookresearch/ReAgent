@@ -217,7 +217,6 @@ class TestTransforms(unittest.TestCase):
     @patch("reagent.preprocessing.transforms.Preprocessor")
     def test_FixedLengthSequenceDenseNormalization(self, Preprocessor) -> None:
         # test key mapping
-        # pyre-fixme[16]: `Generator` has no attribute `manual_seed`.
         rand_gen = torch.Generator().manual_seed(0)
 
         a_batch_size = 2

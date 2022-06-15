@@ -98,6 +98,8 @@ class RewardNetTrainer(ReAgentLightningModule):
         if self.weighted_by_inverse_propensity:
             if isinstance(batch, rlt.PreprocessedRankingInput):
                 assert batch.tgt_out_probs is not None
+                # pyre-fixme[58]: `/` is not supported for operand types `float` and
+                #  `Tensor`.
                 weight = 1.0 / batch.tgt_out_probs
             else:
                 raise NotImplementedError(

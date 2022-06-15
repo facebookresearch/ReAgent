@@ -158,7 +158,6 @@ class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
         # m_l = m_l + p(s_t+n, a*)(u - b)
         # m_u = m_u + p(s_t+n, a*)(b - l)
         m = torch.zeros_like(next_dist)
-        # pyre-fixme[16]: `Tensor` has no attribute `scatter_add_`.
         m.scatter_add_(dim=1, index=lo, src=next_dist * (up.float() - b))
         m.scatter_add_(dim=1, index=up, src=next_dist * (b - lo.float()))
         log_dist = self.q_network.log_dist(training_batch.state)

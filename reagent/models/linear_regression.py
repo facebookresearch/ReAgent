@@ -54,7 +54,6 @@ class LinearRegressionUCB(ModelBase):
         self.input_dim = input_dim
         self.predict_ucb = predict_ucb
         self.ucb_alpha = ucb_alpha
-        # pyre-ignore
         self.register_buffer("A", l2_reg_lambda * torch.eye(self.input_dim))
         self.register_buffer("b", torch.zeros(self.input_dim))
         self.register_buffer("coefs", torch.zeros(self.input_dim))
