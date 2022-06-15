@@ -186,6 +186,8 @@ class GaussianFullyConnectedActor(ModelBase):
             torch.tanh(raw_action), -1.0 + self.eps, 1.0 - self.eps
         )
         if self.use_l2_normalization:
+            # pyre-fixme[58]: `**` is not supported for operand types `Tensor` and
+            #  `int`.
             l2_norm = (squashed_action**2).sum(dim=1, keepdim=True).sqrt()
             squashed_action = squashed_action / l2_norm
         return squashed_action

@@ -280,14 +280,20 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
 
         if self.add_kld_to_loss:
             if self.apply_kld_on_mean:
+                # pyre-fixme[28]: Unexpected keyword argument `axis`.
                 action_batch_m = torch.mean(actor_output.squashed_mean, axis=0)
+                # pyre-fixme[28]: Unexpected keyword argument `axis`.
                 action_batch_v = torch.var(actor_output.squashed_mean, axis=0)
             else:
+                # pyre-fixme[28]: Unexpected keyword argument `axis`.
                 action_batch_m = torch.mean(actor_output.action, axis=0)
+                # pyre-fixme[28]: Unexpected keyword argument `axis`.
                 action_batch_v = torch.var(actor_output.action, axis=0)
             kld = (
                 0.5
                 * (
+                    # pyre-fixme[58]: `**` is not supported for operand types
+                    #  `Tensor` and `int`.
                     (action_batch_v + (action_batch_m - self.action_emb_mean) ** 2)
                     / self.action_emb_variance
                     - 1

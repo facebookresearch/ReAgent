@@ -59,27 +59,44 @@ class OPEstimatorAdapter:
         for idx in range(n):
             # Action is only 1 if tgt policy and log policy took same action?
             action = torch.argmax(edp.action_mask[idx]).item()
+            # pyre-fixme[6]: For 1st param expected `Union[None, List[typing.Any],
+            #  int, slice, Tensor, typing.Tuple[typing.Any, ...]]` but got `Union[bool,
+            #  float, int]`.
             if edp.action_mask[idx][action] == 0.0:
                 action = None
             logged_propensities = torch.zeros(
                 edp.model_propensities[idx].shape, device=device
             )
             if action is not None:
+                # pyre-fixme[6]: For 1st param expected `Union[None,
+                #  List[typing.Any], int, slice, Tensor, typing.Tuple[typing.Any,
+                #  ...]]` but got `Union[bool, float, int]`.
                 logged_propensities[action] = edp.logged_propensities[idx]
             log.append(
                 LogSample(
                     context=None if edp.contexts is None else edp.contexts[idx],
+                    # pyre-fixme[6]: For 1st param expected `Union[Tuple[float],
+                    #  Tuple[int], float, int, ndarray, Tensor]` but got `Union[None,
+                    #  bool, float, int]`.
                     log_action=Action(action),
+                    # pyre-fixme[6]: For 3rd param expected `float` but got `Tensor`.
                     log_reward=edp.logged_rewards[idx],
                     log_action_probabilities=ActionDistribution(logged_propensities),
                     tgt_action_probabilities=ActionDistribution(
                         edp.model_propensities[idx]
                     ),
+                    # pyre-fixme[6]: For 1st param expected `Union[Tuple[float],
+                    #  Tuple[int], float, int, ndarray, Tensor]` but got `Union[None,
+                    #  bool, float, int]`.
                     tgt_action=Action(action),
                     model_outputs=ModelOutputs(
+                        # pyre-fixme[6]: For 1st param expected `float` but got
+                        #  `Tensor`.
                         tgt_reward_from_log_action=edp.model_rewards_for_logged_action[
                             idx
                         ],
+                        # pyre-fixme[6]: For 2nd param expected `Sequence[float]`
+                        #  but got `Tensor`.
                         tgt_rewards=edp.model_rewards[idx],
                     )
                     # item features not specified as edp came from trained reward model
@@ -124,6 +141,10 @@ class SequentialOPEstimatorAdapter:
 
         def action_dist(self, state: State) -> ActionDistribution:
             # "state" is (trajectory, step)
+            # pyre-fixme[7]: Expected `ActionDistribution` but got `Tensor`.
+            # pyre-fixme[6]: For 1st param expected `Union[None, List[typing.Any],
+            #  int, slice, Tensor, typing.Tuple[typing.Any, ...]]` but got
+            #  `Union[Tuple[float], Tuple[int], float, ndarray, Tensor]`.
             return self.model_propensities[state.value]
 
     class EDPValueFunc(ValueFunction):
@@ -134,11 +155,27 @@ class SequentialOPEstimatorAdapter:
             self.target_propensities = target_propensities
 
         def state_action_value(self, state: State, action: Action) -> float:
+            # pyre-fixme[6]: For 1st param expected `Union[None, List[typing.Any],
+            #  int, slice, Tensor, typing.Tuple[typing.Any, ...]]` but got
+            #  `Union[Tuple[float], Tuple[int], float, ndarray, Tensor]`.
+            # pyre-fixme[6]: For 1st param expected `Union[None, List[typing.Any],
+            #  int, slice, Tensor, typing.Tuple[typing.Any, ...]]` but got
+            #  `TypeWrapper[Union[Tuple[float], Tuple[int], float, int, ndarray,
+            #  Tensor]]`.
             return self.model_values[state.value][action].item()
 
         def state_value(self, state: State) -> float:
             return torch.dot(
-                self.model_values[state.value], self.target_propensities[state.value]
+                # pyre-fixme[6]: For 1st param expected `Union[None,
+                #  List[typing.Any], int, slice, Tensor, typing.Tuple[typing.Any,
+                #  ...]]` but got `Union[Tuple[float], Tuple[int], float, ndarray,
+                #  Tensor]`.
+                self.model_values[state.value],
+                # pyre-fixme[6]: For 1st param expected `Union[None,
+                #  List[typing.Any], int, slice, Tensor, typing.Tuple[typing.Any,
+                #  ...]]` but got `Union[Tuple[float], Tuple[int], float, ndarray,
+                #  Tensor]`.
+                self.target_propensities[state.value],
             ).item()
 
         def reset(self):
@@ -179,12 +216,18 @@ class SequentialOPEstimatorAdapter:
                 [
                     Transition(
                         last_state=State((traj, i)),
+                        # pyre-fixme[6]: For 2nd param expected
+                        #  `Optional[TypeWrapper[Union[Tuple[float], Tuple[int], float,
+                        #  int, ndarray, Tensor]]]` but got `Union[bool, float, int]`.
                         action=torch.argmax(actions[traj, i]).item(),
                         action_prob=logged_propensities[traj, i].item(),
                         state=State((traj, i + 1)),
                         reward=rewards[traj, i].item(),
                     )
                     for i in range(horizon - 1)
+                    # pyre-fixme[6]: For 1st param expected `Union[None,
+                    #  List[typing.Any], int, slice, Tensor, typing.Tuple[typing.Any,
+                    #  ...]]` but got `Union[bool, float, int]`.
                     if actions[traj, i][torch.argmax(actions[traj, i]).item()] != 0.0
                 ]
             )

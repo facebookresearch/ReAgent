@@ -66,7 +66,6 @@ class SoftmaxActionSampler(Sampler):
         assert len(scores.shape) == 2, f"{scores.shape}"
         assert scores.shape == action.shape, f"{scores.shape} != {action.shape}"
         m = self._get_distribution(scores)
-        # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
         return m.log_prob(action.argmax(dim=1))
 
     def entropy(self, scores: torch.Tensor) -> torch.Tensor:
@@ -91,7 +90,6 @@ class GreedyActionSampler(Sampler):
         assert (
             len(scores.shape) == 2
         ), f"scores shape is {scores.shape}, not (batchsize, num_actions)"
-        # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
         return scores.argmax(dim=1)
 
     @torch.no_grad()
@@ -108,7 +106,6 @@ class GreedyActionSampler(Sampler):
     @torch.no_grad()
     def log_prob(self, scores: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
         greedy_indices = self._get_greedy_indices(scores)
-        # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
         match = greedy_indices == action.argmax(-1)
         lp = torch.zeros(scores.shape[0]).float()
         lp[match] = -float("inf")
@@ -142,16 +139,17 @@ class EpsilonGreedyActionSampler(Sampler):
         )  # batch_size x num_actions
         batch_size, num_actions = scores.shape
 
-        # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
         argmax = F.one_hot(scores.argmax(dim=1), num_actions).bool()
 
         valid_actions_ind = (scores > INVALID_ACTION_CONSTANT).bool()
         num_valid_actions = valid_actions_ind.float().sum(1, keepdim=True)
 
+        # pyre-fixme[58]: `/` is not supported for operand types `float` and `Tensor`.
         rand_prob = self.epsilon / num_valid_actions
         p = torch.zeros_like(scores) + rand_prob
 
         greedy_prob = 1 - self.epsilon + rand_prob
+        # pyre-fixme[16]: `float` has no attribute `squeeze`.
         p[argmax] = greedy_prob.squeeze()
 
         p[~valid_actions_ind] = 0.0
@@ -168,7 +166,6 @@ class EpsilonGreedyActionSampler(Sampler):
 
     def log_prob(self, scores: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
         max_index = self.sample_action(scores).argmax(-1)
-        # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
         opt = max_index == action.argmax(-1)
         n = len(scores)
         lp = torch.ones(n) * self.epsilon / n

@@ -523,6 +523,8 @@ class SwitchEstimator(DMEstimator):
 
             rs[i, 0] = sample.log_reward
             r_est[i] = dm_scores.reshape(-1)
+            # pyre-fixme[6]: For 2nd param expected `Union[bool, float, int,
+            #  Tensor]` but got `Optional[float]`.
             r_est_for_logged_action[i] = dm_score_for_logged_action
             log_avg.add(sample.log_reward)
             gt_avg.add(sample.ground_truth_reward)
@@ -603,11 +605,16 @@ class SwitchEstimator(DMEstimator):
                 rs, ws, actions, candidate, r_est, r_est_for_logged_action, propensities
             )
             var = (1.0 / (estimated_values.shape[0] ** 2)) * torch.sum(
-                (estimated_values - torch.mean(estimated_values)) ** 2
+                # pyre-fixme[58]: `**` is not supported for operand types `Tensor`
+                #  and `int`.
+                (estimated_values - torch.mean(estimated_values))
+                ** 2
             ).item()
             bias = torch.mean(
                 torch.sum(expected_rmax * (ws > candidate).float(), dim=1, keepdim=True)
             ).item()
+            # pyre-fixme[6]: For 1st param expected `int` but got `Union[bool,
+            #  float, int]`.
             cand_loss = var + bias * bias
             if cand_loss < loss:
                 tau = candidate

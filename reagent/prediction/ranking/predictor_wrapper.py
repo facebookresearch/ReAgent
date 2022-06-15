@@ -101,13 +101,18 @@ class DeterminantalPointProcessPredictorWrapper(torch.jit.ScriptModule):
             B = (self.alpha**0.5) * quality_scores * feature_vectors
             L = torch.mm(B, B.t())
             L[torch.arange(num_items), torch.arange(num_items)] = (
-                quality_scores.squeeze(1) ** 2
+                # pyre-fixme[58]: `**` is not supported for operand types `Tensor`
+                #  and `int`.
+                quality_scores.squeeze(1)
+                ** 2
             )
         elif self.kernel == Kernel.RBF:
             L = (
                 self.alpha
                 * torch.mm(quality_scores, quality_scores.t())
                 * torch.exp(
+                    # pyre-fixme[58]: `**` is not supported for operand types
+                    #  `Tensor` and `int`.
                     -(torch.cdist(feature_vectors, feature_vectors, p=2.0) ** 2)
                     / (2 * self.sigma**2)
                 )

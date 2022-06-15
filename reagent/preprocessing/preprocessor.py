@@ -225,7 +225,7 @@ class Preprocessor(Module):
         input: torch.Tensor,
         norm_params: List[NormalizationParameters],
     ) -> torch.Tensor:
-        return input.clip(EPS).log()  # pyre-ignore[16]
+        return input.clip(EPS).log()
 
     def _create_parameters_PROBABILITY(
         self, begin_index: int, norm_params: List[NormalizationParameters]

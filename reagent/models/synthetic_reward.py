@@ -182,9 +182,7 @@ def ngram(input: torch.Tensor, context_size: int, ngram_padding: torch.Tensor):
         if offset < 0:
             shifted = torch.cat(
                 (
-                    # pyre-fixme[16]: `Tensor` has no attribute `tile`.
                     ngram_padding.tile((-offset, batch_size, 1)),
-                    # pyre-fixme[16]: `Tensor` has no attribute `narrow`.
                     input.narrow(0, 0, seq_len + offset),
                 ),
                 dim=0,

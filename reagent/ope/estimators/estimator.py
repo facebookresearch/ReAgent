@@ -33,6 +33,8 @@ class ResultDiffs:
     @property
     def rmse(self) -> Tensor:
         if self._rmse is None:
+            # pyre-fixme[58]: `**` is not supported for operand types `Tensor` and
+            #  `float`.
             self._rmse = (self._diffs**2.0).mean().sqrt()
         return self._rmse
 
@@ -45,7 +47,6 @@ class ResultDiffs:
     @property
     def variance(self) -> Tensor:
         if self._variance is None:
-            # pyre-fixme[16]: `Tensor` has no attribute `var`.
             self._variance = self._diffs.var()
         return self._variance
 

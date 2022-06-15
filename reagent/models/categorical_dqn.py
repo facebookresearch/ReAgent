@@ -24,7 +24,6 @@ class CategoricalDQN(ModelBase):
         return self.distributional_network.input_prototype()
 
     def forward(self, state: rlt.FeatureData):
-        # pyre-fixme[16]: `Tensor` has no attribute `exp`.
         dist = self.log_dist(state).exp()
         q_values = (dist * self.support.to(dist.device)).sum(2)
         return q_values

@@ -50,6 +50,7 @@ class TestUtils(unittest.TestCase):
         x = torch.tensor([[15.0, 6.0, 9.0], [3.0, 2.0, 1.0]])
         temperature = 1
         mask = torch.tensor([[1.0, 0.0, 1.0], [0.0, 1.0, 1.0]])
+        # pyre-fixme[6]: For 2nd param expected `float` but got `Tensor`.
         out = masked_softmax(x, mask, temperature)
         expected_out = torch.tensor([[0.9975, 0.0000, 0.0025], [0, 0.7311, 0.2689]])
         npt.assert_array_almost_equal(out, expected_out, 4)
@@ -58,6 +59,7 @@ class TestUtils(unittest.TestCase):
         x = torch.tensor([[150.0, 2.0]])
         temperature = 0.01
         mask = torch.tensor([[0.0, 1.0]])
+        # pyre-fixme[6]: For 2nd param expected `float` but got `Tensor`.
         out = masked_softmax(x, mask, temperature)
         expected_out = torch.tensor([[0.0, 1.0]])
         npt.assert_array_almost_equal(out, expected_out, 4)
@@ -66,6 +68,7 @@ class TestUtils(unittest.TestCase):
         x = torch.tensor([[-10.0, -1.0, -5.0]])
         temperature = 0.01
         mask = torch.tensor([[1.0, 1.0, 0.0]])
+        # pyre-fixme[6]: For 2nd param expected `float` but got `Tensor`.
         out = masked_softmax(x, mask, temperature)
         expected_out = torch.tensor([[0.0, 1.0, 0.0]])
         npt.assert_array_almost_equal(out, expected_out, 4)
@@ -74,6 +77,7 @@ class TestUtils(unittest.TestCase):
         x = torch.tensor([[-5.0, 4.0, 3.0], [2.0, 1.0, 2.0]])
         temperature = 1
         mask = torch.tensor([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]])
+        # pyre-fixme[6]: For 2nd param expected `float` but got `Tensor`.
         out = masked_softmax(x, mask, temperature)
         expected_out = torch.tensor([[0.0, 0.0, 0.0], [0.4223, 0.1554, 0.4223]])
         npt.assert_array_almost_equal(out, expected_out, 4)

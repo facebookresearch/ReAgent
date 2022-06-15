@@ -24,7 +24,7 @@ def apply_possible_actions_mask(
     assert (
         scores.shape == possible_actions_mask.shape
     ), f"{scores.shape} != {possible_actions_mask.shape}"
-    scores[~possible_actions_mask] = invalid_score  # pyre-ignore[16]
+    scores[~possible_actions_mask] = invalid_score
     return scores
 
 

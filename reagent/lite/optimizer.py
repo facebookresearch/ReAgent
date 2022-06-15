@@ -184,6 +184,8 @@ class ComboOptimizerBase:
         for idx in range(len(sampled_reward)):
             r = sampled_reward[idx].item()
             sol = {k: sampled_sols[k][idx] for k in sampled_sols}
+            # pyre-fixme[6]: For 1st param expected `Tensor` but got `Union[bool,
+            #  float, int]`.
             self.best_sols.insert(r, sol)
 
     def best_solutions(
@@ -532,6 +534,7 @@ def sample_gumbel(shape: Tuple[int, ...], eps: float = 1e-20) -> torch.Tensor:
 
 
 def gumbel_softmax(logits: torch.Tensor, temperature: float) -> torch.Tensor:
+    # pyre-fixme[6]: For 1st param expected `Tuple[int, ...]` but got `Size`.
     y = logits + sample_gumbel(logits.size())
     return F.softmax(y / temperature, dim=-1)
 

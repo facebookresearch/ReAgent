@@ -751,7 +751,6 @@ class ReplayBuffer(object):
         # calculate 2d array of indices of shape (batch_size, stack_size)
         # ith row contain indices in the stack of obs at indices[i]
         stack_indices = indices.unsqueeze(1) + torch.arange(-self._stack_size + 1, 1)
-        # pyre-fixme[16]: `Tensor` has no attribute `__imod__`.
         stack_indices %= self._replay_capacity
         retval = self._store[key][stack_indices]
         return self._key_to_replay_elem[key].metadata.sample_to_output(retval)

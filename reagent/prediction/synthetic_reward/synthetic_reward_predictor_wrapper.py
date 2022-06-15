@@ -13,7 +13,6 @@ def split_features(
     state_feat_num: int,
     action_feat_num: int,
 ):
-    # pyre-fixme[16]: `Tensor` has no attribute `narrow`.
     state_value = state_and_action_with_presence[0].narrow(1, 0, state_feat_num)
     state_presence = state_and_action_with_presence[1].narrow(1, 0, state_feat_num)
     action_value = state_and_action_with_presence[0].narrow(

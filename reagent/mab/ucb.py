@@ -74,6 +74,7 @@ class UCB1(BaseUCB):
         log_t_over_ni = (
             math.log(self.total_n_obs_all_arms + 1) / self.total_n_obs_per_arm
         )
+        # pyre-fixme[6]: For 1st param expected `Tensor` but got `float`.
         return avg_rewards + self.alpha * torch.sqrt(2 * log_t_over_ni * self.var)
 
 
@@ -124,9 +125,13 @@ class UCBTuned(BaseUCB):
         )
         per_arm_var_est = (
             self.total_sum_reward_squared_per_arm / self.total_n_obs_per_arm
+            # pyre-fixme[58]: `**` is not supported for operand types `Tensor` and
+            #  `int`.
             - avg_rewards**2
             + torch.sqrt(
-                2 * log_t_over_ni
+                # pyre-fixme[6]: For 1st param expected `Tensor` but got `float`.
+                2
+                * log_t_over_ni
             )  # additional term to make the estimate conservative (unlikely to underestimate)
         )
         return avg_rewards + self.alpha * torch.sqrt(
@@ -145,9 +150,11 @@ def get_bernoulli_ucb_tuned_scores(
     log_t_over_ni = torch.log(torch.sum(n_obs_per_arm)) / n_obs_per_arm
     per_arm_var_est = (
         avg_rewards
+        # pyre-fixme[58]: `**` is not supported for operand types `Tensor` and `int`.
         - avg_rewards**2
         + torch.sqrt(
             2 * log_t_over_ni
         )  # additional term to make the estimate conservative (unlikely to underestimate)
     )
+    # pyre-fixme[6]: For 2nd param expected `Tensor` but got `float`.
     return avg_rewards + torch.sqrt(log_t_over_ni * torch.fmin(per_arm_var_est, 0.25))

@@ -70,7 +70,6 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
             len(action.shape) == 2 and action.shape[0] == 1
         ), f"{action} (shape: {action.shape}) is not a single action!"
         if isinstance(action_space, spaces.Discrete):
-            # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
             return action.squeeze(0).argmax()
         elif isinstance(action_space, spaces.MultiDiscrete):
             return action.squeeze(0)
@@ -94,7 +93,6 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
             len(action.shape) == 2 and action.shape[0] == 1
         ), f"{action.shape} isn't (1, action_dim)"
         if isinstance(action_space, spaces.Discrete):
-            # pyre-fixme[16]: `Tensor` has no attribute `argmax`.
             return action.squeeze(0).argmax().view([])
         elif isinstance(action_space, spaces.MultiDiscrete):
             return action.squeeze(0)
