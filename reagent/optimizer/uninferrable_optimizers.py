@@ -26,6 +26,7 @@ class Adam(OptimizerConfig):
     amsgrad: bool = False
     maximize: bool = False
     foreach: Optional[bool] = None
+    capturable: bool = False
 
 
 @dataclass(frozen=True)
@@ -69,6 +70,7 @@ class AdamW(OptimizerConfig):
     amsgrad: bool = False
     maximize: bool = False
     foreach: Optional[bool] = None
+    capturable: bool = False
 
 
 @dataclass(frozen=True)
