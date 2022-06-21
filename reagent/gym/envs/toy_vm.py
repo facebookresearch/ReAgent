@@ -18,9 +18,7 @@ from scipy.special import expit, logit  # @manual=third-party//scipy:scipy-py
 Document = namedtuple("Document", ["tap", "quality", "abandon"])
 
 
-def simulate_reward(
-    slate: List[Document], prng: np.random.RandomState  # pyre-ignore[11]
-):
+def simulate_reward(slate: List[Document], prng: np.random.RandomState):
     reward = 0
     position = 0
     n = len(slate)
