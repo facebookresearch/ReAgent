@@ -61,9 +61,9 @@ class LinUCBTrainer(ReAgentLightningModule):
         self,
         policy: Policy,
         use_interaction_features: bool = False,
+        automatic_optimization: bool = False,  # turn off automatic_optimization because we are updating parameters manually
     ):
-        # turn off automatic_optimization because we are updating parameters manually
-        super().__init__(automatic_optimization=False)
+        super().__init__(automatic_optimization=automatic_optimization)
         assert isinstance(
             policy.scorer, LinearRegressionUCB
         ), "LinUCBTrainer requires the policy scorer to be LinearRegressionUCB"
