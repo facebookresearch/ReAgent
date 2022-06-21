@@ -333,12 +333,12 @@ class SingleStepSyntheticSparseArchRewardNet(nn.Module):
         )
         sparse_data_per_step = [
             KeyedJaggedTensor.concat(
-                KeyedJaggedTensor.concat(
-                    state_id_list_per_step[i], action_id_list_per_step[i]
-                ),
-                KeyedJaggedTensor.concat(
-                    state_id_score_list_per_step[i], action_id_score_list_per_step[i]
-                ),
+                [
+                    state_id_list_per_step[i],
+                    action_id_list_per_step[i],
+                    state_id_score_list_per_step[i],
+                    action_id_score_list_per_step[i],
+                ]
             )
             for i in range(seq_len)
         ]
