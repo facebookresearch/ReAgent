@@ -20,7 +20,6 @@ class EsWorker:
         self,
         individual_pool: EvolutionPool,
         es_params: EvolutionParameters,
-        # pyre-fixme[11]: Annotation `ProcessGroup` is not defined as a type.
         process_group: ProcessGroup,
         num_nodes: int,
     ) -> None:
