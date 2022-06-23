@@ -245,6 +245,7 @@ def create_embed_rl_dataset(
     # the embedded state will be concatenated with the last step
     # Ie.. (o1,o2,...,on) -> RNN -> h1,h2,...,hn
     # and we set s_{n+1} = [o_{n+1}, h_n]
+    # pyre-fixme[45]: Cannot instantiate abstract class `StateEmbedEnvironment`.
     embed_env = StateEmbedEnvironment(
         gym_env=env, mdnrnn=memory_network, max_embed_seq_len=seq_len + 1
     )
