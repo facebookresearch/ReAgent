@@ -74,6 +74,7 @@ class ChangingArms(EnvWrapper):
     num_arms: int = NUM_ARMS
 
     def make(self) -> gym.Env:
+        # pyre-fixme[45]: Cannot instantiate abstract class `ChangingArmsEnv`.
         return ChangingArmsEnv(self.num_arms)
 
     def _split_state(self, obs: np.ndarray):
