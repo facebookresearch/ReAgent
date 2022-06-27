@@ -170,14 +170,14 @@ class SingleStepSyntheticSparseArchRewardNet(nn.Module):
         F = sum(
             [
                 len(conf.feature_names)
-                for conf in embedding_bag_collection.embedding_bag_configs
+                for conf in embedding_bag_collection.embedding_bag_configs()
             ]
         )
         D = dense_sizes[-1]
         self.F = F
         self.D = D
         sparse_feature_names = []
-        for conf in embedding_bag_collection.embedding_bag_configs:
+        for conf in embedding_bag_collection.embedding_bag_configs():
             sparse_feature_names.extend(conf.feature_names)
 
         try:
@@ -216,14 +216,14 @@ class SingleStepSyntheticSparseArchRewardNet(nn.Module):
         overall_activations: List[str],
         embedding_bag_collection: EmbeddingBagCollection,
     ):
-        for i in range(1, len(embedding_bag_collection.embedding_bag_configs)):
-            conf_prev = embedding_bag_collection.embedding_bag_configs[i - 1]
-            conf = embedding_bag_collection.embedding_bag_configs[i]
+        for i in range(1, len(embedding_bag_collection.embedding_bag_configs())):
+            conf_prev = embedding_bag_collection.embedding_bag_configs()[i - 1]
+            conf = embedding_bag_collection.embedding_bag_configs()[i]
             assert (
                 conf_prev.embedding_dim == conf.embedding_dim
             ), "All EmbeddingBagConfigs must have the same embedding_dim"
 
-        conf = embedding_bag_collection.embedding_bag_configs[0]
+        conf = embedding_bag_collection.embedding_bag_configs()[0]
         dense_output_size = dense_sizes[-1]
         assert (
             dense_output_size == conf.embedding_dim
