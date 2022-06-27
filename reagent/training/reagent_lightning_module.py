@@ -31,7 +31,10 @@ class ReAgentLightningModule(pl.LightningModule):
         self._next_stopping_epoch = torch.tensor([-1]).int()
         self._cleanly_stopped = torch.ones(1)
         self._setup_input_type()
-        self.batches_processed_this_epoch = 0
+        # Counters
+        self.train_batches_processed_this_epoch = 0
+        self.val_batches_processed_this_epoch = 0
+        self.test_batches_processed_this_epoch = 0
         self.all_batches_processed = 0
 
     def _setup_input_type(self):
@@ -139,31 +142,50 @@ class ReAgentLightningModule(pl.LightningModule):
         return len(self.configure_optimizers())
 
     @final
-    def on_epoch_end(self):
+    def on_train_epoch_end(self):
         logger.info(
-            f"Finished epoch with {self.batches_processed_this_epoch} batches processed"
+            f"Finished train epoch {self.current_epoch} "
+            f"with {self.train_batches_processed_this_epoch} batches processed"
         )
-        self.batches_processed_this_epoch = 0
-        # Flush the reporter which has accumulated data in
-        # training/validation/test
+
         self.reporter.flush(self.current_epoch)
+        self.train_batches_processed_this_epoch = 0
 
         # Tell the trainer to stop.
         if self.current_epoch == self._next_stopping_epoch.item():
             self.trainer.should_stop = True
 
     @final
+    def on_validation_epoch_end(self):
+        logger.info(
+            f"Finished validation epoch {self.current_epoch} "
+            f"with {self.val_batches_processed_this_epoch} batches processed"
+        )
+        self.reporter.flush(self.current_epoch)
+        self.val_batches_processed_this_epoch = 0
+
+    @final
+    def on_test_epoch_end(self):
+        logger.info(
+            f"Finished a test epoch with {self.test_batches_processed_this_epoch} batches processed"
+        )
+        self.reporter.flush(self.current_epoch)
+        self.test_batches_processed_this_epoch = 0
+
+    @final
     def on_train_batch_end(self, *args, **kwargs):
-        self.batches_processed_this_epoch += 1
+        self.train_batches_processed_this_epoch += 1
         self.all_batches_processed += 1
 
     @final
     def on_validation_batch_end(self, *args, **kwargs):
-        self.batches_processed_this_epoch += 1
+        self.val_batches_processed_this_epoch += 1
+        self.all_batches_processed += 1
 
     @final
     def on_test_batch_end(self, *args, **kwargs):
-        self.batches_processed_this_epoch += 1
+        self.test_batches_processed_this_epoch += 1
+        self.all_batches_processed += 1
 
     def train(self, *args):
         # trainer.train(batch) was the old, pre-Lightning ReAgent trainer API.

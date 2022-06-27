@@ -114,7 +114,7 @@ class ListAggregator(Aggregator):
         self.values.extend(values)
 
 
-class EpochListAggregator(TensorAggregator):
+class LastEpochListAggregator(TensorAggregator):
     def __init__(self, key: str):
         super().__init__(key)
         self.values: List = []
