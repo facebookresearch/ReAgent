@@ -43,8 +43,8 @@ class RewardNetworkReporter(ReporterBase):
                 ("unweighted_loss", agg.MeanAggregator("unweighted_loss")),
                 ("eval_loss", agg.MeanAggregator("eval_loss")),
                 ("eval_unweighted_loss", agg.MeanAggregator("eval_unweighted_loss")),
-                ("eval_rewards", agg.EpochListAggregator("eval_rewards")),
-                ("eval_pred_rewards", agg.EpochListAggregator("eval_pred_rewards")),
+                ("eval_rewards", agg.LastEpochListAggregator("eval_rewards")),
+                ("eval_pred_rewards", agg.LastEpochListAggregator("eval_pred_rewards")),
             ]
         }
 
