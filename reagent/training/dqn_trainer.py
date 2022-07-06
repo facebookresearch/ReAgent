@@ -275,17 +275,19 @@ class DQNTrainer(DQNTrainerBaseLightning):
             .float()
             .mean(dim=0)
         )
-        self.logger.log_metrics(
-            {
-                "td_loss": td_loss,
-                "logged_actions": action_histogram,
-                "logged_propensities": logged_propensities,
-                "logged_rewards": rewards.mean(),
-                "model_values": model_values,
-                "model_action_idxs": model_action_idxs,
-            },
-            step=self.all_batches_processed,
-        )
+        # log metrics if a logger is set
+        if self.logger:
+            self.logger.log_metrics(
+                {
+                    "td_loss": td_loss,
+                    "logged_actions": action_histogram,
+                    "logged_propensities": logged_propensities,
+                    "logged_rewards": rewards.mean(),
+                    "model_values": model_values,
+                    "model_action_idxs": model_action_idxs,
+                },
+                step=self.all_batches_processed,
+            )
 
     def _dense_to_action_dict(self, dense: torch.Tensor):
         assert dense.size() == (
