@@ -43,7 +43,6 @@ class DQNTrainer(DQNTrainerBaseLightning):
         rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
         double_q_learning: bool = True,
         bcq: Optional[BCQConfig] = None,
-        minibatch_size: int = 1024,
         minibatches_per_step: int = 1,
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
@@ -62,7 +61,6 @@ class DQNTrainer(DQNTrainerBaseLightning):
             rl: RLParameters
             double_q_learning: boolean flag to use double-q learning
             bcq: a config file for batch-constrained q-learning, defaults to normal
-            minibatch_size: samples per minibatch
             minibatches_per_step: minibatch updates per step
             optimizer: q-network optimizer
             evaluation: evaluation params, primarily whether to use CPE in eval or not
@@ -75,7 +73,6 @@ class DQNTrainer(DQNTrainerBaseLightning):
         )
         assert self._actions is not None, "Discrete-action DQN needs action names"
         self.double_q_learning = double_q_learning
-        self.minibatch_size = minibatch_size
         self.minibatches_per_step = minibatches_per_step or 1
 
         self.q_network = q_network
