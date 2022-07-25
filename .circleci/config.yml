@@ -168,13 +168,13 @@ commands:
                       # "-e" option will activate the development mode (a symlink to the code in ReAgent
                       # will be created in site-packages directory)
                       command: |
-                        pip install -e .[gym,test,torchrec_gpu] --pre --extra-index-url https://download.pytorch.org/whl/cu113 --progress-bar off
+                        pip install -e .[gym,test,torchrec_gpu] --pre --extra-index-url https://download.pytorch.org/whl/cu113 -f https://download.pytorch.org/whl/nightly/torchrec_nightly/ --progress-bar off
             - unless:
                 condition: << parameters.is_ubuntu_gpu >>
                 steps:
                   - run:
                       command: |
-                        pip install -e .[gym,test,torchrec_cpu] --pre --extra-index-url https://download.pytorch.org/whl/cpu --progress-bar off
+                        pip install -e .[gym,test,torchrec_cpu] --pre --extra-index-url https://download.pytorch.org/whl/cpu -f https://download.pytorch.org/whl/nightly/torchrec_nightly_cpu/ --progress-bar off
 
 
   run_unittest:
@@ -224,7 +224,7 @@ jobs:
 
   gym_cpu_unittest:
     machine:
-      image: ubuntu-2004-cuda-11.4:202110-01
+      image: ubuntu-2004:202111-02
     resource_class: xlarge
     steps:
       - checkout_merge
@@ -236,7 +236,7 @@ jobs:
 
   gym_replay_buffer_cpu_unittest_1:
     machine:
-      image: ubuntu-2004-cuda-11.4:202110-01
+      image: ubuntu-2004:202111-02
     resource_class: xlarge
     steps:
       - checkout_merge
@@ -248,7 +248,7 @@ jobs:
 
   gym_replay_buffer_cpu_unittest_2:
     machine:
-      image: ubuntu-2004-cuda-11.4:202110-01
+      image: ubuntu-2004:202111-02
     resource_class: xlarge
     steps:
       - checkout_merge
@@ -302,7 +302,8 @@ jobs:
 
   dqn_cartpole_e2e:
     machine:
-      image: ubuntu-2004-cuda-11.4:202110-01
+      image: ubuntu-2004:202111-02
+    resource_class: xlarge
     environment:
       - CONFIG: reagent/workflow/sample_configs/discrete_dqn_cartpole_offline.yaml
     steps:
