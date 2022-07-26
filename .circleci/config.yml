@@ -142,7 +142,11 @@ commands:
           # has python3.9 by default. However, we need to use python3.8
           # for tests. Therefore, we need to install python3.8 first.
           command: |
-            pyenv install -v 3.8.1
+            # upgrade pyenv
+            rm -rf /opt/circleci/.pyenv
+            curl https://pyenv.run | bash
+            # retry at most 5 times to avoid transient failure
+            for i in 1 2 3 4 5; do pyenv install -v 3.8.1 && break || sleep 15; done
             pyenv global 3.8.1
             sudo apt update
             pip install --upgrade pip --progress-bar off
