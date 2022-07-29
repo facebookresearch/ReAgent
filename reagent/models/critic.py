@@ -10,6 +10,12 @@ from reagent.models.fully_connected_network import FullyConnectedNetwork
 
 
 class FullyConnectedCritic(ModelBase):
+    """
+    A general model arch for mapping from state and action to scalar values.
+
+    The model arch is often used to implement the critic in actor-critic algorithms.
+    """
+
     def __init__(
         self,
         state_dim: int,

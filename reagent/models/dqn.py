@@ -12,6 +12,13 @@ INVALID_ACTION_CONSTANT: float = -1e10
 
 
 class FullyConnectedDQN(FloatFeatureFullyConnected):
+    """
+    A general model arch for mapping from states to scalar values.
+
+    The model arch is often used to implement Deep Q-network, where
+    the outputs are q-values of all defined actions.
+    """
+
     def __init__(
         self,
         state_dim,
@@ -46,6 +53,8 @@ class FullyConnectedDQN(FloatFeatureFullyConnected):
         possible_actions_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         x = super().forward(state=state)
+
+        # Only used when FullyConnectedDQN is used as policy.scorer in ReinforceTrainer
         if possible_actions_mask is not None:
             # subtract huge value from impossible actions to force their probabilities to 0
             x = x + (1 - possible_actions_mask.float()) * INVALID_ACTION_CONSTANT

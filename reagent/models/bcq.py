@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import torch
+from reagent.core import types as rlt
 from reagent.models.base import ModelBase
 
 
@@ -20,7 +21,7 @@ class BatchConstrainedDQN(ModelBase):
     def input_prototype(self):
         return self.q_network.input_prototype()
 
-    def forward(self, state):
+    def forward(self, state: rlt.FeatureData):
         q_values = self.q_network(state)
         imitator_outputs = self.imitator_network(state.float_features)
         imitator_probs = torch.nn.functional.softmax(imitator_outputs, dim=1)
