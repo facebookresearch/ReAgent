@@ -6,18 +6,38 @@ import unittest
 
 import numpy.testing as npt
 import torch
+
+import torch.nn as nn
 import torch.nn.init as init
 from reagent.core import types as rlt
 from reagent.models.bcq import BatchConstrainedDQN
 from reagent.models.dqn import FullyConnectedDQN
 from reagent.models.fully_connected_network import FullyConnectedNetwork
-from reagent.test.models.test_utils import check_save_load
+from reagent.test.models.test_utils import run_model_jit_trace
 
 
 logger = logging.getLogger(__name__)
 
 
+class BatchConstrainedDQNTorchScriptWrapper(nn.Module):
+    def __init__(self, model: BatchConstrainedDQN):
+        super().__init__()
+        self.model = model
+
+    def forward(self, state_float_features: torch.Tensor):
+        return self.model(
+            rlt.FeatureData(float_features=state_float_features),
+        )
+
+
 class TestBCQ(unittest.TestCase):
+    def check_save_load(self, model: BatchConstrainedDQN):
+        """
+        Test if a model is torch.jit.tracable
+        """
+        script_model = BatchConstrainedDQNTorchScriptWrapper(model)
+        run_model_jit_trace(model, script_model)
+
     def test_basic(self):
         state_dim = 8
         action_dim = 4
@@ -54,11 +74,7 @@ class TestBCQ(unittest.TestCase):
             imitator_network=imitator_network,
             bcq_drop_threshold=0.05,
         )
-        # 6 for DQN + 6 for Imitator Network + 2 for BCQ constants
-        expected_num_params, expected_num_inputs, expected_num_outputs = 14, 1, 1
-        check_save_load(
-            self, model, expected_num_params, expected_num_inputs, expected_num_outputs
-        )
+        self.check_save_load(model)
 
     def test_forward_pass(self):
         torch.manual_seed(123)

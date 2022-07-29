@@ -4,20 +4,64 @@
 import logging
 import unittest
 
+from typing import Union
+
 import numpy.testing as npt
 import torch
+import torch.nn as nn
+from reagent.core import types as rlt
 from reagent.models.actor import (
     DirichletFullyConnectedActor,
     FullyConnectedActor,
     GaussianFullyConnectedActor,
 )
-from reagent.test.models.test_utils import check_save_load
-
+from reagent.test.models.test_utils import run_model_jit_trace
 
 logger = logging.getLogger(__name__)
 
 
-class TestFullyConnectedActor(unittest.TestCase):
+class ActorTorchScriptWrapper(nn.Module):
+    def __init__(
+        self,
+        model: Union[
+            FullyConnectedActor,
+            GaussianFullyConnectedActor,
+            DirichletFullyConnectedActor,
+        ],
+    ):
+        super().__init__()
+        self.model = model
+
+    def forward(self, state_float_features: torch.Tensor):
+        actor_output = self.model(rlt.FeatureData(float_features=state_float_features))
+        return actor_output.action, actor_output.log_prob
+
+
+class TestActorBase(unittest.TestCase):
+    def check_save_load(
+        self,
+        model: Union[
+            FullyConnectedActor,
+            GaussianFullyConnectedActor,
+            DirichletFullyConnectedActor,
+        ],
+        stochastic: bool,
+    ):
+        # jit.trace can't trace models with stochastic output
+        if stochastic:
+            return
+
+        script_model = ActorTorchScriptWrapper(model)
+
+        def compare_func(model_output, script_model_output):
+            action, log_prob = script_model_output
+            assert torch.all(action == model_output.action)
+            assert torch.all(log_prob == model_output.log_prob)
+
+        run_model_jit_trace(model, script_model, compare_func)
+
+
+class TestFullyConnectedActor(TestActorBase):
     def test_basic(self):
         state_dim = 8
         action_dim = 4
@@ -34,6 +78,7 @@ class TestFullyConnectedActor(unittest.TestCase):
         model.eval()
         action = model(input)
         self.assertEqual((1, action_dim), action.action.shape)
+        self.assertEqual((1, 1), action.log_prob.shape)
 
     def test_save_load(self):
         state_dim = 8
@@ -45,10 +90,7 @@ class TestFullyConnectedActor(unittest.TestCase):
             activations=["relu", "relu"],
             use_batch_norm=False,
         )
-        expected_num_params, expected_num_inputs, expected_num_outputs = 6, 1, 1
-        check_save_load(
-            self, model, expected_num_params, expected_num_inputs, expected_num_outputs
-        )
+        self.check_save_load(model, stochastic=False)
 
     def test_save_load_batch_norm(self):
         state_dim = 8
@@ -62,13 +104,10 @@ class TestFullyConnectedActor(unittest.TestCase):
         )
         # Freezing batch_norm
         model.eval()
-        expected_num_params, expected_num_inputs, expected_num_outputs = 21, 1, 1
-        check_save_load(
-            self, model, expected_num_params, expected_num_inputs, expected_num_outputs
-        )
+        self.check_save_load(model, stochastic=False)
 
 
-class TestGaussianFullyConnectedActor(unittest.TestCase):
+class TestGaussianFullyConnectedActor(TestActorBase):
     def test_basic(self):
         state_dim = 8
         action_dim = 4
@@ -85,6 +124,7 @@ class TestGaussianFullyConnectedActor(unittest.TestCase):
         model.eval()
         action = model(input)
         self.assertEqual((1, action_dim), action.action.shape)
+        self.assertEqual((1, 1), action.log_prob.shape)
 
     def test_save_load(self):
         state_dim = 8
@@ -96,16 +136,21 @@ class TestGaussianFullyConnectedActor(unittest.TestCase):
             activations=["relu", "relu"],
             use_batch_norm=False,
         )
-        expected_num_params, expected_num_inputs, expected_num_outputs = 6, 1, 1
-        # Actor output is stochastic and won't match between PyTorch & Caffe2
-        check_save_load(
-            self,
-            model,
-            expected_num_params,
-            expected_num_inputs,
-            expected_num_outputs,
-            check_equality=False,
+        self.check_save_load(model, stochastic=True)
+
+    def test_save_load_batch_norm(self):
+        state_dim = 8
+        action_dim = 4
+        model = GaussianFullyConnectedActor(
+            state_dim,
+            action_dim,
+            sizes=[7, 6],
+            activations=["relu", "relu"],
+            use_batch_norm=True,
         )
+        # Freezing batch_norm
+        model.eval()
+        self.check_save_load(model, stochastic=True)
 
     def test_get_log_prob(self):
         torch.manual_seed(0)
@@ -126,7 +171,7 @@ class TestGaussianFullyConnectedActor(unittest.TestCase):
         npt.assert_allclose(action.log_prob.detach(), action_log_prob, rtol=1e-4)
 
 
-class TestDirichletFullyConnectedActor(unittest.TestCase):
+class TestDirichletFullyConnectedActor(TestActorBase):
     def test_basic(self):
         state_dim = 8
         action_dim = 4
@@ -143,6 +188,7 @@ class TestDirichletFullyConnectedActor(unittest.TestCase):
         model.eval()
         action = model(input)
         self.assertEqual((1, action_dim), action.action.shape)
+        self.assertEqual((1, 1), action.log_prob.shape)
 
     def test_save_load(self):
         state_dim = 8
@@ -154,12 +200,18 @@ class TestDirichletFullyConnectedActor(unittest.TestCase):
             activations=["relu", "relu"],
             use_batch_norm=False,
         )
-        expected_num_params, expected_num_inputs, expected_num_outputs = 7, 1, 1
-        check_save_load(
-            self,
-            model,
-            expected_num_params,
-            expected_num_inputs,
-            expected_num_outputs,
-            check_equality=False,
+        self.check_save_load(model, stochastic=True)
+
+    def test_save_load_batch_norm(self):
+        state_dim = 8
+        action_dim = 4
+        model = DirichletFullyConnectedActor(
+            state_dim,
+            action_dim,
+            sizes=[7, 6],
+            activations=["relu", "relu"],
+            use_batch_norm=True,
         )
+        # Freezing batch_norm
+        model.eval()
+        self.check_save_load(model, stochastic=True)
