@@ -3,15 +3,61 @@
 
 import logging
 import unittest
+from typing import Union
+
+import torch
+import torch.nn as nn
+from reagent.core import types as rlt
 
 from reagent.models.dueling_q_network import DuelingQNetwork, ParametricDuelingQNetwork
-from reagent.test.models.test_utils import check_save_load
-
+from reagent.test.models.test_utils import run_model_jit_trace
 
 logger = logging.getLogger(__name__)
 
 
+class DuelingQNetworkTorchScriptWrapper(nn.Module):
+    def __init__(
+        self,
+        model: Union[
+            DuelingQNetwork,
+            ParametricDuelingQNetwork,
+        ],
+    ):
+        super().__init__()
+        self.model = model
+
+    def forward(self, state_float_features: torch.Tensor):
+        return self.model(rlt.FeatureData(float_features=state_float_features))
+
+
+class ParametricDuelingQNetworkTorchScriptWrapper(nn.Module):
+    def __init__(
+        self,
+        model: Union[
+            DuelingQNetwork,
+            ParametricDuelingQNetwork,
+        ],
+    ):
+        super().__init__()
+        self.model = model
+
+    def forward(
+        self, state_float_features: torch.Tensor, action_float_features: torch.Tensor
+    ):
+        return self.model(
+            rlt.FeatureData(float_features=state_float_features),
+            rlt.FeatureData(float_features=action_float_features),
+        )
+
+
 class TestDuelingQNetwork(unittest.TestCase):
+    def check_save_load(self, model: Union[DuelingQNetwork, ParametricDuelingQNetwork]):
+        if isinstance(model, ParametricDuelingQNetwork):
+            script_model = ParametricDuelingQNetworkTorchScriptWrapper(model)
+        else:
+            script_model = DuelingQNetworkTorchScriptWrapper(model)
+        run_model_jit_trace(model, script_model)
+
     def test_discrete_action(self):
         state_dim = 8
         action_dim = 4
@@ -49,10 +95,7 @@ class TestDuelingQNetwork(unittest.TestCase):
         model = DuelingQNetwork.make_fully_connected(
             state_dim, action_dim, layers=[8, 4], activations=["relu", "relu"]
         )
-        expected_num_params, expected_num_inputs, expected_num_outputs = 22, 1, 1
-        check_save_load(
-            self, model, expected_num_params, expected_num_inputs, expected_num_outputs
-        )
+        self.check_save_load(model)
 
     def test_save_load_parametric_action(self):
         state_dim = 8
@@ -60,37 +103,28 @@ class TestDuelingQNetwork(unittest.TestCase):
         model = ParametricDuelingQNetwork.make_fully_connected(
             state_dim, action_dim, [8, 4], ["relu", "relu"]
         )
-        expected_num_params, expected_num_inputs, expected_num_outputs = 22, 2, 1
-        check_save_load(
-            self, model, expected_num_params, expected_num_inputs, expected_num_outputs
-        )
+        self.check_save_load(model)
 
     def test_save_load_discrete_action_batch_norm(self):
         state_dim = 8
         action_dim = 4
         model = DuelingQNetwork.make_fully_connected(
-            state_dim, action_dim, layers=[8, 4], activations=["relu", "relu"]
+            state_dim,
+            action_dim,
+            layers=[8, 4],
+            activations=["relu", "relu"],
+            use_batch_norm=True,
         )
         # Freezing batch_norm
         model.eval()
-        # Number of expected params is the same because DuelingQNetwork always
-        # initialize batch norm layer even if it doesn't use it.
-        expected_num_params, expected_num_inputs, expected_num_outputs = 22, 1, 1
-        check_save_load(
-            self, model, expected_num_params, expected_num_inputs, expected_num_outputs
-        )
+        self.check_save_load(model)
 
     def test_save_load_parametric_action_batch_norm(self):
         state_dim = 8
         action_dim = 4
         model = ParametricDuelingQNetwork.make_fully_connected(
-            state_dim, action_dim, [8, 4], ["relu", "relu"]
+            state_dim, action_dim, [8, 4], ["relu", "relu"], use_batch_norm=True
         )
         # Freezing batch_norm
         model.eval()
-        # Number of expected params is the same because DuelingQNetwork always
-        # initialize batch norm layer even if it doesn't use it.
-        expected_num_params, expected_num_inputs, expected_num_outputs = 22, 2, 1
-        check_save_load(
-            self, model, expected_num_params, expected_num_inputs, expected_num_outputs
-        )
+        self.check_save_load(model)

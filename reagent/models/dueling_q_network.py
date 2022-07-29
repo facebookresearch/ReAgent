@@ -17,6 +17,13 @@ INVALID_ACTION_CONSTANT = -1e10
 
 
 class DuelingQNetwork(ModelBase):
+    """
+    Dueling Q-Network Architecture: https://arxiv.org/abs/1511.06581
+
+    The model arch maps from state features to scalar outputs which represents
+    the q-values of defined actions.
+    """
+
     def __init__(
         self,
         *,
@@ -24,9 +31,6 @@ class DuelingQNetwork(ModelBase):
         advantage_network: ModelBase,
         value_network: ModelBase,
     ) -> None:
-        """
-        Dueling Q-Network Architecture: https://arxiv.org/abs/1511.06581
-        """
         super().__init__()
         self.shared_network = shared_network
         input_prototype = shared_network.input_prototype()
@@ -162,18 +166,21 @@ class ParametricDuelingQNetwork(ModelBase):
             sizes=layers[:-1],
             activations=activations[:-1],
             normalized_output=True,
+            use_batch_norm=use_batch_norm,
         )
         advantage_network = FullyConnectedCritic(
             state_embedding_dim,
             action_dim,
             sizes=[state_embedding_dim // 2],
             activations=activations[-1:],
+            use_batch_norm=use_batch_norm,
         )
         value_network = FullyConnectedDQN(
             state_embedding_dim,
             1,
             sizes=[state_embedding_dim // 2],
             activations=activations[-1:],
+            use_batch_norm=use_batch_norm,
         )
         return ParametricDuelingQNetwork(
             shared_network=shared_network,

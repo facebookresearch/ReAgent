@@ -18,6 +18,11 @@ LOG_PROB_MAX = 2.0
 
 
 class StochasticActor(ModelBase):
+    """
+    An actor defined by a scorer and sampler.
+    The scorer gives each action an score. And the sampler samples actions
+    based on the action scores."""
+
     def __init__(self, scorer, sampler) -> None:
         super().__init__()
         self.scorer = scorer
@@ -35,6 +40,13 @@ class StochasticActor(ModelBase):
 
 
 class FullyConnectedActor(ModelBase):
+    """
+    A general model arch for mapping from state to ActorOutput,
+    which contains an action tensor and log probabilities (optional).
+
+    The model arch is often used to implement the actor in actor-critic algorithms.
+    """
+
     def __init__(
         self,
         state_dim: int,
@@ -97,6 +109,12 @@ class FullyConnectedActor(ModelBase):
 
 
 class GaussianFullyConnectedActor(ModelBase):
+    """
+    A model arch similar to FullyConnectedActor, except that the last layer
+    represents the parameters of a multi-dimensional Gaussian distribution.
+    The action to return is sampled from the Gaussian distribution.
+    """
+
     def __init__(
         self,
         state_dim: int,
@@ -242,6 +260,11 @@ class GaussianFullyConnectedActor(ModelBase):
 
 
 class DirichletFullyConnectedActor(ModelBase):
+    """
+    A model arch similar to FullyConnectedActor, except that the last layer
+    is sampled from a Dirichlet distribution
+    """
+
     # Used to prevent concentration from being 0
     EPSILON = 1e-6
 
