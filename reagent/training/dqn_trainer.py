@@ -24,6 +24,28 @@ class BCQConfig:
 
 
 class DQNTrainer(DQNTrainerBaseLightning):
+    """A trainer for the DQN algorithm and its variants.
+
+    Configures optimizers, builds the losses and train functions for the
+    Q-learning based algorithm variants. Supports MaxQ and SARSA style
+    TD-learning under both, standard and batch-constrained q-learning.
+    During training, updates CPE metrics estimators.
+
+    Attributes:
+        double_q_learning: a boolean flag whether to use double-q learning.
+        minibatch_size: an int number of samples per minibatch.
+        minibatches_per_step: an int number of minibatch updates per step.
+        q_network: a network object mapping states to q-values of all actions.
+        q_network_target: a copy of q-network for training stability used in
+            estimating q-values targets.
+        q_network_optimizer: an optimizer object for training q-network.
+        bcq: a config file for batch-constrained q-learning (BCQ).
+        bcq_imitator: if using batch-constrained q-learning, the behavior
+            policy used for BCQ training.
+        all_action_scores: a torch tensor containing q-network
+                predictions from the current states.
+    """
+
     @resolve_defaults
     def __init__(
         self,
@@ -54,9 +76,9 @@ class DQNTrainer(DQNTrainerBaseLightning):
             q_network: states -> q-value for each action
             q_network_target: copy of q-network for training stability
             reward_network: states -> reward for each action
-            q_network_cpe:
-            q_network_cpe_target:
-            metrics_to_score:
+            q_network_cpe: states -> cpe q-values for each action
+            q_network_cpe_target: copy of q_network_cpe for training stability
+            metrics_to_score: a list of string reward metrics names.
             imitator (optional): The behavior policy, used for BCQ training
             actions: list of action names
             rl: RLParameters
@@ -94,6 +116,15 @@ class DQNTrainer(DQNTrainerBaseLightning):
             self.bcq_imitator = imitator
 
     def configure_optimizers(self):
+        """Initializes networks optimizers.
+
+        Initializes and returns the reward, q_network and the cpe networks
+        optimizers. Also initializes soft updates of target networks from
+        corresponding source networks.
+
+        Returns:
+            A list of initialized optimizer objects.
+        """
         optimizers = []
         target_params = list(self.q_network_target.parameters())
         source_params = list(self.q_network.parameters())
@@ -134,6 +165,7 @@ class DQNTrainer(DQNTrainerBaseLightning):
     def compute_discount_tensor(
         self, batch: rlt.DiscreteDqnInput, boosted_rewards: torch.Tensor
     ):
+        """Computes a discount tensor to be used in td-error estimation."""
         discount_tensor = torch.full_like(boosted_rewards, self.gamma)
         if self.use_seq_num_diff_as_time_diff:
             assert self.multi_steps is None
@@ -149,6 +181,22 @@ class DQNTrainer(DQNTrainerBaseLightning):
         boosted_rewards: torch.Tensor,
         discount_tensor: torch.Tensor,
     ):
+        """Computes q_network td loss.
+
+        Computes a temporal difference loss for training the q-network based
+        on a corresponding Bellman update. Supports maxQ and SARSA
+        style updates.
+
+        Args:
+            batch: a training batch object.
+            boosted_rewards: a (batch_size, 1) shaped torch tensor with
+                boosted rewards values.
+            discount_tensor: a (batch_size, 1) torch tensor containing the
+                discount to apply.
+
+        Returns:
+            A temporal difference loss object for training the q-network.
+        """
         not_done_mask = batch.not_terminal.float()
         all_next_q_values, all_next_q_values_target = self.get_detached_model_outputs(
             batch.next_state
@@ -190,6 +238,20 @@ class DQNTrainer(DQNTrainerBaseLightning):
         return td_loss
 
     def train_step_gen(self, training_batch: rlt.DiscreteDqnInput, batch_idx: int):
+        """Builds loss functions for updating q- and reward networks.
+
+        Args:
+            training_batch: a training batch data object.
+            batch_idx: an integer batch index.
+
+        Yields:
+            If a calc_cpe_in_training flag is True, yields a tuple
+            (td_loss, reward_loss, cpe_metric_loss, soft_update_loss)
+            for updating q_network, reward_network, q_network_cpe and target
+            networks respectively. If calc_cpe_in_training is False, yields
+            a tuple (td_loss, soft_update_loss) for updating q_network and
+            q_network_target.
+        """
         # TODO: calls to _maybe_run_optimizer removed, should be replaced with Trainer parameter
         self._check_input(training_batch)
 
@@ -241,6 +303,7 @@ class DQNTrainer(DQNTrainerBaseLightning):
     def _log_dqn(
         self, td_loss, logged_action_idxs, training_batch, rewards, model_action_idxs
     ):
+        """Logs training update results."""
         self.reporter.log(
             td_loss=td_loss,
             logged_actions=logged_action_idxs,
@@ -281,6 +344,10 @@ class DQNTrainer(DQNTrainerBaseLightning):
             )
 
     def _dense_to_action_dict(self, dense: torch.Tensor):
+        """Converts values tensor to a dict mapping action names to values.
+
+        Example: tensor([1.0, 0.0, 1.0]) -> {"1": 1.0, "2": 0.0, "3": 1.0}.
+        """
         assert dense.size() == (
             self.num_actions,
         ), f"Invalid dense size {dense.size()} != {(self.num_actions,)}"
@@ -290,6 +357,15 @@ class DQNTrainer(DQNTrainerBaseLightning):
         return retval
 
     def validation_step(self, batch, batch_idx):
+        """Runs model evaluation on an input batch of data.
+
+        Args:
+            batch: a batch data object, e.g. DiscreteDqnInput object.
+            batch_idx: an integer batch index.
+
+        Returns:
+            An EvaluationDataPage object with evaluation results.
+        """
         if isinstance(batch, dict):
             batch = rlt.DiscreteDqnInput.from_dict(batch)
         rewards = self.boost_rewards(batch.reward, batch.action)
