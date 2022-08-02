@@ -75,15 +75,6 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
             reward_network, q_network_cpe, q_network_cpe_target, optimizer=cpe_optimizer
         )
 
-        self.register_buffer("reward_boosts", None)
-        self.reward_boosts = torch.zeros([1, len(self._actions)])
-        if rl.reward_boost is not None:
-            # pyre-fixme[16]: Optional type has no attribute `keys`.
-            for k in rl.reward_boost.keys():
-                i = self._actions.index(k)
-                # pyre-fixme[16]: Optional type has no attribute `__getitem__`.
-                self.reward_boosts[0, i] = rl.reward_boost[k]
-
     def configure_optimizers(self):
         optimizers = []
         target_params = list(self.q_network_target.parameters())

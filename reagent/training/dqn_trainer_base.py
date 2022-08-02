@@ -2,7 +2,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List, Optional
+from abc import abstractmethod
+from typing import Dict, List, Optional
 
 import reagent.core.types as rlt
 import torch
@@ -108,6 +109,21 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
             self.metrics_to_score = metrics_to_score + ["reward"]
         else:
             self.metrics_to_score = ["reward"]
+
+        self._init_reward_boosts(rl_parameters.reward_boost)
+
+    @abstractmethod
+    @torch.no_grad()
+    def get_detached_model_outputs(self, state):
+        pass
+
+    def _init_reward_boosts(self, rl_reward_boost: Optional[Dict[str, float]]) -> None:
+        reward_boosts = torch.zeros([1, len(self._actions)])
+        if rl_reward_boost is not None:
+            for k in rl_reward_boost.keys():
+                i = self._actions.index(k)
+                reward_boosts[0, i] = rl_reward_boost[k]
+        self.register_buffer("reward_boosts", reward_boosts)
 
     def _check_input(self, training_batch: rlt.DiscreteDqnInput):
         assert isinstance(training_batch, rlt.DiscreteDqnInput)
