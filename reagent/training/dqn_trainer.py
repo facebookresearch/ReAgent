@@ -86,15 +86,6 @@ class DQNTrainer(DQNTrainerBaseLightning):
             reward_network, q_network_cpe, q_network_cpe_target, optimizer=optimizer
         )
 
-        reward_boosts = torch.zeros([1, len(self._actions)])
-        if rl.reward_boost is not None:
-            # pyre-fixme[16]: `Optional` has no attribute `keys`.
-            for k in rl.reward_boost.keys():
-                i = self._actions.index(k)
-                # pyre-fixme[16]: `Optional` has no attribute `__getitem__`.
-                reward_boosts[0, i] = rl.reward_boost[k]
-        self.register_buffer("reward_boosts", reward_boosts)
-
         # Batch constrained q-learning
         self.bcq = bcq is not None
         if self.bcq:
