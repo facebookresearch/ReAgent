@@ -125,16 +125,6 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
 
         self.delayed_policy_update = delayed_policy_update
 
-        self.register_buffer("reward_boosts", None)
-
-        self.reward_boosts = torch.zeros([1, len(self._actions)])
-        if rl.reward_boost is not None:
-            # pyre-fixme[16]: Optional type has no attribute `keys`.
-            for k in rl.reward_boost.keys():
-                i = self._actions.index(k)
-                # pyre-fixme[16]: Optional type has no attribute `__getitem__`.
-                self.reward_boosts[0, i] = rl.reward_boost[k]
-
         self._initialize_cpe(
             reward_network,
             q_network_cpe,
