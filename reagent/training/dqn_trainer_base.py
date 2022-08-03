@@ -77,6 +77,44 @@ class DQNTrainerMixin:
 
 
 class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModule):
+    """Base trainer class for the DQN algorihtm variants.
+
+    A base class for training variants of the DQN algorithm.
+    Provides methods for q-values calculation, reward boosting, and also
+    initializing and training counterfactual policy evaluation
+    metrics estimators (see https://arxiv.org/abs/1811.00260 for detail).
+
+    Attributes:
+        rl_parameters: an object of a reagent.core.parameters.RLParameters
+            data class.
+        metrics_to_score: a list of strings representing reward metrics.
+        evaluation_parameters: an object of a
+            reagent.core.parameters.EvaluationParameters data class.
+        q_network_loss: a loss function object, currently either
+            torch.nn.functional.mse_loss or torch.nn.functional.smooth_l1_loss.
+        reward_boosts: a torch tensor containing reward boost values at
+            indices corresponding to respective discrete actions.
+        calc_cpe_in_training: a boolean flag whether to calculate CPE metrics
+            during training.
+        reward_network: a network object mapping states to rewards and
+            extra reward metrics. Given the number of discrete actions n and
+            e.g. a set of k reward metrics `m_1`, `m_2`, ..., and `m_k`, the
+            reward_network output has shape (batch_size, n * k), where
+            the [:, (k - 1) * n : k * n] sub-tensor contains the metric `m_k`
+            q-values estimates for each of the n actions. The order of metrics
+            in the output is the following: the environment reward, followed by
+            extra metrics sorted by their names in RewardOptions.metric_reward_values
+            config.
+        reward_network_optimizer: an optimizer object for training
+            reward network.
+        q_network_cpe: a network object mapping states to CPE metrics.
+        q_network_cpe_target: a copy of q_network_cpe for training stability.
+        q_network_cpe_optimizer: an optimizer object for training q_network_cpe.
+        reward_idx_offsets: a flat torch tensor containing integer offsets of
+            different reward metrics in the reward_network output.
+        evaluator: an object of a reagent.evaluation.evaluator.Evaluator class.
+    """
+
     def __init__(
         self,
         rl_parameters: RLParameters,
@@ -84,6 +122,16 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         actions: Optional[List[str]] = None,
         evaluation_parameters: Optional[EvaluationParameters] = None,
     ):
+        """
+        Args:
+            rl_parameters: an object of a reagent.core.parameters.RLParameters
+                data class.
+            metrics_to_score: a list of strings representing extra reward
+                metrics, excluding the reward itself.
+            actions: a list of string action names for available actions.
+            evaluation_parameters: an object of a
+                reagent.core.parameters.EvaluationParameters data class.
+        """
         super().__init__()
         self.rl_parameters = rl_parameters
         self.time_diff_unit_length = rl_parameters.time_diff_unit_length
@@ -118,6 +166,17 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         pass
 
     def _init_reward_boosts(self, rl_reward_boost: Optional[Dict[str, float]]) -> None:
+        """Initializes reward_boosts class attribute.
+
+        Given an input reward_boosts dictionary, constructs a torch tensor
+        containing reward boost values at indices corresponding to
+        respective discrete actions. Assigns resulting tensor to the
+        reward_boosts class attribute.
+
+        Args:
+            rl_reward_boost: a dict mapping discrete actions string names to the
+                corresponding float reward boost values.
+        """
         reward_boosts = torch.zeros([1, len(self._actions)])
         if rl_reward_boost is not None:
             for k in rl_reward_boost.keys():
@@ -126,6 +185,7 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         self.register_buffer("reward_boosts", reward_boosts)
 
     def _check_input(self, training_batch: rlt.DiscreteDqnInput):
+        """Checks the shapes of input tensors in the training batch."""
         assert isinstance(training_batch, rlt.DiscreteDqnInput)
         assert training_batch.not_terminal.dim() == training_batch.reward.dim() == 2
         assert (
@@ -148,6 +208,7 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
 
     @property
     def num_actions(self) -> int:
+        """Returns a number of available discrete actions."""
         assert self._actions is not None, "Not a discrete action DQN"
         return len(self._actions)
 
@@ -155,6 +216,19 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
     def boost_rewards(
         self, rewards: torch.Tensor, actions: torch.Tensor
     ) -> torch.Tensor:
+        """Applies reward boosts to the rewards tensor.
+
+        Given the (batch_size, num_actions) actions tensor, computes the
+        reward boosts for each time step based on the values stored in the
+        reward_boosts attribute and augments the rewards tensor.
+
+        Args:
+            rewards: a (batch_size, 1) shaped torch tensor with rewards values.
+            actions: a (batch_size, num_actions) torch tensor with executed actions.
+
+        Returns:
+            a (batch_size, 1) shaped torch tensor with boosted rewards values.
+        """
         # Apply reward boost if specified
         reward_boosts = torch.sum(
             actions.float() * self.reward_boosts,
@@ -170,6 +244,27 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         q_network_cpe_target,
         optimizer: Optimizer__Union,
     ) -> None:
+        """Initializes CPE networks, optimizers and an evaluator object.
+
+        Given the number of discrete actions n and e.g. a set of reward
+        metrics `a`, `b`, and `c`, the reward_network output has shape
+        (batch_size, n * 3), where the [:, :n] sub-tensor contains the metric
+        `a` q-values estimates for each action, the [:, n: 2 * n] sub-tensor
+        contains the metric `b` q-values estimates, etc. In addition to
+        initializing the reward and cpe networks, this function computes
+        the offsets of each metric in the reward network output tensor,
+        i.e. the torch.tensor([0, n, 2 * n]).
+
+        Args:
+            reward_network: a network object mapping states to rewards and
+                extra reward metrics.
+            q_network_cpe: a network object mapping states to CPE metrics.
+                The network output has the same shape as the reward_network
+                output: (batch_size, n * k), where n is a number of discrete
+                actions, k is a number of reward metrics.
+            q_network_cpe_target: a copy of q_network_cpe for training stability.
+            optimizer: an optimizer object for training q_network_cpe.
+        """
         if not self.calc_cpe_in_training:
             # pyre-fixme[16]: `DQNTrainerBase` has no attribute `reward_network`.
             self.reward_network = None
@@ -209,6 +304,7 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         )
 
     def _configure_cpe_optimizers(self):
+        """Initializes the reward and the cpe networks optimizers."""
         target_params = list(self.q_network_cpe_target.parameters())
         source_params = list(self.q_network_cpe.parameters())
         # TODO: why is reward net commented out?
@@ -237,6 +333,31 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         discount_tensor,
         not_done_mask,
     ):
+        """Computes losses for the reward and the cpe q-values networks.
+
+        Based on the actions taken idxs, computes the mse loss for training
+        the reward network and either mse or huber loss for the cpe q-network.
+
+        Args:
+            training_batch: a training batch data object.
+            states: a (batch_size, state_dim) torch tensor containing
+                current states.
+            next_states: a (batch_size, state_dim) torch tensor containing
+                next states.
+            all_action_scores: a torch tensor containing q-network
+                predictions from the current states.
+            all_next_action_scores: a torch tensor containing q-network
+                predictions from the next states.
+            logged_action_idxs: a (batch_size, 1) torch tensor with integer
+                executed actions indices.
+            discount_tensor: a (batch_size, 1) torch tensor containing the
+                discount to apply, e.g. gamma ** k where k is a number of
+                steps used in td-error estimation.
+            not_done_mask: a (batch_size, 1) torch tensor with boolean values
+                indicating whether corresponding state is terminal.
+        Yields:
+            A reward network and a CPE q-network loss objects.
+        """
         if not self.calc_cpe_in_training:
             return
         if training_batch.extras.metrics is None:
@@ -320,6 +441,20 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         yield metric_q_value_loss
 
     def gather_eval_data(self, validation_step_outputs):
+        """Aggregates EvaluationDataPage objects.
+
+        Combines a list of EvaluationDataPage objects obtained as a result
+        of calling the validation_step method into a single object. Switches
+        to CPU to avoid running out of memory on GPU as this operation can be
+        memory intensive.
+
+        Args:
+            validation_step_outputs: a list of EvaluationDataPage objects
+                returned by the validation_step method.
+        Returns:
+            An EvaluationDataPage object containing concatenated data from
+            the input list of objects.
+        """
         was_on_gpu = self.on_gpu
         self.cpu()
         eval_data = None
@@ -337,6 +472,7 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         return eval_data
 
     def validation_step(self, batch, batch_idx):
+        """Runs model evaluation on an input batch of data."""
         if isinstance(batch, dict):
             batch = rlt.DiscreteDqnInput.from_dict(batch)
         # HACK: Move to cpu in order to hold more batches in memory
