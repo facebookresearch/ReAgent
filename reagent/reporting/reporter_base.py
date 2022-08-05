@@ -31,15 +31,7 @@ class ReporterBase(CompositeObserver):
         self._aggregating_observers = aggregating_observers
         super().__init__(
             list(value_list_observers.values())
-            # pyre-fixme[58]: `+` is not supported for operand types
-            #  `List[ValueListObserver]` and `List[IntervalAggregatingObserver]`.
-            # pyre-fixme[58]: `+` is not supported for operand types
-            #  `List[ValueListObserver]` and `List[IntervalAggregatingObserver]`.
             + list(aggregating_observers.values())
-            # pyre-fixme[58]: `+` is not supported for operand types
-            #  `List[ValueListObserver]` and `List[EpochEndObserver]`.
-            # pyre-fixme[58]: `+` is not supported for operand types
-            #  `List[ValueListObserver]` and `List[EpochEndObserver]`.
             + [epoch_end_observer]
         )
         self._reporter_observable = _ReporterObservable(self)
