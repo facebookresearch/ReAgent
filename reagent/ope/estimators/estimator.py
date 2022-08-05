@@ -35,6 +35,7 @@ class ResultDiffs:
         if self._rmse is None:
             # pyre-fixme[58]: `**` is not supported for operand types `Tensor` and
             #  `float`.
+            # pyre-fixme[16]: `float` has no attribute `mean`.
             self._rmse = (self._diffs**2.0).mean().sqrt()
         return self._rmse
 
