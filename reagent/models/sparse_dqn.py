@@ -72,8 +72,12 @@ class SparseDQN(ModelBase):
         dense_features = torch.cat(
             (state.float_features, action.float_features), dim=-1
         )
+        batch_size = dense_features.shape[0]
         sparse_features = self.fetch_id_list_features(state, action)
+        # shape: batch_size, num_sparse_features, embedding_dim
         embedded_sparse = self.sparse_arch(sparse_features)
+        # shape: batch_size, num_sparse_features * embedding_dim
+        embedded_sparse = embedded_sparse.reshape(batch_size, -1)
         concatenated_dense = torch.cat((dense_features, embedded_sparse), dim=-1)
 
         return self.q_network(concatenated_dense)
