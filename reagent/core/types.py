@@ -70,7 +70,10 @@ class TensorDataClass(BaseDataClass):
             def f(v):
                 # if possible, returns v.attr(*args, **kwargs).
                 # otws, return v
-                if isinstance(v, (torch.Tensor, TensorDataClass)):
+                if (
+                    isinstance(v, (torch.Tensor, TensorDataClass, KeyedJaggedTensor))
+                    and getattr(v, attr, None) is not None
+                ):
                     return getattr(v, attr)(*args, **kwargs)
                 elif isinstance(v, dict):
                     return {kk: f(vv) for kk, vv in v.items()}
