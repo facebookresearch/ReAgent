@@ -29,15 +29,14 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
     def __init__(
         self,
         policy: Policy,
-        use_interaction_features: bool = False,
-        automatic_optimization: bool = False,
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
+        **kwargs,
     ):
         super().__init__(
             policy=policy,
-            use_interaction_features=use_interaction_features,
+            **kwargs,
         )
         assert isinstance(
             policy.scorer, DeepRepresentLinearRegressionUCB
