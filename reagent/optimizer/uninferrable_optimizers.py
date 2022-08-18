@@ -27,6 +27,7 @@ class Adam(OptimizerConfig):
     maximize: bool = False
     foreach: Optional[bool] = None
     capturable: bool = False
+    differentiable: bool = False
 
 
 @dataclass(frozen=True)
@@ -59,6 +60,7 @@ class SGD(OptimizerConfig):
     nesterov: bool = False
     maximize: bool = False
     foreach: Optional[bool] = None
+    differentiable: bool = False
 
 
 @dataclass(frozen=True)
