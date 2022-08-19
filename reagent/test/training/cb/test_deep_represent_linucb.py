@@ -1,3 +1,8 @@
+"""
+How to use:
+    buck test reagent:training_tests -- TestDeepRepresentLinUCB
+"""
+
 import unittest
 
 import numpy as np
@@ -64,21 +69,3 @@ class TestDeepRepresentLinUCB(unittest.TestCase):
             np.zeros(10),
             atol=1e-2,
         )
-        return loss_iterations
-
-
-def test_deep_represent():
-    test = TestDeepRepresentLinUCB()
-    test.test_linucb_training_step()
-
-
-"""
-How to use:
-    buck test reagent:training_tests -- test_deep_represent
-
-    or
-
-    test = TestDeepRepresentLinUCB()
-    test.setUp()
-    losses = test.test_linucb_training_step()
-"""
