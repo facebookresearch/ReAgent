@@ -10,13 +10,13 @@ from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
 from reagent.models.deep_represent_linucb import DeepRepresentLinearRegressionUCB
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.training.cb.deep_represent_linucb_trainer import DeepRepresentLinUCBTrainer
-from reagent.training.parameters import LinUCBTrainerParameters
+from reagent.training.parameters import DeepRepresentLinUCBTrainerParameters
 
 
 class TestDeepRepresentLinUCB(unittest.TestCase):
     def setUp(self):
 
-        self.params = LinUCBTrainerParameters()
+        self.params = DeepRepresentLinUCBTrainerParameters()
 
         raw_input_dim = 100
         sizes = [100]
@@ -67,8 +67,17 @@ class TestDeepRepresentLinUCB(unittest.TestCase):
         return loss_iterations
 
 
+def test_deep_represent():
+    test = TestDeepRepresentLinUCB()
+    test.test_linucb_training_step()
+
+
 """
 How to use:
+    buck test reagent:training_tests -- test_deep_represent
+
+    or
+
     test = TestDeepRepresentLinUCB()
     test.setUp()
     losses = test.test_linucb_training_step()
