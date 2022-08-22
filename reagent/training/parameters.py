@@ -7,6 +7,7 @@ from reagent.core.types import BaseDataClass
 from .behavioral_cloning_trainer import BehavioralCloningTrainer
 from .c51_trainer import C51Trainer
 from .cb.deep_represent_linucb_trainer import DeepRepresentLinUCBTrainer
+from .cb.disjoint_linucb_trainer import DisjointLinUCBTrainer
 from .cb.linucb_trainer import LinUCBTrainer
 from .discrete_crr_trainer import DiscreteCRRTrainer
 from .dqn_trainer import DQNTrainer
@@ -187,4 +188,14 @@ class LinUCBTrainerParameters:
     ],
 )
 class DeepRepresentLinUCBTrainerParameters:
+    pass
+
+
+@make_config_class(
+    DisjointLinUCBTrainer.__init__,
+    blocklist=[
+        "policy",
+    ],
+)
+class DisjointLinUCBTrainerParameters:
     pass
