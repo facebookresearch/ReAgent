@@ -3,7 +3,7 @@
 
 import logging
 import math
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import torch
 import torch.nn as nn
@@ -18,6 +18,17 @@ logger = logging.getLogger(__name__)
 def gaussian_fill_w_gain(tensor, gain, dim_in, min_std=0.0) -> None:
     """Gaussian initialization with gain."""
     init.normal_(tensor, mean=0, std=max(gain * math.sqrt(1 / dim_in), min_std))
+
+
+# troch.fx.trace does not support dynamic control flow, wrap the if-else and assert logic in this function to work around this limitation
+@torch.fx.wrap
+def transpose_input(input: torch.Tensor, vanilla: nn.BatchNorm1d) -> Any:
+    shape = len(input.shape)
+    assert shape in [2, 3], f"Invalid input shape {input.shape}"
+    if shape == 2:
+        return vanilla(input)
+    elif shape == 3:
+        return vanilla(input.transpose(1, 2)).transpose(1, 2)
 
 
 ACTIVATION_MAP = {
@@ -45,11 +56,8 @@ class SlateBatchNorm1d(nn.Module):
         self.vanilla = nn.BatchNorm1d(*args, **kwargs)
 
     def forward(self, x: torch.Tensor):
-        assert len(x.shape) in [2, 3], f"Invalid input shape {x.shape}"
-        if len(x.shape) == 2:
-            return self.vanilla(x)
-        if len(x.shape) == 3:
-            return self.vanilla(x.transpose(1, 2)).transpose(1, 2)
+        transposed_output = transpose_input(x, self.vanilla)
+        return transposed_output
 
 
 class FullyConnectedNetwork(ModelBase):

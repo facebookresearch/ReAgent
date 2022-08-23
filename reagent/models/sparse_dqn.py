@@ -12,6 +12,26 @@ from torchrec.modules.embedding_modules import EmbeddingBagCollection
 from torchrec.sparse.jagged_tensor import KeyedJaggedTensor
 
 
+# troch.fx.trace does not support dynamic control flow, wrap the if-else and assert logic in this function to work around this limitation
+@torch.fx.wrap
+def fetch_id_list_features(
+    state: rlt.FeatureData, action: rlt.FeatureData
+) -> KeyedJaggedTensor:
+    assert state.id_list_features is not None or action.id_list_features is not None
+    if state.id_list_features is not None and action.id_list_features is None:
+        sparse_features = state.id_list_features
+    elif state.id_list_features is None and action.id_list_features is not None:
+        sparse_features = action.id_list_features
+    elif state.id_list_features is not None and action.id_list_features is not None:
+        sparse_features = KeyedJaggedTensor.concat(
+            [state.id_list_features, action.id_list_features]
+        )
+    else:
+        raise ValueError
+    # TODO: add id_list_score_features
+    return sparse_features
+
+
 class SparseDQN(ModelBase):
     """
     Concatenating embeddings from bag collection with float features before passing the input
@@ -51,29 +71,12 @@ class SparseDQN(ModelBase):
             use_batch_norm=use_batch_norm,
         )
 
-    def fetch_id_list_features(
-        self, state: rlt.FeatureData, action: rlt.FeatureData
-    ) -> KeyedJaggedTensor:
-        assert state.id_list_features is not None or action.id_list_features is not None
-        if state.id_list_features is not None and action.id_list_features is None:
-            sparse_features = state.id_list_features
-        elif state.id_list_features is None and action.id_list_features is not None:
-            sparse_features = action.id_list_features
-        elif state.id_list_features is not None and action.id_list_features is not None:
-            sparse_features = KeyedJaggedTensor.concat(
-                [state.id_list_features, action.id_list_features]
-            )
-        else:
-            raise ValueError
-        # TODO: add id_list_score_features
-        return sparse_features
-
     def forward(self, state: rlt.FeatureData, action: rlt.FeatureData) -> torch.Tensor:
         dense_features = torch.cat(
             (state.float_features, action.float_features), dim=-1
         )
         batch_size = dense_features.shape[0]
-        sparse_features = self.fetch_id_list_features(state, action)
+        sparse_features = fetch_id_list_features(state, action)
         # shape: batch_size, num_sparse_features, embedding_dim
         embedded_sparse = self.sparse_arch(sparse_features)
         # shape: batch_size, num_sparse_features * embedding_dim
