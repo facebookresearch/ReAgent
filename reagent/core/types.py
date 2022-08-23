@@ -287,6 +287,26 @@ class DocList(TensorDataClass):
         return FeatureData(self.float_features.view(-1, feature_dim))
 
 
+# This method contains dynamic control flow
+# Use torch.fx.wrap to mark it as a leaf module for FX tracing
+@torch.fx.wrap
+def run_post_init_validation(
+    float_features: torch.Tensor,
+) -> None:
+    def usage():
+        return (
+            "For sequence features, use `stacked_float_features`."
+            "For document features, use `candidate_doc_float_features`."
+        )
+
+    if float_features.ndim == 3:
+        no_dup_logger.warning(f"`float_features` should be 2D.\n{usage()}")
+    elif float_features.ndim != 2:
+        raise ValueError(
+            f"float_features should be 2D; got {float_features.shape}.\n{usage()}"
+        )
+
+
 @dataclass
 class FeatureData(TensorDataClass):
     # For dense features, shape is (batch_size, feature_dim)
@@ -311,18 +331,9 @@ class FeatureData(TensorDataClass):
     time_since_first: Optional[torch.Tensor] = None
 
     def __post_init__(self):
-        def usage():
-            return (
-                "For sequence features, use `stacked_float_features`."
-                "For document features, use `candidate_doc_float_features`."
-            )
-
-        if self.float_features.ndim == 3:
-            no_dup_logger.warning(f"`float_features` should be 2D.\n{usage()}")
-        elif self.float_features.ndim != 2:
-            raise ValueError(
-                f"float_features should be 2D; got {self.float_features.shape}.\n{usage()}"
-            )
+        run_post_init_validation(
+            float_features=self.float_features,
+        )
 
     @property
     def has_float_features_only(self) -> bool:
