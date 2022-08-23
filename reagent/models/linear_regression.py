@@ -35,10 +35,8 @@ class LinearRegressionUCB(ModelBase):
     Args:
         input_dim: Dimension of input data
         l2_reg_lambda: The weight on L2 regularization
-        predict_ucb: If True, the model outputs an Upper Confidence Bound (UCB).
-            If False, the model outputs the point estimate
         ucb_alpha: The coefficient on the standard deviation in UCB formula.
-            Only used if predict_ucb=True.
+            Set it to 0 to predict the expected value instead of UCB.
     """
 
     def __init__(
@@ -46,13 +44,11 @@ class LinearRegressionUCB(ModelBase):
         input_dim: int,
         *,
         l2_reg_lambda: float = 1.0,
-        predict_ucb: float = False,
         ucb_alpha: float = 1.0,
     ) -> None:
         super().__init__()
 
         self.input_dim = input_dim
-        self.predict_ucb = predict_ucb
         self.ucb_alpha = ucb_alpha
         self.register_buffer("A", l2_reg_lambda * torch.eye(self.input_dim))
         self.register_buffer("b", torch.zeros(self.input_dim))
@@ -93,9 +89,9 @@ class LinearRegressionUCB(ModelBase):
         if ucb_alpha is None:
             ucb_alpha = self.ucb_alpha
 
-        if self.predict_ucb:
-            return torch.matmul(inp, self.coefs) + ucb_alpha * torch.sqrt(
-                batch_quadratic_form(inp, self.inv_A)
-            )
+        mu = torch.matmul(inp, self.coefs)
+
+        if ucb_alpha != 0:
+            return mu + ucb_alpha * torch.sqrt(batch_quadratic_form(inp, self.inv_A))
         else:
-            return torch.matmul(inp, self.coefs)
+            return mu
