@@ -104,7 +104,7 @@ class TestLinUCB(unittest.TestCase):
             self.batch.context_arm_features, self.batch.action
         ).numpy()
 
-        npt.assert_allclose(scorer.A.numpy(), np.eye(self.x_dim) + x.T @ x, rtol=1e-5)
+        npt.assert_allclose(scorer.A.numpy(), x.T @ x, rtol=1e-5)
         npt.assert_allclose(
             scorer.b.numpy(), x.T @ self.batch.reward.squeeze().numpy(), rtol=1e-5
         )
