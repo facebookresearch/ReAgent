@@ -43,7 +43,6 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         linucb_inp_dim: int,  # output from deep_represent module, i.e., input to LinUCB module
         activations: List[str],
         *,
-        predict_ucb: float = True,
         output_activation: str = "linear",
         use_batch_norm: bool = False,
         dropout_ratio: float = 0.0,
@@ -55,7 +54,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         pred_sigma: torch.Tensor = None,  # pyre-fixme; Attribute has type `Tensor`; used as `None`.
         mlp_layers: nn.Module = None,  # pyre-fixme; Attribute has type `nn.Module`; used as `None`.
     ):
-        super().__init__(input_dim=linucb_inp_dim, predict_ucb=predict_ucb)
+        super().__init__(input_dim=linucb_inp_dim)
 
         assert raw_input_dim > 0, "raw_input_dim must be > 0, got {}".format(
             raw_input_dim
@@ -103,17 +102,11 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
 
         if ucb_alpha is None:
             ucb_alpha = self.ucb_alpha
-        assert self.predict_ucb is True
-        if self.predict_ucb:
-            self.pred_u = torch.matmul(self.mlp_out, self.coefs)
-            self.pred_sigma = ucb_alpha * torch.sqrt(
-                batch_quadratic_form(self.mlp_out, self.inv_A)
-            )
-            pred_ucb = self.pred_u + self.pred_sigma
-            # trainer needs pred_u and mlp_out to update parameters
+        self.pred_u = torch.matmul(self.mlp_out, self.coefs)
+        if ucb_alpha != 0:
+            self.pred_sigma = torch.sqrt(batch_quadratic_form(self.mlp_out, self.inv_A))
+            pred_ucb = self.pred_u + ucb_alpha * self.pred_sigma
         else:
-            self.pred_u = torch.matmul(self.mlp_out, self.coefs)
-            raise Exception(
-                "Neural Network LinUCB currently only surport predicting ucb"
-            )
+            pred_ucb = self.pred_u
+        # trainer needs pred_u and mlp_out to update parameters
         return pred_ucb
