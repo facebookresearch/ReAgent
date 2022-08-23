@@ -822,3 +822,18 @@ class Filter:
                 if k in new_data:
                     del new_data[k]
         return new_data
+
+
+class ToDtype:
+    """
+    Convert tensors to a specific dtype
+    """
+
+    def __init__(self, dtypes: Dict[str, torch.dtype]):
+        self.dtypes = dtypes
+
+    def __call__(self, data):
+        new_data = dict(data)
+        for key, dtype in self.dtypes.items():
+            new_data[key] = data[key].to(dtype=dtype)
+        return new_data
