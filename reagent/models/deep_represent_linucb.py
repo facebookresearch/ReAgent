@@ -103,8 +103,6 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
 
         if ucb_alpha is None:
             ucb_alpha = self.ucb_alpha
-        if not (self.coefs_valid_for_A == self.A).all():
-            self._estimate_coefs()
         assert self.predict_ucb is True
         if self.predict_ucb:
             self.pred_u = torch.matmul(self.mlp_out, self.coefs)
