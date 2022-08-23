@@ -28,7 +28,7 @@ class TestDisjointLinearRegressionUCBUtils(unittest.TestCase):
                 a = A[i]
                 for j in range(batch_size):
                     loop_result[j][i] = x[j].t() @ a @ x[j]
-            npt.assert_allclose(batch_result.numpy(), loop_result.numpy(), rtol=1e-4)
+            npt.assert_allclose(batch_result.numpy(), loop_result.numpy(), rtol=1e-3)
 
         x1 = torch.tensor([[1.0, 4.3], [3.2, 9.8]])
         A1 = torch.tensor(
@@ -36,6 +36,7 @@ class TestDisjointLinearRegressionUCBUtils(unittest.TestCase):
         )
         check_correctness(x1, A1)
 
+        torch.manual_seed(0)
         # x (B,N); A (num_arms, N, N)
 
         # equal num_arms and batch size
