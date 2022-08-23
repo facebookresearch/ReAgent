@@ -109,7 +109,7 @@ class TestLinUCB(unittest.TestCase):
             scorer.b.numpy(), x.T @ self.batch.reward.squeeze().numpy(), rtol=1e-5
         )
 
-        scorer._estimate_coefs()
+        scorer._calculate_coefs()
         npt.assert_equal(scorer.A.numpy(), scorer.coefs_valid_for_A.numpy())
 
         npt.assert_allclose(

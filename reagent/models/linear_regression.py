@@ -48,7 +48,7 @@ class LinearRegressionUCB(ModelBase):
         l2_reg_lambda: float = 1.0,
         predict_ucb: float = False,
         ucb_alpha: float = 1.0,
-    ):
+    ) -> None:
         super().__init__()
 
         self.input_dim = input_dim
@@ -56,7 +56,7 @@ class LinearRegressionUCB(ModelBase):
         self.ucb_alpha = ucb_alpha
         self.register_buffer("A", l2_reg_lambda * torch.eye(self.input_dim))
         self.register_buffer("b", torch.zeros(self.input_dim))
-        self.register_buffer("coefs", torch.zeros(self.input_dim))
+        self.register_buffer("_coefs", torch.zeros(self.input_dim))
         self.register_buffer("inv_A", torch.zeros(self.input_dim, self.input_dim))
         self.register_buffer(
             "coefs_valid_for_A", -torch.ones((self.input_dim, self.input_dim))
@@ -65,14 +65,23 @@ class LinearRegressionUCB(ModelBase):
     def input_prototype(self) -> torch.Tensor:
         return torch.randn(1, self.input_dim)
 
-    def _estimate_coefs(self):
+    def _calculate_coefs(self) -> None:
         """
         Compute current estimate of regression coefficients and A_inv=A**-1
         We save both coefficients and A_inv in case they are needed again before we add observations
+        The coefficients are computed only when needed because their computation can be expensive
+            (involves matrix inversion)
         """
         self.inv_A = torch.inverse(self.A)
-        self.coefs = torch.matmul(self.inv_A, self.b)
+        self._coefs = torch.matmul(self.inv_A, self.b)
         self.coefs_valid_for_A = self.A.clone()
+
+    @property
+    def coefs(self) -> torch.Tensor:
+        if not (self.coefs_valid_for_A == self.A).all():
+            # re-calculate the coefs only if the previous value is invalid
+            self._calculate_coefs()
+        return self._coefs
 
     def forward(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
@@ -83,8 +92,7 @@ class LinearRegressionUCB(ModelBase):
         """
         if ucb_alpha is None:
             ucb_alpha = self.ucb_alpha
-        if not (self.coefs_valid_for_A == self.A).all():
-            self._estimate_coefs()
+
         if self.predict_ucb:
             return torch.matmul(inp, self.coefs) + ucb_alpha * torch.sqrt(
                 batch_quadratic_form(inp, self.inv_A)
