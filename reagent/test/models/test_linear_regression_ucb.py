@@ -27,7 +27,7 @@ class TestLinearRegressionUCB(unittest.TestCase):
     def test_call_no_ucb(self) -> None:
         x = torch.tensor([[1.0, 2.0], [1.0, 3.0]])  # y=x+1
         y = torch.tensor([3.0, 4.0])
-        model = LinearRegressionUCB(2, predict_ucb=False, l2_reg_lambda=0.0)
+        model = LinearRegressionUCB(2, ucb_alpha=0, l2_reg_lambda=0.0)
         trainer = LinUCBTrainer(Policy(scorer=model, sampler=GreedyActionSampler()))
         trainer.update_params(x, y)
 
@@ -41,7 +41,7 @@ class TestLinearRegressionUCB(unittest.TestCase):
     def test_call_ucb(self) -> None:
         x = torch.tensor([[1.0, 2.0], [1.0, 3.0]])  # y=x+1
         y = torch.tensor([3.0, 4.0])
-        model = LinearRegressionUCB(2, predict_ucb=True, l2_reg_lambda=0.0)
+        model = LinearRegressionUCB(2, l2_reg_lambda=0.0)
         trainer = LinUCBTrainer(Policy(scorer=model, sampler=GreedyActionSampler()))
         trainer.update_params(x, y)
 
