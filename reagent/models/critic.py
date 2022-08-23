@@ -4,9 +4,31 @@
 from typing import List
 
 import torch
+import torch.fx
 from reagent.core import types as rlt
 from reagent.models.base import ModelBase
 from reagent.models.fully_connected_network import FullyConnectedNetwork
+
+
+@torch.fx.wrap
+def run_feature_validation(
+    state_float_features_dim: int,
+    action_float_features_dim: int,
+    state_float_features_batch_size: int,
+    action_float_features_batch_size: int,
+) -> None:
+
+    assert (
+        state_float_features_dim == 2
+    ), f"Expected dimension of state is 2. Got {state_float_features_dim}"
+
+    assert (
+        action_float_features_dim == state_float_features_dim
+    ), "Dimensions of state and action mismatch"
+
+    assert (
+        state_float_features_batch_size == action_float_features_batch_size
+    ), "Batch sizes of state and action mismatch"
 
 
 class FullyConnectedCritic(ModelBase):
@@ -52,13 +74,16 @@ class FullyConnectedCritic(ModelBase):
         )
 
     def forward(self, state: rlt.FeatureData, action: rlt.FeatureData):
-        assert (
-            len(state.float_features.shape) == len(action.float_features.shape)
-            and len(action.float_features.shape) == 2
-            and (state.float_features.shape[0] == action.float_features.shape[0])
-        ), (
-            f"state shape: {state.float_features.shape}; action shape: "
-            f"{action.float_features.shape} not equal to (batch_size, feature_dim)"
+        state_float_features_dim = state.float_features.dim()
+        action_float_features_dim = action.float_features.dim()
+        state_float_features_batch_size = state.float_features.size(dim=0)
+        action_float_features_batch_size = action.float_features.size(dim=0)
+
+        run_feature_validation(
+            state_float_features_dim,
+            action_float_features_dim,
+            state_float_features_batch_size,
+            action_float_features_batch_size,
         )
         cat_input = torch.cat((state.float_features, action.float_features), dim=-1)
         return self.fc(cat_input)
