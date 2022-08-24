@@ -36,7 +36,7 @@ class TestLinearRegressionUCB(unittest.TestCase):
 
         self.assertIsInstance(out, torch.Tensor)
         self.assertEqual(tuple(out.shape), (2,))
-        npt.assert_allclose(out.numpy(), np.array([6.0, 7.0]), rtol=1e-5)
+        npt.assert_allclose(out.numpy(), np.array([6.0, 7.0]), rtol=1e-4)
 
     def test_call_ucb(self) -> None:
         x = torch.tensor([[1.0, 2.0], [1.0, 3.0]])  # y=x+1
@@ -59,4 +59,4 @@ class TestLinearRegressionUCB(unittest.TestCase):
 
         self.assertIsInstance(out, torch.Tensor)
         self.assertEqual(tuple(out.shape), (2,))
-        npt.assert_allclose(out.numpy(), expected_out, rtol=1e-6)
+        npt.assert_allclose(out.numpy(), expected_out, rtol=1e-4)
