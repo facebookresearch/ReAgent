@@ -104,16 +104,19 @@ class TestLinUCB(unittest.TestCase):
             self.batch.context_arm_features, self.batch.action
         ).numpy()
 
-        npt.assert_allclose(scorer.A.numpy(), np.eye(self.x_dim) + x.T @ x, rtol=1e-5)
+        npt.assert_allclose(scorer.A.numpy(), x.T @ x, rtol=1e-4)
         npt.assert_allclose(
-            scorer.b.numpy(), x.T @ self.batch.reward.squeeze().numpy(), rtol=1e-5
+            scorer.b.numpy(), x.T @ self.batch.reward.squeeze().numpy(), rtol=1e-4
         )
 
         scorer._calculate_coefs()
         npt.assert_equal(scorer.A.numpy(), scorer.coefs_valid_for_A.numpy())
 
         npt.assert_allclose(
-            scorer.A.numpy() @ scorer.inv_A.numpy(), np.eye(self.x_dim), atol=1e-3
+            (np.eye(self.x_dim) * scorer.l2_reg_lambda + scorer.A.numpy())
+            @ scorer.inv_A.numpy(),
+            np.eye(self.x_dim),
+            atol=1e-3,
         )
 
     def test_linucb_weights(self):
@@ -135,5 +138,5 @@ class TestLinUCB(unittest.TestCase):
         npt.assert_array_less(
             np.zeros(scorer_1.A.shape), scorer_1.A.numpy()
         )  # make sure A got updated
-        npt.assert_allclose(scorer_1.A.numpy(), scorer_2.A.numpy(), rtol=1e-6)
-        npt.assert_allclose(scorer_1.b.numpy(), scorer_2.b.numpy(), rtol=1e-6)
+        npt.assert_allclose(scorer_1.A.numpy(), scorer_2.A.numpy(), rtol=1e-4)
+        npt.assert_allclose(scorer_1.b.numpy(), scorer_2.b.numpy(), rtol=1e-4)

@@ -5,6 +5,7 @@ import logging
 from typing import Optional
 
 import torch
+from pytorch_lightning.utilities.distributed import ReduceOp, sync_ddp_if_available
 from reagent.models.base import ModelBase
 
 
@@ -50,13 +51,18 @@ class LinearRegressionUCB(ModelBase):
 
         self.input_dim = input_dim
         self.ucb_alpha = ucb_alpha
-        self.register_buffer("A", l2_reg_lambda * torch.eye(self.input_dim))
+        self.l2_reg_lambda = l2_reg_lambda
+        self.register_buffer("A", torch.zeros(self.input_dim, self.input_dim))
         self.register_buffer("b", torch.zeros(self.input_dim))
         self.register_buffer("_coefs", torch.zeros(self.input_dim))
         self.register_buffer("inv_A", torch.zeros(self.input_dim, self.input_dim))
         self.register_buffer(
             "coefs_valid_for_A", -torch.ones((self.input_dim, self.input_dim))
         )  # value of A matrix for which self.coefs were estimated
+        self.register_buffer("num_obs", torch.zeros(1, dtype=torch.int64))
+
+        # add a dummy parameter so that DDP doesn't compain about lack of parameters with gradient
+        self.dummy_param = torch.nn.parameter.Parameter(torch.zeros(1))
 
     def input_prototype(self) -> torch.Tensor:
         return torch.randn(1, self.input_dim)
@@ -68,7 +74,21 @@ class LinearRegressionUCB(ModelBase):
         The coefficients are computed only when needed because their computation can be expensive
             (involves matrix inversion)
         """
-        self.inv_A = torch.inverse(self.A)
+        # reduce (sum) the values of `A` and `b` across all trainer processes.
+        # Since `A` and `b` are computed as sums across all observations within each trainer,
+        #   the correct reduction across trainers is the sum.
+        # The coefficients can't be averaged across trainers because they are a non-linear
+        #   function of `A` and `b`
+        self.A = sync_ddp_if_available(self.A, reduce_op=ReduceOp.SUM)
+        self.b = sync_ddp_if_available(self.b, reduce_op=ReduceOp.SUM)
+        self.num_obs = sync_ddp_if_available(self.num_obs, reduce_op=ReduceOp.SUM)
+        self.inv_A = torch.inverse(
+            self.A
+            + self.l2_reg_lambda
+            * torch.eye(
+                self.input_dim, device=self.A.device
+            )  # add regularization here so that it's not double-counted under distributed training
+        ).contiguous()
         self._coefs = torch.matmul(self.inv_A, self.b)
         self.coefs_valid_for_A = self.A.clone()
 
