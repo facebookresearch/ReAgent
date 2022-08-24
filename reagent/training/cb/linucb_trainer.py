@@ -52,15 +52,12 @@ class LinUCBTrainer(ReAgentLightningModule):
 
     Args:
         policy: The policy to be trained. Its scorer has to be LinearRegressionUCB
-        use_interaction_features: If True, interaction (outer product) of context and
-            arm features is concatenated to features
     """
 
     @resolve_defaults
     def __init__(
         self,
         policy: Policy,
-        use_interaction_features: bool = False,
         automatic_optimization: bool = False,  # turn off automatic_optimization because we are updating parameters manually
     ):
         super().__init__(automatic_optimization=automatic_optimization)
@@ -68,7 +65,6 @@ class LinUCBTrainer(ReAgentLightningModule):
             policy.scorer, LinearRegressionUCB
         ), "LinUCBTrainer requires the policy scorer to be LinearRegressionUCB"
         self.scorer = policy.scorer
-        self.use_interaction_features = use_interaction_features
 
     def configure_optimizers(self):
         # no optimizers bcs we update weights manually
