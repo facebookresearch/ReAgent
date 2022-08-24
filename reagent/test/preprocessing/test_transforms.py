@@ -746,3 +746,22 @@ class TestTransforms(unittest.TestCase):
         broadcasted_tensors = transforms._broadcast_tensors_for_cat(tensors, 0)
         self.assertEqual(tuple(broadcasted_tensors[0].shape), (1, 3, 5, 4))
         self.assertEqual(tuple(broadcasted_tensors[1].shape), (10, 3, 5, 4))
+
+    def test_ToDtype(self) -> None:
+        data = {
+            "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]).float(),
+            "b": torch.tensor([[9.2, 2.5], [4.4, 1.9]]).double(),
+            "c": torch.tensor([[9.1, 2.3], [4.2, 1.4]]).double(),
+        }
+        t = transforms.ToDtype({"b": torch.float})
+        t_data = t(data)
+
+        # make sure all values was left unmodified
+        self.assertTorchTensorEqual(data["a"], t_data["a"])
+        self.assertTorchTensorEqual(data["b"], t_data["b"])
+        self.assertTorchTensorEqual(data["c"], t_data["c"])
+
+        # mase sure the data types are correct
+        self.assertEqual(t_data["a"].dtype, torch.float)  # was float, didn't change
+        self.assertEqual(t_data["b"].dtype, torch.float)  # changed from double to float
+        self.assertEqual(t_data["c"].dtype, torch.double)  # was double, didn't change
