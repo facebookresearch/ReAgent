@@ -281,7 +281,10 @@ def shift_kjt_by_one(x: KeyedJaggedTensor):
         [x[y[0] :] for x, y in zip(values_per_key, val_lens_per_key)]
     )
     shifted_lengths = torch.cat(
-        [torch.cat([x[1:], torch.tensor([0])]) for x in val_lens_per_key]
+        [
+            torch.cat([x[1:], torch.tensor([0], device=x.device)])
+            for x in val_lens_per_key
+        ]
     )
     if x.weights_or_none() is not None:
         weights_per_key = torch.tensor_split(x.weights(), acc_lengths_per_key)[:-1]
