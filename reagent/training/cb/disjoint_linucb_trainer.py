@@ -92,3 +92,9 @@ class DisjointLinUCBTrainer(ReAgentLightningModule):
         super().on_train_epoch_end()
         # at the end of the training epoch calculate the coefficients
         self.scorer._estimate_coefs()
+        # apply discount factor here so that next round it's already discounted
+        # self.A is V in D-LinUCB paper https://arxiv.org/pdf/1909.09146.pdf
+        # This is a simplified version of D-LinUCB, we calculate A = \sum \gamma^t xx^T
+        # to discount the old data. See N2441818 for why we do this.
+        self.scorer.b *= self.scorer.gamma
+        self.scorer.A *= self.scorer.gamma

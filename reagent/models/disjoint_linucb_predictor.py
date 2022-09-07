@@ -40,6 +40,11 @@ class DisjointLinearRegressionUCB(ModelBase):
         input_dim: Dimension of input data
         l2_reg_lambda: The weight on L2 regularization
         ucb_alpha: The coefficient on the standard deviation in UCB formula.
+        gamma: The discount factor to avoid exploding numbers when doing incremental training
+        using gamma as part of simplified D-LinUCB: https://arxiv.org/pdf/1909.09146.pdf
+        In this simplified version of D-LinUCB, we calculate A = \sum \gamma^t xx^T
+        to discount the old data. See N2441818 for why we do this.
+        set gamma=1.0 to use traditional model
     """
 
     def __init__(
@@ -48,6 +53,7 @@ class DisjointLinearRegressionUCB(ModelBase):
         input_dim: int,
         l2_reg_lambda: float = 1.0,
         ucb_alpha: float = 1.0,
+        gamma: float = 1.0,
     ):
 
         """
@@ -62,6 +68,8 @@ class DisjointLinearRegressionUCB(ModelBase):
         self.num_arms = num_arms
         self.input_dim = input_dim
         self.ucb_alpha = ucb_alpha
+        self.gamma = gamma
+        assert self.gamma <= 1.0 and self.gamma > 0.0
         self.l2_reg_lambda = l2_reg_lambda
         self.register_buffer(
             "A",
@@ -108,11 +116,10 @@ class DisjointLinearRegressionUCB(ModelBase):
         # einsum j: arm_idx, d: feature dimension index
         # output self.coefs: (num_arms, d)
         self.coefs = torch.einsum("jkl,jl->jk", self.inv_A, self.b)
-
         # copy A to make coefs_valid_for_A the same as A
         # need coefs_valid_for_A to check if we have done _estimate_coefs
         # this is needed to avoid redundant re-compute of coefs in forward function.
-        self.coefs_valid_for_A = self.A.clone()
+        self.coefs_valid_for_A = self.gamma * self.A.clone()
 
     def forward(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
