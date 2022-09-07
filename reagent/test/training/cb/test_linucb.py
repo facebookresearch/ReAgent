@@ -18,7 +18,7 @@ from reagent.training.parameters import LinUCBTrainerParameters
 class TestLinUCButils(unittest.TestCase):
     def test_get_chosen_arm_features(self):
         all_arms_features = torch.tensor(
-            [[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]
+            [[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=torch.float
         )
         actions = torch.tensor([[1], [0]], dtype=torch.long)
         chosen_arm_features = _get_chosen_arm_features(all_arms_features, actions)
@@ -56,7 +56,7 @@ class TestLinUCB(unittest.TestCase):
                 dtype=torch.float,
             ),
             action=torch.tensor([[0], [1]], dtype=torch.long),
-            reward=torch.tensor([[1.5], [2.3]]),
+            reward=torch.tensor([[1.5], [2.3]], dtype=torch.float),
         )
 
     def test_linucb_training_step(self):
