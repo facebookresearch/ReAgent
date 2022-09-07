@@ -35,7 +35,7 @@ class TestDisjointLinUCB(unittest.TestCase):
                     ],
                     dtype=torch.float,
                 ),
-                reward=torch.tensor([[1.5], [2.3]]),
+                reward=torch.tensor([[1.5], [2.3]], dtype=torch.float),
             ),
             CBInput(
                 context_arm_features=torch.tensor(
@@ -45,7 +45,7 @@ class TestDisjointLinUCB(unittest.TestCase):
                     ],
                     dtype=torch.float,
                 ),
-                reward=torch.tensor([[1.9], [2.8]]),
+                reward=torch.tensor([[1.9], [2.8]], dtype=torch.float),
             ),
         ]
 
