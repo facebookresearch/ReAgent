@@ -94,6 +94,7 @@ class TestDisjointLinearRegressionUCB(unittest.TestCase):
             Policy(scorer=model, sampler=GreedyActionSampler())
         )
         trainer.training_step(inputs, batch_idx=0)
+        trainer.on_train_epoch_end()
 
         inp = torch.tensor([[1.0, 5.0], [1.0, 6.0]])
         alpha = 1.5

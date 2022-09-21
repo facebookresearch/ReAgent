@@ -139,8 +139,6 @@ class DisjointLinearRegressionUCB(ModelBase):
         """
         if ucb_alpha is None:
             ucb_alpha = self.ucb_alpha
-        if not (self.coefs_valid_for_A == self.A).all():
-            self._estimate_coefs()
 
         results = torch.matmul(inp, self.coefs.t())
         if ucb_alpha == 0:
