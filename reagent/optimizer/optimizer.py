@@ -72,7 +72,7 @@ class OptimizerConfig(metaclass=RegistryMeta):
         filtered_args = {
             k: getattr(self, k)
             for k in inspect.signature(torch_optimizer_class).parameters
-            if k != "params"
+            if k != "params" and hasattr(self, k)
         }
         optimizer = torch_optimizer_class(params=params, **filtered_args)
         if len(self.lr_schedulers) == 0:
