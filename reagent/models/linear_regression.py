@@ -92,12 +92,29 @@ class LinearRegressionUCB(ModelBase):
         self._coefs = torch.matmul(self.inv_A, self.b)
         self.coefs_valid_for_A = self.A.clone()
 
-    @property
-    def coefs(self) -> torch.Tensor:
+    def calculate_coefs_if_necessary(self) -> torch.Tensor:
         if not (self.coefs_valid_for_A == self.A).all():
             # re-calculate the coefs only if the previous value is invalid
             self._calculate_coefs()
         return self._coefs
+
+    @property
+    def coefs(self) -> torch.Tensor:
+        return self.calculate_coefs_if_necessary()
+
+    def _forward_no_coefs_check(
+        self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
+    ) -> torch.Tensor:
+        # perform forward pass without checking if the current coefficient estimate is still valid
+        if ucb_alpha is None:
+            ucb_alpha = self.ucb_alpha
+
+        mu = torch.matmul(inp, self._coefs)
+
+        if ucb_alpha != 0:
+            return mu + ucb_alpha * torch.sqrt(batch_quadratic_form(inp, self.inv_A))
+        else:
+            return mu
 
     def forward(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
@@ -106,12 +123,5 @@ class LinearRegressionUCB(ModelBase):
         Forward can return the mean or a UCB. If returning UCB, the CI width is stddev*ucb_alpha
         If ucb_alpha is not passed in, a fixed alpha from init is used
         """
-        if ucb_alpha is None:
-            ucb_alpha = self.ucb_alpha
-
-        mu = torch.matmul(inp, self.coefs)
-
-        if ucb_alpha != 0:
-            return mu + ucb_alpha * torch.sqrt(batch_quadratic_form(inp, self.inv_A))
-        else:
-            return mu
+        self.calculate_coefs_if_necessary()
+        return self._forward_no_coefs_check(inp, ucb_alpha)
