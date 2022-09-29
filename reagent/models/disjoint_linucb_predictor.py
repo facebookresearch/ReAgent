@@ -71,11 +71,20 @@ class DisjointLinearRegressionUCB(ModelBase):
         self.gamma = gamma
         assert self.gamma <= 1.0 and self.gamma > 0.0
         self.l2_reg_lambda = l2_reg_lambda
+        # A is accumulated from all training epochs
         self.register_buffer(
             "A",
             torch.zeros((self.input_dim, self.input_dim)).repeat(self.num_arms, 1, 1),
         )
+        # cur_A is x x^T accumulated within this training epoch
+        self.register_buffer(
+            "cur_A",
+            torch.zeros((self.input_dim, self.input_dim)).repeat(self.num_arms, 1, 1),
+        )
+        # b is accumulated from all training epochs
         self.register_buffer("b", torch.zeros(self.num_arms, self.input_dim))
+        # cur_b is x * y accumulated within this training epoch
+        self.register_buffer("cur_b", torch.zeros(self.num_arms, self.input_dim))
         self.register_buffer(
             "coefs", torch.zeros(self.input_dim).repeat(self.num_arms, 1)
         )
@@ -100,8 +109,8 @@ class DisjointLinearRegressionUCB(ModelBase):
 
         self.coefs: num_arms * dim
         """
-        self.A = sync_ddp_if_available(self.A, reduce_op=ReduceOp.SUM)
-        self.b = sync_ddp_if_available(self.b, reduce_op=ReduceOp.SUM)
+        self.A += sync_ddp_if_available(self.cur_A, reduce_op=ReduceOp.SUM)
+        self.b += sync_ddp_if_available(self.cur_b, reduce_op=ReduceOp.SUM)
         device = self.b.device
         # add regularization here so that it's not double-counted under distributed training
         # send them to the same device to avoid errors when doing dpp, example failed job without this: aienv-0d5c64a3b3

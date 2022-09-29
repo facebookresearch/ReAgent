@@ -82,7 +82,9 @@ class TestDisjointLinUCB(unittest.TestCase):
 
         trainer_1.training_step(obss[0], 0)
         trainer_1.training_step(obss[1], 1)
+        trainer_1.on_train_epoch_end()
         trainer_2.training_step(self.batch, 0)
+        trainer_2.on_train_epoch_end()
 
         for arm in range(self.num_arms):
             npt.assert_array_less(
@@ -104,6 +106,7 @@ class TestDisjointLinUCB(unittest.TestCase):
         policy = Policy(scorer=scorer, sampler=GreedyActionSampler())
         trainer = DisjointLinUCBTrainer(policy)
         trainer.training_step(self.batch, 0)
+        trainer.on_train_epoch_end()
         # the feature matrix (computed by hand)
         for arm in range(self.num_arms):
             x = self.batch[arm].context_arm_features.numpy()
@@ -114,7 +117,6 @@ class TestDisjointLinUCB(unittest.TestCase):
                 rtol=1e-5,
             )
 
-        scorer._estimate_coefs()
         for arm in range(self.num_arms):
             npt.assert_allclose(
                 (np.eye(self.x_dim) + scorer.A[arm].numpy())
@@ -140,8 +142,10 @@ class TestDisjointLinUCB(unittest.TestCase):
         trainer_2 = DisjointLinUCBTrainer(policy_2)
 
         trainer_1.training_step(batch_with_weight, 0)
+        trainer_1.on_train_epoch_end()
         for i in range(3):
             trainer_2.training_step(self.batch, i)
+        trainer_2.on_train_epoch_end()
 
         for arm in range(self.num_arms):
             npt.assert_array_less(
