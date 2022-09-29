@@ -60,8 +60,10 @@ class DisjointLinUCBTrainer(ReAgentLightningModule):
             weight = torch.ones_like(torch.tensor(y))
         weight = weight.float()
 
-        self.scorer.A[arm_idx] += torch.matmul(x.t(), x * weight)  # dim (DA*DC, DA*DC)
-        self.scorer.b[arm_idx] += torch.matmul(
+        self.scorer.cur_A[arm_idx] += torch.matmul(
+            x.t(), x * weight
+        )  # dim (DA*DC, DA*DC)
+        self.scorer.cur_b[arm_idx] += torch.matmul(
             x.t(), y * weight
         ).squeeze()  # dim (DA*DC,)
 
