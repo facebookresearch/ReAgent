@@ -84,9 +84,9 @@ class LinUCBTrainer(ReAgentLightningModule):
             weight = torch.ones_like(y)
         weight = weight.float()
 
-        self.scorer.A += torch.matmul(x.t(), x * weight)  # dim (DA*DC, DA*DC)
-        self.scorer.b += torch.matmul(x.t(), y * weight).squeeze()  # dim (DA*DC,)
-        self.scorer.num_obs += y.shape[0]
+        self.scorer.cur_A += torch.matmul(x.t(), x * weight)  # dim (DA*DC, DA*DC)
+        self.scorer.cur_b += torch.matmul(x.t(), y * weight).squeeze()  # dim (DA*DC,)
+        self.scorer.cur_num_obs += y.shape[0]
 
     def _check_input(self, batch: CBInput):
         assert batch.context_arm_features.ndim == 3
