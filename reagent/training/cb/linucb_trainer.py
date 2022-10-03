@@ -108,3 +108,5 @@ class LinUCBTrainer(ReAgentLightningModule):
         super().on_train_epoch_end()
         # at the end of the training epoch calculate the coefficients
         self.scorer._calculate_coefs()
+        self.scorer.A *= self.scorer.gamma
+        self.scorer.b *= self.scorer.gamma
