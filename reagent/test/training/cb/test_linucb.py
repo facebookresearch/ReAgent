@@ -61,6 +61,7 @@ class TestLinUCB(unittest.TestCase):
 
     def test_linucb_training_step(self):
         self.trainer.training_step(self.batch, 0)
+        self.trainer.on_train_epoch_end()
 
     def test_linucb_training_batch_vs_online(self):
         # make sure that feeding in a batch gives same result as feeding in examples one-by-one
@@ -85,7 +86,9 @@ class TestLinUCB(unittest.TestCase):
 
         trainer_1.training_step(obss[0], 0)
         trainer_1.training_step(obss[1], 1)
+        trainer_1.on_train_epoch_end()
         trainer_2.training_step(self.batch, 0)
+        trainer_2.on_train_epoch_end()
 
         npt.assert_array_less(
             np.zeros(scorer_1.A.shape), scorer_1.A.numpy()
@@ -93,12 +96,51 @@ class TestLinUCB(unittest.TestCase):
         npt.assert_allclose(scorer_1.A.numpy(), scorer_2.A.numpy(), rtol=1e-4)
         npt.assert_allclose(scorer_1.b.numpy(), scorer_2.b.numpy(), rtol=1e-4)
 
+    def test_linucb_training_multiple_epochs(self):
+        # make sure that splitting the data across multiple epochs is same as learning from all data in one epoch
+        # this is only true when there is no discounting (gamma=1)
+        obss = []
+        for i in range(self.batch_size):
+            obss.append(
+                CBInput(
+                    context_arm_features=self.batch.context_arm_features[
+                        i : i + 1, :, :
+                    ],
+                    action=self.batch.action[[i]],
+                    reward=self.batch.reward[[i]],
+                )
+            )
+
+        scorer_1 = LinearRegressionUCB(self.x_dim)
+        scorer_2 = LinearRegressionUCB(self.x_dim)
+        policy_1 = Policy(scorer=scorer_1, sampler=GreedyActionSampler())
+        policy_2 = Policy(scorer=scorer_2, sampler=GreedyActionSampler())
+        trainer_1 = LinUCBTrainer(policy_1)
+        trainer_2 = LinUCBTrainer(policy_2)
+
+        trainer_1.training_step(obss[0], 0)
+        trainer_1.on_train_epoch_end()
+        trainer_1.training_step(obss[1], 1)
+        trainer_1.on_train_epoch_end()
+
+        trainer_2.training_step(self.batch, 0)
+        trainer_2.on_train_epoch_end()
+
+        npt.assert_array_less(
+            np.zeros(scorer_1.A.shape), scorer_1.A.numpy()
+        )  # make sure A got updated
+        npt.assert_allclose(scorer_1.A.numpy(), scorer_2.A.numpy(), rtol=1e-4)
+        npt.assert_allclose(scorer_1.b.numpy(), scorer_2.b.numpy(), rtol=1e-4)
+        npt.assert_allclose(scorer_1.inv_A.numpy(), scorer_2.inv_A.numpy(), rtol=1e-4)
+        npt.assert_allclose(scorer_1.coefs.numpy(), scorer_2.coefs.numpy(), rtol=1e-3)
+
     def test_linucb_model_update_equations(self):
         # make sure that the model parameters match hand-computed values
         scorer = LinearRegressionUCB(self.x_dim)
         policy = Policy(scorer=scorer, sampler=GreedyActionSampler())
         trainer = LinUCBTrainer(policy)
         trainer.training_step(self.batch, 0)
+        trainer.on_train_epoch_end()
         # the feature matrix (computed by hand)
         x = _get_chosen_arm_features(
             self.batch.context_arm_features, self.batch.action
@@ -132,8 +174,10 @@ class TestLinUCB(unittest.TestCase):
         trainer_2 = LinUCBTrainer(policy_2)
 
         trainer_1.training_step(batch_with_weight, 0)
+        trainer_1.on_train_epoch_end()
         for i in range(3):
             trainer_2.training_step(self.batch, i)
+        trainer_2.on_train_epoch_end()
 
         npt.assert_array_less(
             np.zeros(scorer_1.A.shape), scorer_1.A.numpy()

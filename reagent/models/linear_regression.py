@@ -52,14 +52,26 @@ class LinearRegressionUCB(ModelBase):
         self.input_dim = input_dim
         self.ucb_alpha = ucb_alpha
         self.l2_reg_lambda = l2_reg_lambda
+
+        # the buffers below are split between "all data" and "current epoch" values. This is done
+        #   to enable distributed training. "current epoch" values get summed acorss all trainers at
+        #   the end of an epoch, but "all data" values don't need to be summed (they were already summed
+        #   when the value got moved from "current epoch" to "all data")
+        # A is sum of X^T*X across all data
         self.register_buffer("A", torch.zeros(self.input_dim, self.input_dim))
+        # b is sum of reward*X across all data
         self.register_buffer("b", torch.zeros(self.input_dim))
+        # A is sum of X^T*X across current epoch
+        self.register_buffer("cur_A", torch.zeros(self.input_dim, self.input_dim))
+        # b is sum of reward*X across curernt epoch
+        self.register_buffer("cur_b", torch.zeros(self.input_dim))
         self.register_buffer("_coefs", torch.zeros(self.input_dim))
         self.register_buffer("inv_A", torch.zeros(self.input_dim, self.input_dim))
         self.register_buffer(
             "coefs_valid_for_A", -torch.ones((self.input_dim, self.input_dim))
         )  # value of A matrix for which self.coefs were estimated
         self.register_buffer("num_obs", torch.zeros(1, dtype=torch.int64))
+        self.register_buffer("cur_num_obs", torch.zeros(1, dtype=torch.int64))
 
         # add a dummy parameter so that DDP doesn't compain about lack of parameters with gradient
         self.dummy_param = torch.nn.parameter.Parameter(torch.zeros(1))
@@ -79,9 +91,10 @@ class LinearRegressionUCB(ModelBase):
         #   the correct reduction across trainers is the sum.
         # The coefficients can't be averaged across trainers because they are a non-linear
         #   function of `A` and `b`
-        self.A = sync_ddp_if_available(self.A, reduce_op=ReduceOp.SUM)
-        self.b = sync_ddp_if_available(self.b, reduce_op=ReduceOp.SUM)
-        self.num_obs = sync_ddp_if_available(self.num_obs, reduce_op=ReduceOp.SUM)
+        self.A += sync_ddp_if_available(self.cur_A, reduce_op=ReduceOp.SUM)
+        self.b += sync_ddp_if_available(self.cur_b, reduce_op=ReduceOp.SUM)
+        self.num_obs += sync_ddp_if_available(self.cur_num_obs, reduce_op=ReduceOp.SUM)
+
         self.inv_A = torch.inverse(
             self.A
             + self.l2_reg_lambda
@@ -92,8 +105,15 @@ class LinearRegressionUCB(ModelBase):
         self._coefs = torch.matmul(self.inv_A, self.b)
         self.coefs_valid_for_A = self.A.clone()
 
+        # reset buffers to zero
+        self.cur_A.zero_()
+        self.cur_b.zero_()
+        self.cur_num_obs.zero_()
+
     def calculate_coefs_if_necessary(self) -> torch.Tensor:
-        if not (self.coefs_valid_for_A == self.A).all():
+        if not (self.coefs_valid_for_A == self.A).all() or (
+            torch.abs(self.cur_A).max().item() > 0
+        ):
             # re-calculate the coefs only if the previous value is invalid
             self._calculate_coefs()
         return self._coefs
