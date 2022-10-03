@@ -38,6 +38,7 @@ class LinearRegressionUCB(ModelBase):
         l2_reg_lambda: The weight on L2 regularization
         ucb_alpha: The coefficient on the standard deviation in UCB formula.
             Set it to 0 to predict the expected value instead of UCB.
+        gamma: per-epoch discount factor (A and b get multiplied by gamma every epoch)
     """
 
     def __init__(
@@ -46,12 +47,15 @@ class LinearRegressionUCB(ModelBase):
         *,
         l2_reg_lambda: float = 1.0,
         ucb_alpha: float = 1.0,
+        gamma: float = 1.0,
     ) -> None:
         super().__init__()
 
         self.input_dim = input_dim
         self.ucb_alpha = ucb_alpha
         self.l2_reg_lambda = l2_reg_lambda
+        self.gamma = gamma
+        assert self.gamma <= 1.0 and self.gamma > 0.0
 
         # the buffers below are split between "all data" and "current epoch" values. This is done
         #   to enable distributed training. "current epoch" values get summed acorss all trainers at
@@ -103,7 +107,7 @@ class LinearRegressionUCB(ModelBase):
             )  # add regularization here so that it's not double-counted under distributed training
         ).contiguous()
         self._coefs = torch.matmul(self.inv_A, self.b)
-        self.coefs_valid_for_A = self.A.clone()
+        self.coefs_valid_for_A = self.gamma * self.A.clone()
 
         # reset buffers to zero
         self.cur_A.zero_()
