@@ -69,6 +69,8 @@ class ConvolutionalNetwork(nn.Module):
             cnn_parameters.input_height,
             cnn_parameters.input_width,
         )
+        # pyre-fixme[6]: For 1st param expected `Sequence[Union[int, SymInt]]` but
+        #  got `int`.
         conv_out = self.conv_forward(torch.ones(1, *input_size))
         self.fc_input_dim = int(np.prod(conv_out.size()[1:]))
         layers[0] = self.fc_input_dim
