@@ -11,6 +11,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from reagent.lite.optimizer import (
+    BayesianByBackpropOptimizer,
     BayesianMLPEnsemblerOptimizer,
     BayesianOptimizerBase,
     GREEDY_TEMP,
@@ -627,6 +628,7 @@ class TestComboOptimizer(unittest.TestCase):
             )
         best_sol = optimizer.sample(1, 0.0)
         eval_result = obj_func(best_sol)
+
         assert (
             abs(best_rs_result - eval_result) < BAYESSIAN_MLP_TEST_THRES
         ), f"Learning not converged. best random search={best_rs_result}, eval result={eval_result}"
@@ -634,13 +636,57 @@ class TestComboOptimizer(unittest.TestCase):
         sampled_solutions = {}
         for k in sorted(input_param.keys()):
             sampled_solutions[k] = torch.cat([sol[k] for sol in all_sampled_solutions])
-        acq_reward = optimizer.acquisition(
-            acq_type="its", sampled_sol=sampled_solutions, predictor=optimizer.predictor
-        )
+
+        acq_reward = optimizer.acquisition(sampled_sol=sampled_solutions)
         min_acq_reward = torch.min(acq_reward).item()
-        best_sol_acq_reward = optimizer.acquisition(
-            acq_type="its", sampled_sol=best_sol, predictor=optimizer.predictor
-        ).item()
+        best_sol_acq_reward = optimizer.acquisition(sampled_sol=best_sol).item()
+
         assert (
             abs(best_sol_acq_reward - min_acq_reward) < BAYESSIAN_MLP_CONV_THRES
         ), f"Learning not converged. min acquisition reward={min_acq_reward}, best solution's acquisition reward={best_sol_acq_reward}"
+
+    def test_bayessian_optimizer_its_random_mutation_backprop_discrete(self):
+        batch_size = 8
+        num_mutations = 10
+        input_param = discrete_input_param()
+        gt_net = create_ground_truth_net(input_param)
+        obj_func = create_discrete_choice_obj_func(input_param, gt_net)
+        optimizer = BayesianByBackpropOptimizer(
+            param=input_param,
+            obj_func=obj_func,
+            batch_size=batch_size,
+            num_mutations=num_mutations,
+            anneal_rate=0.95,
+        )
+        best_rs_result = random_sample(input_param, obj_func, n_generations=20)
+        n_generations = 200
+        all_sampled_solutions = []
+        for i in range(n_generations):
+            (sampled_solutions, reward, loss) = optimizer.optimize_step()
+            all_sampled_solutions.append(sampled_solutions)
+            mean_reward = torch.mean(reward.data)
+            print(
+                f"Generation={i}, mean_reward={mean_reward}, "
+                f"min_reward={torch.min(reward.data)}, "
+                f"Avg. elbo loss={loss},"
+            )
+        best_sol = optimizer.sample(1, 0.0)
+        eval_result = obj_func(best_sol)
+
+        assert (
+            abs(best_rs_result - eval_result) < BAYESSIAN_MLP_TEST_THRES
+        ), f"Learning not converged. Best random search={best_rs_result}, eval result={eval_result}"
+
+        sampled_solutions = {}
+        for k in sorted(input_param.keys()):
+            sampled_solutions[k] = torch.cat([sol[k] for sol in all_sampled_solutions])
+
+        acq_reward = optimizer.acquisition(sampled_sol=sampled_solutions)
+        min_acq_reward = torch.min(acq_reward).item()
+        best_sol_acq_reward = optimizer.acquisition(
+            sampled_sol=best_sol,
+        ).item()
+
+        assert (
+            abs(best_sol_acq_reward - min_acq_reward) < BAYESSIAN_MLP_CONV_THRES
+        ), f"Learning not converged. Min acquisition reward={min_acq_reward}, best solution's acquisition reward={best_sol_acq_reward}"

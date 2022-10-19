@@ -14,6 +14,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from nevergrad.parametrization.choice import Choice
+from torch.distributions import Normal
 
 logger = logging.getLogger(__name__)
 
@@ -1038,6 +1039,8 @@ class BayesianOptimizerBase(ComboOptimizerBase):
 
         mutation_type (str): type of mutation, e.g., random.
 
+        num_mutations (int): number of best solutions recorded so far that will be mutated, should be more than 1.
+
         temp (float): percentage of mutation - how many variables will be mutated.
     """
 
@@ -1049,6 +1052,7 @@ class BayesianOptimizerBase(ComboOptimizerBase):
         min_temp: float = 0.1,
         acq_type: str = "its",
         mutation_type: str = "random",
+        num_mutations: int = 50,
         anneal_rate: float = ANNEAL_RATE,
         batch_size: int = BATCH_SIZE,
         obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
@@ -1059,6 +1063,10 @@ class BayesianOptimizerBase(ComboOptimizerBase):
         self.acq_type = acq_type
         self.mutation_type = mutation_type
         self.anneal_rate = anneal_rate
+        self.last_predictor_loss_mean = None
+        if num_mutations < 2:
+            raise ValueError("number of mutations should be more than 1")
+        self.num_mutations = num_mutations
         super().__init__(
             param,
             obj_func,
@@ -1126,21 +1134,74 @@ class BayesianOptimizerBase(ComboOptimizerBase):
 
     def acquisition(
         self,
-        acq_type: str,
         sampled_sol: Dict[str, torch.Tensor],
-        predictor: List[nn.Module],
     ) -> torch.Tensor:
-        assert predictor is not None
-        batch_tensors = sol_to_tensors(sampled_sol, self.param)
-        if acq_type == "its":
-            with torch.no_grad():
-                predictions = torch.stack([net(batch_tensors) for net in predictor])
-                acquisition_reward = torch.normal(
-                    torch.mean(predictions, dim=0), torch.std(predictions, dim=0)
-                )
+        raise NotImplementedError()
+
+    def update_predictor(
+        self, sampled_solutions: Dict[str, torch.Tensor], sampled_reward: torch.Tensor
+    ):
+        raise NotImplementedError()
+
+    def sample_internal(
+        self,
+        batch_size: Optional[int] = None,
+    ) -> Tuple[Dict[str, torch.Tensor]]:
+        batch_size = batch_size or self.batch_size
+        mutated_solutions = self.sample(self.num_mutations, self.temp)
+        _, indices = torch.sort(self.acquisition(mutated_solutions), dim=0)
+        sampled_solutions = {}
+        for key in sorted(self.param.keys()):
+            sampled_solutions[key] = mutated_solutions[key][indices[:batch_size]]
+        self.last_sample_internal_res = sampled_solutions
+        return (sampled_solutions,)
+
+    def update_params(self, reward: torch.Tensor):
+        sampled_solutions = self.last_sample_internal_res
+        self.update_predictor(sampled_solutions, reward)
+        self.temp = np.maximum(self.temp * self.anneal_rate, self.min_temp)
+        self.last_sample_internal_res = None
+
+    def _optimize_step(self) -> Tuple:
+        sampled_solutions = self.sample_internal(self.batch_size)[0]
+        sampled_reward, _ = self.obj_func(sampled_solutions)
+        sampled_reward = sampled_reward.detach()
+        self.update_params(sampled_reward)
+
+        last_predictor_loss_mean = self.last_predictor_loss_mean
+        self.last_predictor_loss_mean = None
+
+        return sampled_solutions, sampled_reward, last_predictor_loss_mean
+
+
+def random_sample_n_solutions(params, num_mutations):
+    """
+    random_sample_n_solutions:
+        Helper function to initialize random sample solutions
+    """
+    sampled_solutions = {}
+    for n, param in params.items():
+        if isinstance(param, ng.p.Choice):
+            num_choices = len(param.choices)
+            sampled_solutions[n] = torch.randint(num_choices, (num_mutations,))
         else:
             raise NotImplementedError()
-        return acquisition_reward.view(-1)
+    return sampled_solutions
+
+
+def input_dim_for_random_sample_n_solutions(params, num_mutations):
+    """
+    input_dim_for_random_sample_n_solutions:
+        Helper function to calcuate random sample solutions dimentions
+    """
+    input_dim = 0
+    for _n, param in params.items():
+        if isinstance(param, ng.p.Choice):
+            num_choices = len(param.choices)
+            input_dim += num_choices
+        else:
+            raise NotImplementedError()
+    return input_dim
 
 
 class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
@@ -1168,9 +1229,11 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
 
         mutation_type (str): type of mutation, e.g., random.
 
-        num_mutations (int): number of best solutions recorded so far that will be mutated.
+        num_mutations (int): number of best solutions recorded so far that will be mutated, should be more than 1.
 
-        num_ensemble (int): number of predictors.
+        num_ensemble (int): number of predictors, should be more than 1.
+
+        epochs (int): number of epochs, should be a positive integer.
 
         start_temp (float): initial temperature (ratio) for mutation, e.g., with 1.0 all variables will be initally mutated.
 
@@ -1225,10 +1288,11 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.model_dim = model_dim
+        if num_ensemble < 2:
+            raise ValueError("Number of ensembles should be moe than one")
         self.num_ensemble = num_ensemble
         self.input_dim = 0
         self.predictor = None
-        self.last_predictor_loss_mean = None
         assert (
             num_mutations >= batch_size
         ), f"num_mutations ({num_mutations}) >= batch_size ({batch_size}) is not true"
@@ -1239,6 +1303,7 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
             min_temp=min_temp,
             acq_type=acq_type,
             mutation_type=mutation_type,
+            num_mutations=num_mutations,
             anneal_rate=anneal_rate,
             batch_size=batch_size,
             obj_exp_offset_scale=obj_exp_offset_scale,
@@ -1246,14 +1311,12 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
 
     def _init(self) -> None:
         # initial population
-        sampled_solutions = {}
-        for k, param in self.param.items():
-            if isinstance(param, ng.p.Choice):
-                num_choices = len(param.choices)
-                self.input_dim += num_choices
-                sampled_solutions[k] = torch.randint(num_choices, (self.num_mutations,))
-            else:
-                raise NotImplementedError()
+        sampled_solutions = random_sample_n_solutions(self.param, self.num_mutations)
+
+        self.input_dim = input_dim_for_random_sample_n_solutions(
+            self.param, self.num_mutations
+        )
+
         # predictor
         self.predictor = []
         for _ in range(self.num_ensemble):
@@ -1276,20 +1339,25 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
         self._maintain_best_solutions(sampled_solutions, sampled_reward)
         self.update_predictor(sampled_solutions, sampled_reward)
 
-    def sample_internal(
+    def acquisition(
         self,
-        batch_size: Optional[int] = None,
-    ) -> Tuple[Dict[str, torch.Tensor]]:
-        batch_size = batch_size or self.batch_size
-        mutated_solutions = self.sample(self.num_mutations, self.temp)
-        _, indices = torch.sort(
-            self.acquisition(self.acq_type, mutated_solutions, self.predictor), dim=0
-        )
-        sampled_solutions = {}
-        for key in sorted(self.param.keys()):
-            sampled_solutions[key] = mutated_solutions[key][indices[:batch_size]]
-        self.last_sample_internal_res = sampled_solutions
-        return (sampled_solutions,)
+        sampled_sol: Dict[str, torch.Tensor],
+    ) -> torch.Tensor:
+        predictor = self.predictor
+        acq_type = self.acq_type
+        assert predictor is not None
+        batch_tensors = sol_to_tensors(sampled_sol, self.param)
+
+        if acq_type == "its":
+            with torch.no_grad():
+                predictions = torch.stack([net(batch_tensors) for net in predictor])
+
+            acquisition_reward = torch.normal(
+                torch.mean(predictions, dim=0), torch.std(predictions, dim=0)
+            )
+        else:
+            raise NotImplementedError()
+        return acquisition_reward.view(-1)
 
     def update_predictor(
         self, sampled_solutions: Dict[str, torch.Tensor], sampled_reward: torch.Tensor
@@ -1297,6 +1365,7 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
         x = sol_to_tensors(sampled_solutions, self.param)
         y = sampled_reward
         losses = []
+
         for model in self.predictor:
             model.train()
             optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
@@ -1310,19 +1379,265 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
             model.eval()
         self.last_predictor_loss_mean = np.mean(losses)
 
-    def update_params(self, reward: torch.Tensor):
-        sampled_solutions = self.last_sample_internal_res
-        self.update_predictor(sampled_solutions, reward)
-        self.temp = np.maximum(self.temp * self.anneal_rate, self.min_temp)
-        self.last_sample_internal_res = None
 
-    def _optimize_step(self) -> Tuple:
-        sampled_solutions = self.sample_internal(self.batch_size)[0]
+class LinearBayesianByBackprop(nn.Module):
+    """
+    Support Layer Class for Bayes By Backpropogation Optimizer
+    This implementation is based on
+    https://github.com/cpark321/uncertainty-deep-learning/blob/master/01.%20Bayes-by-Backprop.ipynb
+    """
+
+    def __init__(self, input_features, output_features, prior_var=1.0):
+
+        """
+        Initialization of our layer, prior is a normal distribution
+        centered in 0 and of variance prior_var.
+        """
+        # initialize layers
+        super().__init__()
+        # set input and output dimensions
+        self.input_features = input_features
+        self.output_features = output_features
+
+        # initialize mu and rho parameters for the weights of the layer
+        self.w_mu = nn.Parameter(torch.zeros(output_features, input_features))
+        self.w_rho = nn.Parameter(torch.zeros(output_features, input_features))
+
+        # initialize mu and rho parameters for the layer's bias
+        self.b_mu = nn.Parameter(torch.zeros(output_features))
+        self.b_rho = nn.Parameter(torch.zeros(output_features))
+
+        # initialize weight samples (these will be calculated whenever the layer makes a prediction)
+        self.w = None
+        self.b = None
+
+        # initialize prior distribution for all of the weights and biases
+        self.prior = torch.distributions.Normal(0, prior_var)
+
+    def forward(self, x):
+        """
+        Optimization forward step for one layer
+        """
+        # sample weights
+        w_epsilon = Normal(0, 1).sample(self.w_mu.shape)
+        self.w = self.w_mu + torch.log(1 + torch.exp(self.w_rho)) * w_epsilon
+
+        # sample bias
+        b_epsilon = Normal(0, 1).sample(self.b_mu.shape)
+        self.b = self.b_mu + torch.log(1 + torch.exp(self.b_rho)) * b_epsilon
+
+        # record log prior by evaluating log pdf of prior at sampled weight and bias
+        w_log_prior = self.prior.log_prob(self.w)
+        b_log_prior = self.prior.log_prob(self.b)
+        self.log_prior = torch.sum(w_log_prior) + torch.sum(b_log_prior)
+
+        # record log variational posterior by evaluating log pdf of normal distribution
+        # defined by parameters with respect at the sampled values
+        self.w_post = Normal(self.w_mu.data, torch.log(1 + torch.exp(self.w_rho)))
+        self.b_post = Normal(self.b_mu.data, torch.log(1 + torch.exp(self.b_rho)))
+        self.log_post = (
+            self.w_post.log_prob(self.w).sum() + self.b_post.log_prob(self.b).sum()
+        )
+
+        return F.linear(x, self.w, self.b)
+
+
+class MLPBayesianByBackprop(nn.Module):
+    """
+    Support custom MLP Class based on Linear BayesianByBackprop
+    for Bayes By Backpropogation Optimizer
+    This implementation is based on
+    https://github.com/cpark321/uncertainty-deep-learning/blob/master/01.%20Bayes-by-Backprop.ipynb
+    """
+
+    def __init__(self, input_dim, hidden_dim, noise_tol=0.1, prior_var=1.0):
+
+        # network initialization with "upgraded" Linear BayesianByBackprop layers
+        super().__init__()
+
+        self.hidden1 = LinearBayesianByBackprop(
+            input_dim, hidden_dim, prior_var=prior_var
+        )
+
+        self.hidden2 = LinearBayesianByBackprop(
+            hidden_dim, hidden_dim, prior_var=prior_var
+        )
+
+        self.out = LinearBayesianByBackprop(hidden_dim, 1, prior_var=prior_var)
+
+        self.noise_tol = noise_tol  # noise tolerance is for likelihood caluclation
+
+    def forward(self, x):
+        #  sigmoid gives more stable convergance compared to relu
+        x = torch.sigmoid(self.hidden1(x))
+        x = torch.sigmoid(self.hidden2(x))
+        x = self.out(x)
+        return x
+
+    def log_prior(self):
+        # calculate the log prior over all the layers
+        return self.hidden1.log_prior + self.hidden2.log_prior + self.out.log_prior
+
+    def log_post(self):
+        # calculate the log posterior over all the layers
+        return self.hidden1.log_post + self.hidden2.log_post + self.out.log_post
+
+    def sample_elbo(self, input, target, samples):
+        # negative elbo will be the loss function
+
+        # initialize tensors
+        outputs = torch.zeros(samples, target.shape[0])
+
+        log_priors = torch.zeros(samples)
+        log_posts = torch.zeros(samples)
+        log_likes = torch.zeros(samples)
+
+        # make predictions and calculate prior, posterior, and likelihood for a given number of samples
+        for i in range(samples):
+            outputs[i] = self(input).reshape(-1)  # make predictions
+            log_priors[i] = self.log_prior()  # get log prior
+            log_posts[i] = self.log_post()  # get log variational posterior
+            log_likes[i] = (
+                Normal(outputs[i], self.noise_tol).log_prob(target.reshape(-1)).sum()
+            )  # calculate the log likelihood
+
+        # calculate monte carlo estimate of prior posterior and likelihood
+        log_prior = log_priors.mean()
+        log_post = log_posts.mean()
+        log_like = log_likes.mean()
+
+        # calculate the negative elbo (which is our loss function)
+        loss = log_post - log_prior - log_like
+        return loss
+
+
+class BayesianByBackpropOptimizer(BayesianOptimizerBase):
+    """
+    Bayessian Optimizer motivated by the BANANAS optimization method, White, 2019.
+    https://arxiv.org/abs/1910.11858. Implementation of this optimizer is similar to
+    BayesianMLPEnsemblerOptimizer, based on BayesianOptimizerBase class, and inlcudes Bayessian Optimizer, random mutation,
+    and ITS. The only difference between BayesianByBackpropOptimizer
+    and the enseble predictor is that BayesianByBackpropOptimizer uses a single MLP network for prediction which is trained
+    by Bayesian by back propgation method. Baysian by backprop training method is inspired by David J. C. MacKay paper on partical
+    Bayesian Framework for Backpropagation Networks: https://authors.library.caltech.edu/13793/1/MACnc92b.pdf
+
+    The mutation rate (temp) is starting from start_temp and is decreasing over time
+    with anneal_rate. It's lowest possible value is min_temp.
+    Thus, initially the algorithm explores mutations with a higer mutation rate (more variables are randomly mutated).
+    As time passes, the algorithm exploits the best solutions recorded so far (less variables are mutated).
+
+    Args:
+        param (ng.p.Dict): a nevergrad dictionary for specifying input choices
+
+        obj_func (Callable[[Dict[str, torch.Tensor]], torch.Tensor]):
+            a function which consumes sampled solutions and returns
+            rewards as tensors of shape (batch_size, 1).
+
+            The input dictionary has choice names as the key and sampled choice
+            indices as the value (of shape (batch_size, ))
+
+        mutation_type (str): type of mutation, e.g., random.
+
+        num_mutations (int): number of best solutions recorded so far that will be mutated, should be > 1.
+
+        epochs (int): number of epochs, should be a positive integer.
+
+        start_temp (float): initial temperature (ratio) for mutation, e.g., with 1.0 all variables will be initally mutated.
+
+        min_temp (float): lowest temperature (ratio) for mutation, e.g., with 0.0 no mutation will occur.
+
+        sample_size(int) : number of Monte Carlo samples for priors and likelihood, usually 1 is ok
+
+        noise_tol(float) : noise tolerance for log likelihood estimation
+
+        prior_var(float) : for layers weights and bias prior initialization which is a normal distribution centered in 0 and of variance prior_var.
+
+
+    """
+
+    def __init__(
+        self,
+        param: ng.p.Dict,
+        obj_func: Optional[Callable[[Dict[str, torch.Tensor]], torch.Tensor]] = None,
+        start_temp: float = 1.0,
+        min_temp: float = 0.1,
+        mutation_type: str = "random",
+        anneal_rate: float = ANNEAL_RATE,
+        num_mutations: int = 50,
+        epochs: int = 1,
+        learning_rate: float = LEARNING_RATE,
+        batch_size: int = BATCH_SIZE,
+        obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
+        model_dim: int = 128,
+        sample_size: int = 1,
+        noise_tol: float = 1.0,
+        prior_var: float = 1.0,
+    ) -> None:
+        self.temp = start_temp
+        self.num_mutations = num_mutations
+        self.epochs = epochs
+        self.learning_rate = learning_rate
+        self.model_dim = model_dim
+        self.input_dim = 0
+        self.predictor = None
+        self.sample_size = sample_size
+        self.noise_tol = noise_tol
+        self.prior_var = prior_var
+        super().__init__(
+            param,
+            obj_func,
+            start_temp=start_temp,
+            acq_type="",  # acq_type will not be used
+            min_temp=min_temp,
+            mutation_type=mutation_type,
+            num_mutations=num_mutations,
+            anneal_rate=anneal_rate,
+            batch_size=batch_size,
+            obj_exp_offset_scale=obj_exp_offset_scale,
+        )
+
+    def _init(self) -> None:
+        # initial population
+        sampled_solutions = random_sample_n_solutions(self.param, self.num_mutations)
+
+        self.input_dim = input_dim_for_random_sample_n_solutions(
+            self.param, self.num_mutations
+        )
+
+        self.predictor = MLPBayesianByBackprop(self.input_dim, self.model_dim)
+        for p in self.predictor.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
+
         sampled_reward, _ = self.obj_func(sampled_solutions)
         sampled_reward = sampled_reward.detach()
-        self.update_params(sampled_reward)
+        self._maintain_best_solutions(sampled_solutions, sampled_reward)
+        self.update_predictor(sampled_solutions, sampled_reward)
 
-        last_predictor_loss_mean = self.last_predictor_loss_mean
-        self.last_predictor_loss_mean = None
+    def acquisition(
+        self,
+        sampled_sol: Dict[str, torch.Tensor],
+    ) -> torch.Tensor:
+        batch_tensors = sol_to_tensors(sampled_sol, self.param)
+        acquisition_reward = self.predictor(batch_tensors)
+        return acquisition_reward.view(-1)
 
-        return sampled_solutions, sampled_reward, last_predictor_loss_mean
+    def update_predictor(
+        self, sampled_solutions: Dict[str, torch.Tensor], sampled_reward: torch.Tensor
+    ):
+        x = sol_to_tensors(sampled_solutions, self.param)
+        y = sampled_reward
+        losses = []
+
+        self.predictor.train()
+        optimizer = torch.optim.Adam(self.predictor.parameters(), lr=self.learning_rate)
+        for _ in range(self.epochs):
+            optimizer.zero_grad()
+            loss = self.predictor.sample_elbo(x, y, self.sample_size)
+            loss.backward()
+            optimizer.step()
+
+        losses.append(loss.detach())
+        self.predictor.eval()
+
+        self.last_predictor_loss_mean = np.mean(losses)
