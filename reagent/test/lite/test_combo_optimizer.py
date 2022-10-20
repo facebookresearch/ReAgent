@@ -668,14 +668,14 @@ class TestComboOptimizer(unittest.TestCase):
             print(
                 f"Generation={i}, mean_reward={mean_reward}, "
                 f"min_reward={torch.min(reward.data)}, "
-                f"Avg. elbo loss={loss},"
+                f"Avg. Elbo loss={loss},"
             )
         best_sol = optimizer.sample(1, 0.0)
         eval_result = obj_func(best_sol)
 
         assert (
             abs(best_rs_result - eval_result) < BAYESSIAN_MLP_TEST_THRES
-        ), f"Learning not converged. Best random search={best_rs_result}, eval result={eval_result}"
+        ), f"Learning not converged. Best Random Search={best_rs_result}, Eval result={eval_result}"
 
         sampled_solutions = {}
         for k in sorted(input_param.keys()):

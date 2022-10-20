@@ -1515,9 +1515,9 @@ class BayesianByBackpropOptimizer(BayesianOptimizerBase):
     """
     Bayessian Optimizer motivated by the BANANAS optimization method, White, 2019.
     https://arxiv.org/abs/1910.11858. Implementation of this optimizer is similar to
-    BayesianMLPEnsemblerOptimizer, based on BayesianOptimizerBase class, and inlcudes Bayessian Optimizer, random mutation,
+    BayesianMLPEnsemblerOptimizer, based on BayesianOptimizerBase class, and includes Bayessian Optimizer, random mutation,
     and ITS. The only difference between BayesianByBackpropOptimizer
-    and the enseble predictor is that BayesianByBackpropOptimizer uses a single MLP network for prediction which is trained
+    and BayesianMLPEnsemblerOptimizer is that BayesianByBackpropOptimizer uses a single MLP network for prediction which is trained
     by Bayesian by back propgation method. Baysian by backprop training method is inspired by David J. C. MacKay paper on partical
     Bayesian Framework for Backpropagation Networks: https://authors.library.caltech.edu/13793/1/MACnc92b.pdf
 
@@ -1540,7 +1540,7 @@ class BayesianByBackpropOptimizer(BayesianOptimizerBase):
 
         num_mutations (int): number of best solutions recorded so far that will be mutated, should be > 1.
 
-        epochs (int): number of epochs, should be a positive integer.
+        epochs (int): number of epochs (i.e., number of times each data point is used in the loss to update the predictor), should be a positive integer.
 
         start_temp (float): initial temperature (ratio) for mutation, e.g., with 1.0 all variables will be initally mutated.
 
