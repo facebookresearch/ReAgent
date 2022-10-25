@@ -313,6 +313,7 @@ class FeatureData(TensorDataClass):
     float_features: torch.Tensor
     # For sparse features saved in KeyedJaggedTensor format
     id_list_features: Optional[KeyedJaggedTensor] = None
+    id_list_features_ro: Optional[KeyedJaggedTensor] = None
     id_score_list_features: Optional[KeyedJaggedTensor] = None
 
     # For sparse features saved in dictionary format
@@ -339,6 +340,7 @@ class FeatureData(TensorDataClass):
     def has_float_features_only(self) -> bool:
         return (
             not self.id_list_features
+            and not self.id_list_features_ro
             and not self.id_score_list_features
             and self.time_since_first is None
             and self.candidate_docs is None
