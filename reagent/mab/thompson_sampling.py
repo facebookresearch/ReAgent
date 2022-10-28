@@ -130,6 +130,5 @@ class NormalGammaThompson(BaseThompsonSampling):
             self.mus,
             # pyre-fixme[58]: `/` is not supported for operand types `float` and
             #  `Tensor`.
-            # pyre-fixme[6]: For 1st param expected `Tensor` but got `float`.
             1.0 / torch.sqrt(precisions),
         ).sample()
