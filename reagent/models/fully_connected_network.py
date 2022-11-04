@@ -22,13 +22,13 @@ def gaussian_fill_w_gain(tensor, gain, dim_in, min_std=0.0) -> None:
 
 # troch.fx.trace does not support dynamic control flow, wrap the if-else and assert logic in this function to work around this limitation
 @torch.fx.wrap
-def transpose_input(input: torch.Tensor, vanilla: nn.BatchNorm1d) -> Any:
-    shape = len(input.shape)
-    assert shape in [2, 3], f"Invalid input shape {input.shape}"
+def transpose_tensor(shape_tensor: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
+    shape = len(shape_tensor.shape)
+    assert shape in [2, 3], f"Invalid input shape {shape}"
     if shape == 2:
-        return vanilla(input)
-    elif shape == 3:
-        return vanilla(input.transpose(1, 2)).transpose(1, 2)
+        return input
+    else:
+        return input.transpose(1, 2)
 
 
 ACTIVATION_MAP = {
@@ -56,8 +56,9 @@ class SlateBatchNorm1d(nn.Module):
         self.vanilla = nn.BatchNorm1d(*args, **kwargs)
 
     def forward(self, x: torch.Tensor):
-        transposed_output = transpose_input(x, self.vanilla)
-        return transposed_output
+        input = transpose_tensor(x, x)
+        output = self.vanilla(input)
+        return transpose_tensor(x, output)
 
 
 class FullyConnectedNetwork(ModelBase):
