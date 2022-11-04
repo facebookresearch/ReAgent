@@ -293,17 +293,18 @@ class DocList(TensorDataClass):
 def run_post_init_validation(
     float_features: torch.Tensor,
 ) -> None:
-    def usage():
-        return (
-            "For sequence features, use `stacked_float_features`."
-            "For document features, use `candidate_doc_float_features`."
-        )
+    usage: str = (
+        "For sequence features, use `stacked_float_features`."
+        + "For document features, use `candidate_doc_float_features`."
+    )
 
     if float_features.ndim == 3:
-        no_dup_logger.warning(f"`float_features` should be 2D.\n{usage()}")
+        if not torch.jit.is_scripting():
+            no_dup_logger.warning(f"`float_features` should be 2D.\n{usage}")
+        pass
     elif float_features.ndim != 2:
         raise ValueError(
-            f"float_features should be 2D; got {float_features.shape}.\n{usage()}"
+            f"float_features should be 2D; got {float_features.shape}.\n{usage}"
         )
 
 
