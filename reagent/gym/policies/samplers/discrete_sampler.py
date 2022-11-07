@@ -107,7 +107,7 @@ class GreedyActionSampler(Sampler):
     def log_prob(self, scores: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
         greedy_indices = self._get_greedy_indices(scores)
         match = greedy_indices == action.argmax(-1)
-        lp = torch.zeros(scores.shape[0]).float()
+        lp = torch.zeros_like(scores).float()
         lp[match] = -float("inf")
         return lp
 
@@ -153,8 +153,8 @@ class EpsilonGreedyActionSampler(Sampler):
         p[argmax] = greedy_prob.squeeze()
 
         p[~valid_actions_ind] = 0.0
-
-        assert torch.allclose(p.sum(1), torch.ones(p.shape[0]))
+        p_sum = p.sum(1)
+        assert torch.allclose(p_sum, torch.ones_like(p_sum))
 
         m = torch.distributions.Categorical(probs=p)
         raw_action = m.sample()
@@ -168,7 +168,7 @@ class EpsilonGreedyActionSampler(Sampler):
         max_index = self.sample_action(scores).argmax(-1)
         opt = max_index == action.argmax(-1)
         n = len(scores)
-        lp = torch.ones(n) * self.epsilon / n
+        lp = torch.ones_like(scores) * self.epsilon / n
         lp[opt] = 1 - self.epsilon + self.epsilon / n
         return lp
 
