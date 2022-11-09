@@ -960,8 +960,6 @@ class _DistributedSeq2SlateNet(ModelBase):
 
         current_device = torch.cuda.current_device()
         self.data_parallel = DistributedDataParallel(
-            # pyre-fixme[6]: For 1st param expected `Module` but got `Union[Module,
-            #  Tensor]`.
             seq2slate_net.seq2slate,
             device_ids=[current_device],
             output_device=current_device,
