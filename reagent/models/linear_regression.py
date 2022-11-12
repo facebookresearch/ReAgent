@@ -17,11 +17,11 @@ def batch_quadratic_form(x: torch.Tensor, A: torch.Tensor) -> torch.Tensor:
     Compute the quadratic form x^T * A * x for a batched input x.
     Inspired by https://stackoverflow.com/questions/18541851/calculate-vt-a-v-for-a-matrix-of-vectors-v
     This is a vectorized implementation of out[i] = x[i].t() @ A @ x[i]
-    x shape: (B, N)
-    A shape: (N, N)
-    output shape: (B)
+    x shape: (Batch, Feature_dim) or (Batch, Arm, Feature_dim)
+    A shape: (Feature_dim, Feature_dim)
+    output shape: (Batch) or (Batch, Arm)
     """
-    return (torch.matmul(x, A) * x).sum(1)
+    return (torch.matmul(x, A) * x).sum(-1)
 
 
 class LinearRegressionUCB(ModelBase):
