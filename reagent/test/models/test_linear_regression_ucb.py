@@ -22,6 +22,16 @@ class TestLinearRegressionUCBUtils(unittest.TestCase):
             loop_result[i] = x[i].t() @ A @ x[i]
         npt.assert_allclose(batch_result.numpy(), loop_result.numpy())
 
+    def test_batch_quadratic_form_3d(self) -> None:
+        x = torch.tensor([[[1.0, 4.3], [3.2, 9.8]], [[1.2, 4.1], [3.0, 7.8]]])
+        A = torch.tensor([[2.0, 1.0], [2.4, 0.5]])
+        batch_result = batch_quadratic_form(x, A)
+        loop_result = torch.zeros(2, 2)
+        for i in range(2):
+            for j in range(2):
+                loop_result[i][j] = x[i, j].t() @ A @ x[i, j]
+        npt.assert_allclose(batch_result.numpy(), loop_result.numpy())
+
 
 class TestLinearRegressionUCB(unittest.TestCase):
     def test_call_no_ucb(self) -> None:
