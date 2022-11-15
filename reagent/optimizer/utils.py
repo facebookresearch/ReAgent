@@ -17,4 +17,6 @@ def is_torch_optimizer(cls):
 
 
 def is_torch_lr_scheduler(cls):
-    return is_strict_subclass(cls, torch.optim.lr_scheduler._LRScheduler)
+    return is_strict_subclass(
+        cls, torch.optim.lr_scheduler._LRScheduler
+    ) or is_strict_subclass(cls, torch.optim.lr_scheduler.LRScheduler)
