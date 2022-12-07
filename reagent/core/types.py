@@ -1147,3 +1147,7 @@ class CBInput(TensorDataClass):
 
     def __len__(self) -> int:
         return self.context_arm_features.shape[0]
+
+    @property
+    def device(self) -> torch.device:
+        return self.context_arm_features.device
