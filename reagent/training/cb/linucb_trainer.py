@@ -90,6 +90,7 @@ class LinUCBTrainer(BaseCBTrainerWithEval):
         self.scorer.cur_A += torch.matmul(x.t(), x * weight)  # dim (DA*DC, DA*DC)
         self.scorer.cur_b += torch.matmul(x.t(), y * weight).squeeze()  # dim (DA*DC,)
         self.scorer.cur_num_obs += y.shape[0]
+        self.scorer.cur_sum_weight += weight.sum()
 
     def _check_input(self, batch: CBInput):
         assert batch.context_arm_features.ndim == 3

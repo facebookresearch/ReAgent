@@ -76,6 +76,8 @@ class LinearRegressionUCB(ModelBase):
         )  # value of A matrix for which self.coefs were estimated
         self.register_buffer("num_obs", torch.zeros(1, dtype=torch.int64))
         self.register_buffer("cur_num_obs", torch.zeros(1, dtype=torch.int64))
+        self.register_buffer("sum_weight", torch.zeros(1, dtype=torch.float))
+        self.register_buffer("cur_sum_weight", torch.zeros(1, dtype=torch.float))
 
         # add a dummy parameter so that DDP doesn't compain about lack of parameters with gradient
         self.dummy_param = torch.nn.parameter.Parameter(torch.zeros(1))
@@ -98,6 +100,9 @@ class LinearRegressionUCB(ModelBase):
         self.A += sync_ddp_if_available(self.cur_A, reduce_op=ReduceOp.SUM)
         self.b += sync_ddp_if_available(self.cur_b, reduce_op=ReduceOp.SUM)
         self.num_obs += sync_ddp_if_available(self.cur_num_obs, reduce_op=ReduceOp.SUM)
+        self.sum_weight += sync_ddp_if_available(
+            self.cur_sum_weight, reduce_op=ReduceOp.SUM
+        )
 
         self.inv_A = torch.inverse(
             self.A
@@ -113,6 +118,7 @@ class LinearRegressionUCB(ModelBase):
         self.cur_A.zero_()
         self.cur_b.zero_()
         self.cur_num_obs.zero_()
+        self.cur_sum_weight.zero_()
 
     def calculate_coefs_if_necessary(self) -> torch.Tensor:
         if not (self.coefs_valid_for_A == self.A).all() or (
