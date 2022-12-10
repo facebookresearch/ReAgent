@@ -52,7 +52,7 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
         )
         return optimizers
 
-    def training_step(self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0):
+    def cb_training_step(self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0):
         self._check_input(batch)
         assert batch.action is not None  # to satisfy Pyre
         assert batch.reward is not None  # to satisfy Pyre

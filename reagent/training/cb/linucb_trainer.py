@@ -8,7 +8,7 @@ from reagent.core.configuration import resolve_defaults
 from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
 from reagent.models.linear_regression import LinearRegressionUCB
-from reagent.training.reagent_lightning_module import ReAgentLightningModule
+from reagent.training.cb.base_trainer import BaseCBTrainerWithEval
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ def _get_chosen_arm_features(
     ).squeeze(1)
 
 
-class LinUCBTrainer(ReAgentLightningModule):
+class LinUCBTrainer(BaseCBTrainerWithEval):
     """
     The trainer for LinUCB Contextual Bandit model.
     The model estimates a ridge regression (linear) and only supports dense features.
@@ -58,9 +58,11 @@ class LinUCBTrainer(ReAgentLightningModule):
     def __init__(
         self,
         policy: Policy,
-        automatic_optimization: bool = False,  # turn off automatic_optimization because we are updating parameters manually
+        automatic_optimization: bool = False,  # turn off automatic_optimization because we are updating parameters manually,
+        *args,
+        **kwargs,
     ):
-        super().__init__(automatic_optimization=automatic_optimization)
+        super().__init__(automatic_optimization=automatic_optimization, *args, **kwargs)
         assert isinstance(
             policy.scorer, LinearRegressionUCB
         ), "LinUCBTrainer requires the policy scorer to be LinearRegressionUCB"
@@ -95,7 +97,7 @@ class LinUCBTrainer(ReAgentLightningModule):
         assert len(batch.action) == len(batch.reward)
         assert len(batch.action) == batch.context_arm_features.shape[0]
 
-    def training_step(self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0):
+    def cb_training_step(self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0):
         self._check_input(batch)
         assert batch.action is not None  # to satisfy Pyre
         x = _get_chosen_arm_features(batch.context_arm_features, batch.action)

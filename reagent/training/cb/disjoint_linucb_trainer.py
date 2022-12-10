@@ -8,13 +8,13 @@ from reagent.core.configuration import resolve_defaults
 from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
 from reagent.models.disjoint_linucb_predictor import DisjointLinearRegressionUCB
-from reagent.training.reagent_lightning_module import ReAgentLightningModule
+from reagent.training.cb.base_trainer import BaseCBTrainerWithEval
 
 
 logger = logging.getLogger(__name__)
 
 
-class DisjointLinUCBTrainer(ReAgentLightningModule):
+class DisjointLinUCBTrainer(BaseCBTrainerWithEval):
     """
     The trainer for Disjoint LinUCB Contextual Bandit model.
     The model estimates a ridge regression (linear) and only supports dense features.
@@ -28,8 +28,10 @@ class DisjointLinUCBTrainer(ReAgentLightningModule):
         self,
         policy: Policy,
         automatic_optimization: bool = False,  # turn off automatic_optimization because we are updating parameters manually
+        *args,
+        **kwargs,
     ):
-        super().__init__(automatic_optimization=automatic_optimization)
+        super().__init__(automatic_optimization=automatic_optimization, *args, **kwargs)
         assert isinstance(
             policy.scorer, DisjointLinearRegressionUCB
         ), "DisjointLinUCBTrainer requires the policy scorer to be DisjointLinearRegressionUCB"
@@ -74,13 +76,14 @@ class DisjointLinUCBTrainer(ReAgentLightningModule):
             assert sub_batch.context_arm_features.ndim == 2
             assert sub_batch.reward is not None
 
-    def training_step(
+    # pyre-fixme[14]: `cb_training_step` overrides method defined in `BaseCBTrainerWithEval`
+    #  inconsistently.
+    def cb_training_step(
         self, batch: List[CBInput], batch_idx: int, optimizer_idx: int = 0
     ):
         """
         each element in batch is a sub-batch of data for that arm
         """
-        self._check_input(batch)
         for arm_idx in range(self.num_arms):
             sub_batch = batch[arm_idx]
             self.update_params(
