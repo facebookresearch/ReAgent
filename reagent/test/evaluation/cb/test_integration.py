@@ -101,16 +101,22 @@ class TestEvalDuringTraining(unittest.TestCase):
                     [
                         [1, 7],
                         [1, 8],
+                        [
+                            1,
+                            9,
+                        ],  # this arm would have been chosen by the model if it was present
                     ],
                     [
                         [1, 9],
                         [1, 10],
+                        [1, 11],
                     ],
                 ],
                 dtype=torch.float,
             ),
             action=torch.tensor([[1], [0]], dtype=torch.long),
             reward=torch.tensor([[1.2], [2.9]], dtype=torch.float),
+            arm_presence=torch.tensor([[1, 1, 0], [1, 1, 1]], dtype=torch.bool),
         )
         self.trainer.training_step(batch_2, 0)
 
