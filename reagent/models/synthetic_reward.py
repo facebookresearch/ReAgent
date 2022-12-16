@@ -149,7 +149,7 @@ class PETransformerEncoderLayer(nn.Module):
             state["activation"] = F.relu
         super(PETransformerEncoderLayer, self).__setstate__(state)
 
-    def forward(self, src, src_mask=None, src_key_padding_mask=None):
+    def forward(self, src, src_mask=None, src_key_padding_mask=None, is_causal=False):
         encoded_src = self.pos_encoder(src)
         query = self.qk_residual(encoded_src)
         # do not involve pos_encoding info into the value
