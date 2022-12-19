@@ -75,7 +75,19 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
                     eval_module.num_eval_model_updates += 1
             with torch.no_grad():
                 eval_scores = eval_module.eval_model(batch.context_arm_features)
-                model_actions = torch.argmax(eval_scores, dim=1).reshape(-1, 1)
+                if batch.arm_presence is not None:
+                    # mask out non-present arms
+                    eval_scores = torch.masked.as_masked_tensor(
+                        eval_scores, batch.arm_presence.bool()
+                    )
+                    model_actions = (
+                        # pyre-fixme[16]: `Tensor` has no attribute `get_data`.
+                        torch.argmax(eval_scores, dim=1)
+                        .get_data()
+                        .reshape(-1, 1)
+                    )
+                else:
+                    model_actions = torch.argmax(eval_scores, dim=1).reshape(-1, 1)
             new_batch = eval_module.ingest_batch(batch, model_actions)
             eval_module.sum_weight_since_update += (
                 batch.weight.sum() if batch.weight is not None else len(batch)
