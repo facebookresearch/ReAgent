@@ -592,6 +592,94 @@ class SlateView:
         return data
 
 
+class VarLengthSequences:
+    """
+    Like FixedLengthSequences, but doesn't require the sequence-lengths to be the same. Instead,
+        the largest slate size from the batch is used. For batches with smaller
+        slate sizes, the values are padded with zeros.
+    Additionally a presence tensor is produced to indicate which elements are present
+        vs padded.
+    The item presense tensor is a float boolean tensor of shape `[B, max_slate_size]`
+    """
+
+    def __init__(
+        self,
+        keys: List[str],
+        sequence_id: int,
+        *,
+        to_keys: Optional[List[str]] = None,
+        to_keys_item_presence: Optional[List[str]] = None,
+    ):
+        self.keys = keys
+        self.sequence_id = sequence_id
+        self.to_keys = to_keys or keys
+        self.to_keys_item_presence = to_keys_item_presence or [
+            k + "_item_presence" for k in self.to_keys
+        ]
+        assert len(self.to_keys) == len(keys)
+
+    def __call__(self, data):
+        for key, to_key, to_key_item_presence in zip(
+            self.keys, self.to_keys, self.to_keys_item_presence
+        ):
+            # ignore the feature presence
+            offsets, (value, presence) = data[key][self.sequence_id]
+
+            # compute the length of each observation
+            lengths = torch.diff(
+                torch.cat(
+                    (
+                        offsets,
+                        torch.tensor(
+                            [value.shape[0]], dtype=offsets.dtype, device=offsets.device
+                        ),
+                    )
+                )
+            )
+
+            num_obs = len(lengths)
+            max_len = lengths.max().item()
+            self.max_len = max_len
+            feature_dim = value.shape[1]
+
+            # create an empty 2d tensor to store the amended tensor
+            # the new shape should be the maximum length of the observations times the number of observations, and the number of features
+            new_shape = (num_obs * max_len, feature_dim)
+            padded_value = torch.zeros(
+                *new_shape, dtype=value.dtype, device=value.device
+            )
+            padded_presence = torch.zeros(
+                *new_shape, dtype=presence.dtype, device=presence.device
+            )
+
+            # create a tensor of indices to scatter the values to
+            indices = torch.cat(
+                [
+                    torch.arange(lengths[i], device=value.device) + i * max_len
+                    for i in range(num_obs)
+                ]
+            )
+
+            # insert the values into the padded tensor
+            padded_value[indices] = value
+            padded_presence[indices] = presence
+
+            # get the item presence tensor
+            item_presence = torch.cat(
+                [
+                    (torch.arange(max_len, device=value.device) < lengths[i]).float()
+                    for i in range(num_obs)
+                ]
+            )
+
+            item_presence = item_presence.view(-1, max_len)
+
+            data[to_key] = (padded_value, padded_presence)
+            data[to_key_item_presence] = item_presence
+
+        return data
+
+
 class FixedLengthSequenceDenseNormalization:
     """
     Combines the FixedLengthSequences, DenseNormalization, and SlateView transforms
@@ -604,8 +692,9 @@ class FixedLengthSequenceDenseNormalization:
         normalization_data: NormalizationData,
         expected_length: Optional[int] = None,
         device: Optional[torch.device] = None,
+        to_keys: Optional[List[str]] = None,
     ):
-        to_keys = [f"{k}:{sequence_id}" for k in keys]
+        to_keys = to_keys or [f"{k}:{sequence_id}" for k in keys]
         self.fixed_length_sequences = FixedLengthSequences(
             keys, sequence_id, to_keys=to_keys, expected_length=expected_length
         )
@@ -619,6 +708,43 @@ class FixedLengthSequenceDenseNormalization:
         data = self.fixed_length_sequences(data)
         data = self.dense_normalization(data)
         self.slate_view.slate_size = self.fixed_length_sequences.expected_length
+        return self.slate_view(data)
+
+
+class VarLengthSequenceDenseNormalization:
+    """
+    Combines the VarLengthSequences, DenseNormalization, and SlateView transforms.
+    For SlateView we infer the slate size at runtime and patch the transform.
+    """
+
+    def __init__(
+        self,
+        keys: List[str],
+        sequence_id: int,
+        normalization_data: NormalizationData,
+        to_keys_item_presence: Optional[List[str]] = None,
+        device: Optional[torch.device] = None,
+        to_keys: Optional[List[str]] = None,
+    ):
+        to_keys = to_keys or [f"{k}:{sequence_id}" for k in keys]
+        self.var_length_sequences = VarLengthSequences(
+            keys,
+            sequence_id,
+            to_keys=to_keys,
+            to_keys_item_presence=to_keys_item_presence,
+        )
+        self.dense_normalization = DenseNormalization(
+            to_keys, normalization_data, device=device
+        )
+        # We will override slate_size in __call__()
+        self.slate_view = SlateView(to_keys, slate_size=-1)
+
+    def __call__(self, data):
+        data = self.var_length_sequences(data)
+        data = self.dense_normalization(data)
+        self.slate_view.slate_size = (
+            self.var_length_sequences.max_len
+        )  # this assumes that max_len is the same for all all keys
         return self.slate_view(data)
 
 
