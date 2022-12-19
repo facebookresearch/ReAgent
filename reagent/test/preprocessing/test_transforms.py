@@ -765,3 +765,111 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(t_data["a"].dtype, torch.float)  # was float, didn't change
         self.assertEqual(t_data["b"].dtype, torch.float)  # changed from double to float
         self.assertEqual(t_data["c"].dtype, torch.double)  # was double, didn't change
+
+    def test_VarLengthSequences(self) -> None:
+        seq_id = 1
+
+        # of form {sequence_id: (offsets, Tuple(Tensor, Tensor))}
+        a_T = (
+            torch.tensor([[0, 1, 3], [2, 3, 7], [4, 5, 8], [2, 3, 1]]).float(),
+            torch.ones(4, 3),
+        )
+        b_T = (
+            torch.tensor(
+                [[1, 1, 3], [2, 2, 5], [3, 3, 1], [9, 10, 4], [5, 1, 7]]
+            ).float(),
+            torch.ones(5, 3),
+        )
+        a_in = {seq_id: (torch.tensor([0, 1]), a_T)}
+        b_in = {seq_id: (torch.tensor([0, 4]), b_T)}
+        vls1 = transforms.VarLengthSequences(keys=["a", "b"], sequence_id=seq_id)
+        vls2 = transforms.VarLengthSequences(
+            keys=["a", "b"], sequence_id=seq_id, to_keys=["a_to_key", "b_to_key"]
+        )
+        vls3 = transforms.VarLengthSequences(
+            keys=["a", "b"],
+            sequence_id=seq_id,
+            to_keys=["a_to_key", "b_to_key"],
+            to_keys_item_presence=["a_to_key_item_presence", "b_to_key_item_presence"],
+        )
+        o1 = vls1({"a": a_in, "b": b_in})
+        o2 = vls2({"a": a_in, "b": b_in})
+        o3 = vls3({"a": a_in, "b": b_in})
+
+        self.assertSetEqual(
+            set(o1.keys()), {"a", "b", "a_item_presence", "b_item_presence"}
+        )
+        self.assertSetEqual(
+            set(o2.keys()),
+            {
+                "a",
+                "b",
+                "a_to_key",
+                "b_to_key",
+                "a_to_key_item_presence",
+                "b_to_key_item_presence",
+            },
+        )
+        self.assertSetEqual(
+            set(o3.keys()),
+            {
+                "a",
+                "b",
+                "a_to_key",
+                "b_to_key",
+                "a_to_key_item_presence",
+                "b_to_key_item_presence",
+            },
+        )
+
+        # ensure input values are not changed if output keys are different
+        self.assertEqual(o2["a"], a_in)
+        self.assertEqual(o2["b"], b_in)
+        self.assertEqual(o3["a"], a_in)
+        self.assertEqual(o3["b"], b_in)
+
+        # Testing assertion in the constructor
+        with self.assertRaises(AssertionError):
+            transforms.VarLengthSequences(
+                keys=["a", "b"], sequence_id=1, to_keys=["to_a"]
+            )
+
+        # output shapes are correct
+        self.assertTupleEqual(tuple(o1["a"][0].shape), (6, 3))
+        self.assertTupleEqual(tuple(o1["b"][0].shape), (8, 3))
+
+        # output values are correct
+        expected_a = torch.tensor(
+            [
+                [
+                    [0, 1, 3],
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [2, 3, 7],
+                    [4, 5, 8],
+                    [2, 3, 1],
+                ],
+            ]
+        ).float()
+        expected_b = torch.tensor(
+            [
+                [
+                    [1, 1, 3],
+                    [2, 2, 5],
+                    [3, 3, 1],
+                    [9, 10, 4],
+                    [5, 1, 7],
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0],
+                ],
+            ]
+        ).float()
+        self.assertEqual(o1["a"][0], expected_a)
+        self.assertEqual(o1["b"][0], expected_b)
+
+        # item presence tensors are correct
+        extected_a_item_presence = torch.tensor([[1, 0, 0], [1, 1, 1]]).float()
+        extected_b_item_presence = torch.tensor([[1, 1, 1, 1], [1, 0, 0, 0]]).float()
+        self.assertEqual(o1["a_item_presence"], extected_a_item_presence)
+        self.assertEqual(o1["b_item_presence"], extected_b_item_presence)
