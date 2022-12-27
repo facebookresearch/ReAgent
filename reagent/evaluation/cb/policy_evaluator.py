@@ -13,8 +13,8 @@ class PolicyEvaluator(BaseOfflineEval):
 
     avg_reward_weighted: torch.Tensor
 
-    def __init__(self, eval_model: torch.nn.Module):
-        super().__init__(eval_model=eval_model)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.register_buffer("avg_reward_weighted", torch.zeros(1, dtype=torch.float))
 
     @torch.no_grad()
