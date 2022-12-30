@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import unittest
+from unittest.mock import MagicMock
 
 import numpy as np
 import numpy.testing as npt
@@ -13,6 +14,7 @@ from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
 from reagent.models.linear_regression import LinearRegressionUCB
 from reagent.training.cb.linucb_trainer import LinUCBTrainer
+from torch.utils.tensorboard import SummaryWriter
 
 
 class TestEvalDuringTraining(unittest.TestCase):
@@ -23,6 +25,9 @@ class TestEvalDuringTraining(unittest.TestCase):
 
         self.trainer = LinUCBTrainer(policy)
         self.eval_module = PolicyEvaluator(self.policy_network)
+        sw = SummaryWriter("/tmp/tb")
+        sw.add_scalars = MagicMock()
+        self.eval_module.attach_summary_writer(sw)
         self.trainer.attach_eval_module(self.eval_module)
 
     def test_eval_during_training(self):
@@ -236,3 +241,7 @@ class TestEvalDuringTraining(unittest.TestCase):
 
         # check total weight (number of observations). Should be 3
         self.assertAlmostEqual(self.eval_module.sum_weight.item(), 3.0, places=4)
+
+        # metrics should have been logged once, at the end of epoch
+        # TODO: test logging logic triggered by eval_model_update_critical_weight
+        self.eval_module.summary_writer.add_scalars.assert_called_once()
