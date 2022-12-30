@@ -69,10 +69,10 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
                     logger.info(
                         f"Updating the evaluated model after {eval_module.sum_weight_since_update.item()} observations"
                     )
-                    logger.info(eval_module.get_formatted_result_string())
                     eval_module.update_eval_model(self.scorer)
                     eval_module.sum_weight_since_update.zero_()
                     eval_module.num_eval_model_updates += 1
+                    eval_module.log_metrics(global_step=self.global_step)
             with torch.no_grad():
                 eval_scores = eval_module.eval_model(batch.context_arm_features)
                 if batch.arm_presence is not None:
@@ -99,4 +99,4 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
     def on_train_epoch_end(self):
         eval_module = self.eval_module  # assign to local var to keep pyre happy
         if eval_module is not None:
-            logger.info(eval_module.get_formatted_result_string())
+            eval_module.log_metrics(global_step=self.global_step)
