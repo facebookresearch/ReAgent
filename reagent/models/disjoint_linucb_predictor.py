@@ -120,7 +120,7 @@ class DisjointLinearRegressionUCB(ModelBase):
         m = self.A.to(device) + self.l2_reg_lambda * torch.eye(self.input_dim).to(
             device
         )
-        self.inv_A = torch.inverse(m).contiguous()
+        self.inv_A = torch.linalg.pinv(m).contiguous()
         assert self.inv_A.size()[0] == self.b.size()[0]
 
         # inv_A: (num_arms, d, d)
