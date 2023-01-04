@@ -104,7 +104,7 @@ class LinearRegressionUCB(ModelBase):
             self.cur_sum_weight, reduce_op=ReduceOp.SUM
         )
 
-        self.inv_A = torch.inverse(
+        self.inv_A = torch.linalg.pinv(
             self.A
             + self.l2_reg_lambda
             * torch.eye(
