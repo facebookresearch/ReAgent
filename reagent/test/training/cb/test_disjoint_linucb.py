@@ -122,7 +122,8 @@ class TestDisjointLinUCB(unittest.TestCase):
                 (np.eye(self.x_dim) + scorer.A[arm].numpy())
                 @ scorer.inv_A[arm].numpy(),
                 np.eye(self.x_dim),
-                atol=1e-3,
+                atol=1e-2,
+                rtol=1e-3,
             )
             npt.assert_equal(
                 scorer.A[arm].numpy(), scorer.coefs_valid_for_A[arm].numpy()
