@@ -89,10 +89,10 @@ class TestLinUCB(unittest.TestCase):
         trainer_2.on_train_epoch_end()
 
         npt.assert_array_less(
-            np.zeros(scorer_1.A.shape), scorer_1.A.numpy()
+            np.zeros(scorer_1.avg_A.shape), scorer_1.avg_A.numpy()
         )  # make sure A got updated
-        npt.assert_allclose(scorer_1.A.numpy(), scorer_2.A.numpy(), rtol=1e-4)
-        npt.assert_allclose(scorer_1.b.numpy(), scorer_2.b.numpy(), rtol=1e-4)
+        npt.assert_allclose(scorer_1.avg_A.numpy(), scorer_2.avg_A.numpy(), rtol=1e-4)
+        npt.assert_allclose(scorer_1.avg_b.numpy(), scorer_2.avg_b.numpy(), rtol=1e-4)
 
     def test_linucb_training_multiple_epochs(self):
         # make sure that splitting the data across multiple epochs is same as learning from all data in one epoch
@@ -125,11 +125,13 @@ class TestLinUCB(unittest.TestCase):
         trainer_2.on_train_epoch_end()
 
         npt.assert_array_less(
-            np.zeros(scorer_1.A.shape), scorer_1.A.numpy()
+            np.zeros(scorer_1.avg_A.shape), scorer_1.avg_A.numpy()
         )  # make sure A got updated
-        npt.assert_allclose(scorer_1.A.numpy(), scorer_2.A.numpy(), rtol=1e-4)
-        npt.assert_allclose(scorer_1.b.numpy(), scorer_2.b.numpy(), rtol=1e-4)
-        npt.assert_allclose(scorer_1.inv_A.numpy(), scorer_2.inv_A.numpy(), rtol=1e-4)
+        npt.assert_allclose(scorer_1.avg_A.numpy(), scorer_2.avg_A.numpy(), rtol=1e-4)
+        npt.assert_allclose(scorer_1.avg_b.numpy(), scorer_2.avg_b.numpy(), rtol=1e-4)
+        npt.assert_allclose(
+            scorer_1.inv_avg_A.numpy(), scorer_2.inv_avg_A.numpy(), rtol=1e-4
+        )
         npt.assert_allclose(scorer_1.coefs.numpy(), scorer_2.coefs.numpy(), rtol=1e-3)
 
     def test_linucb_model_update_equations(self):
@@ -144,17 +146,22 @@ class TestLinUCB(unittest.TestCase):
             self.batch.context_arm_features, self.batch.action
         ).numpy()
 
-        npt.assert_allclose(scorer.A.numpy(), x.T @ x, rtol=1e-4)
+        npt.assert_allclose(scorer.avg_A.numpy(), x.T @ x / len(self.batch), rtol=1e-4)
         npt.assert_allclose(
-            scorer.b.numpy(), x.T @ self.batch.reward.squeeze().numpy(), rtol=1e-4
+            scorer.avg_b.numpy(),
+            x.T @ self.batch.reward.squeeze().numpy() / len(self.batch),
+            rtol=1e-4,
         )
 
         scorer._calculate_coefs()
-        npt.assert_equal(scorer.A.numpy(), scorer.coefs_valid_for_A.numpy())
+        npt.assert_equal(scorer.avg_A.numpy(), scorer.coefs_valid_for_avg_A.numpy())
 
         npt.assert_allclose(
-            (np.eye(self.x_dim) * scorer.l2_reg_lambda + scorer.A.numpy())
-            @ scorer.inv_A.numpy(),
+            (
+                np.eye(self.x_dim) * scorer.l2_reg_lambda
+                + (scorer.avg_A * scorer.sum_weight).numpy()
+            )
+            @ (scorer.inv_avg_A / scorer.sum_weight).numpy(),
             np.eye(self.x_dim),
             atol=1e-3,
         )
@@ -178,16 +185,16 @@ class TestLinUCB(unittest.TestCase):
         trainer_2.on_train_epoch_end()
 
         npt.assert_array_less(
-            np.zeros(scorer_1.A.shape), scorer_1.A.numpy()
+            np.zeros(scorer_1.avg_A.shape), scorer_1.avg_A.numpy()
         )  # make sure A got updated
-        npt.assert_allclose(scorer_1.A.numpy(), scorer_2.A.numpy(), rtol=1e-4)
-        npt.assert_allclose(scorer_1.b.numpy(), scorer_2.b.numpy(), rtol=1e-4)
+        npt.assert_allclose(scorer_1.avg_A.numpy(), scorer_2.avg_A.numpy(), rtol=1e-4)
+        npt.assert_allclose(scorer_1.avg_b.numpy(), scorer_2.avg_b.numpy(), rtol=1e-4)
 
     def test_linucb_discount_factors(self) -> None:
         # change the precision to double
         torch.set_default_dtype(torch.float64)
 
-        gamma = 0.9
+        gamma = 0.8
         scorer = LinearRegressionUCB(self.x_dim, gamma=gamma)
         policy = Policy(scorer=scorer, sampler=GreedyActionSampler())
         trainer = LinUCBTrainer(policy)
@@ -239,11 +246,26 @@ class TestLinUCB(unittest.TestCase):
         # all matrix and vectors are the same
         A = scorer.gamma * x1.T @ x1 + x2.T @ x2 + x3.T @ x3
         b = scorer.gamma * x1.T @ reward1 + x2.T @ reward2 + x3.T @ reward3
-        npt.assert_allclose(scorer.A.numpy(), scorer.gamma * A, atol=1e-5, rtol=1e-5)
-        npt.assert_allclose(scorer.b.numpy(), scorer.gamma * b, atol=1e-5, rtol=1e-5)
+        npt.assert_allclose(
+            (scorer.avg_A * scorer.sum_weight).numpy(),
+            A * scorer.gamma,
+            atol=1e-5,
+            rtol=1e-5,
+        )
+        npt.assert_allclose(
+            (scorer.avg_b * scorer.sum_weight).numpy(),
+            b * scorer.gamma,
+            atol=1e-5,
+            rtol=1e-5,
+        )
 
         inv_A = np.linalg.inv(A + np.identity(self.x_dim) * scorer.l2_reg_lambda)
-        npt.assert_allclose(scorer.inv_A.numpy(), inv_A, atol=1e-4, rtol=1e-4)
+        npt.assert_allclose(
+            (scorer.inv_avg_A / scorer.sum_weight * scorer.gamma).numpy(),
+            inv_A,
+            atol=1e-4,
+            rtol=1e-4,
+        )
 
         # model parameters are the same
         theta = inv_A @ b
@@ -255,7 +277,7 @@ class TestLinUCB(unittest.TestCase):
             for i in range(inp.size()[0]):
                 x = inp[i].numpy()
                 expected_out[i] = x @ theta.T + scorer.ucb_alpha * np.sqrt(
-                    x @ inv_A @ x.T
+                    x @ inv_A @ x.T / scorer.gamma
                 )
             return expected_out
 

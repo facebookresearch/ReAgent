@@ -40,14 +40,10 @@ class LinUCBTrainer(BaseCBTrainerWithEval):
     """
     The trainer for LinUCB Contextual Bandit model.
     The model estimates a ridge regression (linear) and only supports dense features.
-    The arms can be one of 2 options (specified in FbContBanditBatchPreprocessor):
-        - Fixed arms. The same (have the same semantic meaning) arms across all contexts.
-            If arms are fixed, they can't have features associated with them. Used if
-            `arm_normalization_data` not specified in FbContBanditBatchPreprocessor
-        - Feature arms. We can have different number and identities of arms in each
-            context. The arms must have features to represent their semantic meaning.
-            Used if `arm_normalization_data` is specified in FbContBanditBatchPreprocessor
-            and arm_features column is non-empty
+    We can have different number and identities of arms in each observation. The arms must
+            have features to represent their semantic meaning.
+    Instead of keeping track of cumulative values of `A` and `b`, we keep track of the average
+        (cumulative divided by total weight) values.
     Reference: https://arxiv.org/pdf/1003.0146.pdf
 
     Args:
@@ -86,10 +82,18 @@ class LinUCBTrainer(BaseCBTrainerWithEval):
             weight = torch.ones_like(y)
         weight = weight.float()
 
-        self.scorer.cur_A += torch.matmul(x.t(), x * weight)  # dim (DA*DC, DA*DC)
-        self.scorer.cur_b += torch.matmul(x.t(), y * weight).squeeze()  # dim (DA*DC,)
+        batch_sum_weight = weight.sum()
         self.scorer.cur_num_obs += y.shape[0]
-        self.scorer.cur_sum_weight += weight.sum()
+        self.scorer.cur_sum_weight += batch_sum_weight
+        # update average values of A and b using observations from the batch
+        self.scorer.cur_avg_A = (
+            self.scorer.cur_avg_A * (1 - batch_sum_weight / self.scorer.cur_sum_weight)
+            + torch.matmul(x.t(), x * weight) / self.scorer.cur_sum_weight
+        )  # dim (DA*DC, DA*DC)
+        self.scorer.cur_avg_b = (
+            self.scorer.cur_avg_b * (1 - batch_sum_weight / self.scorer.cur_sum_weight)
+            + torch.matmul(x.t(), y * weight).squeeze() / self.scorer.cur_sum_weight
+        )  # dim (DA*DC,)
 
     def _check_input(self, batch: CBInput):
         assert batch.context_arm_features.ndim == 3
@@ -111,5 +115,5 @@ class LinUCBTrainer(BaseCBTrainerWithEval):
         super().on_train_epoch_end()
         # at the end of the training epoch calculate the coefficients
         self.scorer._calculate_coefs()
-        self.scorer.A *= self.scorer.gamma
-        self.scorer.b *= self.scorer.gamma
+        # apply discounting factor to the total weight. the average `A` and `b` valuse remain the same
+        self.scorer.sum_weight *= self.scorer.gamma

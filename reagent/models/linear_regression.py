@@ -24,6 +24,42 @@ def batch_quadratic_form(x: torch.Tensor, A: torch.Tensor) -> torch.Tensor:
     return (torch.matmul(x, A) * x).sum(-1)
 
 
+def reduce_avg(
+    avg_val: torch.Tensor,
+    sum_weight: torch.Tensor,
+    cur_distributed_avg_val: torch.Tensor,
+    cur_distributed_sum_weight: torch.Tensor,
+) -> torch.Tensor:
+    """
+    Get the new weighted average value of a tensor. Steps:
+    1. Sum across all trainers the weighted sum of values. This is implemented as a sum of product of
+         current-epoch weighted average value and total weight.
+    2. Get the new weighted average value by dividing the total weighted sum by the total weight.
+        - The total are a sum of the current-epoch values across all trainers and the values from previous
+            epochs stored in `avg_val` and `sum_weight`.
+
+    Args:
+        avg_val: Current weighted average value (from previous epochs).
+        sum_weight: Total weight (from previous epochs).
+        cur_distributed_avg_val: Current weighted average value in each trainers in current epoch.
+        cur_distributed_sum_weight: Total weight in each trainer in current epoch.
+    Returns:
+        A new weighted average value.
+    """
+    total_weight = (
+        sync_ddp_if_available(
+            cur_distributed_sum_weight.clone(), reduce_op=ReduceOp.SUM
+        )
+        + sum_weight
+    )  # clone the tensor, so that it's not modified in-place
+    return (
+        avg_val * sum_weight
+        + sync_ddp_if_available(
+            cur_distributed_avg_val * cur_distributed_sum_weight, reduce_op=ReduceOp.SUM
+        )
+    ) / total_weight
+
+
 class LinearRegressionUCB(ModelBase):
     """
     A linear regression model for LinUCB.
@@ -57,27 +93,32 @@ class LinearRegressionUCB(ModelBase):
         self.gamma = gamma
         assert self.gamma <= 1.0 and self.gamma > 0.0
 
-        # the buffers below are split between "all data" and "current epoch" values. This is done
-        #   to enable distributed training. "current epoch" values get summed acorss all trainers at
-        #   the end of an epoch, but "all data" values don't need to be summed (they were already summed
-        #   when the value got moved from "current epoch" to "all data")
-        # A is sum of X^T*X across all data
-        self.register_buffer("A", torch.zeros(self.input_dim, self.input_dim))
-        # b is sum of reward*X across all data
-        self.register_buffer("b", torch.zeros(self.input_dim))
-        # A is sum of X^T*X across current epoch
-        self.register_buffer("cur_A", torch.zeros(self.input_dim, self.input_dim))
-        # b is sum of reward*X across curernt epoch
-        self.register_buffer("cur_b", torch.zeros(self.input_dim))
+        """
+        the buffers below are split between "all data" and "current epoch" values. This is done
+          to enable distributed training. "current epoch" values get reduced acorss all trainers at
+          the end of an epoch (technically, whenever we estimate the coefficients, which could sometimes
+          happen multiple times per epoch) and the sum gets redcuced with "all data" values and the new "all data"
+          value is set to the reduction of "all data" and "current epoch" values.
+        """
+        # A is weighted average of X^T*X across all data
+        self.register_buffer("avg_A", torch.zeros(self.input_dim, self.input_dim))
+        # b is weighted average of reward*X across all data
+        self.register_buffer("avg_b", torch.zeros(self.input_dim))
+        # A is weighted average of X^T*X across current epoch
+        self.register_buffer("cur_avg_A", torch.zeros(self.input_dim, self.input_dim))
+        # b is weighted average of reward*X across current epoch
+        self.register_buffer("cur_avg_b", torch.zeros(self.input_dim))
+
         self.register_buffer("_coefs", torch.zeros(self.input_dim))
-        self.register_buffer("inv_A", torch.zeros(self.input_dim, self.input_dim))
+        self.register_buffer("inv_avg_A", torch.zeros(self.input_dim, self.input_dim))
         self.register_buffer(
-            "coefs_valid_for_A", -torch.ones((self.input_dim, self.input_dim))
-        )  # value of A matrix for which self.coefs were estimated
+            "coefs_valid_for_avg_A", -torch.ones((self.input_dim, self.input_dim))
+        )  # value of avg_A matrix for which self.coefs were estimated
         self.register_buffer("num_obs", torch.zeros(1, dtype=torch.int64))
         self.register_buffer("cur_num_obs", torch.zeros(1, dtype=torch.int64))
-        self.register_buffer("sum_weight", torch.zeros(1, dtype=torch.float))
-        self.register_buffer("cur_sum_weight", torch.zeros(1, dtype=torch.float))
+        # initialize sum of weights below at small values to avoid dividing by 0
+        self.register_buffer("sum_weight", 1e-5 * torch.ones(1, dtype=torch.float))
+        self.register_buffer("cur_sum_weight", 1e-5 * torch.ones(1, dtype=torch.float))
 
         # add a dummy parameter so that DDP doesn't compain about lack of parameters with gradient
         self.dummy_param = torch.nn.parameter.Parameter(torch.zeros(1))
@@ -88,41 +129,42 @@ class LinearRegressionUCB(ModelBase):
     def _calculate_coefs(self) -> None:
         """
         Compute current estimate of regression coefficients and A_inv=A**-1
-        We save both coefficients and A_inv in case they are needed again before we add observations
+        We save both coefficients and A_inv in case they are needed again to avoid recomputing the inverse.
         The coefficients are computed only when needed because their computation can be expensive
             (involves matrix inversion)
         """
-        # reduce (sum) the values of `A` and `b` across all trainer processes.
-        # Since `A` and `b` are computed as sums across all observations within each trainer,
-        #   the correct reduction across trainers is the sum.
+        # reduce the values of `avg_A` and `avg_b` across all trainer processes and reduce them with previous-epoch values.
         # The coefficients can't be averaged across trainers because they are a non-linear
         #   function of `A` and `b`
-        self.A += sync_ddp_if_available(self.cur_A, reduce_op=ReduceOp.SUM)
-        self.b += sync_ddp_if_available(self.cur_b, reduce_op=ReduceOp.SUM)
+        self.avg_A = reduce_avg(
+            self.avg_A, self.sum_weight, self.cur_avg_A, self.cur_sum_weight
+        )
+        self.avg_b = reduce_avg(
+            self.avg_b, self.sum_weight, self.cur_avg_b, self.cur_sum_weight
+        )
         self.num_obs += sync_ddp_if_available(self.cur_num_obs, reduce_op=ReduceOp.SUM)
         self.sum_weight += sync_ddp_if_available(
             self.cur_sum_weight, reduce_op=ReduceOp.SUM
         )
 
-        self.inv_A = torch.linalg.pinv(
-            self.A
+        self.inv_avg_A = torch.linalg.pinv(
+            self.avg_A
             + self.l2_reg_lambda
-            * torch.eye(
-                self.input_dim, device=self.A.device
-            )  # add regularization here so that it's not double-counted under distributed training
+            * torch.eye(self.input_dim, device=self.avg_A.device)
+            / self.sum_weight  # add regularization here so that it's not double-counted under distributed training
         ).contiguous()
-        self._coefs = torch.matmul(self.inv_A, self.b)
-        self.coefs_valid_for_A = self.gamma * self.A.clone()
+        self._coefs = torch.matmul(self.inv_avg_A, self.avg_b)
+        self.coefs_valid_for_avg_A = self.avg_A.clone()
 
         # reset buffers to zero
-        self.cur_A.zero_()
-        self.cur_b.zero_()
+        self.cur_avg_A.zero_()
+        self.cur_avg_b.zero_()
         self.cur_num_obs.zero_()
         self.cur_sum_weight.zero_()
 
     def calculate_coefs_if_necessary(self) -> torch.Tensor:
-        if not (self.coefs_valid_for_A == self.A).all() or (
-            torch.abs(self.cur_A).max().item() > 0
+        if not (self.coefs_valid_for_avg_A == self.avg_A).all() or (
+            torch.abs(self.cur_avg_A).max().item() > 0
         ):
             # re-calculate the coefs only if the previous value is invalid
             self._calculate_coefs()
@@ -142,7 +184,9 @@ class LinearRegressionUCB(ModelBase):
         mu = torch.matmul(inp, self._coefs)
 
         if ucb_alpha != 0:
-            return mu + ucb_alpha * torch.sqrt(batch_quadratic_form(inp, self.inv_A))
+            return mu + ucb_alpha * torch.sqrt(
+                batch_quadratic_form(inp, self.inv_avg_A) / self.sum_weight
+            )
         else:
             return mu
 
