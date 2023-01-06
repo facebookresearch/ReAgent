@@ -81,21 +81,27 @@ class TestEvalDuringTraining(unittest.TestCase):
         # check if trained model state is correct
         batch_1_used_features = batch_1.context_arm_features[1, 1].numpy()
         npt.assert_allclose(
-            self.trainer.scorer.A.numpy(),
+            (self.trainer.scorer.avg_A * self.trainer.scorer.sum_weight).numpy(),
             np.outer(batch_1_used_features, batch_1_used_features),
         )
         npt.assert_allclose(
-            self.trainer.scorer.b.numpy(),
+            (self.trainer.scorer.avg_b * self.trainer.scorer.sum_weight).numpy(),
             batch_1_used_features * batch_1.reward[1, 0].item(),
         )
 
         # check if evaluated model state is correct (should be same as trained model)
         npt.assert_allclose(
-            self.eval_module.eval_model.A.numpy(),
+            (
+                self.eval_module.eval_model.avg_A
+                * self.eval_module.eval_model.sum_weight
+            ).numpy(),
             np.outer(batch_1_used_features, batch_1_used_features),
         )
         npt.assert_allclose(
-            self.eval_module.eval_model.b.numpy(),
+            (
+                self.eval_module.eval_model.avg_b
+                * self.eval_module.eval_model.sum_weight
+            ).numpy(),
             batch_1_used_features * batch_1.reward[1, 0].item(),
         )
 
@@ -132,23 +138,29 @@ class TestEvalDuringTraining(unittest.TestCase):
         # check that trained model state is correct
         batch_2_used_features = batch_2.context_arm_features[0, 1].numpy()
         npt.assert_allclose(
-            self.trainer.scorer.A.numpy(),
+            (self.trainer.scorer.avg_A * self.trainer.scorer.sum_weight).numpy(),
             np.outer(batch_1_used_features, batch_1_used_features)
             + np.outer(batch_2_used_features, batch_2_used_features),
         )
         npt.assert_allclose(
-            self.trainer.scorer.b.numpy(),
+            (self.trainer.scorer.avg_b * self.trainer.scorer.sum_weight).numpy(),
             batch_1_used_features * batch_1.reward[1, 0].item()
             + batch_2_used_features * batch_2.reward[0, 0].item(),
         )
 
         # check that evaluated model state is correct (same as it was after batch_1)
         npt.assert_allclose(
-            self.eval_module.eval_model.A.numpy(),
+            (
+                self.eval_module.eval_model.avg_A
+                * self.eval_module.eval_model.sum_weight
+            ).numpy(),
             np.outer(batch_1_used_features, batch_1_used_features),
         )
         npt.assert_allclose(
-            self.eval_module.eval_model.b.numpy(),
+            (
+                self.eval_module.eval_model.avg_b
+                * self.eval_module.eval_model.sum_weight
+            ).numpy(),
             batch_1_used_features * batch_1.reward[1, 0].item(),
         )
 
@@ -204,13 +216,13 @@ class TestEvalDuringTraining(unittest.TestCase):
         # check that trained model state is correct
         batch_3_used_features = batch_3.context_arm_features[1, 1].numpy()
         npt.assert_allclose(
-            self.trainer.scorer.A.numpy(),
+            (self.trainer.scorer.avg_A * self.trainer.scorer.sum_weight).numpy(),
             np.outer(batch_1_used_features, batch_1_used_features)
             + np.outer(batch_2_used_features, batch_2_used_features)
             + np.outer(batch_3_used_features, batch_3_used_features),
         )
         npt.assert_allclose(
-            self.trainer.scorer.b.numpy(),
+            (self.trainer.scorer.avg_b * self.trainer.scorer.sum_weight).numpy(),
             batch_1_used_features * batch_1.reward[1, 0].item()
             + batch_2_used_features * batch_2.reward[0, 0].item()
             + batch_3_used_features * batch_3.reward[1, 0].item(),
@@ -218,11 +230,17 @@ class TestEvalDuringTraining(unittest.TestCase):
 
         # check that evaluated model state is correct (same as it was after batch_1)
         npt.assert_allclose(
-            self.eval_module.eval_model.A.numpy(),
+            (
+                self.eval_module.eval_model.avg_A
+                * self.eval_module.eval_model.sum_weight
+            ).numpy(),
             np.outer(batch_1_used_features, batch_1_used_features),
         )
         npt.assert_allclose(
-            self.eval_module.eval_model.b.numpy(),
+            (
+                self.eval_module.eval_model.avg_b
+                * self.eval_module.eval_model.sum_weight
+            ).numpy(),
             batch_1_used_features * batch_1.reward[1, 0].item(),
         )
 

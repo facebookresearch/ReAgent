@@ -61,10 +61,14 @@ class TestLinearRegressionUCB(unittest.TestCase):
 
         expected_out = np.zeros(2)
         expected_out[0] = 6.0 + alpha * np.sqrt(
-            inp[0].numpy() @ model.inv_A.numpy() @ inp[0].numpy()
+            inp[0].numpy()
+            @ (model.inv_avg_A / model.sum_weight).numpy()
+            @ inp[0].numpy()
         )
         expected_out[1] = 7.0 + alpha * np.sqrt(
-            inp[1].numpy() @ model.inv_A.numpy() @ inp[1].numpy()
+            inp[1].numpy()
+            @ (model.inv_avg_A / model.sum_weight).numpy()
+            @ inp[1].numpy()
         )
 
         self.assertIsInstance(out, torch.Tensor)

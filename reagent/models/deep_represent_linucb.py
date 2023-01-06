@@ -104,7 +104,10 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
             ucb_alpha = self.ucb_alpha
         self.pred_u = torch.matmul(self.mlp_out, self.coefs)
         if ucb_alpha != 0:
-            self.pred_sigma = torch.sqrt(batch_quadratic_form(self.mlp_out, self.inv_A))
+            self.pred_sigma = torch.sqrt(
+                batch_quadratic_form(self.mlp_out, self.inv_avg_A)
+                / torch.clamp(self.sum_weight, min=0.00001)
+            )
             pred_ucb = self.pred_u + ucb_alpha * self.pred_sigma
         else:
             pred_ucb = self.pred_u
