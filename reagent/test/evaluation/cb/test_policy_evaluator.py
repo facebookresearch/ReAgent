@@ -100,9 +100,9 @@ class TestPolicyEvaluator(unittest.TestCase):
 
     def test_update_eval_model(self):
         policy_network_1 = LinearRegressionUCB(2)
-        policy_network_1.A += 0.3
+        policy_network_1.avg_A += 0.3
         policy_network_2 = LinearRegressionUCB(2)
-        policy_network_2.A += 0.1
+        policy_network_2.avg_A += 0.1
         eval_module = PolicyEvaluator(policy_network_1)
         self.assertTrue(
             _compare_state_dicts(
@@ -119,7 +119,7 @@ class TestPolicyEvaluator(unittest.TestCase):
 
         # change to the source model shouldn't affect the model in the eval module
         original_state_dict_2 = copy.deepcopy(policy_network_2.state_dict())
-        policy_network_2.A += 0.4
+        policy_network_2.avg_A += 0.4
         self.assertTrue(
             _compare_state_dicts(
                 eval_module.eval_model.state_dict(), original_state_dict_2
