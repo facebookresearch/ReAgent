@@ -258,7 +258,11 @@ class TestEvalDuringTraining(unittest.TestCase):
         )
 
         # check total weight (number of observations). Should be 3
-        self.assertAlmostEqual(self.eval_module.sum_weight.item(), 3.0, places=4)
+        self.assertAlmostEqual(
+            (self.eval_module.sum_weight + self.eval_module.sum_weight_local).item(),
+            3.0,
+            places=4,
+        )
 
         # metrics should have been logged once, at the end of epoch
         # TODO: test logging logic triggered by eval_model_update_critical_weight

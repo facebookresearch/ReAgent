@@ -55,21 +55,34 @@ class TestPolicyEvaluator(unittest.TestCase):
         self.eval_module._process_all_data(self.batch)
         state_dict_after = copy.deepcopy(self.eval_module.state_dict())
 
-        # all_data_sum_weight got updated properly
+        # all_data_sum_weight_local got updated properly
         self.assertAlmostEqual(
-            state_dict_after["all_data_sum_weight"].item()
-            - state_dict_before["all_data_sum_weight"].item(),
+            state_dict_after["all_data_sum_weight_local"].item()
+            - state_dict_before["all_data_sum_weight_local"].item(),
             len(self.batch),
         )
+        # all_data_sum_weight didn't change (bcs we haven't aggregated across instances yet)
+        self.assertAlmostEqual(
+            state_dict_after["all_data_sum_weight"].item(),
+            state_dict_before["all_data_sum_weight"].item(),
+        )
 
-        # sum_weight and avg_reward_weighted didn't change
+        # sum_weight and sum_reward_weighted didn't change (as well as local values)
         self.assertAlmostEqual(
             state_dict_after["sum_weight"].item(),
             state_dict_before["sum_weight"].item(),
         )
         self.assertAlmostEqual(
-            state_dict_after["avg_reward_weighted"].item(),
-            state_dict_before["avg_reward_weighted"].item(),
+            state_dict_after["sum_weight_local"].item(),
+            state_dict_before["sum_weight_local"].item(),
+        )
+        self.assertAlmostEqual(
+            state_dict_after["sum_reward_weighted"].item(),
+            state_dict_before["sum_reward_weighted"].item(),
+        )
+        self.assertAlmostEqual(
+            state_dict_after["sum_reward_weighted_local"].item(),
+            state_dict_before["sum_reward_weighted_local"].item(),
         )
 
     def test_process_used_data_reject_all(self):
@@ -88,14 +101,22 @@ class TestPolicyEvaluator(unittest.TestCase):
         policy_network = LinearRegressionUCB(2)
         eval_module = PolicyEvaluator(policy_network)
         state_dict_before = copy.deepcopy(eval_module.state_dict())
+        weight_value = 2.0
         batch = replace(
             self.batch,
-            weight=torch.tensor([[0.0], [1.0]]),
+            weight=torch.tensor([[0.0], [weight_value]]),
         )
         eval_module._process_used_data(batch)
+        eval_module._aggregate_across_instances()
         state_dict_after = copy.deepcopy(eval_module.state_dict())
         self.assertFalse(_compare_state_dicts(state_dict_before, state_dict_after))
-        self.assertEqual(eval_module.sum_weight.item(), 1.0)
+        self.assertEqual(eval_module.sum_weight_local.item(), 0.0)
+        self.assertEqual(eval_module.sum_weight.item(), weight_value)
+        self.assertEqual(
+            eval_module.sum_reward_weighted.item(),
+            weight_value * self.batch.reward[1, 0].item(),
+        )
+        self.assertEqual(eval_module.sum_reward_weighted_local.item(), 0.0)
         self.assertEqual(eval_module.get_avg_reward(), self.batch.reward[1, 0].item())
 
     def test_update_eval_model(self):
@@ -129,6 +150,7 @@ class TestPolicyEvaluator(unittest.TestCase):
     def test_ingest_batch(self):
         model_actions = torch.tensor([[1], [1]], dtype=torch.long)
         _ = self.eval_module.ingest_batch(self.batch, model_actions)
+        self.eval_module._aggregate_across_instances()
         # correct average reward
         self.assertEqual(
             self.eval_module.get_avg_reward(), self.batch.reward[1, 0].item()
@@ -137,6 +159,7 @@ class TestPolicyEvaluator(unittest.TestCase):
     def test_formatted_output(self):
         model_actions = torch.tensor([[1], [1]], dtype=torch.long)
         _ = self.eval_module.ingest_batch(self.batch, model_actions)
+        self.eval_module._aggregate_across_instances()
         output = self.eval_module.get_formatted_result_string()
         self.assertIsInstance(output, str)
 
