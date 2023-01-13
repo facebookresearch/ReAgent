@@ -61,17 +61,17 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
             # update the model if we've processed enough samples
             eval_model_update_critical_weight = self.eval_model_update_critical_weight
             if eval_model_update_critical_weight is not None:
-                # TODO: support distributed training by aggregating sum_weight across trainers.
                 if (
-                    eval_module.sum_weight_since_update.item()
+                    eval_module.sum_weight_since_update_local.item()
                     >= eval_model_update_critical_weight
                 ):
                     logger.info(
-                        f"Updating the evaluated model after {eval_module.sum_weight_since_update.item()} observations"
+                        f"Updating the evaluated model after {eval_module.sum_weight_since_update_local.item()} observations"
                     )
                     eval_module.update_eval_model(self.scorer)
-                    eval_module.sum_weight_since_update.zero_()
+                    eval_module.sum_weight_since_update_local.zero_()
                     eval_module.num_eval_model_updates += 1
+                    eval_module._aggregate_across_instances()
                     eval_module.log_metrics(global_step=self.global_step)
             with torch.no_grad():
                 eval_scores = eval_module.eval_model(batch.context_arm_features)
@@ -89,7 +89,7 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
                 else:
                     model_actions = torch.argmax(eval_scores, dim=1).reshape(-1, 1)
             new_batch = eval_module.ingest_batch(batch, model_actions)
-            eval_module.sum_weight_since_update += (
+            eval_module.sum_weight_since_update_local += (
                 batch.weight.sum() if batch.weight is not None else len(batch)
             )
         else:
@@ -99,4 +99,7 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
     def on_train_epoch_end(self):
         eval_module = self.eval_module  # assign to local var to keep pyre happy
         if eval_module is not None:
+            if eval_module.sum_weight_since_update_local.item() > 0:
+                # only aggregate if we've processed new data since last aggregation.
+                eval_module._aggregate_across_instances()
             eval_module.log_metrics(global_step=self.global_step)
