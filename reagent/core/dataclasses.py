@@ -44,8 +44,8 @@ except KeyError:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-logger.info(f"USE_VANILLA_DATACLASS: {USE_VANILLA_DATACLASS}")
-logger.info(f"ARBITRARY_TYPES_ALLOWED: {ARBITRARY_TYPES_ALLOWED}")
+logger.debug(f"USE_VANILLA_DATACLASS: {USE_VANILLA_DATACLASS}")
+logger.debug(f"ARBITRARY_TYPES_ALLOWED: {ARBITRARY_TYPES_ALLOWED}")
 
 
 if TYPE_CHECKING:
@@ -68,7 +68,7 @@ else:
             if USE_VANILLA_DATACLASS:
                 try:
                     post_init_post_parse = cls.__dict__["__post_init_post_parse__"]
-                    logger.info(
+                    logger.debug(
                         f"Setting {cls.__name__}.__post_init__ to its "
                         "__post_init_post_parse__"
                     )
