@@ -14,5 +14,5 @@ def register_if_not_exists(id, entry_point):
     Preventing tests from failing trying to re-register environments
     """
     if id not in registry.env_specs:
-        logger.info(f"Registering id={id}, entry_point={entry_point}.")
+        logger.debug(f"Registering id={id}, entry_point={entry_point}.")
         register(id=id, entry_point=entry_point)
