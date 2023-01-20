@@ -68,6 +68,7 @@ class DisjointLinearRegressionUCB(ModelBase):
         self.num_arms = num_arms
         self.input_dim = input_dim
         self.ucb_alpha = ucb_alpha
+        self.cur_num_obs = torch.zeros(self.num_arms, dtype=torch.int64)
         self.gamma = gamma
         assert self.gamma <= 1.0 and self.gamma > 0.0
         self.l2_reg_lambda = l2_reg_lambda
@@ -96,6 +97,7 @@ class DisjointLinearRegressionUCB(ModelBase):
             "coefs_valid_for_A",
             -torch.ones((self.input_dim, self.input_dim)).repeat(self.num_arms, 1, 1),
         )  # value of A matrix for which self.coefs were estimated
+
         # add a dummy parameter so that DDP doesn't compain about lack of parameters with gradient
         self.dummy_param = torch.nn.parameter.Parameter(torch.zeros(1))
 
@@ -132,6 +134,17 @@ class DisjointLinearRegressionUCB(ModelBase):
         # need coefs_valid_for_A to check if we have done _estimate_coefs
         # this is needed to avoid redundant re-compute of coefs in forward function.
         self.coefs_valid_for_A = self.gamma * self.A.clone()
+
+        cur_round_obs = sync_ddp_if_available(
+            self.cur_num_obs.to(device), reduce_op=ReduceOp.SUM
+        )
+        logging.info(
+            f"current round num of observations for {self.num_arms} arms are {cur_round_obs}"
+        )
+        logging.info(
+            f"current round num of observations for all arms are {cur_round_obs.sum()}"
+        )
+        self.cur_num_obs.zero_()
 
     def forward(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None

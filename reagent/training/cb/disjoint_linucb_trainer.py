@@ -62,6 +62,8 @@ class DisjointLinUCBTrainer(BaseCBTrainerWithEval):
             weight = torch.ones_like(torch.tensor(y))
         weight = weight.float()
 
+        self.scorer.cur_num_obs[arm_idx] += torch.tensor(y).shape[0]
+
         self.scorer.cur_A[arm_idx] += torch.matmul(
             x.t(), x * weight
         )  # dim (DA*DC, DA*DC)
