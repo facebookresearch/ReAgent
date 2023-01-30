@@ -111,9 +111,12 @@ class LinUCBTrainer(BaseCBTrainerWithEval):
         assert batch.reward is not None  # to satisfy Pyre
         self.update_params(x, batch.reward, batch.weight)
 
+    def apply_discounting_multiplier(self):
+        self.scorer.sum_weight *= self.scorer.gamma
+
     def on_train_epoch_end(self):
         super().on_train_epoch_end()
         # at the end of the training epoch calculate the coefficients
         self.scorer._calculate_coefs()
         # apply discounting factor to the total weight. the average `A` and `b` valuse remain the same
-        self.scorer.sum_weight *= self.scorer.gamma
+        self.apply_discounting_multiplier()
