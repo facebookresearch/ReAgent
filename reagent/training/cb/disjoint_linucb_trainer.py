@@ -95,6 +95,10 @@ class DisjointLinUCBTrainer(BaseCBTrainerWithEval):
                 sub_batch.weight,
             )
 
+    def apply_discounting_multiplier(self):
+        self.scorer.b *= self.scorer.gamma
+        self.scorer.A *= self.scorer.gamma
+
     def on_train_epoch_end(self):
         super().on_train_epoch_end()
         # at the end of the training epoch calculate the coefficients
@@ -103,5 +107,4 @@ class DisjointLinUCBTrainer(BaseCBTrainerWithEval):
         # self.A is V in D-LinUCB paper https://arxiv.org/pdf/1909.09146.pdf
         # This is a simplified version of D-LinUCB, we calculate A = \sum \gamma^t xx^T
         # to discount the old data. See N2441818 for why we do this.
-        self.scorer.b *= self.scorer.gamma
-        self.scorer.A *= self.scorer.gamma
+        self.apply_discounting_multiplier()
