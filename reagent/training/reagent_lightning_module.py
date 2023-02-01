@@ -204,7 +204,7 @@ class StoppingEpochCallback(pl.Callback):
     We use this callback to control the number of training epochs in incremental
     training. Epoch & step counts are not reset in the checkpoint. If we were to set
     `max_epochs` on the trainer, we would have to keep track of the previous `max_epochs`
-    and add to it manually. This keeps the infomation in one place.
+    and add to it manually. This keeps the information in one place.
 
     Note that we need to set `_cleanly_stopped` back to True before saving the checkpoint.
     This is done in `ModelManager.save_trainer()`.
