@@ -47,6 +47,8 @@ class FullyConnectedDQN(FloatFeatureFullyConnected):
         )
         self.action_dim = self.output_dim
 
+    # pyre-fixme[14]: `forward` overrides method defined in
+    #  `FloatFeatureFullyConnected` inconsistently.
     def forward(
         self,
         state: rlt.FeatureData,
