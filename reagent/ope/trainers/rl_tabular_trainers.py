@@ -98,6 +98,8 @@ class TabularValueFunction(ValueFunction):
     def state_value(self, state: State) -> float:
         pass
 
+    # pyre-fixme[14]: `reset` overrides method defined in `ValueFunction`
+    #  inconsistently.
     def reset(self, clear_state_values: bool = False) -> None:
         pass
 
@@ -156,6 +158,8 @@ class DPValueFunction(TabularValueFunction):
         self._threshold = threshold
         self._evaluated = False
 
+    # pyre-fixme[14]: `state_value` overrides method defined in
+    #  `TabularValueFunction` inconsistently.
     def state_value(self, state: State, horizon: int = -1) -> float:
         if not self._evaluated:
             self._evaluate()

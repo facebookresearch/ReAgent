@@ -82,6 +82,7 @@ class FrechetSort(Sampler):
             action = action[: self.topk]
         return rlt.ActorOutput(action, log_prob)
 
+    # pyre-fixme[14]: `log_prob` overrides method defined in `Sampler` inconsistently.
     def log_prob(
         self,
         scores: torch.Tensor,
