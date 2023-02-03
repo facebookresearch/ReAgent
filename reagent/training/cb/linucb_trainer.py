@@ -102,6 +102,25 @@ class LinUCBTrainer(BaseCBTrainerWithEval):
         assert len(batch.action) == len(batch.reward)
         assert len(batch.action) == batch.context_arm_features.shape[0]
 
+    def _update_recmetrics(
+        self, batch: CBInput, batch_idx: int, x: torch.Tensor
+    ) -> None:
+        recmetric_module = self.recmetric_module
+        if (recmetric_module is not None) and (batch_idx % self.log_every_n_steps == 0):
+            # get point predictions (expected value, uncertainty ignored)
+            # this could be expensive because the coefficients have to be computed via matrix inversion
+            preds = self.scorer(x, ucb_alpha=0)
+            recmetric_module.update(
+                {
+                    "prediction": preds,
+                    "label": batch.reward,
+                    "weight": batch.weight
+                    if batch.weight is not None
+                    else torch.ones_like(batch.reward),
+                }
+            )
+            self._log_recmetrics(global_step=self.global_step)
+
     def cb_training_step(self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0):
         self._check_input(batch)
         assert batch.action is not None  # to satisfy Pyre
@@ -110,6 +129,8 @@ class LinUCBTrainer(BaseCBTrainerWithEval):
         # update parameters
         assert batch.reward is not None  # to satisfy Pyre
         self.update_params(x, batch.reward, batch.weight)
+
+        self._update_recmetrics(batch, batch_idx, x)
 
     def apply_discounting_multiplier(self):
         self.scorer.sum_weight *= self.scorer.gamma
