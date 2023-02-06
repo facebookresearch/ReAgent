@@ -293,7 +293,6 @@ class NNTrainer(Trainer):
     def name(self) -> str:
         return "linear_net"
 
-    # pyre-fixme[14]: `train` overrides method defined in `Trainer` inconsistently.
     def train(
         self,
         data: TrainingData,
