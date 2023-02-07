@@ -8,6 +8,7 @@ import torch
 from reagent.core.types import CBInput
 from reagent.evaluation.cb.base_evaluator import BaseOfflineEval
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
+from torchrec.metrics.metric_module import RecMetricModule
 
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,12 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
     scorer: torch.nn.Module
 
     def __init__(
-        self, eval_model_update_critical_weight: Optional[float] = None, *args, **kwargs
+        self,
+        eval_model_update_critical_weight: Optional[float] = None,
+        recmetric_module: Optional[RecMetricModule] = None,
+        log_every_n_steps: int = 0,
+        *args,
+        **kwargs,
     ):
         """
         Agruments:
@@ -33,6 +39,11 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
         super().__init__(*args, **kwargs)
         self.eval_module: Optional[BaseOfflineEval] = None
         self.eval_model_update_critical_weight = eval_model_update_critical_weight
+        self.recmetric_module = recmetric_module
+        self.log_every_n_steps = log_every_n_steps
+        assert (log_every_n_steps > 0) == (
+            recmetric_module is not None
+        ), "recmetric_module should be provided if and only if log_every_n_steps > 0"
 
     def attach_eval_module(self, eval_module: BaseOfflineEval):
         """
@@ -103,3 +114,6 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
                 # only aggregate if we've processed new data since last aggregation.
                 eval_module._aggregate_across_instances()
             eval_module.log_metrics(global_step=self.global_step)
+
+    def _log_recmetrics(self, global_step: Optional[int] = None) -> None:
+        pass
