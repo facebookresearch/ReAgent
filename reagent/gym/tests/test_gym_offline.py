@@ -11,6 +11,7 @@ import pytest
 import pytorch_lightning as pl
 import torch
 from parameterized import parameterized
+from reagent.fb.preprocessing.batch_preprocessor import identity_collate
 from reagent.gym.agents.agent import Agent
 from reagent.gym.datasets.replay_buffer_dataset import OfflineReplayBufferDataset
 from reagent.gym.envs import Gym
@@ -21,7 +22,6 @@ from reagent.model_managers.union import ModelManager__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.workflow.types import RewardOptions
-
 
 # for seeding the environment
 SEED = 0
@@ -79,11 +79,6 @@ def evaluate_cem(env, manager, trainer_module, num_eval_episodes: int):
     return evaluate_for_n_episodes(
         n=num_eval_episodes, env=env, agent=agent, max_steps=env.max_steps
     )
-
-
-def identity_collate(batch):
-    assert isinstance(batch, list) and len(batch) == 1, f"Got {batch}"
-    return batch[0]
 
 
 def run_test_offline(
