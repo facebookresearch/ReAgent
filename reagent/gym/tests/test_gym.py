@@ -12,7 +12,6 @@ import pytest
 import pytorch_lightning as pl
 import torch
 from parameterized import parameterized
-from reagent.fb.preprocessing.batch_preprocessor import identity_collate
 from reagent.gym.agents.agent import Agent
 from reagent.gym.datasets.episodic_dataset import EpisodicDataset
 from reagent.gym.datasets.replay_buffer_dataset import ReplayBufferDataset
@@ -25,6 +24,7 @@ from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.model_managers.union import ModelManager__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
 from reagent.test.base.horizon_test_base import HorizonTestBase
+
 
 # for seeding the environment
 SEED = 0
@@ -175,6 +175,11 @@ def eval_policy(
     mean_eval = np.mean(eval_rewards)
     logger.info(f"average: {mean_eval};\tmax: {np.max(eval_rewards)}")
     return np.array(eval_rewards)
+
+
+def identity_collate(batch):
+    assert isinstance(batch, list) and len(batch) == 1, f"Got {batch}"
+    return batch[0]
 
 
 def run_test_replay_buffer(
