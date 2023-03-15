@@ -357,7 +357,7 @@ class MapIDListFeatures:
         ), f"id_list_keys: {id_list_keys}; id_score_list_keys: {id_score_list_keys}"
         self.feature_config = feature_config
         self.sparse_preprocessor = make_sparse_preprocessor(
-            feature_config=feature_config, device=device
+            feature_config=feature_config, device=device, gen_torch_script=False
         )
 
     def __call__(self, data):
