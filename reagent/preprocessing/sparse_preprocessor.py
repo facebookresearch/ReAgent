@@ -3,7 +3,7 @@
 
 import abc
 import logging
-from typing import Dict, Tuple
+from typing import cast, Dict, Tuple
 
 import reagent.core.types as rlt
 import torch
@@ -83,7 +83,9 @@ class HashingMapIDScoreList(MapIDScoreList):
 
 
 def make_sparse_preprocessor(
-    feature_config: rlt.ModelFeatureConfig, device: torch.device
+    feature_config: rlt.ModelFeatureConfig,
+    device: torch.device,
+    gen_torch_script: bool = True,
 ):
     """Helper to initialize, for scripting SparsePreprocessor"""
     # TODO: Add option for simple modulo and other hash functions
@@ -116,9 +118,17 @@ def make_sparse_preprocessor(
         for config in feature_config.id_score_list_feature_configs
     }
     sparse_preprocessor = SparsePreprocessor(
-        id2name, name2id, id_list_mappers, id_score_list_mappers, device
+        id2name,
+        name2id,
+        id_list_mappers,
+        id_score_list_mappers,
+        device,
+        gen_torch_script,
     )
-    return torch.jit.script(sparse_preprocessor)
+    if gen_torch_script:
+        return torch.jit.script(sparse_preprocessor)
+    else:
+        return sparse_preprocessor
 
 
 class SparsePreprocessor(torch.nn.Module):
@@ -137,20 +147,73 @@ class SparsePreprocessor(torch.nn.Module):
         id_list_mappers: Dict[int, MapIDList],
         id_score_list_mappers: Dict[int, MapIDScoreList],
         device: torch.device,
+        gen_torch_script: bool,
     ) -> None:
         super().__init__()
         assert set(id2name.keys()) == set(id_list_mappers.keys()) | set(
             id_score_list_mappers.keys()
         )
-        self.id2name: Dict[int, str] = torch.jit.Attribute(id2name, Dict[int, str])
-        self.name2id: Dict[str, int] = torch.jit.Attribute(name2id, Dict[str, int])
+        self._id2name: Dict[int, str] = id2name
+        self._name2id: Dict[str, int] = name2id
+        if gen_torch_script:
+            self.id2name: Dict[int, str] = torch.jit.Attribute(id2name, Dict[int, str])
+            self.name2id: Dict[str, int] = torch.jit.Attribute(name2id, Dict[str, int])
+        else:
+            self.id2name: Dict[int, str] = id2name
+            self.name2id: Dict[str, int] = name2id
+        self._id_list_mappers = id_list_mappers
+        self._id_score_list_mappers = id_score_list_mappers
         self.id_list_mappers = torch.nn.ModuleDict(
             {id2name[k]: v for k, v in id_list_mappers.items()}
         )
         self.id_score_list_mappers = torch.nn.ModuleDict(
             {id2name[k]: v for k, v in id_score_list_mappers.items()}
         )
+
         self.device = device
+        self.gen_torch_script = gen_torch_script
+
+    @torch.jit.ignore
+    def __getstate__(self):
+        # Return a dictionary of picklable attributes
+        # Notice, this method should not be scripted!
+        # This method is for pickle only, which is used in Inter Process Communication (IPC)
+        # , i.e., copy objects across multi-processes
+        return {
+            "id2name": self._id2name,
+            "name2id": self._name2id,
+            "id_list_mappers": self._id_list_mappers,
+            "id_score_list_mappers": self._id_score_list_mappers,
+            "device": self.device,
+            "gen_torch_script": self.gen_torch_script,
+        }
+
+    @torch.jit.ignore
+    def __setstate__(self, state):
+        # Set object attributes from pickled state dictionary
+        # Notice, this method should not be scripted!
+        # This method is for pickle only, which is used in Inter Process Communication (IPC)
+        # , i.e., copy objects across multi-processes
+
+        # Notice, we need to re-init the module so that the attributes can be assigned
+        super().__init__()
+        self.gen_torch_script = state["gen_torch_script"]
+        if self.gen_torch_script:
+            raise AssertionError(
+                "SparsePreprocessor should not be scripted at this stage!"
+            )
+        self.id2name = cast(Dict[int, str], state["id2name"])
+        self.name2id = cast(Dict[int, str], state["name2id"])
+        self._id_list_mappers = state["id_list_mappers"]
+        self._id_score_list_mappers = state["id_score_list_mappers"]
+        self.device = state["device"]
+
+        self.id_list_mappers = torch.nn.ModuleDict(
+            {self.id2name[k]: v for k, v in self._id_list_mappers.items()}
+        )
+        self.id_score_list_mappers = torch.nn.ModuleDict(
+            {self.id2name[k]: v for k, v in self._id_score_list_mappers.items()}
+        )
 
     @torch.jit.export
     def preprocess_id_list(
