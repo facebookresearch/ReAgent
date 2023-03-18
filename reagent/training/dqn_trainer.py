@@ -290,6 +290,8 @@ class DQNTrainer(DQNTrainerBaseLightning):
         # Do we ever use model_action_idxs computed below?
         model_action_idxs = self.get_max_q_values(
             self.all_action_scores,
+            # pyre-fixme[61]: `possible_actions_mask` is undefined, or not always
+            #  defined.
             possible_actions_mask if self.maxq_learning else training_batch.action,
         )[1]
 

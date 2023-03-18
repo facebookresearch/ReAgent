@@ -144,6 +144,8 @@ class Seq2SlateSimulationTrainer(Seq2SlateTrainer):
                 training_input.src_seq.float_features,
                 simulated_slate_features,
                 training_input.src_src_mask,
+                # pyre-fixme[61]: `model_actions_with_offset` is undefined, or not
+                #  always defined.
                 model_actions_with_offset,
             ).detach()
             assert sr.ndim == 2, f"Slate reward {name} output should be 2-D tensor"
@@ -161,6 +163,8 @@ class Seq2SlateSimulationTrainer(Seq2SlateTrainer):
             sim_distance = (
                 torch.tensor(
                     # pyre-fixme[16]: `int` has no attribute `__iter__`.
+                    # pyre-fixme[61]: `model_actions` is undefined, or not always
+                    #  defined.
                     [swap_dist(x.tolist()) for x in model_actions],
                     device=device,
                 )
