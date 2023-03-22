@@ -38,51 +38,50 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
 
     def __init__(
         self,
-        raw_input_dim: int,  # raw feature
+        input_dim: int,  # raw feature
         sizes: List[int],  # MLP hidden layers of the deep_represent module
-        linucb_inp_dim: int,  # output from deep_represent module, i.e., input to LinUCB module
         activations: List[str],
         *,
-        output_activation: str = "linear",
+        l2_reg_lambda: float = 1.0,
+        ucb_alpha: float = 1.0,
+        gamma: float = 1.0,
         use_batch_norm: bool = False,
         dropout_ratio: float = 0.0,
-        normalized_output: bool = False,
+        normalize_output: bool = False,
         use_layer_norm: bool = False,
-        ucb: Optional[torch.Tensor] = None,
-        mlp_out: torch.Tensor = None,  # pyre-fixme; Attribute has type `Tensor`; used as `None`.
-        pred_u: torch.Tensor = None,  # pyre-fixme; Attribute has type `Tensor`; used as `None`.
-        pred_sigma: torch.Tensor = None,  # pyre-fixme; Attribute has type `Tensor`; used as `None`.
-        mlp_layers: nn.Module = None,  # pyre-fixme; Attribute has type `nn.Module`; used as `None`.
+        mlp_layers: Optional[nn.Module] = None,
     ):
-        super().__init__(input_dim=linucb_inp_dim)
+        super().__init__(
+            input_dim=sizes[-1],
+            l2_reg_lambda=l2_reg_lambda,
+            ucb_alpha=ucb_alpha,
+            gamma=gamma,
+        )
 
-        assert raw_input_dim > 0, "raw_input_dim must be > 0, got {}".format(
-            raw_input_dim
-        )
-        assert linucb_inp_dim > 0, "linucb_inp_dim must be > 0, got {}".format(
-            linucb_inp_dim
-        )
+        assert input_dim > 0, "input_dim must be > 0, got {}".format(input_dim)
+        assert sizes[-1] > 0, "Last layer size must be > 0, got {}".format(sizes[-1])
         assert len(sizes) == len(
             activations
         ), "The numbers of sizes and activations must match; got {} vs {}".format(
             len(sizes), len(activations)
         )
 
-        self.raw_input_dim = raw_input_dim  # input to DeepRepresent
-        self.mlp_out = mlp_out
-        self.pred_u = pred_u
-        self.pred_sigma = pred_sigma
+        self.raw_input_dim = input_dim  # input to DeepRepresent
         if mlp_layers is None:
             self.deep_represent_layers = FullyConnectedNetwork(
-                [raw_input_dim] + sizes + [linucb_inp_dim],
-                activations + [output_activation],
+                [input_dim] + sizes,
+                activations,
                 use_batch_norm=use_batch_norm,
                 dropout_ratio=dropout_ratio,
-                normalize_output=normalized_output,
+                normalize_output=normalize_output,
                 use_layer_norm=use_layer_norm,
             )
         else:
-            self.deep_represent_layers = mlp_layers  # use customized layers
+            self.deep_represent_layers = mlp_layers  # use customized layer
+
+        self.pred_u = torch.Tensor()
+        self.pred_sigma = torch.Tensor()
+        self.mlp_out = torch.Tensor()
 
     def input_prototype(self) -> torch.Tensor:
         return torch.randn(1, self.raw_input_dim)
