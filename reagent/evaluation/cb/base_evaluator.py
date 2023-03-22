@@ -4,11 +4,10 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 import torch
+from pytorch_lightning.loggers import LightningLoggerBase
 from reagent.core.types import CBInput
 from reagent.core.utils import get_rank
 from reagent.evaluation.cb.utils import zero_out_skipped_obs_weights
-from torch.utils.tensorboard import SummaryWriter
-
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +18,7 @@ class BaseOfflineEval(torch.nn.Module, ABC):
         policies, as required for exploration-exploitation.
     """
 
+    metric_prefix: str = "[model]Offline_Eval_"
     sum_weight: torch.Tensor
     all_data_sum_weight: torch.Tensor
     sum_weight_local: torch.Tensor
@@ -29,7 +29,7 @@ class BaseOfflineEval(torch.nn.Module, ABC):
     def __init__(
         self,
         eval_model: torch.nn.Module,
-        summary_writer: Optional[SummaryWriter] = None,
+        logger: Optional[LightningLoggerBase] = None,
     ):
         """
         Initialize the evaluator. The evaluated model is passed in as an input and copied to freeze its state.
@@ -37,7 +37,7 @@ class BaseOfflineEval(torch.nn.Module, ABC):
         """
         super().__init__()
         self.eval_model = copy.deepcopy(eval_model)
-        self.summary_writer = summary_writer
+        self.logger = logger
         self.register_buffer("sum_weight", torch.zeros(1, dtype=torch.float))
         self.register_buffer("all_data_sum_weight", torch.zeros(1, dtype=torch.float))
         self.register_buffer("sum_weight_local", torch.zeros(1, dtype=torch.float))
@@ -115,28 +115,26 @@ class BaseOfflineEval(torch.nn.Module, ABC):
         """
         self.eval_model = copy.deepcopy(eval_model)
 
-    def attach_summary_writer(self, summary_writer: SummaryWriter) -> None:
+    def attach_logger(self, logger: LightningLoggerBase) -> None:
         """
-        Attach a SummaryWriter to the evaluator. This method is useful in cases where SummaryWriter is
+        Attach a logger to the evaluator. This method is useful in cases where logger is
             not yet available at initialization.
         """
-        self.summary_writer = summary_writer
+        self.logger = logger
 
-    def log_metrics(self, global_step: Optional[int] = None) -> None:
+    def log_metrics(self, step: Optional[int] = None) -> None:
         if get_rank() == 0:
             # only log from the main process
             logger.info(self.get_formatted_result_string())
-            summary_writer = self.summary_writer
-            if summary_writer is not None:
+            logger_ = self.logger
+            if logger_ is not None:
                 metric_dict = {
-                    "avg_reward": self.get_avg_reward(),
-                    "sum_weight": self.sum_weight.item(),
-                    "all_data_sum_weight": self.all_data_sum_weight.item(),
-                    "num_eval_model_updates": self.num_eval_model_updates.item(),
+                    f"{self.metric_prefix}avg_reward": self.get_avg_reward(),
+                    f"{self.metric_prefix}sum_weight": self.sum_weight.item(),
+                    f"{self.metric_prefix}all_data_sum_weight": self.all_data_sum_weight.item(),
+                    f"{self.metric_prefix}num_eval_model_updates": self.num_eval_model_updates.item(),
                 }
-                summary_writer.add_scalars(
-                    "Offline_Eval", metric_dict, global_step=global_step
-                )
+                logger_.log_metrics(metric_dict, step=step)
 
     def get_formatted_result_string(self) -> str:
         return f"Avg reward {self.get_avg_reward():0.3f} based on {int(self.sum_weight.item())} processed observations (out of {int(self.all_data_sum_weight.item())} observations). The eval model has been updated {self.num_eval_model_updates.item()} times"

@@ -8,13 +8,13 @@ import numpy as np
 import numpy.testing as npt
 
 import torch
+from pytorch_lightning.loggers import TensorBoardLogger
 from reagent.core.types import CBInput
 from reagent.evaluation.cb.policy_evaluator import PolicyEvaluator
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
 from reagent.models.linear_regression import LinearRegressionUCB
 from reagent.training.cb.linucb_trainer import LinUCBTrainer
-from torch.utils.tensorboard import SummaryWriter
 
 
 class TestEvalDuringTraining(unittest.TestCase):
@@ -25,9 +25,9 @@ class TestEvalDuringTraining(unittest.TestCase):
 
         self.trainer = LinUCBTrainer(policy)
         self.eval_module = PolicyEvaluator(self.policy_network)
-        sw = SummaryWriter("/tmp/tb")
-        sw.add_scalars = MagicMock()
-        self.eval_module.attach_summary_writer(sw)
+        logger = TensorBoardLogger("/tmp/tb")
+        logger.log_metrics = MagicMock()
+        self.eval_module.attach_logger(logger)
         self.trainer.attach_eval_module(self.eval_module)
 
     def test_eval_during_training(self):
@@ -266,4 +266,4 @@ class TestEvalDuringTraining(unittest.TestCase):
 
         # metrics should have been logged once, at the end of epoch
         # TODO: test logging logic triggered by eval_model_update_critical_weight
-        self.eval_module.summary_writer.add_scalars.assert_called_once()
+        self.eval_module.logger.log_metrics.assert_called_once()

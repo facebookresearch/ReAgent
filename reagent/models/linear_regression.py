@@ -199,3 +199,10 @@ class LinearRegressionUCB(ModelBase):
         """
         self.calculate_coefs_if_necessary()
         return self._forward_no_coefs_check(inp, ucb_alpha)
+
+    # TODO: add a base class with this abstract method for all CB scorers
+    def get_point_prediction(self, inp: torch.Tensor) -> torch.Tensor:
+        """
+        Get point prediction from the linear regression (ignoring uncertainty)
+        """
+        return self(inp, ucb_alpha=0.0)

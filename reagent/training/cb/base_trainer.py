@@ -6,6 +6,7 @@ from typing import final, Optional
 
 import torch
 from reagent.core.types import CBInput
+from reagent.core.utils import get_rank
 from reagent.evaluation.cb.base_evaluator import BaseOfflineEval
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from torchrec.metrics.metric_module import RecMetricModule
@@ -83,7 +84,7 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
                     eval_module.sum_weight_since_update_local.zero_()
                     eval_module.num_eval_model_updates += 1
                     eval_module._aggregate_across_instances()
-                    eval_module.log_metrics(global_step=self.global_step)
+                    eval_module.log_metrics(step=self.global_step)
             with torch.no_grad():
                 eval_scores = eval_module.eval_model(batch.context_arm_features)
                 if batch.arm_presence is not None:
@@ -105,7 +106,15 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
             )
         else:
             new_batch = batch
-        return self.cb_training_step(new_batch, batch_idx, optimizer_idx)
+        ret = self.cb_training_step(new_batch, batch_idx, optimizer_idx)
+        return ret
+
+    def on_train_start(self) -> None:
+        # attach logger to the eval module
+        eval_module = self.eval_module
+        logger = self.logger
+        if (eval_module is not None) and (logger is not None) and (get_rank() == 0):
+            eval_module.attach_logger(logger)
 
     def on_train_epoch_end(self):
         eval_module = self.eval_module  # assign to local var to keep pyre happy
@@ -113,7 +122,39 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
             if eval_module.sum_weight_since_update_local.item() > 0:
                 # only aggregate if we've processed new data since last aggregation.
                 eval_module._aggregate_across_instances()
-            eval_module.log_metrics(global_step=self.global_step)
+            eval_module.log_metrics(step=self.global_step)
 
-    def _log_recmetrics(self, global_step: Optional[int] = None) -> None:
-        pass
+    def _update_recmetrics(
+        self, batch: CBInput, batch_idx: int, x: torch.Tensor
+    ) -> None:
+        recmetric_module = self.recmetric_module
+        if (recmetric_module is not None) and (batch_idx % self.log_every_n_steps == 0):
+            # get point predictions (expected value, uncertainty ignored)
+            # this could be expensive because the coefficients have to be computed via matrix inversion
+            preds = self.scorer.get_point_prediction(x)  # pyre-fixme[29]
+            weight = batch.weight
+            if weight is None:
+                assert batch.reward is not None
+                weight = torch.ones_like(batch.reward)
+            recmetric_module.update(
+                {
+                    "prediction": preds,
+                    "label": batch.reward,
+                    "weight": weight,
+                }
+            )
+            self._log_recmetrics(step=self.global_step)
+
+    def _log_recmetrics(self, step: Optional[int] = None) -> None:
+        recmetric_module = self.recmetric_module
+        assert recmetric_module is not None
+        computation_results = recmetric_module.compute()
+        if get_rank() == 0:
+            logger_ = self.logger
+            assert logger_ is not None
+            computation_results = {
+                "[model]" + k: v.item() if isinstance(v, torch.Tensor) else v
+                for k, v in computation_results.items()
+            }
+            logger_.log_metrics(computation_results, step=step)
+            logger.info(f"Logging torchrec metrics {computation_results}")
