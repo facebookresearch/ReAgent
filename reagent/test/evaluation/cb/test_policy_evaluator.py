@@ -7,10 +7,10 @@ from dataclasses import replace
 from unittest.mock import MagicMock
 
 import torch
+from pytorch_lightning.loggers import TensorBoardLogger
 from reagent.core.types import CBInput
 from reagent.evaluation.cb.policy_evaluator import PolicyEvaluator
 from reagent.models.linear_regression import LinearRegressionUCB
-from torch.utils.tensorboard import SummaryWriter
 
 
 def _compare_state_dicts(state_dict_1, state_dict_2):
@@ -163,18 +163,16 @@ class TestPolicyEvaluator(unittest.TestCase):
         output = self.eval_module.get_formatted_result_string()
         self.assertIsInstance(output, str)
 
-    def test_summary_writer(self):
-        sw = SummaryWriter("/tmp/tb")
-        sw.add_scalars = MagicMock()
-        self.eval_module.attach_summary_writer(sw)
-        self.eval_module.log_metrics(global_step=5)
+    def test_logger(self):
+        logger = TensorBoardLogger("/tmp/tb")
+        logger.log_metrics = MagicMock()
+        self.eval_module.attach_logger(logger)
+        self.eval_module.log_metrics(step=5)
 
         expected_metric_dict = {
-            "avg_reward": 0.0,
-            "sum_weight": 0.0,
-            "all_data_sum_weight": 0.0,
-            "num_eval_model_updates": 0,
+            "[model]Offline_Eval_avg_reward": 0.0,
+            "[model]Offline_Eval_sum_weight": 0.0,
+            "[model]Offline_Eval_all_data_sum_weight": 0.0,
+            "[model]Offline_Eval_num_eval_model_updates": 0,
         }
-        sw.add_scalars.assert_called_once_with(
-            "Offline_Eval", expected_metric_dict, global_step=5
-        )
+        logger.log_metrics.assert_called_once_with(expected_metric_dict, step=5)
