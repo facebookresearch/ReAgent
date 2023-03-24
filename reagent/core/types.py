@@ -1115,8 +1115,11 @@ class FrechetSortConfig:
 class CBInput(TensorDataClass):
     context_arm_features: torch.Tensor
     arm_presence: Final[Optional[torch.Tensor]] = None
-    action: Final[Optional[torch.Tensor]] = None
-    reward: Final[Optional[torch.Tensor]] = None
+    action: Final[Optional[torch.Tensor]] = None  # chosen arm
+    reward: Final[Optional[torch.Tensor]] = None  # reward of the chosen arm
+    rewards_all_arms: Final[
+        Optional[torch.Tensor]
+    ] = None  # rewards of all arms of the episode
     log_prob: Final[Optional[torch.Tensor]] = None
     weight: Final[Optional[torch.Tensor]] = None
     arms: Final[Optional[torch.Tensor]] = None
