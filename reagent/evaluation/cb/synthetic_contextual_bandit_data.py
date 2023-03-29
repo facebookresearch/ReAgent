@@ -62,9 +62,6 @@ class DynamicBanditAgent:
         log_prob = actor_output.log_prob
         return torch.unsqueeze(chosen_action, 1), log_prob
 
-    def reset(self):
-        pass
-
     def act(
         self,
         obs: CBInput,
