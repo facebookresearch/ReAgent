@@ -112,3 +112,9 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
             pred_ucb = self.pred_u
         # trainer needs pred_u and mlp_out to update parameters
         return pred_ucb
+
+    def forward_inference(
+        self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
+    ) -> torch.Tensor:
+        mlp_out = self.deep_represent_layers(inp)
+        return super().forward_inference(mlp_out)
