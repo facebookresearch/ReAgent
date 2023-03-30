@@ -44,6 +44,6 @@ class CBFullyConnectedNetwork(UCBBaseModel):
     ) -> torch.Tensor:
         if ucb_alpha != 0:
             logger.warn(
-                "CBFullyConnectedNetwork supports only point predictions (ucb_alpha=0), but ucb_alpha={ucb_alpha} was used"
+                f"CBFullyConnectedNetwork supports only point predictions (ucb_alpha=0), but ucb_alpha={ucb_alpha} was used"
             )
         return self.net(inp).squeeze(-1)

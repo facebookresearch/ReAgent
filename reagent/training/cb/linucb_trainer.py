@@ -8,32 +8,13 @@ from reagent.core.configuration import resolve_defaults
 from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
 from reagent.models.linear_regression import LinearRegressionUCB
-from reagent.training.cb.base_trainer import BaseCBTrainerWithEval
+from reagent.training.cb.base_trainer import (
+    _get_chosen_arm_features,
+    BaseCBTrainerWithEval,
+)
 
 
 logger = logging.getLogger(__name__)
-
-
-def _get_chosen_arm_features(
-    all_arm_features: torch.Tensor, chosen_arms: torch.Tensor
-) -> torch.Tensor:
-    """
-    Pick the features for chosen arms out of a tensor with features of all arms
-
-    Args:
-        all_arm_features: 3D Tensor of shape (batch_size, num_arms, arm_dim) with
-            features of all available arms.
-        chosen_arms: 2D Tensor of shape (batch_size, 1) with dtype long. For each observation
-            it holds the index of the chosen arm.
-    Returns:
-        A 2D Tensor of shape (batch_size, arm_dim) with features of chosen arms.
-    """
-    assert all_arm_features.ndim == 3
-    return torch.gather(
-        all_arm_features,
-        1,
-        chosen_arms.unsqueeze(-1).expand(-1, 1, all_arm_features.shape[2]),
-    ).squeeze(1)
 
 
 class LinUCBTrainer(BaseCBTrainerWithEval):
@@ -94,13 +75,6 @@ class LinUCBTrainer(BaseCBTrainerWithEval):
             self.scorer.cur_avg_b * (1 - batch_sum_weight / self.scorer.cur_sum_weight)
             + torch.matmul(x.t(), y * weight).squeeze() / self.scorer.cur_sum_weight
         )  # dim (DA*DC,)
-
-    def _check_input(self, batch: CBInput):
-        assert batch.context_arm_features.ndim == 3
-        assert batch.reward is not None
-        assert batch.action is not None
-        assert len(batch.action) == len(batch.reward)
-        assert len(batch.action) == batch.context_arm_features.shape[0]
 
     def cb_training_step(self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0):
         self._check_input(batch)

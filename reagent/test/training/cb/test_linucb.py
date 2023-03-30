@@ -11,7 +11,8 @@ from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
 from reagent.models.linear_regression import LinearRegressionUCB
-from reagent.training.cb.linucb_trainer import _get_chosen_arm_features, LinUCBTrainer
+from reagent.training.cb.base_trainer import _get_chosen_arm_features
+from reagent.training.cb.linucb_trainer import LinUCBTrainer
 from reagent.training.parameters import LinUCBTrainerParameters
 
 

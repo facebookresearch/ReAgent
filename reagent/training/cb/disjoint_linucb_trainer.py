@@ -71,6 +71,7 @@ class DisjointLinUCBTrainer(BaseCBTrainerWithEval):
             x.t(), y * weight
         ).squeeze()  # dim (DA*DC,)
 
+    # pyre-ignore
     def _check_input(self, batch: List[CBInput]):
         # TODO: check later with train_script for batch's dataset info
         assert len(batch) == self.num_arms
