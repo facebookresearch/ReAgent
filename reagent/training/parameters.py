@@ -9,6 +9,7 @@ from .c51_trainer import C51Trainer
 from .cb.deep_represent_linucb_trainer import DeepRepresentLinUCBTrainer
 from .cb.disjoint_linucb_trainer import DisjointLinUCBTrainer
 from .cb.linucb_trainer import LinUCBTrainer
+from .cb.supervised_trainer import SupervisedTrainer
 from .discrete_crr_trainer import DiscreteCRRTrainer
 from .dqn_trainer import DQNTrainer
 from .parametric_dqn_trainer import ParametricDQNTrainer
@@ -198,4 +199,14 @@ class DeepRepresentLinUCBTrainerParameters:
     ],
 )
 class DisjointLinUCBTrainerParameters:
+    pass
+
+
+@make_config_class(
+    SupervisedTrainer.__init__,
+    blocklist=[
+        "policy",
+    ],
+)
+class SupervisedTrainerParameters:
     pass

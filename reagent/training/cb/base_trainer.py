@@ -15,6 +15,28 @@ from torchrec.metrics.metric_module import RecMetricModule
 logger = logging.getLogger(__name__)
 
 
+def _get_chosen_arm_features(
+    all_arm_features: torch.Tensor, chosen_arms: torch.Tensor
+) -> torch.Tensor:
+    """
+    Pick the features for chosen arms out of a tensor with features of all arms
+
+    Args:
+        all_arm_features: 3D Tensor of shape (batch_size, num_arms, arm_dim) with
+            features of all available arms.
+        chosen_arms: 2D Tensor of shape (batch_size, 1) with dtype long. For each observation
+            it holds the index of the chosen arm.
+    Returns:
+        A 2D Tensor of shape (batch_size, arm_dim) with features of chosen arms.
+    """
+    assert all_arm_features.ndim == 3
+    return torch.gather(
+        all_arm_features,
+        1,
+        chosen_arms.unsqueeze(-1).expand(-1, 1, all_arm_features.shape[2]),
+    ).squeeze(1)
+
+
 class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
     """
     The base class for Contextual Bandit models. A minimal implementation of a specific model requires providing a specific
@@ -46,21 +68,38 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
             recmetric_module is not None
         ), "recmetric_module should be provided if and only if log_every_n_steps > 0"
 
-    def attach_eval_module(self, eval_module: BaseOfflineEval):
+    def _check_input(self, batch: CBInput) -> None:
+        """
+        Check that the input batch satisfies the following assumptions:
+            1. context_arm_features is 3D with dimensions: batch_size, arm_count, feature_dim
+            2. Reward and action are not none
+            3. Batch size is the same for action, reward and context_arm_features
+        """
+        assert batch.context_arm_features.ndim == 3
+        assert batch.reward is not None
+        assert batch.action is not None
+        assert len(batch.action) == len(batch.reward)
+        assert len(batch.action) == batch.context_arm_features.shape[0]
+
+    def attach_eval_module(self, eval_module: BaseOfflineEval) -> None:
         """
         Attach an Offline Evaluation module. It will kleep track of reward during training and filter training batches.
         """
         self.eval_module = eval_module
 
     @abstractmethod
-    def cb_training_step(self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0):
+    def cb_training_step(
+        self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0
+    ) -> Optional[torch.Tensor]:
         """
         This method impements the actual training step. See training_step() for more details
         """
         pass
 
     @final
-    def training_step(self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0):
+    def training_step(
+        self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0
+    ) -> Optional[torch.Tensor]:
         """
         This method combines 2 things in order to enable Offline Evaluation of non-stationary CB algorithms:
         1. If offline evaluator is defined, it will pre-process the batch - keep track of the reward and filter out some observations.
@@ -116,7 +155,7 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
         if (eval_module is not None) and (logger is not None) and (get_rank() == 0):
             eval_module.attach_logger(logger)
 
-    def on_train_epoch_end(self):
+    def on_train_epoch_end(self) -> None:
         eval_module = self.eval_module  # assign to local var to keep pyre happy
         if eval_module is not None:
             if eval_module.sum_weight_since_update_local.item() > 0:

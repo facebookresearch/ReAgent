@@ -7,7 +7,8 @@ from reagent.core.configuration import resolve_defaults
 from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
 from reagent.models.deep_represent_linucb import DeepRepresentLinearRegressionUCB
-from reagent.training.cb.linucb_trainer import _get_chosen_arm_features, LinUCBTrainer
+from reagent.training.cb.base_trainer import _get_chosen_arm_features
+from reagent.training.cb.linucb_trainer import LinUCBTrainer
 
 logger = logging.getLogger(__name__)
 
@@ -56,10 +57,10 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
             inp=x
         )  # this calls scorer.forward() so as to update pred_u, and to grad descent on deep_represent module
 
-        reward = batch.reward.squeeze()
+        reward = batch.reward.squeeze(-1)
         assert (
             self.scorer.pred_u.shape == reward.shape
-        ), "Shapes of model prediction {self.scorer.pred_u.shape} and reward {reward.shape} have to match"
+        ), f"Shapes of model prediction {self.scorer.pred_u.shape} and reward {reward.shape} have to match"
         loss = self.loss_fn(self.scorer.pred_u, reward)
 
         # update parameters

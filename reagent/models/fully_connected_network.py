@@ -80,7 +80,9 @@ class FullyConnectedNetwork(ModelBase):
 
         modules: List[nn.Module] = []
 
-        assert len(layers) == len(activations) + 1
+        assert (
+            len(layers) == len(activations) + 1
+        ), f"Invalid number of layers {len(layers)} and activations {len(activations)}. Number of layers needs to be 1 + number of activations"
 
         for i, ((in_dim, out_dim), activation) in enumerate(
             zip(zip(layers, layers[1:]), activations)
