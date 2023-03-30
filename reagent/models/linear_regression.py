@@ -6,7 +6,7 @@ from typing import Optional
 
 import torch
 from pytorch_lightning.utilities.distributed import ReduceOp, sync_ddp_if_available
-from reagent.models.base import ModelBase
+from reagent.models.cb_base_model import UCBBaseModel
 
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ def reduce_avg(
     ) / total_weight
 
 
-class LinearRegressionUCB(ModelBase):
+class LinearRegressionUCB(UCBBaseModel):
     """
     A linear regression model for LinUCB.
     Note that instead of being trained by a PyTorch optimizer, we explicitly
@@ -85,9 +85,8 @@ class LinearRegressionUCB(ModelBase):
         ucb_alpha: float = 1.0,
         gamma: float = 1.0,
     ) -> None:
-        super().__init__()
+        super().__init__(input_dim=input_dim)
 
-        self.input_dim = input_dim
         self.ucb_alpha = ucb_alpha
         self.l2_reg_lambda = l2_reg_lambda
         self.gamma = gamma
@@ -122,9 +121,6 @@ class LinearRegressionUCB(ModelBase):
 
         # add a dummy parameter so that DDP doesn't compain about lack of parameters with gradient
         self.dummy_param = torch.nn.parameter.Parameter(torch.zeros(1))
-
-    def input_prototype(self) -> torch.Tensor:
-        return torch.randn(1, self.input_dim)
 
     def _calculate_coefs(self) -> None:
         """
@@ -200,9 +196,9 @@ class LinearRegressionUCB(ModelBase):
         self.calculate_coefs_if_necessary()
         return self._forward_no_coefs_check(inp, ucb_alpha)
 
-    # TODO: add a base class with this abstract method for all CB scorers
-    def get_point_prediction(self, inp: torch.Tensor) -> torch.Tensor:
-        """
-        Get point prediction from the linear regression (ignoring uncertainty)
-        """
-        return self(inp, ucb_alpha=0.0)
+    def forward_inference(
+        self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
+    ) -> torch.Tensor:
+        # Don't call the coefficient check if using inference mode
+        # because JIT doesn't support the "if" statement
+        return self._forward_no_coefs_check(inp, ucb_alpha)
