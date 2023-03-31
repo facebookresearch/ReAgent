@@ -94,10 +94,24 @@ class EmbeddingBagConcat(ModelBase):
 
     def forward(self, state: rlt.FeatureData):
         # id_list is (offset, value); sum pooling
+
+        if not state.id_list_features_raw and state.id_list_features:
+            for ft_name in self._id_list_feature_names:
+                state.id_list_features_raw[
+                    ft_name
+                    # pyre-ignore
+                ] = state.id_list_features[ft_name]
+
         id_list_embeddings = [
             self.embedding_bags[self.feat2table[feature_name]](input=v[1], offsets=v[0])
             for feature_name, v in state.id_list_features_raw.items()
         ]
+
+        if not state.id_score_list_features_raw and state.id_score_list_features:
+            for ft_name in self._id_score_list_feature_names:
+                state.id_score_list_features_raw[
+                    ft_name
+                ] = state.id_score_list_features[ft_name]
 
         # id_score_list is (offset, key, value); weighted sum pooling
         id_score_list_embeddings = [
