@@ -51,7 +51,9 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
         self._check_input(batch)
         assert batch.action is not None  # to satisfy Pyre
         assert batch.reward is not None  # to satisfy Pyre
-        x = _get_chosen_arm_features(batch.context_arm_features, batch.action)
+        x = _get_chosen_arm_features(
+            batch.context_arm_features, batch.action
+        )  # gather the arm features associated with the chosen arm (action)
 
         pred_ucb = self.scorer(  # noqa
             inp=x
