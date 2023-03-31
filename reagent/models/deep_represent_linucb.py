@@ -13,11 +13,14 @@ logger = logging.getLogger(__name__)
 
 class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
     """
-    It is a multiple layer regression model that output UCB score.
-    The first N layers are trainable by torch optimizer().
-    The last layer is the traditional LinUCB, and it is not updated by optimizer,
-        but still will be updated by matrix computations.
+    This is a multi-layer regression model that outputs UCB score.
+    There are two modules in this model: MLP module and LinUCB module.
+    The MLP module consists of bottom layers whic are trainable by torch optimizer().
+    The LinUCB module is the last layer and it is not updated by optimizer but by matrix computations.
+    MLP module Refer to paper https://arxiv.org/pdf/2012.01780.pdf.
+    LinUCB module refer to paper https://arxiv.org/pdf/2012.01780.pdf.
 
+    The reason to use matrix computations to update model parameters is to output uncertainty besides prediction.
     Example :
         Features(dim=9) --> deep_represent_layers --> Features(dim=3) --> LinUCB --> ucb score
 
@@ -34,6 +37,22 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         )
         (loss_fn): MSELoss()
         )
+
+    In this implementation,
+    - pred_u is the predicted reward,
+    - pred_sigma is the uncertainty associated with the predicted reward,
+    - mlp_out is the output from the deep_represent module, also it is the input to the LinUCB module,
+    - coefs serve as the top layer LinUCB module in this implementation
+        - it is crutial that coefs will not be updated by gradient back propagation
+        - coefs is defined by @property decorator in LinearRegressionUCB
+    - ucb_alpha controls the balance of exploration and exploitation,
+      and it also indicates whether pred_sigma will be included in the final output:
+        - If ucb_alpha is not 0, pred_sigma will be included in the final output.
+        - If ucb_alpha is 0, pred_sigma will not be included and it is equivalent to a classical supervised MLP model.
+
+    Note in the current implementation the LinUCB coefficients are automatically re-computed at every training step.
+    This can be costly for high-dimension LinUCB input (which is the output of `deep_represent_layers`),
+    Thus, it's recommended to keep sizes[-1]) low.
     """
 
     def __init__(
