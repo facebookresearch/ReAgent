@@ -8,7 +8,6 @@ from typing import cast, Dict, Tuple
 import reagent.core.types as rlt
 import torch
 
-
 logger = logging.getLogger(__name__)
 
 
