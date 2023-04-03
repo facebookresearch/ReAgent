@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
+from collections import defaultdict
 from typing import Dict, List, Tuple
 
 import torch
@@ -78,3 +79,57 @@ class PythonSparseToDenseProcessor(SparseToDenseProcessor):
         else:
             presence = values != missing_value
         return values, presence
+
+
+class PythonIdScoreListToTensorProcessor:
+    def __init__(self, id_score_list_feature_ids) -> None:
+
+        self.id_score_list_feature_ids = id_score_list_feature_ids
+
+    def __call__(
+        self,
+        list_id_score_list_features: List[Dict[int, Dict[int, float]]],
+    ) -> Dict[int, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]:
+        ## sparse format https://fburl.com/code/8nsjsw29  as WEIGHTED_MULTI_CATEGORICAL
+
+        ret: Dict[int, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]] = {}
+        feature_dict: Dict[int, Tuple[List, List, List]] = {
+            feature_id: ([], [], []) for feature_id in self.id_score_list_feature_ids
+        }
+        offset_dict = {feature_id: [0] for feature_id in self.id_score_list_feature_ids}
+
+        for row in list_id_score_list_features:
+            # offset = 0
+            if row:
+                for feature_id in self.id_score_list_feature_ids:
+                    keys_weights_dict = row.get(feature_id, {})
+                    offset = 0
+                    if keys_weights_dict:
+                        # for feature_id, keys_weights_dict in row.items():
+                        offset = offset_dict[feature_id][-1] + len(
+                            keys_weights_dict.keys()
+                        )
+                        feature_dict[feature_id][0].append(offset_dict[feature_id][-1])
+
+                        offset_dict[feature_id].append(offset)
+
+                        feature_dict[feature_id][1].extend(
+                            list(keys_weights_dict.keys())
+                        )
+                        feature_dict[feature_id][2].extend(keys_weights_dict.values())
+                    else:
+                        feature_dict[feature_id][0].append(offset_dict[feature_id][-1])
+            elif not row:
+                # empty sparse
+                offset = 0
+                for feature_id in offset_dict:
+                    feature_dict[feature_id][0].append(offset_dict[feature_id][-1])
+
+        for feature_id in feature_dict:
+            ret[feature_id] = (
+                torch.tensor(feature_dict[feature_id][0]).long(),
+                torch.tensor(feature_dict[feature_id][1]).long(),
+                torch.tensor(feature_dict[feature_id][2]),
+            )
+
+        return ret
