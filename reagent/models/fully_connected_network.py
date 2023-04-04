@@ -3,13 +3,14 @@
 
 import logging
 import math
-from typing import Any, List, Optional
+from typing import List, Optional
 
 import torch
 import torch.nn as nn
 import torch.nn.init as init
 from reagent.core import types as rlt
 from reagent.models.base import ModelBase
+from reagent.models.residual_wrapper import ResidualWrapper
 
 
 logger = logging.getLogger(__name__)
@@ -73,11 +74,22 @@ class FullyConnectedNetwork(ModelBase):
         use_layer_norm: bool = False,
         normalize_output: bool = False,
         orthogonal_init: bool = False,
+        use_skip_connections: bool = False,
     ) -> None:
+        """
+        A Fully Connected (FC) network that supports:
+        1. Batch Normalization
+        2. Dropout
+        3. Layer Normalization
+        4. Output normalization
+        5. Orthogonal initialization
+        6. Skip (residual) connections (added only to layers with the same input and output dims)
+        """
         super().__init__()
 
         self.input_dim = layers[0]
 
+        # this list stores all the layers in the network
         modules: List[nn.Module] = []
 
         assert (
@@ -87,9 +99,13 @@ class FullyConnectedNetwork(ModelBase):
         for i, ((in_dim, out_dim), activation) in enumerate(
             zip(zip(layers, layers[1:]), activations)
         ):
+            # build up each layer by stacking the components of the layer
+            layer_components: List[nn.Module] = []
+
             # Add BatchNorm1d
             if use_batch_norm:
-                modules.append(SlateBatchNorm1d(in_dim))
+                layer_components.append(SlateBatchNorm1d(in_dim))
+
             # Add Linear
             linear = nn.Linear(in_dim, out_dim)
             # assuming activation is valid
@@ -105,23 +121,34 @@ class FullyConnectedNetwork(ModelBase):
                 gaussian_fill_w_gain(
                     linear.weight, gain=gain, dim_in=in_dim, min_std=min_std
                 )
-
             init.constant_(linear.bias, 0)  # type: ignore
-            modules.append(linear)
+            layer_components.append(linear)
+
             # Add LayerNorm
             if use_layer_norm and (normalize_output or i < len(activations) - 1):
-                modules.append(nn.LayerNorm(out_dim))  # type: ignore
+                layer_components.append(nn.LayerNorm(out_dim))  # type: ignore
+
             # Add activation
             if activation in ACTIVATION_MAP:
-                modules.append(ACTIVATION_MAP[activation]())
+                layer_components.append(ACTIVATION_MAP[activation]())
             else:
                 # See if it matches any of the nn modules
-                modules.append(getattr(nn, activation)())
+                layer_components.append(getattr(nn, activation)())
+
             # Add Dropout
             if dropout_ratio > 0.0 and (normalize_output or i < len(activations) - 1):
-                modules.append(nn.Dropout(p=dropout_ratio))
+                layer_components.append(nn.Dropout(p=dropout_ratio))
 
-        self.dnn = nn.Sequential(*modules)  # type: ignore
+            layer = nn.Sequential(*layer_components)
+            if use_skip_connections:
+                if in_dim == out_dim:
+                    layer = ResidualWrapper(layer)
+                else:
+                    logger.warn(
+                        f"Skip connections are enabled, but layer in_dim ({in_dim}) != out_dim ({out_dim}). Skip connection will not be added for this layer"
+                    )
+            modules.append(layer)
+        self.dnn = nn.Sequential(*modules)
 
     def input_prototype(self):
         return torch.randn(1, self.input_dim)
