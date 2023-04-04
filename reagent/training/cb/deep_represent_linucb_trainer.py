@@ -7,7 +7,6 @@ from reagent.core.configuration import resolve_defaults
 from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
 from reagent.models.deep_represent_linucb import DeepRepresentLinearRegressionUCB
-from reagent.training.cb.base_trainer import _get_chosen_arm_features
 from reagent.training.cb.linucb_trainer import LinUCBTrainer
 
 logger = logging.getLogger(__name__)
@@ -48,24 +47,19 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
     def cb_training_step(
         self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0
     ) -> torch.Tensor:
-        self._check_input(batch)
-        assert batch.action is not None  # to satisfy Pyre
-        assert batch.reward is not None  # to satisfy Pyre
-        x = _get_chosen_arm_features(
-            batch.context_arm_features, batch.action
-        )  # gather the arm features associated with the chosen arm (action)
-
         pred_ucb = self.scorer(  # noqa
-            inp=x
+            inp=batch.features_of_chosen_arm
         )  # this calls scorer.forward() so as to update pred_u, and to grad descent on deep_represent module
 
+        assert batch.reward is not None  # to satisfy Pyre
         reward = batch.reward.squeeze(-1)
         assert (
             self.scorer.pred_u.shape == reward.shape
         ), f"Shapes of model prediction {self.scorer.pred_u.shape} and reward {reward.shape} have to match"
+        # compute the NN loss
         loss = self.loss_fn(self.scorer.pred_u, reward)
 
-        # update parameters
+        # update LinUCB parameters
         self.update_params(self.scorer.mlp_out.detach(), batch.reward, batch.weight)
 
         return loss

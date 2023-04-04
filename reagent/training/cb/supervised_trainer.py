@@ -6,10 +6,7 @@ from enum import Enum
 import torch
 from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
-from reagent.training.cb.base_trainer import (
-    _get_chosen_arm_features,
-    BaseCBTrainerWithEval,
-)
+from reagent.training.cb.base_trainer import BaseCBTrainerWithEval
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +44,8 @@ class SupervisedTrainer(BaseCBTrainerWithEval):
     def cb_training_step(
         self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0
     ) -> torch.Tensor:
-        self._check_input(batch)
-        assert batch.action is not None  # to satisfy Pyre
-        x = _get_chosen_arm_features(batch.context_arm_features, batch.action)
-
         assert batch.reward is not None  # to satisfy Pyre
 
-        scores = self.scorer(x)
+        # compute the NN loss
+        scores = self.scorer(batch.features_of_chosen_arm)
         return self.loss(scores, batch.reward.squeeze(-1))

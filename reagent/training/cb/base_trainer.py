@@ -2,7 +2,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 from abc import ABC, abstractmethod
-from typing import final, Optional
+from dataclasses import replace
+from typing import final, List, Optional, Union
 
 import torch
 from reagent.core.types import CBInput
@@ -15,26 +16,55 @@ from torchrec.metrics.metric_module import RecMetricModule
 logger = logging.getLogger(__name__)
 
 
-def _get_chosen_arm_features(
-    all_arm_features: torch.Tensor, chosen_arms: torch.Tensor
-) -> torch.Tensor:
+def _add_chosen_arm_features(
+    batch: Union[CBInput, List[CBInput]]
+) -> Union[CBInput, List[CBInput]]:
     """
-    Pick the features for chosen arms out of a tensor with features of all arms
+    Add the features for chosen arms to the batch.
+    For joint models:
+        - Both input and output are`CBInput` objects
+        - batch.all_arm_features is a 3D tensor of shape (batch_size, num_arms, arm_dim)
+        - `batch.action` is used to choose which features to extract.
+    For joint models:
+         - Both input and output are `List[CBInput]` objects of len `num_arms`
+         - batch.all_arm_features is a 2D tensor of shape (batch_size, arm_dim)
+         - This function just extracts the `all_arm_features` attribute from batch and packages them back into a list
 
     Args:
-        all_arm_features: 3D Tensor of shape (batch_size, num_arms, arm_dim) with
-            features of all available arms.
-        chosen_arms: 2D Tensor of shape (batch_size, 1) with dtype long. For each observation
-            it holds the index of the chosen arm.
+        batch: A batch of input data.
+            Attributes of the batch:
+                all_arm_features: Tensor with features of all available arms.
+                action: 2D Tensor of shape (batch_size, 1) with dtype long. For each observation
+                    it holds the index of the chosen arm.
     Returns:
-        A 2D Tensor of shape (batch_size, arm_dim) with features of chosen arms.
+        For joint models:
+            A 2D Tensor of shape (batch_size, arm_dim) with features of chosen arms.
+        For disjoint models:
+            A list of 2D Tensors of shape (batch_size, arm_dim)
     """
-    assert all_arm_features.ndim == 3
-    return torch.gather(
-        all_arm_features,
-        1,
-        chosen_arms.unsqueeze(-1).expand(-1, 1, all_arm_features.shape[2]),
-    ).squeeze(1)
+    if isinstance(batch, CBInput):
+        assert batch.context_arm_features.ndim == 3
+        assert batch.action is not None
+        return replace(
+            batch,
+            features_of_chosen_arm=torch.gather(
+                batch.context_arm_features,
+                1,
+                batch.action.unsqueeze(-1).expand(
+                    -1, 1, batch.context_arm_features.shape[2]
+                ),
+            ).squeeze(1),
+        )
+    elif isinstance(batch, list):
+        assert isinstance(batch[0], CBInput)
+        assert batch[0].context_arm_features.ndim == 2
+        return [
+            replace(b, features_of_chosen_arm=b.context_arm_features) for b in batch
+        ]
+    else:
+        raise ValueError(
+            f"Unexpected input type {type(batch)} for _add_chosen_arm_features"
+        )
 
 
 class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
@@ -107,6 +137,7 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
 
         DO NOT OVERRIDE THIS METHOD IN SUBCLASSES, IT'S @final. Instead, override cb_training_step().
         """
+        self._check_input(batch)
         eval_module = self.eval_module  # assign to local var to keep pyre happy
         if eval_module is not None:
             # update the model if we've processed enough samples
@@ -145,7 +176,15 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
             )
         else:
             new_batch = batch
-        ret = self.cb_training_step(new_batch, batch_idx, optimizer_idx)
+        new_batch = _add_chosen_arm_features(new_batch)
+        # new_batch = replace(new_batch, features_of_chosen_arm=features_of_chosen_arm)
+        ret = self.cb_training_step(new_batch, batch_idx, optimizer_idx)  # pyre-ignore
+        if isinstance(new_batch, CBInput):
+            # recmetrics currently supported only for joint model
+            assert new_batch.features_of_chosen_arm is not None
+            self._update_recmetrics(
+                new_batch, batch_idx, new_batch.features_of_chosen_arm
+            )
         return ret
 
     def on_train_start(self) -> None:

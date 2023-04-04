@@ -8,10 +8,7 @@ from reagent.core.configuration import resolve_defaults
 from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
 from reagent.models.linear_regression import LinearRegressionUCB
-from reagent.training.cb.base_trainer import (
-    _get_chosen_arm_features,
-    BaseCBTrainerWithEval,
-)
+from reagent.training.cb.base_trainer import BaseCBTrainerWithEval
 
 
 logger = logging.getLogger(__name__)
@@ -76,16 +73,14 @@ class LinUCBTrainer(BaseCBTrainerWithEval):
             + torch.matmul(x.t(), y * weight).squeeze() / self.scorer.cur_sum_weight
         )  # dim (DA*DC,)
 
-    def cb_training_step(self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0):
-        self._check_input(batch)
-        assert batch.action is not None  # to satisfy Pyre
-        x = _get_chosen_arm_features(batch.context_arm_features, batch.action)
+    def cb_training_step(
+        self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0
+    ) -> Optional[torch.Tensor]:
+        assert batch.reward is not None  # to satisfy Pyre
+        assert batch.features_of_chosen_arm is not None  # to satisfy Pyre
 
         # update parameters
-        assert batch.reward is not None  # to satisfy Pyre
-        self.update_params(x, batch.reward, batch.weight)
-
-        self._update_recmetrics(batch, batch_idx, x)
+        self.update_params(batch.features_of_chosen_arm, batch.reward, batch.weight)
 
     def apply_discounting_multiplier(self):
         self.scorer.sum_weight *= self.scorer.gamma
