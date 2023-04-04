@@ -86,7 +86,7 @@ class TestBCQ(unittest.TestCase):
         q_network = FullyConnectedDQN(
             state_dim, action_dim, sizes=[2], activations=["relu"]
         )
-        init.constant_(q_network.fc.dnn[-2].bias, 3.0)
+        init.constant_(q_network.fc.dnn[-1][-2].bias, 3.0)
         imitator_network = FullyConnectedNetwork(
             layers=[state_dim, 2, action_dim], activations=["relu", "linear"]
         )

@@ -83,15 +83,15 @@ class TestSyntheticReward(unittest.TestCase):
         reward_net = SyntheticRewardNet(net)
 
         dnn = reward_net.export_mlp().fc.dnn
-        assert dnn[0].in_features == (state_dim + action_dim) * context_size
-        assert dnn[0].out_features == 256
-        assert dnn[1]._get_name() == "Sigmoid"
-        assert dnn[2].in_features == 256
-        assert dnn[2].out_features == 128
-        assert dnn[3]._get_name() == "ReLU"
-        assert dnn[4].in_features == 128
-        assert dnn[4].out_features == 1
-        assert dnn[5]._get_name() == "LeakyReLU"
+        assert dnn[0][0].in_features == (state_dim + action_dim) * context_size
+        assert dnn[0][0].out_features == 256
+        assert dnn[0][1]._get_name() == "Sigmoid"
+        assert dnn[1][0].in_features == 256
+        assert dnn[1][0].out_features == 128
+        assert dnn[1][1]._get_name() == "ReLU"
+        assert dnn[2][0].in_features == 128
+        assert dnn[2][0].out_features == 1
+        assert dnn[2][1]._get_name() == "LeakyReLU"
 
         valid_step = torch.tensor([[1], [2], [3]])
         batch_size = 3
@@ -145,15 +145,15 @@ class TestSyntheticReward(unittest.TestCase):
         assert conv_net.conv_layers[1].stride == (1, 1)
 
         dnn = reward_net.export_mlp().conv_net.feed_forward.dnn
-        assert dnn[0].in_features == 384
-        assert dnn[0].out_features == 256
-        assert dnn[1]._get_name() == "Sigmoid"
-        assert dnn[2].in_features == 256
-        assert dnn[2].out_features == 128
-        assert dnn[3]._get_name() == "ReLU"
-        assert dnn[4].in_features == 128
-        assert dnn[4].out_features == 1
-        assert dnn[5]._get_name() == "LeakyReLU"
+        assert dnn[0][0].in_features == 384
+        assert dnn[0][0].out_features == 256
+        assert dnn[0][1]._get_name() == "Sigmoid"
+        assert dnn[1][0].in_features == 256
+        assert dnn[1][0].out_features == 128
+        assert dnn[1][1]._get_name() == "ReLU"
+        assert dnn[2][0].in_features == 128
+        assert dnn[2][0].out_features == 1
+        assert dnn[2][1]._get_name() == "LeakyReLU"
 
     def test_lstm_synthetic_reward(self):
         state_dim = 10

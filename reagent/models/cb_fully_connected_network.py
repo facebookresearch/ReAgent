@@ -26,6 +26,7 @@ class CBFullyConnectedNetwork(UCBBaseModel):
         use_layer_norm: bool = False,
         normalize_output: bool = False,
         orthogonal_init: bool = False,
+        use_skip_connections: bool = True,
     ):
         super().__init__(input_dim=input_dim)
         self.net = FullyConnectedNetwork(
@@ -37,6 +38,7 @@ class CBFullyConnectedNetwork(UCBBaseModel):
             use_layer_norm=use_layer_norm,
             normalize_output=normalize_output,
             orthogonal_init=orthogonal_init,
+            use_skip_connections=use_skip_connections,
         )
 
     def forward(

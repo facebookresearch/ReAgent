@@ -68,6 +68,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         dropout_ratio: float = 0.0,
         normalize_output: bool = False,
         use_layer_norm: bool = False,
+        use_skip_connections: bool = True,
         mlp_layers: Optional[nn.Module] = None,
     ):
         super().__init__(
@@ -94,6 +95,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
                 dropout_ratio=dropout_ratio,
                 normalize_output=normalize_output,
                 use_layer_norm=use_layer_norm,
+                use_skip_connections=use_skip_connections,
             )
         else:
             self.deep_represent_layers = mlp_layers  # use customized layer
