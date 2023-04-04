@@ -112,8 +112,9 @@ class BaseOfflineEval(torch.nn.Module, ABC):
         """
         Update the evaluated model. When exactly to call this is decided by the user and should mimic when
             the model would get updated in a real deployment.
+        The model is cloned and set to eval mode.
         """
-        self.eval_model = copy.deepcopy(eval_model)
+        self.eval_model = copy.deepcopy(eval_model).eval()
 
     def attach_logger(self, logger: LightningLoggerBase) -> None:
         """
