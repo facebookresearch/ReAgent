@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import uuid
+from typing import List, Tuple
 
 import pytorch_lightning as pl
 import torch
@@ -48,7 +49,7 @@ def run_dynamic_bandit_env(
     num_obs: int,
     gpus: int = 0,
     rand_seed: int = 937162211,
-):
+) -> Tuple[DynamicBanditAgent, List[float], List[float]]:
     seed_everything(rand_seed)
     pl_trainer = pl.Trainer(
         max_epochs=max_epochs,
@@ -67,10 +68,9 @@ def run_dynamic_bandit_env(
     dataset = BanditDataset(env=env, agent=agent, num_obs=num_obs)
     data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
     pl_trainer.fit(agent.trainer, data_loader)
-    return agent
+    return agent, env.accumulated_rewards, env.accumulated_regrets
 
 
-#  TODO: design the output interface to return the metrics from the simulation
 """
 Example run:
     run_dynamic_bandit_env(

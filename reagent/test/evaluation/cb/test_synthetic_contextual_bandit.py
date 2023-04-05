@@ -11,6 +11,7 @@ class TestSyntheticBandit(unittest.TestCase):
     """
     Test run of the DynamitBandits environment and agent.
     Check the coefs of the model has been updated.
+    Get the accumulated rewards and accumulated regrets.
     """
 
     def setUp(
@@ -25,17 +26,35 @@ class TestSyntheticBandit(unittest.TestCase):
         self.batch_size = batch_size
         self.num_arms_per_episode = num_arms_per_episode
 
-    def test_run_synthetic_bandit(self):
-        agent = run_dynamic_bandit_env(
-            feature_dim=3,
-            num_unique_batches=10,
-            batch_size=4,
-            num_arms_per_episode=2,
-            num_obs=101,
-            max_epochs=1,
+    def test_run_synthetic_bandit(
+        self,
+        feature_dim: int = 3,
+        num_unique_batches: int = 10,
+        batch_size: int = 4,
+        num_arms_per_episode: int = 2,
+        num_obs: int = 101,
+        max_epochs: int = 1,
+    ):
+        agent, accumulated_rewards, accumulated_regrets = run_dynamic_bandit_env(
+            feature_dim=feature_dim,
+            num_unique_batches=num_unique_batches,
+            batch_size=batch_size,
+            num_arms_per_episode=num_arms_per_episode,
+            num_obs=num_obs,
+            max_epochs=max_epochs,
         )
         coefs_post_train = agent.trainer.scorer.avg_A
         assert torch.count_nonzero(coefs_post_train) > 0
+        assert accumulated_regrets[-1] >= accumulated_regrets[0]
+
+        accumulated_regrets_tensor = torch.tensor(accumulated_regrets)
+        accumulated_rewards_tensor = torch.tensor(accumulated_rewards)
+        assert torch.all(
+            accumulated_regrets_tensor[1:] >= accumulated_regrets_tensor[:-1]
+        )
+        assert accumulated_rewards_tensor.shape == (num_obs,)
+        assert accumulated_regrets_tensor.shape == (num_obs,)
+        return accumulated_rewards_tensor, accumulated_regrets_tensor
 
 
 """
