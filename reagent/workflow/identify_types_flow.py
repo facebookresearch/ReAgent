@@ -5,8 +5,6 @@ from typing import Dict, List, Optional
 
 import reagent.core.types as rlt
 
-# pyre-fixme[21]: Could not find `pyspark`.
-# pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import col, collect_list, explode
 from reagent.data.spark_utils import get_spark_session
 from reagent.preprocessing.normalization import (
@@ -114,7 +112,6 @@ def create_normalization_spec_spark(
 
     # assumes column has a type of map
     df = df.select(
-        # pyre-fixme[16]: Module `functions` has no attribute `col`.
         explode(col(column).alias("features")).alias("feature_name", "feature_value")
     )
 
@@ -129,7 +126,6 @@ def create_normalization_spec_spark(
     # perform sampling and collect them
     df = df.sampleBy("feature_name", fractions=frac, seed=seed)
     df = df.groupBy("feature_name").agg(
-        # pyre-fixme[16]: Module `functions` has no attribute `collect_list`.
         collect_list("feature_value").alias("feature_values")
     )
     return df
