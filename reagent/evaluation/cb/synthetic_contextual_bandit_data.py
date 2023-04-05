@@ -121,6 +121,7 @@ class DynamicBanditEnv:
         self.gen_all_arms_feature_distribution()
         self.weight = self.gen_mapping_weights()
         self.reward_shifts = self.gen_all_arms_reward_shifts()
+        self.reward_regret_track_start()
 
     @property
     def num_arms_all(self) -> int:
@@ -137,6 +138,12 @@ class DynamicBanditEnv:
     @property
     def feature_dim(self) -> int:
         return self._feature_dim
+
+    def reward_regret_track_start(self):
+        self.accumulated_rewards = []
+        self.accumulated_regrets = []
+        self.accumulated_rewards_final = 0.0
+        self.accumulated_regrets_final = 0.0
 
     def gen_all_arms_reward_shifts(self):
         """
@@ -286,4 +293,15 @@ class DynamicBanditEnv:
         new_batch = replace(batch, reward=chosen_reward, action=chosen_action_idx)
         assert new_batch.action.shape == (self.batch_size, 1)
         assert chosen_reward.shape == (self.batch_size, 1)
+
+        self.reward_regret_tracking(chosen_reward=chosen_reward, batch=batch)
         return new_batch
+
+    def reward_regret_tracking(self, chosen_reward, batch):
+        self.accumulated_rewards_final += chosen_reward.sum().item()
+        self.accumulated_rewards.append(self.accumulated_rewards_final)
+        chosen_regret = torch.max(batch.rewards_all_arms, dim=1).values - torch.squeeze(
+            chosen_reward
+        )
+        self.accumulated_regrets_final += chosen_regret.sum().item()
+        self.accumulated_regrets.append(self.accumulated_regrets_final)
