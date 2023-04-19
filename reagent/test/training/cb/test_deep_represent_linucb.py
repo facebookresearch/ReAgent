@@ -5,8 +5,6 @@ How to use:
 
 import unittest
 
-import numpy as np
-import numpy.testing as npt
 import torch
 from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
@@ -19,6 +17,10 @@ from reagent.training.parameters import DeepRepresentLinUCBTrainerParameters
 
 
 class TestDeepRepresentLinUCB(unittest.TestCase):
+    """
+    This tests the trainer of DeepRepresentLinUCB.
+    """
+
     def setUp(self):
 
         self.params = DeepRepresentLinUCBTrainerParameters(lr=1e-1)

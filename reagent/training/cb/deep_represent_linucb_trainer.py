@@ -47,19 +47,31 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
     def cb_training_step(
         self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0
     ) -> torch.Tensor:
-        pred_ucb = self.scorer(  # noqa
-            inp=batch.features_of_chosen_arm
-        )  # this calls scorer.forward() so as to update pred_u, and to grad descent on deep_represent module
+        """
+        Here scorer (DeepRepresentLinearRegressionUCB) outputs Dict
+            {
+                "pred_reward": pred_reward,
+                "pred_sigma": pred_sigma,
+                "ucb": ucb,
+                "mlp_out": mlp_out,
+            }
+        The pred_reward is useful for calculating MSE loss.
+        The mlp_out is useful for updating LinUCB parameters (A, b, etc)
+        """
+        model_output = self.scorer(inp=batch.features_of_chosen_arm)  # noqa
+        # this calls scorer.forward() so as to update pred_u, and to grad descent on deep_represent module
+
+        pred_reward, mlp_out = model_output["pred_reward"], model_output["mlp_out"]
 
         assert batch.reward is not None  # to satisfy Pyre
         reward = batch.reward.squeeze(-1)
         assert (
-            self.scorer.pred_u.shape == reward.shape
-        ), f"Shapes of model prediction {self.scorer.pred_u.shape} and reward {reward.shape} have to match"
+            pred_reward.shape == reward.shape
+        ), f"Shapes of model prediction {pred_reward.shape} and reward {reward.shape} have to match"
         # compute the NN loss
-        loss = self.loss_fn(self.scorer.pred_u, reward)
+        loss = self.loss_fn(pred_reward, reward)
 
         # update LinUCB parameters
-        self.update_params(self.scorer.mlp_out.detach(), batch.reward, batch.weight)
+        self.update_params(mlp_out.detach(), batch.reward, batch.weight)
 
         return loss
