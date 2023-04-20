@@ -3,41 +3,16 @@
 
 import random
 from dataclasses import replace
-from typing import Any, Optional, Tuple
-
-import reagent.core.types as rlt
+from typing import Tuple
 
 import torch
 from reagent.core.types import CBInput
-from reagent.gym.policies.policy import Policy as ReAgentPolicy
+from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
-
-from reagent.gym.types import Sampler, Scorer
-
 from reagent.models.linear_regression import LinearRegressionUCB
 from reagent.training.cb.base_trainer import BaseCBTrainerWithEval
 from reagent.training.cb.linucb_trainer import LinUCBTrainer
 from reagent.training.parameters import LinUCBTrainerParameters
-
-
-class Policy(ReAgentPolicy):
-    def __init__(self, scorer: Scorer, sampler: Sampler) -> None:
-        super().__init__(scorer=scorer, sampler=sampler)
-
-    def act(
-        self, obs: Any, possible_actions_mask: Optional[torch.Tensor] = None
-    ) -> rlt.ActorOutput:
-        """
-        Chooses the best arm from a set of availabe arms based on contextual features.
-        GreedyActionSampler may be applied.
-        """
-        scorer_inputs = (obs,)
-        if possible_actions_mask is not None:
-            scorer_inputs += (possible_actions_mask,)
-        model_output = self.scorer(*scorer_inputs)
-        scores = model_output["ucb"]
-        actor_output = self.sampler.sample_action(scores)
-        return actor_output.cpu().detach()
 
 
 class DynamicBanditAgent:

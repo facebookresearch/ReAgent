@@ -42,12 +42,11 @@ class TestLinearRegressionUCB(unittest.TestCase):
         trainer.update_params(x, y)
 
         inp = torch.tensor([[1.0, 5.0], [1.0, 6.0]])
-        model_output = model(inp)
-        ucb = model_output["ucb"]
+        out = model(inp)
 
-        self.assertIsInstance(ucb, torch.Tensor)
-        self.assertEqual(tuple(ucb.shape), (2,))
-        npt.assert_allclose(ucb.numpy(), np.array([6.0, 7.0]), rtol=1e-4)
+        self.assertIsInstance(out, torch.Tensor)
+        self.assertEqual(tuple(out.shape), (2,))
+        npt.assert_allclose(out.numpy(), np.array([6.0, 7.0]), rtol=1e-4)
 
     def test_call_ucb(self) -> None:
         x = torch.tensor([[1.0, 2.0], [1.0, 3.0]])  # y=x+1
@@ -58,8 +57,7 @@ class TestLinearRegressionUCB(unittest.TestCase):
 
         inp = torch.tensor([[1.0, 5.0], [1.0, 6.0]])
         alpha = 1.5
-        model_output = model(inp, ucb_alpha=alpha)
-        ucb = model_output["ucb"]
+        out = model(inp, ucb_alpha=alpha)
 
         expected_out = np.zeros(2)
         expected_out[0] = 6.0 + alpha * np.sqrt(
@@ -73,6 +71,6 @@ class TestLinearRegressionUCB(unittest.TestCase):
             @ inp[1].numpy()
         )
 
-        self.assertIsInstance(ucb, torch.Tensor)
-        self.assertEqual(tuple(ucb.shape), (2,))
-        npt.assert_allclose(ucb.numpy(), expected_out, rtol=1e-4)
+        self.assertIsInstance(out, torch.Tensor)
+        self.assertEqual(tuple(out.shape), (2,))
+        npt.assert_allclose(out.numpy(), expected_out, rtol=1e-4)
