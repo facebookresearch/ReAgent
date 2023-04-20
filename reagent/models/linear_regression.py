@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Dict, Optional
+from typing import Optional
 
 import torch
 from pytorch_lightning.utilities.distributed import ReduceOp, sync_ddp_if_available
@@ -75,9 +75,6 @@ class LinearRegressionUCB(UCBBaseModel):
         ucb_alpha: The coefficient on the standard deviation in UCB formula.
             Set it to 0 to predict the expected value instead of UCB.
         gamma: per-epoch discount factor (A and b get multiplied by gamma every epoch)
-
-    Outputs:
-    Dict {"pred_reward": pred_reward, "pred_sigma": pred_sigma, "ucb": ucb}
     """
 
     def __init__(
@@ -175,25 +172,23 @@ class LinearRegressionUCB(UCBBaseModel):
 
     def _forward_no_coefs_check(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
-    ) -> Dict[str, torch.Tensor]:
+    ) -> torch.Tensor:
         # perform forward pass without checking if the current coefficient estimate is still valid
         if ucb_alpha is None:
             ucb_alpha = self.ucb_alpha
 
-        pred_reward = torch.matmul(inp, self._coefs)
+        mu = torch.matmul(inp, self._coefs)
 
         if ucb_alpha != 0:
-            pred_sigma = torch.sqrt(
+            return mu + ucb_alpha * torch.sqrt(
                 batch_quadratic_form(inp, self.inv_avg_A) / self.sum_weight
             )
         else:
-            pred_sigma = torch.zeros_like(pred_reward)
-        ucb = pred_reward + ucb_alpha * pred_sigma
-        return {"pred_reward": pred_reward, "pred_sigma": pred_sigma, "ucb": ucb}
+            return mu
 
     def forward(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
-    ) -> Dict[str, torch.Tensor]:
+    ) -> torch.Tensor:
         """
         Forward can return the mean or a UCB. If returning UCB, the CI width is stddev*ucb_alpha
         If ucb_alpha is not passed in, a fixed alpha from init is used
@@ -203,7 +198,7 @@ class LinearRegressionUCB(UCBBaseModel):
 
     def forward_inference(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
-    ) -> Dict[str, torch.Tensor]:
+    ) -> torch.Tensor:
         # Don't call the coefficient check if using inference mode
         # because JIT doesn't support the "if" statement
         return self._forward_no_coefs_check(inp, ucb_alpha)

@@ -156,9 +156,7 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
                     eval_module._aggregate_across_instances()
                     eval_module.log_metrics(step=self.global_step)
             with torch.no_grad():
-                model_output = eval_module.eval_model(batch.context_arm_features)
-                ucb = model_output["ucb"]
-                eval_scores = ucb
+                eval_scores = eval_module.eval_model(batch.context_arm_features)
                 if batch.arm_presence is not None:
                     # mask out non-present arms
                     eval_scores = torch.masked.as_masked_tensor(
@@ -209,7 +207,7 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
     ) -> None:
         recmetric_module = self.recmetric_module
         if (recmetric_module is not None) and (batch_idx % self.log_every_n_steps == 0):
-            # get point predictions (expected value, uncertainty is ignored)
+            # get point predictions (expected value, uncertainty ignored)
             # this could be expensive because the coefficients have to be computed via matrix inversion
             preds = self.scorer.get_point_prediction(x)  # pyre-fixme[29]
             weight = batch.weight

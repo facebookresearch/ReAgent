@@ -3,7 +3,7 @@
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Dict, Optional
+from typing import Optional
 
 import torch
 
@@ -25,10 +25,9 @@ class UCBBaseModel(torch.nn.Module, ABC):
     @abstractmethod
     def forward(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
-    ) -> Dict[str, torch.Tensor]:
+    ) -> torch.Tensor:
         """
-        Model forward pass. For UCB models should return the prediction with uncertainty, not the point prediction.
-        Returns pred_reward, pred_sigma, ucb (where ucb = pred_reward + ucb_alpha*pred_sigma)
+        Model forward pass. For UCB models should return the UCB, not the point prediction.
         """
         pass
 
@@ -40,7 +39,7 @@ class UCBBaseModel(torch.nn.Module, ABC):
 
     def forward_inference(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
-    ) -> Dict[str, torch.Tensor]:
+    ) -> torch.Tensor:
         """
         This forward method will be called by the inference wrapper.
         By default it's same as regular forward(), but users can override it

@@ -1,7 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import torch
 from reagent.models.fully_connected_network import FullyConnectedNetwork
@@ -39,18 +39,16 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         )
 
     In this implementation,
-    - ucb = pred_reward + uncertainty
-    - uncertainty = ucb_alpha * pred_sigma
-
-    - pred_reward is the predicted reward.
-    - pred_sigma reflects the variance associated with the predicted reward.
-    - ucb_alpha controls the balance between exploration and exploitation,
-        - If ucb_alpha is not 0, uncertainty(ucb_alpha * pred_sigma) will be included in the final output.
-        - If ucb_alpha is 0, uncertainty(ucb_alpha * pred_sigma) will not be included. The model only outputs a predicted reward like a classical supervised model.
-    - mlp_out is the output from the deep_represent module, also it is the input to the LinUCB module.
-    - coefs serve as the top layer LinUCB module in this implementation.
-        - it is crutial that coefs will not be updated by gradient back propagation.
-        - coefs is defined by @property decorator in LinearRegressionUCB.
+    - pred_u is the predicted reward,
+    - pred_sigma is the uncertainty associated with the predicted reward,
+    - mlp_out is the output from the deep_represent module, also it is the input to the LinUCB module,
+    - coefs serve as the top layer LinUCB module in this implementation
+        - it is crutial that coefs will not be updated by gradient back propagation
+        - coefs is defined by @property decorator in LinearRegressionUCB
+    - ucb_alpha controls the balance of exploration and exploitation,
+      and it also indicates whether pred_sigma will be included in the final output:
+        - If ucb_alpha is not 0, pred_sigma will be included in the final output.
+        - If ucb_alpha is 0, pred_sigma will not be included and it is equivalent to a classical supervised MLP model.
 
     Note in the current implementation the LinUCB coefficients are automatically re-computed at every training step.
     This can be costly for high-dimension LinUCB input (which is the output of `deep_represent_layers`),
@@ -59,7 +57,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
 
     def __init__(
         self,
-        input_dim: int,  # MLP input dimension
+        input_dim: int,  # raw feature
         sizes: List[int],  # MLP hidden layers of the deep_represent module
         activations: List[str],
         *,
@@ -74,9 +72,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         mlp_layers: Optional[nn.Module] = None,
     ):
         super().__init__(
-            input_dim=sizes[
-                -1
-            ],  # self.input_dim is the LinUCB input dimension (equal to MLP output dimension)
+            input_dim=sizes[-1],
             l2_reg_lambda=l2_reg_lambda,
             ucb_alpha=ucb_alpha,
             gamma=gamma,
@@ -90,11 +86,10 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
             len(sizes), len(activations)
         )
 
-        self.raw_input_dim = input_dim  # input to the MLP
-        # self.raw_input_dim --> MLP --> self.input_dim --> LinUCB --> ucb score
+        self.raw_input_dim = input_dim  # input to DeepRepresent
         if mlp_layers is None:
             self.deep_represent_layers = FullyConnectedNetwork(
-                [self.raw_input_dim] + sizes,
+                [input_dim] + sizes,
                 activations,
                 use_batch_norm=use_batch_norm,
                 dropout_ratio=dropout_ratio,
@@ -105,70 +100,42 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         else:
             self.deep_represent_layers = mlp_layers  # use customized layer
 
+        self.pred_u = torch.Tensor()
+        self.pred_sigma = torch.Tensor()
+        self.mlp_out = torch.Tensor()
+
     def input_prototype(self) -> torch.Tensor:
         return torch.randn(1, self.raw_input_dim)
 
     def forward(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
-    ) -> Dict[str, torch.Tensor]:
+    ) -> torch.Tensor:
         """
         Pass raw input to mlp.
         This mlp is trainable to optimizer, i.e., will be updated by torch optimizer(),
             then output of mlp is passed to a LinUCB layer.
         """
 
-        mlp_out = self.deep_represent_layers(inp)
-        # preprocess by DeepRepresent module before fed to LinUCB layer
-        # trainer needs pred_reward and mlp_out to update parameters
+        self.mlp_out = self.deep_represent_layers(
+            inp
+        )  # preprocess by DeepRepresent module before fed to LinUCB layer
 
         if ucb_alpha is None:
             ucb_alpha = self.ucb_alpha
-        pred_reward = torch.matmul(mlp_out, self.coefs)
+        self.pred_u = torch.matmul(self.mlp_out, self.coefs)
         if ucb_alpha != 0:
-            pred_sigma = torch.sqrt(
-                batch_quadratic_form(mlp_out, self.inv_avg_A)
+            self.pred_sigma = torch.sqrt(
+                batch_quadratic_form(self.mlp_out, self.inv_avg_A)
                 / torch.clamp(self.sum_weight, min=0.00001)
             )
-            ucb = pred_reward + ucb_alpha * pred_sigma
-            return {
-                "pred_reward": pred_reward,
-                "pred_sigma": pred_sigma,
-                "ucb": ucb,
-                "mlp_out": mlp_out,
-            }
+            pred_ucb = self.pred_u + ucb_alpha * self.pred_sigma
         else:
-            pred_sigma = torch.zeros_like(pred_reward)
-            ucb = pred_reward
-            return {
-                "pred_reward": pred_reward,
-                "pred_sigma": pred_sigma,
-                "ucb": ucb,
-                "mlp_out": mlp_out,
-            }
+            pred_ucb = self.pred_u
+        # trainer needs pred_u and mlp_out to update parameters
+        return pred_ucb
 
     def forward_inference(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
-    ) -> Dict[str, torch.Tensor]:
-        """
-        B: batch size
-        F: raw_input_dim to MLP
-        F': input_dim to LinUCB
-        Shapes:
-            inp: B,F
-            pred_reward: B
-            pred_sigma: B
-            ucb: B
-            mlp_out: B,F'
-        """
+    ) -> torch.Tensor:
         mlp_out = self.deep_represent_layers(inp)
-        model_output = super().forward_inference(mlp_out)
-
-        pred_reward = model_output["pred_reward"]
-        pred_sigma = model_output["pred_sigma"]
-        ucb = model_output["ucb"]
-        return {
-            "pred_reward": pred_reward,
-            "pred_sigma": pred_sigma,
-            "ucb": ucb,
-            "mlp_out": mlp_out,
-        }
+        return super().forward_inference(mlp_out)
