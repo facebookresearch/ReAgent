@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 import logging
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import torch
 from reagent.models.cb_base_model import UCBBaseModel
@@ -13,6 +13,14 @@ logger = logging.getLogger(__name__)
 
 
 class CBFullyConnectedNetwork(UCBBaseModel):
+    """
+    A Fully Connected Network (FCNN) for contextual bandits.
+    It outputs a dictionary consisting of {pred_reward, pred_sigma, ucb}.
+    This model does not yields pred_sigma as LinUCB or DeepRepresentLinearRegressionUCB does.
+    It outputs a dummy or zero pred_sigma (uncertainty=ucb_alpha*pred_sigma) by setting pred_sigma=0.
+    As a result, this model outputs ucb=pred_reward.
+    """
+
     def __init__(
         self,
         input_dim: int,
@@ -43,9 +51,12 @@ class CBFullyConnectedNetwork(UCBBaseModel):
 
     def forward(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = 0.0
-    ) -> torch.Tensor:
+    ) -> Dict[str, torch.Tensor]:
         if ucb_alpha != 0:
             logger.warn(
                 f"CBFullyConnectedNetwork supports only point predictions (ucb_alpha=0), but ucb_alpha={ucb_alpha} was used"
             )
-        return self.net(inp).squeeze(-1)
+        pred_reward = self.net(inp).squeeze(-1)
+        pred_sigma = torch.zeros_like(pred_reward)
+        ucb = pred_reward
+        return {"pred_reward": pred_reward, "pred_sigma": pred_sigma, "ucb": ucb}

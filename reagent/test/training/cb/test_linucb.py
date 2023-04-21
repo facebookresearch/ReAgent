@@ -226,10 +226,12 @@ class TestLinUCB(unittest.TestCase):
 
         # eval dataset
         inp1 = torch.randn((5, self.x_dim))
-        out1 = scorer(inp1)
+        model_output1 = scorer(inp1)
+        out1 = model_output1["ucb"]
         # check it won't do redundant coefficent update after 2nd eval
         inp2 = torch.randn((5, self.x_dim))
-        out2 = scorer(inp2)
+        model_output2 = scorer(inp2)
+        out2 = model_output2["ucb"]
 
         # the feature matrix and model parameter and eval output (computed by hand)
         x1 = _add_chosen_arm_features(self.batch).features_of_chosen_arm.numpy()
