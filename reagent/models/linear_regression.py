@@ -12,9 +12,34 @@ from reagent.models.cb_base_model import UCBBaseModel
 logger = logging.getLogger(__name__)
 
 
+def matrix_inv_fallback_pinv(matrix: torch.Tensor) -> torch.Tensor:
+    """
+    if the matrix A or any matrix in the batch of matrices A is not invertible,
+    raise a error message and then switch from `inv` to `pinv`
+    https://pytorch.org/docs/stable/generated/torch.linalg.inv.html
+    """
+    try:
+        inv_matrix = torch.linalg.inv(matrix).contiguous()
+    except RuntimeError as e:
+        logger.warning(
+            "Exception raised during matrix inversion, falling back to pseudo-inverse",
+            e,
+        )
+        # switch from `inv` to `pinv`
+        # first check if matrix is Hermitian (symmetric matrix)
+        matrix_is_hermitian = torch.allclose(matrix, matrix.T, atol=1e-4, rtol=1e-4)
+        # applying hermitian=True saves about 50% computations
+        inv_matrix = torch.linalg.pinv(
+            matrix,
+            hermitian=matrix_is_hermitian,
+        ).contiguous()
+    return inv_matrix
+
+
 def batch_quadratic_form(x: torch.Tensor, A: torch.Tensor) -> torch.Tensor:
     """
     Compute the quadratic form x^T * A * x for a batched input x.
+    The calcuation of pred_sigma (uncertainty) in LinUCB is done by quadratic form x^T * A^{-1} * x.
     Inspired by https://stackoverflow.com/questions/18541851/calculate-vt-a-v-for-a-matrix-of-vectors-v
     This is a vectorized implementation of out[i] = x[i].t() @ A @ x[i]
     x shape: (Batch, Feature_dim) or (Batch, Arm, Feature_dim)
@@ -131,6 +156,11 @@ class LinearRegressionUCB(UCBBaseModel):
         We save both coefficients and A_inv in case they are needed again to avoid recomputing the inverse.
         The coefficients are computed only when needed because their computation can be expensive
             (involves matrix inversion)
+
+        Note the inverse of matrix A is first tried by inv, then pinv if inv fails.
+        - Though l2_reg_lambda makes matrix A full rank, when arm energey is huge A may still is close to rank deficient.
+        - torch.linalg.pinv is SVD based and allows stable inverse of rank deficient matrix.
+        - torch.linalg.inv is calculation more efficent than pinv but may suffer stableness issue.
         """
         # reduce the values of `avg_A` and `avg_b` across all trainer processes and reduce them with previous-epoch values.
         # The coefficients can't be averaged across trainers because they are a non-linear
@@ -146,12 +176,14 @@ class LinearRegressionUCB(UCBBaseModel):
             self.cur_sum_weight, reduce_op=ReduceOp.SUM
         )
 
-        self.inv_avg_A = torch.linalg.pinv(
+        A_extended = (
             self.avg_A
             + self.l2_reg_lambda
             * torch.eye(self.input_dim, device=self.avg_A.device)
-            / self.sum_weight  # add regularization here so that it's not double-counted under distributed training
-        ).contiguous()
+            / self.sum_weight
+        )
+        self.inv_avg_A = matrix_inv_fallback_pinv(matrix=A_extended)
+
         self._coefs = torch.matmul(self.inv_avg_A, self.avg_b)
         self.coefs_valid_for_avg_A = self.avg_A.clone()
 
