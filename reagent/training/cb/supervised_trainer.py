@@ -47,5 +47,8 @@ class SupervisedTrainer(BaseCBTrainerWithEval):
         assert batch.reward is not None  # to satisfy Pyre
 
         # compute the NN loss
-        scores = self.scorer(batch.features_of_chosen_arm)
-        return self.loss(scores, batch.reward.squeeze(-1))
+        model_output = self.scorer(batch.features_of_chosen_arm)
+        pred_reward = model_output["pred_reward"]
+
+        # The supervised learning model outputs predicted reward with no uncertainty(uncertainty=ucb_alpha*pred_sigma).
+        return self.loss(pred_reward, batch.reward.squeeze(-1))

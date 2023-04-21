@@ -6,6 +6,10 @@ from reagent.models.deep_represent_linucb import DeepRepresentLinearRegressionUC
 
 
 class TestDeepRepresentLinearRegressionUCB(unittest.TestCase):
+    """
+    This tests the model (not trainer) of DeepRepresentLinUCB.
+    """
+
     def test_basic(self):
         input_dim = 9
         sizes = [6]
@@ -18,14 +22,29 @@ class TestDeepRepresentLinearRegressionUCB(unittest.TestCase):
             activations=activations,
         )
 
-        batch_size = 3
+        batch_size = 2
         raw_input = torch.randn(batch_size, input_dim)
         self.assertEqual(
             (batch_size, linucb_inp_dim),  # check deep_represent output size
             model.deep_represent_layers(raw_input).shape,
         )
         model.eval()
-        output = model(raw_input)  # check final output size
+        model_output = model(raw_input)
+
+        # check that model's all outputs can be computed
+        pred_reward = model_output["pred_reward"]  # noqa
+        pred_sigma = model_output["pred_sigma"]  # noqa
+        ucb = model_output["ucb"]
+        mlp_out = model_output["mlp_out"]  # noqa
+
         self.assertEqual(
-            (batch_size,), output.shape
+            (batch_size,), ucb.shape
         )  # ucb is 1-d tensor of same batch size as input
+
+        self.assertEqual(
+            (batch_size,), pred_sigma.shape
+        )  # pred_sigma is 1-d tensor of same batch size as input
+
+        self.assertEqual(
+            (batch_size,), pred_reward.shape
+        )  # pred_reward is 1-d tensor of same batch size as input
