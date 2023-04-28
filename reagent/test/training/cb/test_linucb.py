@@ -7,6 +7,8 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 import torch
+from libfb.py.collections import AttrDict
+from pytorch_lightning.loggers import TensorBoardLogger
 from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
@@ -14,6 +16,36 @@ from reagent.models.linear_regression import LinearRegressionUCB
 from reagent.training.cb.base_trainer import _add_chosen_arm_features
 from reagent.training.cb.linucb_trainer import LinUCBTrainer
 from reagent.training.parameters import LinUCBTrainerParameters
+from torchrec.fb.metrics.meta_config import (
+    DefaultTaskInfo,
+    MetricsConfig,
+    QPSDef,
+    RecMetricDef,
+    RecMetricEnum,
+)
+from torchrec.fb.metrics.meta_metrics import generate_metric_module, RecMetricModule
+
+
+def _get_recmetric_module():
+    rec_task = DefaultTaskInfo
+
+    metrics_config = MetricsConfig(
+        rec_tasks=[rec_task],
+        rec_metrics={
+            RecMetricEnum.MSE: RecMetricDef(rec_tasks=[rec_task], window_size=1),
+        },
+        qps_metric=QPSDef(),
+        state_metrics=[],
+    )
+    return generate_metric_module(
+        RecMetricModule,
+        metrics_config=metrics_config,
+        batch_size=2,
+        world_size=1,
+        my_rank=1,
+        state_metrics_mapping={},
+        device="cpu",
+    )
 
 
 class TestLinUCButils(unittest.TestCase):
@@ -288,3 +320,20 @@ class TestLinUCB(unittest.TestCase):
 
         expected_out2 = calculated_expected_ucb_scores(inp2)
         npt.assert_allclose(out2.numpy(), expected_out2, atol=1e-4, rtol=1e-4)
+
+    def test_recmetric_module(self):
+        recmetric_module = _get_recmetric_module()
+        scorer = LinearRegressionUCB(self.x_dim)
+        policy = Policy(scorer=scorer, sampler=GreedyActionSampler())
+        trainer = LinUCBTrainer(
+            policy, recmetric_module=recmetric_module, log_every_n_steps=1
+        )
+
+        # hacky way to set the logger
+        trainer.trainer = AttrDict()
+        trainer.trainer.logger = TensorBoardLogger("/tmp/log_dir")
+        trainer.trainer.global_step = 0
+
+        trainer.training_step(self.batch, 0)
+        trainer.training_step(self.batch, 1)
+        trainer.on_train_epoch_end()
