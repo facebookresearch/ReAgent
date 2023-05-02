@@ -28,6 +28,7 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
         self,
         policy: Policy,
         lr: float = 1e-3,
+        weight_decay: float = 0.0,
         **kwargs,
     ):
         super().__init__(
@@ -40,9 +41,12 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
         self.scorer = policy.scorer
         self.loss_fn = torch.nn.functional.mse_loss
         self.lr = lr
+        self.weight_decay = weight_decay
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
-        return torch.optim.Adam(self.scorer.parameters(), lr=self.lr)
+        return torch.optim.Adam(
+            self.scorer.parameters(), lr=self.lr, weight_decay=self.weight_decay
+        )
 
     def cb_training_step(
         self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0

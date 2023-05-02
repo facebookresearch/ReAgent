@@ -30,16 +30,20 @@ class SupervisedTrainer(BaseCBTrainerWithEval):
         policy: Policy,
         loss_type: str = "mse",  # one of the LossTypes names
         lr: float = 1e-3,
+        weight_decay: float = 0.0,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.scorer = policy.scorer
         self.lr = lr
+        self.weight_decay = weight_decay
         self.loss = LOSS_TYPES[loss_type]
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
+        return torch.optim.Adam(
+            self.parameters(), lr=self.lr, weight_decay=self.weight_decay
+        )
 
     def cb_training_step(
         self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0
