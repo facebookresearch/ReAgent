@@ -76,11 +76,11 @@ class LinUCBTrainer(BaseCBTrainerWithEval):
     def cb_training_step(
         self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0
     ) -> Optional[torch.Tensor]:
-        assert batch.reward is not None  # to satisfy Pyre
+        assert batch.label is not None  # to satisfy Pyre
         assert batch.features_of_chosen_arm is not None  # to satisfy Pyre
 
         # update parameters
-        self.update_params(batch.features_of_chosen_arm, batch.reward, batch.weight)
+        self.update_params(batch.features_of_chosen_arm, batch.label, batch.weight)
 
     def apply_discounting_multiplier(self):
         self.scorer.sum_weight *= self.scorer.gamma

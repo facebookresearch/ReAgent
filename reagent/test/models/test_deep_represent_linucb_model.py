@@ -32,7 +32,7 @@ class TestDeepRepresentLinearRegressionUCB(unittest.TestCase):
         model_output = model(raw_input)
 
         # check that model's all outputs can be computed
-        pred_reward = model_output["pred_reward"]  # noqa
+        pred_label = model_output["pred_label"]  # noqa
         pred_sigma = model_output["pred_sigma"]  # noqa
         ucb = model_output["ucb"]
         mlp_out = model_output["mlp_out"]  # noqa
@@ -46,5 +46,5 @@ class TestDeepRepresentLinearRegressionUCB(unittest.TestCase):
         )  # pred_sigma is 1-d tensor of same batch size as input
 
         self.assertEqual(
-            (batch_size,), pred_reward.shape
-        )  # pred_reward is 1-d tensor of same batch size as input
+            (batch_size,), pred_label.shape
+        )  # pred_label is 1-d tensor of same batch size as input

@@ -48,17 +48,17 @@ class SupervisedTrainer(BaseCBTrainerWithEval):
     def cb_training_step(
         self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0
     ) -> torch.Tensor:
-        assert batch.reward is not None  # to satisfy Pyre
+        assert batch.label is not None  # to satisfy Pyre
 
         # compute the NN loss
         model_output = self.scorer(batch.features_of_chosen_arm)
-        pred_reward = model_output["pred_reward"]
+        pred_label = model_output["pred_label"]
 
-        # The supervised learning model outputs predicted reward with no uncertainty(uncertainty=ucb_alpha*pred_sigma).
+        # The supervised learning model outputs predicted label with no uncertainty(uncertainty=ucb_alpha*pred_sigma).
         if batch.weight is not None:
             # weighted average loss
-            losses = self.loss(pred_reward, batch.reward.squeeze(-1), reduction="none")
+            losses = self.loss(pred_label, batch.label.squeeze(-1), reduction="none")
             return (losses * batch.weight.squeeze(-1)).sum() / batch.weight.sum()
         else:
             # non-weighted average loss
-            return self.loss(pred_reward, batch.reward.squeeze(-1), reduction="mean")
+            return self.loss(pred_label, batch.label.squeeze(-1), reduction="mean")

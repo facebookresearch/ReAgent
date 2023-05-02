@@ -102,7 +102,7 @@ class LinearRegressionUCB(UCBBaseModel):
         gamma: per-epoch discount factor (A and b get multiplied by gamma every epoch)
 
     Outputs:
-    Dict {"pred_reward": pred_reward, "pred_sigma": pred_sigma, "ucb": ucb}
+    Dict {"pred_label": pred_label, "pred_sigma": pred_sigma, "ucb": ucb}
     """
 
     def __init__(
@@ -129,11 +129,11 @@ class LinearRegressionUCB(UCBBaseModel):
         """
         # A is weighted average of X^T*X across all data
         self.register_buffer("avg_A", torch.zeros(self.input_dim, self.input_dim))
-        # b is weighted average of reward*X across all data
+        # b is weighted average of label*X across all data
         self.register_buffer("avg_b", torch.zeros(self.input_dim))
         # A is weighted average of X^T*X across current epoch
         self.register_buffer("cur_avg_A", torch.zeros(self.input_dim, self.input_dim))
-        # b is weighted average of reward*X across current epoch
+        # b is weighted average of label*X across current epoch
         self.register_buffer("cur_avg_b", torch.zeros(self.input_dim))
 
         self.register_buffer("_coefs", torch.zeros(self.input_dim))
@@ -212,16 +212,16 @@ class LinearRegressionUCB(UCBBaseModel):
         if ucb_alpha is None:
             ucb_alpha = self.ucb_alpha
 
-        pred_reward = torch.matmul(inp, self._coefs)
+        pred_label = torch.matmul(inp, self._coefs)
 
         if ucb_alpha != 0:
             pred_sigma = torch.sqrt(
                 batch_quadratic_form(inp, self.inv_avg_A) / self.sum_weight
             )
         else:
-            pred_sigma = torch.zeros_like(pred_reward)
-        ucb = pred_reward + ucb_alpha * pred_sigma
-        return {"pred_reward": pred_reward, "pred_sigma": pred_sigma, "ucb": ucb}
+            pred_sigma = torch.zeros_like(pred_label)
+        ucb = pred_label + ucb_alpha * pred_sigma
+        return {"pred_label": pred_label, "pred_sigma": pred_sigma, "ucb": ucb}
 
     def forward(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
