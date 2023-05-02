@@ -259,7 +259,10 @@ class TestEvalDuringTraining(unittest.TestCase):
 
         # check total weight (number of observations). Should be 3
         self.assertAlmostEqual(
-            (self.eval_module.sum_weight + self.eval_module.sum_weight_local).item(),
+            (
+                self.eval_module.sum_weight_accepted
+                + self.eval_module.sum_weight_accepted_local
+            ).item(),
             3.0,
             places=4,
         )

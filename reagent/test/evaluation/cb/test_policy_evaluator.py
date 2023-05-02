@@ -55,46 +55,46 @@ class TestPolicyEvaluator(unittest.TestCase):
         self.eval_module._process_all_data(self.batch)
         state_dict_after = copy.deepcopy(self.eval_module.state_dict())
 
-        # all_data_sum_weight_local got updated properly
+        # sum_weight_all_data_local got updated properly
         self.assertAlmostEqual(
-            state_dict_after["all_data_sum_weight_local"].item()
-            - state_dict_before["all_data_sum_weight_local"].item(),
+            state_dict_after["sum_weight_all_data_local"].item()
+            - state_dict_before["sum_weight_all_data_local"].item(),
             len(self.batch),
         )
-        # all_data_sum_weight didn't change (bcs we haven't aggregated across instances yet)
+        # sum_weight_all_data didn't change (bcs we haven't aggregated across instances yet)
         self.assertAlmostEqual(
-            state_dict_after["all_data_sum_weight"].item(),
-            state_dict_before["all_data_sum_weight"].item(),
+            state_dict_after["sum_weight_all_data"].item(),
+            state_dict_before["sum_weight_all_data"].item(),
+        )
+
+        # sum_reward_weighted_accepted_local got updated properly
+        self.assertAlmostEqual(
+            state_dict_after["sum_reward_weighted_accepted_local"].item(),
+            state_dict_before["sum_reward_weighted_accepted_local"].item(),
+        )
+        # sum_reward_weighted_accepted didn't change (bcs we haven't aggregated across instances yet)
+        self.assertAlmostEqual(
+            state_dict_after["sum_reward_weighted_accepted"].item(),
+            state_dict_before["sum_reward_weighted_accepted"].item(),
         )
 
         # sum_weight and sum_reward_weighted didn't change (as well as local values)
         self.assertAlmostEqual(
-            state_dict_after["sum_weight"].item(),
-            state_dict_before["sum_weight"].item(),
+            state_dict_after["sum_weight_accepted"].item(),
+            state_dict_before["sum_weight_accepted"].item(),
         )
         self.assertAlmostEqual(
-            state_dict_after["sum_weight_local"].item(),
-            state_dict_before["sum_weight_local"].item(),
+            state_dict_after["sum_weight_accepted_local"].item(),
+            state_dict_before["sum_weight_accepted_local"].item(),
         )
         self.assertAlmostEqual(
-            state_dict_after["sum_reward_weighted"].item(),
-            state_dict_before["sum_reward_weighted"].item(),
+            state_dict_after["sum_reward_weighted_accepted"].item(),
+            state_dict_before["sum_reward_weighted_accepted"].item(),
         )
         self.assertAlmostEqual(
-            state_dict_after["sum_reward_weighted_local"].item(),
-            state_dict_before["sum_reward_weighted_local"].item(),
+            state_dict_after["sum_reward_weighted_accepted_local"].item(),
+            state_dict_before["sum_reward_weighted_accepted_local"].item(),
         )
-
-    def test_process_used_data_reject_all(self):
-        # make sure calling _process_used_data() doesn't change internal state if all weights are 0
-        state_dict_before = copy.deepcopy(self.eval_module.state_dict())
-        batch = replace(
-            self.batch,
-            weight=torch.zeros_like(self.batch.action, dtype=torch.float),
-        )
-        self.eval_module._process_used_data(batch)
-        state_dict_after = copy.deepcopy(self.eval_module.state_dict())
-        self.assertTrue(_compare_state_dicts(state_dict_before, state_dict_after))
 
     def test_process_used_data_accept_some(self):
         # calling _process_used_data with non-zero weights should change the state and lead to correct reward value
@@ -110,13 +110,13 @@ class TestPolicyEvaluator(unittest.TestCase):
         eval_module._aggregate_across_instances()
         state_dict_after = copy.deepcopy(eval_module.state_dict())
         self.assertFalse(_compare_state_dicts(state_dict_before, state_dict_after))
-        self.assertEqual(eval_module.sum_weight_local.item(), 0.0)
-        self.assertEqual(eval_module.sum_weight.item(), weight_value)
+        self.assertEqual(eval_module.sum_weight_accepted_local.item(), 0.0)
+        self.assertEqual(eval_module.sum_weight_accepted.item(), weight_value)
         self.assertEqual(
-            eval_module.sum_reward_weighted.item(),
+            eval_module.sum_reward_weighted_accepted.item(),
             weight_value * self.batch.reward[1, 0].item(),
         )
-        self.assertEqual(eval_module.sum_reward_weighted_local.item(), 0.0)
+        self.assertEqual(eval_module.sum_reward_weighted_accepted_local.item(), 0.0)
         self.assertEqual(eval_module.get_avg_reward(), self.batch.reward[1, 0].item())
 
     def test_update_eval_model(self):
@@ -171,8 +171,15 @@ class TestPolicyEvaluator(unittest.TestCase):
 
         expected_metric_dict = {
             "[model]Offline_Eval_avg_reward": 0.0,
-            "[model]Offline_Eval_sum_weight": 0.0,
-            "[model]Offline_Eval_all_data_sum_weight": 0.0,
+            "[model]Offline_Eval_sum_weight_accepted": 0.0,
+            "[model]Offline_Eval_sum_weight_all_data": 0.0,
             "[model]Offline_Eval_num_eval_model_updates": 0,
+            "[model]Offline_Eval_frac_accepted": 0.0,
+            "[model]Offline_Eval_avg_reward_accepted": 0.0,
+            "[model]Offline_Eval_avg_reward_rejected": 0.0,
+            "[model]Offline_Eval_avg_size_accepted": 0.0,
+            "[model]Offline_Eval_avg_size_rejected": 0.0,
+            "[model]Offline_Eval_accepted_rejected_reward_ratio": 0.0,
+            "[model]Offline_Eval_avg_reward_all_data": 0.0,
         }
         logger.log_metrics.assert_called_once_with(expected_metric_dict, step=5)

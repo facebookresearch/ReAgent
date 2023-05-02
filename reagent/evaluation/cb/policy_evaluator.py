@@ -17,22 +17,21 @@ class PolicyEvaluator(BaseOfflineEval):
     An offline evaluator for Contextual Bandits, based on the paper https://arxiv.org/pdf/1003.0146.pdf (Algorithm 3)
     """
 
-    sum_reward_weighted: torch.Tensor
-    sum_reward_weighted_local: torch.Tensor
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.register_buffer("sum_reward_weighted", torch.zeros(1, dtype=torch.float))
-        self.register_buffer(
-            "sum_reward_weighted_local", torch.zeros(1, dtype=torch.float)
-        )
-
     @torch.no_grad()
     def _process_all_data(self, batch: CBInput) -> None:
+        assert batch.reward is not None
         if batch.weight is not None:
-            self.all_data_sum_weight_local += batch.weight.sum()
+            weights = batch.weight
         else:
-            self.all_data_sum_weight_local += len(batch)
+            weights = torch.ones_like(batch.reward)
+        self.sum_weight_all_data_local += weights.sum()
+        self.sum_reward_weighted_all_data_local += (weights * batch.reward).sum()
+        if batch.arm_presence is not None:
+            sizes = batch.arm_presence.sum(1)
+        else:
+            # assume that all arms are present
+            sizes = torch.ones_like(batch.reward) * batch.context_arm_features.shape[1]
+        self.sum_size_weighted_all_data_local += (weights.squeeze() * sizes).sum()
 
     @torch.no_grad()
     def _process_used_data(self, batch: CBInput) -> None:
@@ -44,29 +43,84 @@ class PolicyEvaluator(BaseOfflineEval):
         assert batch.reward is not None
         assert batch.weight is not None
         assert batch.weight.shape == batch.reward.shape
-        self.sum_reward_weighted_local += (batch.weight * batch.reward).sum()
-        self.sum_weight_local += batch.weight.sum()
+        # rejected observations have 0 weights, so they get filtered out when we multiply by weight
+        self.sum_reward_weighted_accepted_local += (batch.weight * batch.reward).sum()
+        self.sum_weight_accepted_local += batch.weight.sum()
+        if batch.arm_presence is not None:
+            sizes = batch.arm_presence.sum(1)
+        else:
+            # assume that all arms are present
+            sizes = torch.ones_like(batch.reward) * batch.context_arm_features.shape[1]
+        self.sum_size_weighted_accepted_local += (batch.weight.squeeze() * sizes).sum()
 
     def _aggregate_across_instances(self) -> None:
         # sum local values across all trainers, add to the global value
         # clone the tensors to avoid modifying them inplace
-        self.sum_reward_weighted += sync_ddp_if_available(
-            self.sum_reward_weighted_local.clone(), reduce_op=ReduceOp.SUM
+
+        sum_weight_accepted = sync_ddp_if_available(
+            self.sum_weight_accepted_local.clone(), reduce_op=ReduceOp.SUM
         )
-        self.sum_weight += sync_ddp_if_available(
-            self.sum_weight_local.clone(), reduce_op=ReduceOp.SUM
+
+        sum_weight_all_data = sync_ddp_if_available(
+            self.sum_weight_all_data_local.clone(), reduce_op=ReduceOp.SUM
         )
-        self.all_data_sum_weight += sync_ddp_if_available(
-            self.all_data_sum_weight_local.clone(), reduce_op=ReduceOp.SUM
+
+        sum_weight_rejected = sum_weight_all_data - sum_weight_accepted
+
+        sum_reward_weighted_accepted = sync_ddp_if_available(
+            self.sum_reward_weighted_accepted_local.clone(), reduce_op=ReduceOp.SUM
         )
+
+        sum_reward_weighted_all_data = sync_ddp_if_available(
+            self.sum_reward_weighted_all_data_local.clone(), reduce_op=ReduceOp.SUM
+        )
+        sum_reward_weighted_rejected = (
+            sum_reward_weighted_all_data - sum_reward_weighted_accepted
+        )
+
+        sum_size_weighted_accepted = sync_ddp_if_available(
+            self.sum_size_weighted_accepted_local.clone(), reduce_op=ReduceOp.SUM
+        )
+        sum_size_weighted_all_data = sync_ddp_if_available(
+            self.sum_size_weighted_all_data_local.clone(), reduce_op=ReduceOp.SUM
+        )
+        sum_size_weighted_rejected = (
+            sum_size_weighted_all_data - sum_size_weighted_accepted
+        )
+
+        # udpate the global cumulative sum buffers
+        self.sum_reward_weighted_accepted += sum_reward_weighted_accepted
+        self.sum_weight_accepted += sum_weight_accepted
+        self.sum_weight_all_data += sum_weight_all_data
+
+        # calcualte the metrics for window (since last aggregation across instances)
+        self.frac_accepted = sum_weight_accepted / sum_weight_all_data
+        self.avg_reward_accepted = sum_reward_weighted_accepted / sum_weight_accepted
+        self.avg_reward_rejected = sum_reward_weighted_rejected / sum_weight_rejected
+
+        self.avg_reward_all_data = sum_reward_weighted_all_data / sum_weight_all_data
+
+        self.accepted_rejected_reward_ratio = (
+            self.avg_reward_accepted / self.avg_reward_rejected
+        )
+
+        self.avg_size_accepted = sum_size_weighted_accepted / sum_weight_accepted
+
+        self.avg_size_rejected = sum_size_weighted_rejected / sum_weight_rejected
+
         # reset local values to zero
-        self.sum_reward_weighted_local.zero_()
-        self.sum_weight_local.zero_()
-        self.all_data_sum_weight_local.zero_()
+        self.sum_reward_weighted_accepted_local.zero_()
+        self.sum_reward_weighted_all_data_local.zero_()
+        self.sum_weight_accepted_local.zero_()
+        self.sum_weight_all_data_local.zero_()
+        self.sum_size_weighted_accepted_local.zero_()
+        self.sum_size_weighted_all_data_local.zero_()
 
     def get_avg_reward(self) -> float:
         assert (
-            self.sum_weight_local.item() == 0.0
-        ), f"Non-zero local weight {self.sum_weight_local.item()} in the evaluator. _aggregate_across_instances() Should have beed called to aggregate across all instances and zero-out the local values."
+            self.sum_weight_accepted_local.item() == 0.0
+        ), f"Non-zero local weight {self.sum_weight_appected_local.item()} in the evaluator. _aggregate_across_instances() Should have beed called to aggregate across all instances and zero-out the local values."
         # return the average reward
-        return (self.sum_reward_weighted / (self.sum_weight + EPSILON)).item()
+        return (
+            self.sum_reward_weighted_accepted / (self.sum_weight_accepted + EPSILON)
+        ).item()
