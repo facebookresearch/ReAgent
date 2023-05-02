@@ -38,7 +38,7 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
             policy.scorer, DeepRepresentLinearRegressionUCB
         ), "Trainer requires the policy scorer to be DeepRepresentLinearRegressionUCB"
         self.scorer = policy.scorer
-        self.loss_fn = torch.nn.MSELoss(reduction="mean")
+        self.loss_fn = torch.nn.functional.mse_loss
         self.lr = lr
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
@@ -69,7 +69,13 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
             pred_reward.shape == reward.shape
         ), f"Shapes of model prediction {pred_reward.shape} and reward {reward.shape} have to match"
         # compute the NN loss
-        loss = self.loss_fn(pred_reward, reward)
+        if batch.weight is not None:
+            # weighted average loss
+            losses = self.loss_fn(pred_reward, reward, reduction="none")
+            loss = (losses * batch.weight.squeeze(-1)).sum() / batch.weight.sum()
+        else:
+            # non-weighted average loss
+            loss = self.loss_fn(pred_reward, reward, reduction="mean")
 
         # update LinUCB parameters
         self.update_params(mlp_out.detach(), batch.reward, batch.weight)
