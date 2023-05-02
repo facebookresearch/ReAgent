@@ -54,34 +54,34 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
         """
         Here scorer (DeepRepresentLinearRegressionUCB) outputs Dict
             {
-                "pred_reward": pred_reward,
+                "pred_label": pred_label,
                 "pred_sigma": pred_sigma,
                 "ucb": ucb,
                 "mlp_out": mlp_out,
             }
-        The pred_reward is useful for calculating MSE loss.
+        The pred_label is useful for calculating MSE loss.
         The mlp_out is useful for updating LinUCB parameters (A, b, etc)
         """
         model_output = self.scorer(inp=batch.features_of_chosen_arm)  # noqa
         # this calls scorer.forward() so as to update pred_u, and to grad descent on deep_represent module
 
-        pred_reward, mlp_out = model_output["pred_reward"], model_output["mlp_out"]
+        pred_label, mlp_out = model_output["pred_label"], model_output["mlp_out"]
 
-        assert batch.reward is not None  # to satisfy Pyre
-        reward = batch.reward.squeeze(-1)
+        assert batch.label is not None  # to satisfy Pyre
+        label = batch.label.squeeze(-1)
         assert (
-            pred_reward.shape == reward.shape
-        ), f"Shapes of model prediction {pred_reward.shape} and reward {reward.shape} have to match"
+            pred_label.shape == label.shape
+        ), f"Shapes of model prediction {pred_label.shape} and label {label.shape} have to match"
         # compute the NN loss
         if batch.weight is not None:
             # weighted average loss
-            losses = self.loss_fn(pred_reward, reward, reduction="none")
+            losses = self.loss_fn(pred_label, label, reduction="none")
             loss = (losses * batch.weight.squeeze(-1)).sum() / batch.weight.sum()
         else:
             # non-weighted average loss
-            loss = self.loss_fn(pred_reward, reward, reduction="mean")
+            loss = self.loss_fn(pred_label, label, reduction="mean")
 
         # update LinUCB parameters
-        self.update_params(mlp_out.detach(), batch.reward, batch.weight)
+        self.update_params(mlp_out.detach(), batch.label, batch.weight)
 
         return loss

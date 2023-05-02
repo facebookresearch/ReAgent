@@ -39,14 +39,14 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         )
 
     In this implementation,
-    - ucb = pred_reward + uncertainty
+    - ucb = pred_label + uncertainty
     - uncertainty = ucb_alpha * pred_sigma
 
-    - pred_reward is the predicted reward.
-    - pred_sigma reflects the variance associated with the predicted reward.
+    - pred_label is the predicted label.
+    - pred_sigma reflects the variance associated with the predicted label.
     - ucb_alpha controls the balance between exploration and exploitation,
         - If ucb_alpha is not 0, uncertainty(ucb_alpha * pred_sigma) will be included in the final output.
-        - If ucb_alpha is 0, uncertainty(ucb_alpha * pred_sigma) will not be included. The model only outputs a predicted reward like a classical supervised model.
+        - If ucb_alpha is 0, uncertainty(ucb_alpha * pred_sigma) will not be included. The model only outputs a predicted label like a classical supervised model.
     - mlp_out is the output from the deep_represent module, also it is the input to the LinUCB module.
     - coefs serve as the top layer LinUCB module in this implementation.
         - it is crutial that coefs will not be updated by gradient back propagation.
@@ -119,28 +119,28 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
 
         mlp_out = self.deep_represent_layers(inp)
         # preprocess by DeepRepresent module before fed to LinUCB layer
-        # trainer needs pred_reward and mlp_out to update parameters
+        # trainer needs pred_label and mlp_out to update parameters
 
         if ucb_alpha is None:
             ucb_alpha = self.ucb_alpha
-        pred_reward = torch.matmul(mlp_out, self.coefs)
+        pred_label = torch.matmul(mlp_out, self.coefs)
         if ucb_alpha != 0:
             pred_sigma = torch.sqrt(
                 batch_quadratic_form(mlp_out, self.inv_avg_A)
                 / torch.clamp(self.sum_weight, min=0.00001)
             )
-            ucb = pred_reward + ucb_alpha * pred_sigma
+            ucb = pred_label + ucb_alpha * pred_sigma
             return {
-                "pred_reward": pred_reward,
+                "pred_label": pred_label,
                 "pred_sigma": pred_sigma,
                 "ucb": ucb,
                 "mlp_out": mlp_out,
             }
         else:
-            pred_sigma = torch.zeros_like(pred_reward)
-            ucb = pred_reward
+            pred_sigma = torch.zeros_like(pred_label)
+            ucb = pred_label
             return {
-                "pred_reward": pred_reward,
+                "pred_label": pred_label,
                 "pred_sigma": pred_sigma,
                 "ucb": ucb,
                 "mlp_out": mlp_out,
@@ -155,7 +155,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         F': input_dim to LinUCB
         Shapes:
             inp: B,F
-            pred_reward: B
+            pred_label: B
             pred_sigma: B
             ucb: B
             mlp_out: B,F'
@@ -163,11 +163,11 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         mlp_out = self.deep_represent_layers(inp)
         model_output = super().forward_inference(mlp_out)
 
-        pred_reward = model_output["pred_reward"]
+        pred_label = model_output["pred_label"]
         pred_sigma = model_output["pred_sigma"]
         ucb = model_output["ucb"]
         return {
-            "pred_reward": pred_reward,
+            "pred_label": pred_label,
             "pred_sigma": pred_sigma,
             "ucb": ucb,
             "mlp_out": mlp_out,

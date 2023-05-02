@@ -28,7 +28,7 @@ class UCBBaseModel(torch.nn.Module, ABC):
     ) -> Dict[str, torch.Tensor]:
         """
         Model forward pass. For UCB models should return the prediction with uncertainty, not the point prediction.
-        Returns pred_reward, pred_sigma, ucb (where ucb = pred_reward + ucb_alpha*pred_sigma)
+        Returns pred_label, pred_sigma, ucb (where ucb = pred_label + ucb_alpha*pred_sigma)
         """
         pass
 

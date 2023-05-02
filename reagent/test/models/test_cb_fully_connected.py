@@ -13,9 +13,9 @@ class TestCBFullyConnectedNetwork(unittest.TestCase):
 
         inp = torch.tensor([[1.0, 5.0], [1.0, 6.0]])
         model_output = model(inp)
-        pred_reward = model_output["pred_reward"]
+        pred_label = model_output["pred_label"]
         ucb = model_output["ucb"]
 
-        self.assertIsInstance(pred_reward, torch.Tensor)
-        self.assertEqual(tuple(pred_reward.shape), (2,))
-        assert torch.allclose(pred_reward, ucb, atol=1e-4, rtol=1e-4)
+        self.assertIsInstance(pred_label, torch.Tensor)
+        self.assertEqual(tuple(pred_label.shape), (2,))
+        assert torch.allclose(pred_label, ucb, atol=1e-4, rtol=1e-4)

@@ -98,18 +98,21 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
             recmetric_module is not None
         ), "recmetric_module should be provided if and only if log_every_n_steps > 0"
 
-    def _check_input(self, batch: CBInput) -> None:
+    def _check_input(self, batch: CBInput, offline_eval: bool = False) -> None:
         """
         Check that the input batch satisfies the following assumptions:
             1. context_arm_features is 3D with dimensions: batch_size, arm_count, feature_dim
-            2. Reward and action are not none
+            2. Label and action are not none
             3. Batch size is the same for action, reward and context_arm_features
         """
         assert batch.context_arm_features.ndim == 3
-        assert batch.reward is not None
+        assert batch.label is not None
         assert batch.action is not None
-        assert len(batch.action) == len(batch.reward)
+        assert len(batch.action) == len(batch.label)
         assert len(batch.action) == batch.context_arm_features.shape[0]
+        if offline_eval:
+            assert batch.reward is not None
+            assert len(batch.action) == len(batch.reward)
 
     def attach_eval_module(self, eval_module: BaseOfflineEval) -> None:
         """
@@ -137,9 +140,11 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
 
         DO NOT OVERRIDE THIS METHOD IN SUBCLASSES, IT'S @final. Instead, override cb_training_step().
         """
-        self._check_input(batch)
         eval_module = self.eval_module  # assign to local var to keep pyre happy
-        if eval_module is not None:
+        offline_eval_enabled = eval_module is not None
+        self._check_input(batch, offline_eval=offline_eval_enabled)
+        if offline_eval_enabled:
+            assert eval_module is not None
             # update the model if we've processed enough samples
             eval_model_update_critical_weight = self.eval_model_update_critical_weight
             if eval_model_update_critical_weight is not None:
@@ -212,16 +217,16 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
             # get point predictions (expected value, uncertainty is ignored)
             # this could be expensive because the coefficients have to be computed via matrix inversion
             model_output = self.scorer(x)
-            preds = model_output["pred_reward"]
+            preds = model_output["pred_label"]
 
             weight = batch.weight
             if weight is None:
-                assert batch.reward is not None
-                weight = torch.ones_like(batch.reward)
+                assert batch.label is not None
+                weight = torch.ones_like(batch.label)
             recmetric_module.update(
                 {
                     "prediction": preds,
-                    "label": batch.reward,
+                    "label": batch.label,
                     "weight": weight,
                 }
             )

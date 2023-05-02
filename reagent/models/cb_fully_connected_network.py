@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 class CBFullyConnectedNetwork(UCBBaseModel):
     """
     A Fully Connected Network (FCNN) for contextual bandits.
-    It outputs a dictionary consisting of {pred_reward, pred_sigma, ucb}.
+    It outputs a dictionary consisting of {pred_label, pred_sigma, ucb}.
     This model does not yields pred_sigma as LinUCB or DeepRepresentLinearRegressionUCB does.
     It outputs a dummy or zero pred_sigma (uncertainty=ucb_alpha*pred_sigma) by setting pred_sigma=0.
-    As a result, this model outputs ucb=pred_reward.
+    As a result, this model outputs ucb=pred_label.
     """
 
     def __init__(
@@ -56,7 +56,7 @@ class CBFullyConnectedNetwork(UCBBaseModel):
             logger.warn(
                 f"CBFullyConnectedNetwork supports only point predictions (ucb_alpha=0), but ucb_alpha={ucb_alpha} was used"
             )
-        pred_reward = self.net(inp).squeeze(-1)
-        pred_sigma = torch.zeros_like(pred_reward)
-        ucb = pred_reward
-        return {"pred_reward": pred_reward, "pred_sigma": pred_sigma, "ucb": ucb}
+        pred_label = self.net(inp).squeeze(-1)
+        pred_sigma = torch.zeros_like(pred_label)
+        ucb = pred_label
+        return {"pred_label": pred_label, "pred_sigma": pred_sigma, "ucb": ucb}

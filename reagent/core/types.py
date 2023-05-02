@@ -1117,7 +1117,12 @@ class CBInput(TensorDataClass):
     features_of_chosen_arm: Final[Optional[torch.Tensor]] = None
     arm_presence: Final[Optional[torch.Tensor]] = None
     action: Final[Optional[torch.Tensor]] = None  # chosen arm
-    reward: Final[Optional[torch.Tensor]] = None  # reward of the chosen arm
+    reward: Final[
+        Optional[torch.Tensor]
+    ] = None  # reward of the chosen arm. Used mostly for Offline Evalution. `label` is used as target for training.
+    label: Final[
+        Optional[torch.Tensor]
+    ] = None  # label used for model training. Could be same as `reward`, or something else.
     rewards_all_arms: Final[
         Optional[torch.Tensor]
     ] = None  # rewards of all arms of the episode
@@ -1145,6 +1150,7 @@ class CBInput(TensorDataClass):
             arm_presence=d.get("arm_presence", None),
             action=d.get("action", None),
             reward=d.get("reward", None),
+            label=d.get("label", None),
             log_prob=d.get("log_prob", None),
             weight=d.get("weight", None),
             arms=d.get("arms", None),
@@ -1157,3 +1163,7 @@ class CBInput(TensorDataClass):
     @property
     def device(self) -> torch.device:
         return self.context_arm_features.device
+
+    def __post_init__(self):
+        if self.label is None and self.reward is not None:
+            self.label = self.reward.clone()
