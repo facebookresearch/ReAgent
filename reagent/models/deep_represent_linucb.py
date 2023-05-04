@@ -47,7 +47,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
     - ucb_alpha controls the balance between exploration and exploitation,
         - If ucb_alpha is not 0, uncertainty(ucb_alpha * pred_sigma) will be included in the final output.
         - If ucb_alpha is 0, uncertainty(ucb_alpha * pred_sigma) will not be included. The model only outputs a predicted label like a classical supervised model.
-    - mlp_out is the output from the deep_represent module, also it is the input to the LinUCB module.
+    - mlp_out_with_ones is the output from the deep_represent module (with extra column of ones appended for the bias term), also it is the input to the LinUCB module.
     - coefs serve as the top layer LinUCB module in this implementation.
         - it is crutial that coefs will not be updated by gradient back propagation.
         - coefs is defined by @property decorator in LinearRegressionUCB.
@@ -74,9 +74,8 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         mlp_layers: Optional[nn.Module] = None,
     ):
         super().__init__(
-            input_dim=sizes[
-                -1
-            ],  # self.input_dim is the LinUCB input dimension (equal to MLP output dimension)
+            input_dim=sizes[-1]
+            + 1,  # self.input_dim is the LinUCB input dimension (equal to MLP output dimension). Adding 1 for bias/intercept
             l2_reg_lambda=l2_reg_lambda,
             ucb_alpha=ucb_alpha,
             gamma=gamma,
@@ -121,30 +120,33 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         # preprocess by DeepRepresent module before fed to LinUCB layer
         # trainer needs pred_label and mlp_out to update parameters
 
+        # append a column of ones to features for LinUCB intercept/bias
+        mlp_out_with_ones = torch.cat(
+            (
+                torch.ones(mlp_out.shape[:-1], device=mlp_out.device).unsqueeze(-1),
+                mlp_out,
+            ),
+            -1,
+        )
+
         if ucb_alpha is None:
             ucb_alpha = self.ucb_alpha
-        pred_label = torch.matmul(mlp_out, self.coefs)
+        pred_label = torch.matmul(mlp_out_with_ones, self.coefs)
         if ucb_alpha != 0:
             pred_sigma = torch.sqrt(
-                batch_quadratic_form(mlp_out, self.inv_avg_A)
+                batch_quadratic_form(mlp_out_with_ones, self.inv_avg_A)
                 / torch.clamp(self.sum_weight, min=0.00001)
             )
             ucb = pred_label + ucb_alpha * pred_sigma
-            return {
-                "pred_label": pred_label,
-                "pred_sigma": pred_sigma,
-                "ucb": ucb,
-                "mlp_out": mlp_out,
-            }
         else:
             pred_sigma = torch.zeros_like(pred_label)
             ucb = pred_label
-            return {
-                "pred_label": pred_label,
-                "pred_sigma": pred_sigma,
-                "ucb": ucb,
-                "mlp_out": mlp_out,
-            }
+        return {
+            "pred_label": pred_label,
+            "pred_sigma": pred_sigma,
+            "ucb": ucb,
+            "mlp_out_with_ones": mlp_out_with_ones,
+        }
 
     def forward_inference(
         self, inp: torch.Tensor, ucb_alpha: Optional[float] = None
@@ -158,10 +160,19 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
             pred_label: B
             pred_sigma: B
             ucb: B
-            mlp_out: B,F'
+            mlp_out_with_ones: B,F'
         """
         mlp_out = self.deep_represent_layers(inp)
-        model_output = super().forward_inference(mlp_out)
+        # append a column of ones for LinUCB intercept
+        mlp_out_with_ones = torch.cat(
+            (
+                torch.ones(mlp_out.shape[:-1], device=mlp_out.device).unsqueeze(-1),
+                mlp_out,
+            ),
+            -1,
+        )
+
+        model_output = super().forward_inference(mlp_out_with_ones)
 
         pred_label = model_output["pred_label"]
         pred_sigma = model_output["pred_sigma"]
@@ -170,5 +181,5 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
             "pred_label": pred_label,
             "pred_sigma": pred_sigma,
             "ucb": ucb,
-            "mlp_out": mlp_out,
+            "mlp_out_with_ones": mlp_out_with_ones,
         }

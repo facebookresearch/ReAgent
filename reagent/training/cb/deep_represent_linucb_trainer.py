@@ -57,15 +57,18 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
                 "pred_label": pred_label,
                 "pred_sigma": pred_sigma,
                 "ucb": ucb,
-                "mlp_out": mlp_out,
+                "mlp_out_with_ones": mlp_out_with_ones,
             }
         The pred_label is useful for calculating MSE loss.
-        The mlp_out is useful for updating LinUCB parameters (A, b, etc)
+        The mlp_out_with_ones is useful for updating LinUCB parameters (A, b, etc)
         """
         model_output = self.scorer(inp=batch.features_of_chosen_arm)  # noqa
         # this calls scorer.forward() so as to update pred_u, and to grad descent on deep_represent module
 
-        pred_label, mlp_out = model_output["pred_label"], model_output["mlp_out"]
+        pred_label, mlp_out_with_ones = (
+            model_output["pred_label"],
+            model_output["mlp_out_with_ones"],
+        )
 
         assert batch.label is not None  # to satisfy Pyre
         label = batch.label.squeeze(-1)
@@ -82,6 +85,6 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
             loss = self.loss_fn(pred_label, label, reduction="mean")
 
         # update LinUCB parameters
-        self.update_params(mlp_out.detach(), batch.label, batch.weight)
+        self.update_params(mlp_out_with_ones.detach(), batch.label, batch.weight)
 
         return loss
