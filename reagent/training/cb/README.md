@@ -50,7 +50,7 @@ Model Example :
 In this implementation,
 - `pred_u` is the predicted reward,
 - `pred_sigma` is the uncertainty associated with the predicted reward,
-- `mlp_out` is the output from the deep_represent module, also it is the input to the LinUCB module,
+- `mlp_out_with_ones` is the output from the deep_represent module (with extra column of ones appended for the bias term), also it is the input to the LinUCB module,
 - `coefs` serve as the top layer LinUCB module in this implementation
     - it is crucial that `coefs` will not be updated by gradient back propagation
     - coefs is defined by `@property` decorator in `LinearRegressionUCB`
@@ -71,7 +71,7 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
     def training_step(self, batch: CBInput, batch_idx: int, optimizer_idx: int = 0):
         pred_ucb = self.scorer(inp=x)
         loss = self.loss_fn(self.scorer.pred_u, batch.reward.t())
-        self.update_params(self.scorer.mlp_out.detach(), batch.reward, batch.weight)
+        self.update_params(self.scorer.mlp_out_with_ones.detach(), batch.reward, batch.weight)
         return loss
 ```
 

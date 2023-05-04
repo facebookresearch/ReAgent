@@ -35,7 +35,7 @@ class TestDeepRepresentLinearRegressionUCB(unittest.TestCase):
         pred_label = model_output["pred_label"]  # noqa
         pred_sigma = model_output["pred_sigma"]  # noqa
         ucb = model_output["ucb"]
-        mlp_out = model_output["mlp_out"]  # noqa
+        mlp_out_with_ones = model_output["mlp_out_with_ones"]  # noqa
 
         self.assertEqual(
             (batch_size,), ucb.shape
