@@ -32,6 +32,7 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
         **kwargs,
     ):
         super().__init__(
+            automatic_optimization=True,
             policy=policy,
             **kwargs,
         )
