@@ -32,7 +32,7 @@ def _get_recmetric_module():
     metrics_config = MetricsConfig(
         rec_tasks=[rec_task],
         rec_metrics={
-            RecMetricEnum.MSE: RecMetricDef(rec_tasks=[rec_task], window_size=1),
+            RecMetricEnum.MSE: RecMetricDef(rec_tasks=[rec_task], window_size=5),
         },
         qps_metric=QPSDef(),
         state_metrics=[],
