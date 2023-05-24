@@ -371,7 +371,11 @@ class DoublyRobustEstimator(IPSEstimator):
             for t, i in zip(ts, count()):
                 if t is not None and t.action is not None:
                     assert input.value_function is not None
+                    # pyre-fixme[6]: For 1st argument expected `State` but got
+                    #  `Optional[State]`.
                     qs[i, j] = input.value_function(t.last_state, t.action)
+                    # pyre-fixme[6]: For 1st argument expected `State` but got
+                    #  `Optional[State]`.
                     vs[i, j] = input.value_function(t.last_state)
                     rs[i, j] = t.reward
         vs = vs.to(device=self._device)
@@ -435,7 +439,11 @@ class MAGICEstimator(IPSEstimator):
         for ts, j in zip(zip_longest(*input.log), count()):
             for t, i in zip(ts, count()):
                 if t is not None and t.action is not None:
+                    # pyre-fixme[6]: For 1st argument expected `State` but got
+                    #  `Optional[State]`.
                     qs[i, j] = input.value_function(t.last_state, t.action)
+                    # pyre-fixme[6]: For 1st argument expected `State` but got
+                    #  `Optional[State]`.
                     vs[i, j] = input.value_function(t.last_state)
                     rs[i, j] = t.reward
         vs = vs.to(device=self._device)
