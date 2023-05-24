@@ -137,7 +137,9 @@ def _build_id_2_embedding_size(
         keys, feature_configs, id_mapping_configs
     ):
         id_2_embedding_size[key] = {
+            # pyre-fixme[16]: `BaseDataClass` has no attribute `feature_id`.
             config.feature_id: id_mapping_config[
+                # pyre-fixme[16]: `BaseDataClass` has no attribute `id_mapping_name`.
                 config.id_mapping_name
             ].embedding_table_size
             for config in feature_config
@@ -156,6 +158,8 @@ def _build_id_2_hashing(
         keys, feature_configs, id_mapping_configs
     ):
         id_2_hashing[key] = {
+            # pyre-fixme[16]: `BaseDataClass` has no attribute `feature_id`.
+            # pyre-fixme[16]: `BaseDataClass` has no attribute `id_mapping_name`.
             config.feature_id: id_mapping_config[config.id_mapping_name].hashing
             for config in feature_config
         }
@@ -169,6 +173,8 @@ def _build_id_2_name(
     """Sparse feature id -> sparse feature name"""
     id_2_name = {}
     for key, feature_config in zip(keys, feature_configs):
+        # pyre-fixme[16]: `BaseDataClass` has no attribute `feature_id`.
+        # pyre-fixme[16]: `BaseDataClass` has no attribute `name`.
         id_2_name[key] = {config.feature_id: config.name for config in feature_config}
     return id_2_name
 
