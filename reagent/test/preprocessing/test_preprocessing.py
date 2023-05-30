@@ -8,7 +8,12 @@ import numpy.testing as npt
 import six
 import torch
 from reagent.preprocessing import identify_types, normalization, transforms
-from reagent.preprocessing.identify_types import BOXCOX, CONTINUOUS, ENUM
+from reagent.preprocessing.identify_types import (
+    BOXCOX,
+    CONTINUOUS,
+    DO_NOT_PREPROCESS,
+    ENUM,
+)
 from reagent.preprocessing.normalization import (
     MISSING_VALUE,
     NormalizationParameters,
@@ -19,6 +24,7 @@ from reagent.test.base.utils import NumpyFeatureProcessor
 from reagent.test.preprocessing.preprocessing_util import (
     BOXCOX_FEATURE_ID,
     CONTINUOUS_FEATURE_ID,
+    CONTINUOUS_SMALL_FEATURE_ID,
     ENUM_FEATURE_ID,
     id_to_type,
     PROBABILITY_FEATURE_ID,
@@ -53,6 +59,12 @@ class TestPreprocessing(unittest.TestCase):
                 self.assertEqual(v.feature_type, BOXCOX)
                 self.assertIsNot(v.boxcox_lambda, None)
                 self.assertIsNot(v.boxcox_shift, None)
+            elif id_to_type(k) == DO_NOT_PREPROCESS:
+                self.assertEqual(v.feature_type, CONTINUOUS)
+                self.assertIs(v.boxcox_lambda, None)
+                self.assertIs(v.boxcox_shift, 0)
+                self.assertIs(v.min_value, None)
+                self.assertIs(v.max_value, None)
             else:
                 assert v.feature_type == id_to_type(k)
 
