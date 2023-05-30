@@ -77,7 +77,9 @@ def identify_parameter(
         stddev = max(float(np.std(values, ddof=1)), 1.0)
 
     if feature_type == identify_types.CONTINUOUS or force_boxcox or force_quantile:
-        if min_value == max_value and not (force_boxcox or force_quantile):
+        if max_value - min_value < BOX_COX_MARGIN and not (
+            force_boxcox or force_quantile
+        ):
             return no_op_feature()
         k2_original, p_original = stats.normaltest(values)
 
