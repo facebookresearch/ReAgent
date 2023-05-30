@@ -172,7 +172,9 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
             -1,
         )
 
-        model_output = super().forward_inference(mlp_out_with_ones)
+        model_output = super().forward_inference(
+            inp=mlp_out_with_ones, ucb_alpha=ucb_alpha
+        )
 
         pred_label = model_output["pred_label"]
         pred_sigma = model_output["pred_sigma"]
