@@ -172,7 +172,7 @@ class IDListMetadata(ElementMetadata):
 
     def create_storage(self, capacity: int):
         array_shape = (capacity,)
-        return np.empty(array_shape, dtype=np.object)
+        return np.empty(array_shape, dtype=object)
 
     def input_to_storage(self, input):
         return input
@@ -240,7 +240,7 @@ class IDScoreListMetadata(ElementMetadata):
 
     def create_storage(self, capacity: int):
         array_shape = (capacity,)
-        return np.empty(array_shape, dtype=np.object)
+        return np.empty(array_shape, dtype=object)
 
     def input_to_storage(self, input):
         return input
