@@ -30,7 +30,7 @@ To train a model online with OpenAI Gym, simply run the Click command:
     # set the config
     export CONFIG=reagent/gym/tests/configs/cartpole/discrete_dqn_cartpole_online.yaml
     # train and evaluate model on gym environment
-   ./reagent/workflow/cli.py run reagent.gym.tests.test_gym.run_test $CONFIG
+   ./reagent/workflow/cli.py run reagent.gym.tests.test_gym.run_test_replay_buffer $CONFIG
 
 
 To train a batch RL model, run the following commands:
@@ -58,7 +58,7 @@ OpenAI Gym is a set of environments: simulators that can run policies for a give
 
 .. code-block::
 
-   ./reagent/workflow/cli.py run reagent.gym.tests.test_gym.run_test reagent/gym/tests/configs/cartpole/discrete_dqn_cartpole_online.yaml
+   ./reagent/workflow/cli.py run reagent.gym.tests.test_gym.run_test_replay_buffer reagent/gym/tests/configs/cartpole/discrete_dqn_cartpole_online.yaml
 
 Configs for different environments and algorithms can be found in ``reagent/gym/tests/configs/<env_name>/<algorithm>_<env_name>_online.yaml``.
 
