@@ -207,6 +207,7 @@ def create_df_from_replay_buffer(
         def transform(elem) -> Dict[int, float]:
             elem_tensor = torch.tensor(elem.item())
             one_hot_feat = F.one_hot(elem_tensor, one_hot_dim).float()
+            # pyre-fixme[6]: For 1st argument expected `List[float]` but got `Tensor`.
             return continuous_feat_transform(one_hot_feat)
 
         return transform
