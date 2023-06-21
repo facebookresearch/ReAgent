@@ -231,6 +231,11 @@ class LinearRegressionUCB(UCBBaseModel):
             )
         else:
             pred_sigma = torch.zeros_like(pred_label)
+
+        # we should throw when pred_sigma has nan value
+        if torch.any(torch.isnan(pred_sigma)):
+            raise Exception("pred_sigma has nan values")
+
         ucb = pred_label + ucb_alpha * pred_sigma
         return {"pred_label": pred_label, "pred_sigma": pred_sigma, "ucb": ucb}
 
