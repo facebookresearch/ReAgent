@@ -78,10 +78,14 @@ def sol_to_tensors(
     one_hot = [
         # pyre-fixme[16]: `Parameter` has no attribute `choices`.
         F.one_hot(sampled_sol[k], num_classes=len(input_param[k].choices)).type(
+            # pyre-fixme[6]: For 1st argument expected `None` but got
+            #  `Type[FloatTensor]`.
             torch.FloatTensor
         )
         for k in sorted(sampled_sol.keys())
     ]
+    # pyre-fixme[6]: For 1st argument expected `Union[List[Tensor],
+    #  typing.Tuple[Tensor, ...]]` but got `List[str]`.
     batch_tensors = torch.cat(one_hot, dim=-1)
     return batch_tensors
 
