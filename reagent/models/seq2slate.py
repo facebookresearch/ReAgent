@@ -856,7 +856,6 @@ class Seq2SlateNet(ModelBase):
 
     def __post_init_post_parse__(self) -> None:
         super().__init__()
-        # pyre-fixme[16]: `Seq2SlateNet` has no attribute `seq2slate`.
         self.seq2slate = self._build_model()
 
     def _build_model(self):
@@ -879,7 +878,6 @@ class Seq2SlateNet(ModelBase):
         greedy: Optional[bool] = None,
     ):
         if mode == Seq2SlateMode.RANK_MODE:
-            # pyre-fixme[29]: `Union[nn.Module, torch.Tensor]` is not a function.
             res = self.seq2slate(
                 mode=mode.value,
                 state=input.state.float_features,
@@ -899,7 +897,6 @@ class Seq2SlateNet(ModelBase):
             assert input.tgt_in_seq is not None
             assert input.tgt_in_idx is not None
             assert input.tgt_out_idx is not None
-            # pyre-fixme[29]: `Union[nn.Module, torch.Tensor]` is not a function.
             res = self.seq2slate(
                 mode=mode.value,
                 state=input.state.float_features,
@@ -915,7 +912,6 @@ class Seq2SlateNet(ModelBase):
             return rlt.RankingOutput(log_probs=log_probs)
         elif mode == Seq2SlateMode.ENCODER_SCORE_MODE:
             assert input.tgt_out_idx is not None
-            # pyre-fixme[29]: `Union[nn.Module, torch.Tensor]` is not a function.
             res = self.seq2slate(
                 mode=mode.value,
                 state=input.state.float_features,

@@ -154,7 +154,6 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
         ).mean()
 
         yield loss
-        # pyre-fixme[16]: `DQNTrainer` has no attribute `loss`.
         self.loss = loss.detach()
 
         # Get Q-values of next states, used in computing cpe

@@ -86,8 +86,6 @@ class DiscreteDQNBase(ModelManager):
             )
         else:
             sampler = GreedyActionSampler()
-            # pyre-fixme[6]: Expected `ModelBase` for 1st param but got
-            #  `Union[torch.Tensor, torch.nn.Module]`.
             scorer = discrete_dqn_scorer(trainer_module.q_network)
             return Policy(scorer=scorer, sampler=sampler)
 
