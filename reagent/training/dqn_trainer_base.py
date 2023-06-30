@@ -266,22 +266,17 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
             optimizer: an optimizer object for training q_network_cpe.
         """
         if not self.calc_cpe_in_training:
-            # pyre-fixme[16]: `DQNTrainerBase` has no attribute `reward_network`.
             self.reward_network = None
             return
 
         assert reward_network is not None, "reward_network is required for CPE"
         self.reward_network = reward_network
-        # pyre-fixme[16]: `DQNTrainerBase` has no attribute `reward_network_optimizer`.
         self.reward_network_optimizer = optimizer
         assert (
             q_network_cpe is not None and q_network_cpe_target is not None
         ), "q_network_cpe and q_network_cpe_target are required for CPE"
-        # pyre-fixme[16]: `DQNTrainerBase` has no attribute `q_network_cpe`.
         self.q_network_cpe = q_network_cpe
-        # pyre-fixme[16]: `DQNTrainerBase` has no attribute `q_network_cpe_target`.
         self.q_network_cpe_target = q_network_cpe_target
-        # pyre-fixme[16]: `DQNTrainerBase` has no attribute `q_network_cpe_optimizer`.
         self.q_network_cpe_optimizer = optimizer
         num_output_nodes = len(self.metrics_to_score) * self.num_actions
         reward_idx_offsets = torch.arange(
@@ -295,7 +290,6 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         reward_stripped_metrics_to_score = (
             self.metrics_to_score[:-1] if len(self.metrics_to_score) > 1 else None
         )
-        # pyre-fixme[16]: `DQNTrainerBase` has no attribute `evaluator`.
         self.evaluator = Evaluator(
             self._actions,
             self.rl_parameters.gamma,
