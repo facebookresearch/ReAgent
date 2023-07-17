@@ -48,3 +48,4 @@ class InputColumn(object):
     CONTEXT_ARM_FEATURES = "context_arm_features"
     ARMS = "arms"
     ARM_PRESENCE = "arm_presence"
+    ACTION_LOG_PROBABILITY = "action_log_probability"

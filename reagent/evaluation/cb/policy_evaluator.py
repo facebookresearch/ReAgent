@@ -41,17 +41,30 @@ class PolicyEvaluator(BaseOfflineEval):
             - Update the total weight counter
         """
         assert batch.reward is not None
-        assert batch.weight is not None
-        assert batch.weight.shape == batch.reward.shape
-        # rejected observations have 0 weights, so they get filtered out when we multiply by weight
-        self.sum_reward_weighted_accepted_local += (batch.weight * batch.reward).sum()
-        self.sum_weight_accepted_local += batch.weight.sum()
+        assert batch.importance_weight is not None
+        assert batch.importance_weight.shape == batch.reward.shape
+        if batch.weight is not None:
+            weights = batch.weight
+        else:
+            weights = torch.ones_like(batch.reward)
+        assert weights.shape == batch.importance_weight.shape
+        self.sum_reward_importance_weighted_accepted_local += (
+            batch.effective_weight * batch.reward
+        ).sum()
+        accepted_indicators = (batch.importance_weight > 0).float()
+        self.sum_reward_weighted_accepted_local += (
+            weights * accepted_indicators * batch.reward
+        ).sum()
+        self.sum_weight_accepted_local += (weights * accepted_indicators).sum()
+        self.sum_importance_weight_accepted_local += batch.effective_weight.sum()
         if batch.arm_presence is not None:
             sizes = batch.arm_presence.sum(1)
         else:
             # assume that all arms are present
             sizes = torch.ones_like(batch.reward) * batch.context_arm_features.shape[1]
-        self.sum_size_weighted_accepted_local += (batch.weight.squeeze() * sizes).sum()
+        self.sum_size_weighted_accepted_local += (
+            (weights * accepted_indicators).squeeze() * sizes
+        ).sum()
 
     def _aggregate_across_instances(self) -> None:
         # sum local values across all trainers, add to the global value
@@ -59,6 +72,13 @@ class PolicyEvaluator(BaseOfflineEval):
 
         sum_weight_accepted = sync_ddp_if_available(
             self.sum_weight_accepted_local.clone(),
+            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
+            #  but got `RedOpType`.
+            reduce_op=ReduceOp.SUM,
+        )
+
+        sum_importance_weight_accepted = sync_ddp_if_available(
+            self.sum_importance_weight_accepted_local.clone(),
             # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
             #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
@@ -75,6 +95,13 @@ class PolicyEvaluator(BaseOfflineEval):
 
         sum_reward_weighted_accepted = sync_ddp_if_available(
             self.sum_reward_weighted_accepted_local.clone(),
+            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
+            #  but got `RedOpType`.
+            reduce_op=ReduceOp.SUM,
+        )
+
+        sum_reward_importance_weighted_accepted = sync_ddp_if_available(
+            self.sum_reward_importance_weighted_accepted_local.clone(),
             # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
             #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
@@ -108,7 +135,11 @@ class PolicyEvaluator(BaseOfflineEval):
 
         # udpate the global cumulative sum buffers
         self.sum_reward_weighted_accepted += sum_reward_weighted_accepted
+        self.sum_reward_importance_weighted_accepted += (
+            sum_reward_importance_weighted_accepted
+        )
         self.sum_weight_accepted += sum_weight_accepted
+        self.sum_importance_weight_accepted += sum_importance_weight_accepted
         self.sum_weight_all_data += sum_weight_all_data
 
         # calcualte the metrics for window (since last aggregation across instances)
@@ -127,18 +158,21 @@ class PolicyEvaluator(BaseOfflineEval):
         self.avg_size_rejected = sum_size_weighted_rejected / sum_weight_rejected
 
         # reset local values to zero
+        self.sum_reward_importance_weighted_accepted_local.zero_()
         self.sum_reward_weighted_accepted_local.zero_()
         self.sum_reward_weighted_all_data_local.zero_()
         self.sum_weight_accepted_local.zero_()
+        self.sum_importance_weight_accepted_local.zero_()
         self.sum_weight_all_data_local.zero_()
         self.sum_size_weighted_accepted_local.zero_()
         self.sum_size_weighted_all_data_local.zero_()
 
     def get_avg_reward(self) -> float:
         assert (
-            self.sum_weight_accepted_local.item() == 0.0
-        ), f"Non-zero local weight {self.sum_weight_appected_local.item()} in the evaluator. _aggregate_across_instances() Should have beed called to aggregate across all instances and zero-out the local values."
+            self.sum_importance_weight_accepted_local.item() == 0.0
+        ), f"Non-zero local weight {self.sum_importance_weight_appected_local.item()} in the evaluator. _aggregate_across_instances() Should have beed called to aggregate across all instances and zero-out the local values."
         # return the average reward
         return (
-            self.sum_reward_weighted_accepted / (self.sum_weight_accepted + EPSILON)
+            self.sum_reward_importance_weighted_accepted
+            / (self.sum_importance_weight_accepted + EPSILON)
         ).item()

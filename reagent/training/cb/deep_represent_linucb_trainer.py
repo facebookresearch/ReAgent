@@ -77,15 +77,12 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
             pred_label.shape == label.shape
         ), f"Shapes of model prediction {pred_label.shape} and label {label.shape} have to match"
         # compute the NN loss
-        if batch.weight is not None:
-            # weighted average loss
-            losses = self.loss_fn(pred_label, label, reduction="none")
-            loss = (losses * batch.weight.squeeze(-1)).sum() / batch.weight.sum()
-        else:
-            # non-weighted average loss
-            loss = self.loss_fn(pred_label, label, reduction="mean")
+        # weighted average loss
+        losses = self.loss_fn(pred_label, label, reduction="none")
+        weight = batch.effective_weight
+        loss = (losses * weight.squeeze(-1)).sum() / losses.shape[0]
 
         # update LinUCB parameters
-        self.update_params(mlp_out_with_ones.detach(), batch.label, batch.weight)
+        self.update_params(mlp_out_with_ones.detach(), batch.label, weight)
 
         return loss

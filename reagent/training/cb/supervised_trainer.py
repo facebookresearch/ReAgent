@@ -55,10 +55,7 @@ class SupervisedTrainer(BaseCBTrainerWithEval):
         pred_label = model_output["pred_label"]
 
         # The supervised learning model outputs predicted label with no uncertainty(uncertainty=ucb_alpha*pred_sigma).
-        if batch.weight is not None:
-            # weighted average loss
-            losses = self.loss(pred_label, batch.label.squeeze(-1), reduction="none")
-            return (losses * batch.weight.squeeze(-1)).sum() / batch.weight.sum()
-        else:
-            # non-weighted average loss
-            return self.loss(pred_label, batch.label.squeeze(-1), reduction="mean")
+        # weighted average loss
+        losses = self.loss(pred_label, batch.label.squeeze(-1), reduction="none")
+        weight = batch.effective_weight
+        return (losses * weight.squeeze(-1)).sum() / losses.shape[0]

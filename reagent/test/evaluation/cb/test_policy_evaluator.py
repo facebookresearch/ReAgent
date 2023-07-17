@@ -10,6 +10,7 @@ import torch
 from pytorch_lightning.loggers import TensorBoardLogger
 from reagent.core.types import CBInput
 from reagent.evaluation.cb.policy_evaluator import PolicyEvaluator
+from reagent.evaluation.cb.utils import add_importance_weights
 from reagent.models.linear_regression import LinearRegressionUCB
 
 
@@ -47,6 +48,7 @@ class TestPolicyEvaluator(unittest.TestCase):
             ),
             action=torch.tensor([[0], [1]], dtype=torch.long),
             reward=torch.tensor([[1.5], [2.3]], dtype=torch.float),
+            action_log_probability=torch.tensor([[-2.0], [-3.0]], dtype=torch.float),
         )
 
     def test_process_all_data(self):
@@ -101,22 +103,32 @@ class TestPolicyEvaluator(unittest.TestCase):
         policy_network = LinearRegressionUCB(2)
         eval_module = PolicyEvaluator(policy_network)
         state_dict_before = copy.deepcopy(eval_module.state_dict())
-        weight_value = 2.0
-        batch = replace(
-            self.batch,
-            weight=torch.tensor([[0.0], [weight_value]]),
-        )
+        batch = add_importance_weights(
+            self.batch, torch.tensor([[1], [1]], dtype=torch.long)
+        )  # 2nd action matches, 1st doesn't
+        importance_weight = torch.exp(-batch.action_log_probability[1, 0]).item()
         eval_module._process_used_data(batch)
         eval_module._aggregate_across_instances()
         state_dict_after = copy.deepcopy(eval_module.state_dict())
         self.assertFalse(_compare_state_dicts(state_dict_before, state_dict_after))
         self.assertEqual(eval_module.sum_weight_accepted_local.item(), 0.0)
-        self.assertEqual(eval_module.sum_weight_accepted.item(), weight_value)
+        self.assertEqual(eval_module.sum_weight_accepted.item(), 1.0)
+        self.assertEqual(
+            eval_module.sum_importance_weight_accepted.item(), importance_weight
+        )
         self.assertEqual(
             eval_module.sum_reward_weighted_accepted.item(),
-            weight_value * self.batch.reward[1, 0].item(),
+            self.batch.reward[1, 0].item(),
+        )
+        self.assertAlmostEqual(
+            eval_module.sum_reward_importance_weighted_accepted.item(),
+            importance_weight * self.batch.reward[1, 0].item(),
+            places=5,
         )
         self.assertEqual(eval_module.sum_reward_weighted_accepted_local.item(), 0.0)
+        self.assertEqual(
+            eval_module.sum_reward_importance_weighted_accepted_local.item(), 0.0
+        )
         self.assertEqual(eval_module.get_avg_reward(), self.batch.reward[1, 0].item())
 
     def test_update_eval_model(self):
