@@ -1126,8 +1126,9 @@ class CBInput(TensorDataClass):
     rewards_all_arms: Final[
         Optional[torch.Tensor]
     ] = None  # rewards of all arms of the episode
-    log_prob: Final[Optional[torch.Tensor]] = None
+    action_log_probability: Final[Optional[torch.Tensor]] = None
     weight: Final[Optional[torch.Tensor]] = None
+    importance_weight: Final[Optional[torch.Tensor]] = None
     arms: Final[Optional[torch.Tensor]] = None
     mdp_id: Final[Optional[torch.Tensor]] = None
 
@@ -1151,8 +1152,9 @@ class CBInput(TensorDataClass):
             action=d.get("action", None),
             reward=d.get("reward", None),
             label=d.get("label", None),
-            log_prob=d.get("log_prob", None),
+            action_log_probability=d.get("action_log_probability", None),
             weight=d.get("weight", None),
+            importance_weight=d.get("importance_weight", None),
             arms=d.get("arms", None),
             mdp_id=d.get("mdp_id", None),
         )
@@ -1163,6 +1165,17 @@ class CBInput(TensorDataClass):
     @property
     def device(self) -> torch.device:
         return self.context_arm_features.device
+
+    @property
+    def effective_weight(self) -> torch.Tensor:
+        if self.weight is None:
+            weight = torch.ones(len(self), 1, device=self.device, dtype=torch.float)
+        else:
+            weight = self.weight
+        if self.importance_weight is not None:
+            assert self.importance_weight.shape == weight.shape
+            weight = weight * self.importance_weight
+        return weight
 
     def __post_init__(self):
         if self.label is None and self.reward is not None:

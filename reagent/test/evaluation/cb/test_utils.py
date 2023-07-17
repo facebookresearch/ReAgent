@@ -6,7 +6,7 @@ import unittest
 import numpy.testing as npt
 import torch
 from reagent.core.types import CBInput
-from reagent.evaluation.cb.utils import zero_out_skipped_obs_weights
+from reagent.evaluation.cb.utils import add_importance_weights
 
 
 class TestCBEvalUtils(unittest.TestCase):
@@ -28,17 +28,26 @@ class TestCBEvalUtils(unittest.TestCase):
             action=torch.tensor([[0], [1]], dtype=torch.long),
             reward=torch.tensor([[1.5], [2.3]], dtype=torch.float),
             weight=torch.tensor([[7], [5]], dtype=torch.float),
+            action_log_probability=torch.log(
+                torch.tensor([[0.5], [0.5]], dtype=torch.float)
+            ),
         )
 
-    def test_zero_out_skipped_obs_weights(self):
+    def test_add_importance_weights(self):
         model_actions = torch.tensor([[1], [1]], dtype=torch.long)
-        new_batch = zero_out_skipped_obs_weights(self.batch, model_actions)
+        new_batch = add_importance_weights(self.batch, model_actions)
         # everything except weights should remain the same in the new batch
         for name in ["context_arm_features", "action", "reward"]:
             npt.assert_allclose(
                 getattr(self.batch, name).numpy(), getattr(new_batch, name).numpy()
             )
 
+        # data weights should be unchanged
+        npt.assert_allclose(new_batch.weight.numpy(), self.batch.weight.numpy())
         # weights should be zero-ed out where action!= model_action
-        self.assertEqual(new_batch.weight[0, 0].item(), 0.0)
-        self.assertEqual(new_batch.weight[1, 0].item(), self.batch.weight[1, 0].item())
+        self.assertEqual(new_batch.effective_weight[0, 0].item(), 0.0)
+        # weights should be multiplied inverse probability of logged action where action == model_action
+        self.assertEqual(
+            new_batch.effective_weight[1, 0].item(),
+            self.batch.weight[1, 0].item() * 2,
+        )

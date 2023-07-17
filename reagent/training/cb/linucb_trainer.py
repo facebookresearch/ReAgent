@@ -80,7 +80,9 @@ class LinUCBTrainer(BaseCBTrainerWithEval):
         assert batch.features_of_chosen_arm is not None  # to satisfy Pyre
 
         # update parameters
-        self.update_params(batch.features_of_chosen_arm, batch.label, batch.weight)
+        self.update_params(
+            batch.features_of_chosen_arm, batch.label, batch.effective_weight
+        )
 
     def apply_discounting_multiplier(self):
         self.scorer.sum_weight *= self.scorer.gamma

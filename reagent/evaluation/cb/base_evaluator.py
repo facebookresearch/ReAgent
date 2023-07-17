@@ -7,7 +7,7 @@ import torch
 from pytorch_lightning.loggers import LightningLoggerBase
 from reagent.core.types import CBInput
 from reagent.core.utils import get_rank
-from reagent.evaluation.cb.utils import zero_out_skipped_obs_weights
+from reagent.evaluation.cb.utils import add_importance_weights
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,8 @@ class BaseOfflineEval(torch.nn.Module, ABC):
     sum_weight_all_data_local: torch.Tensor
     sum_weight_since_update_local: torch.Tensor
     num_eval_model_updates: torch.Tensor
+    sum_reward_importance_weighted_accepted: torch.Tensor
+    sum_reward_importance_weighted_accepted_local: torch.Tensor
     sum_reward_weighted_accepted: torch.Tensor
     sum_reward_weighted_accepted_local: torch.Tensor
     sum_reward_weighted_all_data_local: torch.Tensor
@@ -42,6 +44,7 @@ class BaseOfflineEval(torch.nn.Module, ABC):
         self,
         eval_model: torch.nn.Module,
         logger: Optional[LightningLoggerBase] = None,
+        max_importance_weight: Optional[float] = None,
     ):
         """
         Initialize the evaluator. The evaluated model is passed in as an input and copied to freeze its state.
@@ -50,6 +53,7 @@ class BaseOfflineEval(torch.nn.Module, ABC):
         super().__init__()
         self.eval_model = copy.deepcopy(eval_model)
         self.logger = logger
+        self.max_importance_weight = max_importance_weight
 
         # below we register the buffers used to maintain the state of Offline Eval
         # Buffers ending in "_local" track per-instance values. Buffers without "_local" track global values aggregated across all instances.
@@ -60,6 +64,14 @@ class BaseOfflineEval(torch.nn.Module, ABC):
         self.register_buffer("sum_weight_accepted", torch.zeros(1, dtype=torch.float))
         self.register_buffer(
             "sum_weight_accepted_local", torch.zeros(1, dtype=torch.float)
+        )
+
+        # total importance weight for accepted observations
+        self.register_buffer(
+            "sum_importance_weight_accepted", torch.zeros(1, dtype=torch.float)
+        )
+        self.register_buffer(
+            "sum_importance_weight_accepted_local", torch.zeros(1, dtype=torch.float)
         )
 
         # total weight for all observaions (accepted + rejected)
@@ -82,6 +94,15 @@ class BaseOfflineEval(torch.nn.Module, ABC):
         )
         self.register_buffer(
             "sum_reward_weighted_accepted_local", torch.zeros(1, dtype=torch.float)
+        )
+
+        # sum of reward*weight*importance_weight for accepted observations
+        self.register_buffer(
+            "sum_reward_importance_weighted_accepted", torch.zeros(1, dtype=torch.float)
+        )
+        self.register_buffer(
+            "sum_reward_importance_weighted_accepted_local",
+            torch.zeros(1, dtype=torch.float),
         )
 
         # sum of reward*weight for all observations
@@ -140,7 +161,9 @@ class BaseOfflineEval(torch.nn.Module, ABC):
             model_actions: A tensor of actions chosen by the evaluated model
         """
         self._process_all_data(batch)
-        new_batch = zero_out_skipped_obs_weights(batch, model_actions)
+        new_batch = add_importance_weights(
+            batch, model_actions, self.max_importance_weight
+        )
         self._process_used_data(new_batch)
         return new_batch
 
@@ -162,7 +185,7 @@ class BaseOfflineEval(torch.nn.Module, ABC):
     ) -> None:
         """
         Process the observations for which the logged action matches the model action. All other observations
-            were previously removed (weights wero zero-ed out) by zero_out_skipped_obs_weights()
+            were previously removed (weights wero zero-ed out) by add_importance_weights()
         """
         pass
 

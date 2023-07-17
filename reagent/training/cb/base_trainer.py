@@ -184,7 +184,6 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
         else:
             new_batch = batch
         new_batch = _add_chosen_arm_features(new_batch)
-        # new_batch = replace(new_batch, features_of_chosen_arm=features_of_chosen_arm)
         ret = self.cb_training_step(new_batch, batch_idx, optimizer_idx)  # pyre-ignore
         if isinstance(new_batch, CBInput):
             # recmetrics currently supported only for joint model

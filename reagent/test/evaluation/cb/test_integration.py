@@ -82,11 +82,14 @@ class TestEvalDuringTraining(unittest.TestCase):
         batch_1_used_features = batch_1.context_arm_features[1, 1].numpy()
         npt.assert_allclose(
             (self.trainer.scorer.avg_A * self.trainer.scorer.sum_weight).numpy(),
-            np.outer(batch_1_used_features, batch_1_used_features),
+            np.outer(batch_1_used_features, batch_1_used_features)
+            * 2,  # *2 due to importance weight applied during offline eval
         )
         npt.assert_allclose(
             (self.trainer.scorer.avg_b * self.trainer.scorer.sum_weight).numpy(),
-            batch_1_used_features * batch_1.reward[1, 0].item(),
+            batch_1_used_features
+            * batch_1.reward[1, 0].item()
+            * 2,  # *2 due to importance weight applied during offline eval
         )
 
         # check if evaluated model state is correct (should be same as trained model)
@@ -95,14 +98,17 @@ class TestEvalDuringTraining(unittest.TestCase):
                 self.eval_module.eval_model.avg_A
                 * self.eval_module.eval_model.sum_weight
             ).numpy(),
-            np.outer(batch_1_used_features, batch_1_used_features),
+            np.outer(batch_1_used_features, batch_1_used_features)
+            * 2,  # *2 due to importance weight applied during offline eval
         )
         npt.assert_allclose(
             (
                 self.eval_module.eval_model.avg_b
                 * self.eval_module.eval_model.sum_weight
             ).numpy(),
-            batch_1_used_features * batch_1.reward[1, 0].item(),
+            batch_1_used_features
+            * batch_1.reward[1, 0].item()
+            * 2,  # *2 due to importance weight applied during offline eval
         )
 
         # step 2: consume batch_2. just the 1st data point will be used
@@ -139,13 +145,19 @@ class TestEvalDuringTraining(unittest.TestCase):
         batch_2_used_features = batch_2.context_arm_features[0, 1].numpy()
         npt.assert_allclose(
             (self.trainer.scorer.avg_A * self.trainer.scorer.sum_weight).numpy(),
-            np.outer(batch_1_used_features, batch_1_used_features)
-            + np.outer(batch_2_used_features, batch_2_used_features),
+            (
+                np.outer(batch_1_used_features, batch_1_used_features)
+                + np.outer(batch_2_used_features, batch_2_used_features)
+            )
+            * 2,  # *2 due to importance weight applied during offline eval
         )
         npt.assert_allclose(
             (self.trainer.scorer.avg_b * self.trainer.scorer.sum_weight).numpy(),
-            batch_1_used_features * batch_1.reward[1, 0].item()
-            + batch_2_used_features * batch_2.reward[0, 0].item(),
+            (
+                batch_1_used_features * batch_1.reward[1, 0].item()
+                + batch_2_used_features * batch_2.reward[0, 0].item()
+            )
+            * 2,  # *2 due to importance weight applied during offline eval
         )
 
         # check that evaluated model state is correct (same as it was after batch_1)
@@ -154,14 +166,17 @@ class TestEvalDuringTraining(unittest.TestCase):
                 self.eval_module.eval_model.avg_A
                 * self.eval_module.eval_model.sum_weight
             ).numpy(),
-            np.outer(batch_1_used_features, batch_1_used_features),
+            np.outer(batch_1_used_features, batch_1_used_features)
+            * 2,  # *2 due to importance weight applied during offline eval
         )
         npt.assert_allclose(
             (
                 self.eval_module.eval_model.avg_b
                 * self.eval_module.eval_model.sum_weight
             ).numpy(),
-            batch_1_used_features * batch_1.reward[1, 0].item(),
+            batch_1_used_features
+            * batch_1.reward[1, 0].item()
+            * 2,  # *2 due to importance weight applied during offline eval
         )
 
         """
@@ -217,15 +232,21 @@ class TestEvalDuringTraining(unittest.TestCase):
         batch_3_used_features = batch_3.context_arm_features[1, 1].numpy()
         npt.assert_allclose(
             (self.trainer.scorer.avg_A * self.trainer.scorer.sum_weight).numpy(),
-            np.outer(batch_1_used_features, batch_1_used_features)
-            + np.outer(batch_2_used_features, batch_2_used_features)
-            + np.outer(batch_3_used_features, batch_3_used_features),
+            (
+                np.outer(batch_1_used_features, batch_1_used_features)
+                + np.outer(batch_2_used_features, batch_2_used_features)
+                + np.outer(batch_3_used_features, batch_3_used_features)
+            )
+            * 2,  # *2 due to importance weight applied during offline eval
         )
         npt.assert_allclose(
             (self.trainer.scorer.avg_b * self.trainer.scorer.sum_weight).numpy(),
-            batch_1_used_features * batch_1.reward[1, 0].item()
-            + batch_2_used_features * batch_2.reward[0, 0].item()
-            + batch_3_used_features * batch_3.reward[1, 0].item(),
+            (
+                batch_1_used_features * batch_1.reward[1, 0].item()
+                + batch_2_used_features * batch_2.reward[0, 0].item()
+                + batch_3_used_features * batch_3.reward[1, 0].item()
+            )
+            * 2,  # *2 due to importance weight applied during offline eval
         )
 
         # check that evaluated model state is correct (same as it was after batch_1)
@@ -234,14 +255,17 @@ class TestEvalDuringTraining(unittest.TestCase):
                 self.eval_module.eval_model.avg_A
                 * self.eval_module.eval_model.sum_weight
             ).numpy(),
-            np.outer(batch_1_used_features, batch_1_used_features),
+            np.outer(batch_1_used_features, batch_1_used_features)
+            * 2,  # *2 due to importance weight applied during offline eval
         )
         npt.assert_allclose(
             (
                 self.eval_module.eval_model.avg_b
                 * self.eval_module.eval_model.sum_weight
             ).numpy(),
-            batch_1_used_features * batch_1.reward[1, 0].item(),
+            batch_1_used_features
+            * batch_1.reward[1, 0].item()
+            * 2,  # *2 due to importance weight applied during offline eval
         )
 
         # check average reward. should be AVG([2.3, 1.2, 7.1]) = 4.2
