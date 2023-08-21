@@ -873,3 +873,31 @@ class TestTransforms(unittest.TestCase):
         extected_b_item_presence = torch.tensor([[1, 1, 1, 1], [1, 0, 0, 0]]).float()
         self.assertEqual(o1["a_item_presence"], extected_a_item_presence)
         self.assertEqual(o1["b_item_presence"], extected_b_item_presence)
+
+    def test_StackVarLength(self) -> None:
+        data = {
+            "a": torch.tensor([[9.0, 4.5], [3.4, 3.9]]),
+            "b": [
+                torch.tensor([23851632514310621, 23851632514550621]).long(),
+                torch.tensor([6298341940514, 6298341940314, 6298340923714]).long(),
+            ],
+        }
+        t = transforms.StackVarLength(["b"])
+        t_data = t(data)
+
+        # make sure other values were left unmodified
+        self.assertTorchTensorEqual(data["a"], t_data["a"])
+
+        # mase sure the data types are correct
+        self.assertIsInstance(t_data["b"], torch.Tensor)
+        self.assertEqual(t_data["b"].shape, (2, 3))
+        self.assertEqual(t_data["b"].dtype, torch.long)
+        self.assertTorchTensorEqual(
+            data["b"],
+            torch.tensor(
+                [
+                    [23851632514310621, 23851632514550621, -1],
+                    [6298341940514, 6298341940314, 6298340923714],
+                ]
+            ),
+        )
