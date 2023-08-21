@@ -13,8 +13,8 @@ from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
 from reagent.models.linear_regression import LinearRegressionUCB
-from reagent.training.cb.base_trainer import _add_chosen_arm_features
 from reagent.training.cb.linucb_trainer import LinUCBTrainer
+from reagent.training.cb.utils import add_chosen_arm_features
 from reagent.training.parameters import LinUCBTrainerParameters
 from torchrec.fb.metrics.meta_config import (
     DefaultTaskInfo,
@@ -46,22 +46,6 @@ def _get_recmetric_module():
         state_metrics_mapping={},
         device="cpu",
     )
-
-
-class TestLinUCButils(unittest.TestCase):
-    def test_add_chosen_arm_features(self):
-        all_arms_features = torch.tensor(
-            [[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=torch.float
-        )
-        actions = torch.tensor([[1], [0]], dtype=torch.long)
-        batch = CBInput(
-            context_arm_features=all_arms_features,
-            action=actions,
-        )
-        new_batch = _add_chosen_arm_features(batch)
-        npt.assert_equal(
-            new_batch.features_of_chosen_arm.numpy(), np.array([[3.0, 4.0], [5.0, 6.0]])
-        )
 
 
 class TestLinUCB(unittest.TestCase):
@@ -179,7 +163,7 @@ class TestLinUCB(unittest.TestCase):
         trainer.training_step(self.batch, 0)
         trainer.on_train_epoch_end()
         # the feature matrix (computed by hand)
-        x = _add_chosen_arm_features(self.batch).features_of_chosen_arm.numpy()
+        x = add_chosen_arm_features(self.batch).features_of_chosen_arm.numpy()
 
         npt.assert_allclose(scorer.avg_A.numpy(), x.T @ x / len(self.batch), rtol=1e-4)
         npt.assert_allclose(
@@ -266,11 +250,11 @@ class TestLinUCB(unittest.TestCase):
         out2 = model_output2["ucb"]
 
         # the feature matrix and model parameter and eval output (computed by hand)
-        x1 = _add_chosen_arm_features(self.batch).features_of_chosen_arm.numpy()
-        x2 = _add_chosen_arm_features(
+        x1 = add_chosen_arm_features(self.batch).features_of_chosen_arm.numpy()
+        x2 = add_chosen_arm_features(
             self.batch_2nd_round
         ).features_of_chosen_arm.numpy()
-        x3 = _add_chosen_arm_features(
+        x3 = add_chosen_arm_features(
             self.second_batch_2nd_round
         ).features_of_chosen_arm.numpy()
         reward1 = self.batch.reward.squeeze().numpy()

@@ -1115,6 +1115,7 @@ class FrechetSortConfig:
 class CBInput(TensorDataClass):
     context_arm_features: torch.Tensor
     features_of_chosen_arm: Final[Optional[torch.Tensor]] = None
+    chosen_arm_id: Final[Optional[torch.Tensor]] = None
     arm_presence: Final[Optional[torch.Tensor]] = None
     action: Final[Optional[torch.Tensor]] = None  # chosen arm
     reward: Final[
@@ -1148,6 +1149,8 @@ class CBInput(TensorDataClass):
     def from_dict(cls, d: Dict[str, torch.Tensor]) -> "CBInput":
         return cls(
             context_arm_features=d["context_arm_features"],
+            features_of_chosen_arm=d.get("features_of_chosen_arm", None),
+            chosen_arm_id=d.get("chosen_arm_id", None),
             arm_presence=d.get("arm_presence", None),
             action=d.get("action", None),
             reward=d.get("reward", None),
