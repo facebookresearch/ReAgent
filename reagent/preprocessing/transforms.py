@@ -969,3 +969,37 @@ class ToDtype:
         for key, dtype in self.dtypes.items():
             new_data[key] = data[key].to(dtype=dtype)
         return new_data
+
+
+class StackVarLength:
+    """
+    Stack 1D tensors of different length.
+    The shorter tensors get padded on the right with `default_value`
+    """
+
+    def __init__(self, keys: List[str], default_value: float = -1.0):
+        self.keys = keys
+        self.default_value = default_value
+
+    def __call__(self, data):
+        for k in self.keys:
+            values = data[k]
+            assert values[0].ndim == 1
+            max_length = max(len(x) for x in values)
+            padded_values = [
+                x
+                if len(x) == max_length
+                else torch.cat(
+                    (
+                        x,
+                        (
+                            self.default_value * torch.ones((max_length - len(x),))
+                        ).type_as(x),
+                    )
+                )
+                for x in values
+            ]
+            for x in padded_values:
+                assert x.dtype == values[0].dtype, x.dtype  # TODO: remove
+            data[k] = torch.stack((padded_values), dim=0)
+        return data
