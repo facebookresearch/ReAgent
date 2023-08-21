@@ -2,69 +2,20 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import replace
-from typing import final, List, Optional, Union
+from typing import final, Optional
 
 import torch
 from reagent.core.types import CBInput
 from reagent.core.utils import get_rank
 from reagent.evaluation.cb.base_evaluator import BaseOfflineEval
+from reagent.models.cb_base_model import UCBBaseModel
+from reagent.models.mab import MABBaseModel
+from reagent.training.cb.utils import add_chosen_arm_features, get_model_actions
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
 from torchrec.metrics.metric_module import RecMetricModule
 
 
 logger = logging.getLogger(__name__)
-
-
-def _add_chosen_arm_features(
-    batch: Union[CBInput, List[CBInput]]
-) -> Union[CBInput, List[CBInput]]:
-    """
-    Add the features for chosen arms to the batch.
-    For joint models:
-        - Both input and output are`CBInput` objects
-        - batch.all_arm_features is a 3D tensor of shape (batch_size, num_arms, arm_dim)
-        - `batch.action` is used to choose which features to extract.
-    For joint models:
-         - Both input and output are `List[CBInput]` objects of len `num_arms`
-         - batch.all_arm_features is a 2D tensor of shape (batch_size, arm_dim)
-         - This function just extracts the `all_arm_features` attribute from batch and packages them back into a list
-
-    Args:
-        batch: A batch of input data.
-            Attributes of the batch:
-                all_arm_features: Tensor with features of all available arms.
-                action: 2D Tensor of shape (batch_size, 1) with dtype long. For each observation
-                    it holds the index of the chosen arm.
-    Returns:
-        For joint models:
-            A 2D Tensor of shape (batch_size, arm_dim) with features of chosen arms.
-        For disjoint models:
-            A list of 2D Tensors of shape (batch_size, arm_dim)
-    """
-    if isinstance(batch, CBInput):
-        assert batch.context_arm_features.ndim == 3
-        assert batch.action is not None
-        return replace(
-            batch,
-            features_of_chosen_arm=torch.gather(
-                batch.context_arm_features,
-                1,
-                batch.action.unsqueeze(-1).expand(
-                    -1, 1, batch.context_arm_features.shape[2]
-                ),
-            ).squeeze(1),
-        )
-    elif isinstance(batch, list):
-        assert isinstance(batch[0], CBInput)
-        assert batch[0].context_arm_features.ndim == 2
-        return [
-            replace(b, features_of_chosen_arm=b.context_arm_features) for b in batch
-        ]
-    else:
-        raise ValueError(
-            f"Unexpected input type {type(batch)} for _add_chosen_arm_features"
-        )
 
 
 class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
@@ -161,36 +112,34 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
                     eval_module._aggregate_across_instances()
                     eval_module.log_metrics(step=self.global_step)
             with torch.no_grad():
-                model_output = eval_module.eval_model(batch.context_arm_features)
+                # TODO: unify contextual and non-contextual logic by passing
+                # CBInput object to the model and letting the model pick which element(s) to use
+                if isinstance(eval_module.eval_model, UCBBaseModel):
+                    model_output = eval_module.eval_model(batch.context_arm_features)
+                elif isinstance(eval_module.eval_model, MABBaseModel):
+                    model_output = eval_module.eval_model(batch.arms)
                 ucb = model_output["ucb"]
                 eval_scores = ucb
-                if batch.arm_presence is not None:
-                    # mask out non-present arms
-                    eval_scores = torch.masked.as_masked_tensor(
-                        eval_scores, batch.arm_presence.bool()
-                    )
-                    model_actions = (
-                        # pyre-fixme[16]: `Tensor` has no attribute `get_data`.
-                        torch.argmax(eval_scores, dim=1)
-                        .get_data()
-                        .reshape(-1, 1)
-                    )
-                else:
-                    model_actions = torch.argmax(eval_scores, dim=1).reshape(-1, 1)
+                model_actions = get_model_actions(eval_scores, batch.arm_presence)
             new_batch = eval_module.ingest_batch(batch, model_actions)
             eval_module.sum_weight_since_update_local += (
                 batch.weight.sum() if batch.weight is not None else len(batch)
             )
         else:
             new_batch = batch
-        new_batch = _add_chosen_arm_features(new_batch)
+        new_batch = add_chosen_arm_features(new_batch)
         ret = self.cb_training_step(new_batch, batch_idx, optimizer_idx)  # pyre-ignore
         if isinstance(new_batch, CBInput):
             # recmetrics currently supported only for joint model
-            assert new_batch.features_of_chosen_arm is not None
-            self._update_recmetrics(
-                new_batch, batch_idx, new_batch.features_of_chosen_arm
-            )
+            if isinstance(self.scorer, UCBBaseModel):
+                assert new_batch.features_of_chosen_arm is not None
+                x = new_batch.features_of_chosen_arm
+            elif isinstance(self.scorer, MABBaseModel):
+                assert new_batch.chosen_arm_id is not None
+                x = new_batch.chosen_arm_id
+            else:
+                raise RuntimeError(f"Scorer type {type(self.scorer)} not supported")
+            self._update_recmetrics(new_batch, batch_idx, x)
         return ret
 
     def on_train_start(self) -> None:
