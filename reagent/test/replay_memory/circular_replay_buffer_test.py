@@ -33,7 +33,7 @@ STACK_SIZE = 4
 BATCH_SIZE = 32
 
 
-class CheckpointableClass(object):
+class CheckpointableClass:
     def __init__(self):
         self.attribute = 0
 

@@ -107,7 +107,7 @@ class Position(NamedTuple):
         return isinstance(pos1, Position) and pos1.x == self.x and pos1.y == self.y
 
 
-class InternalState(object):
+class InternalState:
     def __init__(self):
         self.agent_pos = None
         self.ghosts = []
@@ -118,7 +118,7 @@ class InternalState(object):
 # pyre-fixme[13]: Attribute `home` is never initialized.
 # pyre-fixme[13]: Attribute `max_x` is never initialized.
 # pyre-fixme[13]: Attribute `max_y` is never initialized.
-class Ghost(object):
+class Ghost:
     max_x: int
     max_y: int
     home: Position

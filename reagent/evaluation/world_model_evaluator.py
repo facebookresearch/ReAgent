@@ -11,7 +11,7 @@ from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
 logger = logging.getLogger(__name__)
 
 
-class LossEvaluator(object):
+class LossEvaluator:
     """Evaluate losses on data pages"""
 
     def __init__(self, trainer: MDNRNNTrainer, state_dim: int) -> None:
@@ -32,7 +32,7 @@ class LossEvaluator(object):
         return detached_losses
 
 
-class FeatureImportanceEvaluator(object):
+class FeatureImportanceEvaluator:
     """Evaluate feature importance weights on data pages"""
 
     def __init__(
@@ -171,7 +171,7 @@ class FeatureImportanceEvaluator(object):
         return median_feature
 
 
-class FeatureSensitivityEvaluator(object):
+class FeatureSensitivityEvaluator:
     """Evaluate state feature sensitivity caused by varying actions"""
 
     def __init__(

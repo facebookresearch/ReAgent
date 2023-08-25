@@ -305,7 +305,7 @@ CHECKPOINT_DURATION = 4
 REQUIRED_KEYS = ["observation", "action", "reward", "terminal"]
 
 
-class ReplayBuffer(object):
+class ReplayBuffer:
     """A simple Replay Buffer.
     Stores transitions, state, action, reward, next_state, terminal (and any
     extra contents specified) in a circular buffer and provides a uniform

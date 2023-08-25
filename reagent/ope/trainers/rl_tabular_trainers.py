@@ -187,7 +187,7 @@ class DPValueFunction(TabularValueFunction):
         self._evaluated = True
 
 
-class DPTrainer(object):
+class DPTrainer:
     def __init__(self, env: Environment, policy: TabularPolicy) -> None:
         self._env = env
         self._policy = policy
@@ -301,7 +301,7 @@ class MonteCarloValueFunction(TabularValueFunction):
             self._state_counts.clear()
 
 
-class MonteCarloTrainer(object):
+class MonteCarloTrainer:
     def __init__(self, env: Environment, policy: TabularPolicy) -> None:
         self._env = env
         self._policy = policy

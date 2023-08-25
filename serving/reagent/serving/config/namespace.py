@@ -4,7 +4,7 @@
 import inspect
 
 
-class DecisionOperator(object):
+class DecisionOperator:
     def __init__(self):
         self.id = None
         self.op_name = type(self).__name__

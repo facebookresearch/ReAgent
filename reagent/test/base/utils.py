@@ -103,7 +103,7 @@ def write_lists_to_csv(path, *args) -> None:
             writer.writerow(row)
 
 
-class NumpyFeatureProcessor(object):
+class NumpyFeatureProcessor:
     @staticmethod
     def value_to_quantile(original_value, quantiles):
         if original_value <= quantiles[0]:

@@ -84,7 +84,7 @@ class Environment(Model):
         self._current_state = state
 
 
-class PolicyLogGenerator(object):
+class PolicyLogGenerator:
     def __init__(self, env: Environment, policy: RLPolicy) -> None:
         self._env = env
         self._policy = policy
