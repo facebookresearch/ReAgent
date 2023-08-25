@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 
-class InputColumn(object):
+class InputColumn:
     STATE_FEATURES = "state_features"
     STATE_SEQUENCE_FEATURES = "state_sequence_features"
     STATE_ID_LIST_FEATURES = "state_id_list_features"

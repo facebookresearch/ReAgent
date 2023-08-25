@@ -151,7 +151,7 @@ class NormalizationParameters(BaseDataClass):
     max_value: Optional[float] = None
 
 
-class NormalizationKey(object):
+class NormalizationKey:
     """Keys for dictionaries of NormalizationData"""
 
     STATE = "state"

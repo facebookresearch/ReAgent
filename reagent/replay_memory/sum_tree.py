@@ -24,7 +24,7 @@ from typing import List, Optional
 import numpy as np
 
 
-class SumTree(object):
+class SumTree:
     """A sum tree data structure for storing replay priorities.
     A sum tree is a complete binary tree whose leaves contain values called
     priorities. Internal nodes maintain the sum of the priorities of all leaf

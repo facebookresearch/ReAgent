@@ -25,13 +25,13 @@ if not IS_FB_ENVIRONMENT:
 
     # To allow string-based configuration, we need these Mixins to convert
     # from strings to Callables
-    class _LRLambdaMixin(object):
+    class _LRLambdaMixin:
         def decode_lambdas(self, args: Dict[str, Any]) -> None:
             lr_lambda = args.get("lr_lambda")
             if type(lr_lambda) is str:
                 args["lr_lambda"] = eval(lr_lambda)  # noqa
 
-    class _ScaleFnLambdaMixin(object):
+    class _ScaleFnLambdaMixin:
         def decode_lambdas(self, args: Dict[str, Any]) -> None:
             scale_fn = args.get("scale_fn")
             if type(scale_fn) is str:

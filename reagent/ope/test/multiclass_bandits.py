@@ -36,7 +36,7 @@ from torch import Tensor
 
 
 @dataclass(frozen=True)
-class MultiClassDataRow(object):
+class MultiClassDataRow:
     feature: torch.Tensor
     label: torch.Tensor
     one_hot: torch.Tensor

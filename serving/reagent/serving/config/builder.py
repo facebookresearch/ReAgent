@@ -16,7 +16,7 @@ def export(app_id: str, configs: Dict[str, Dict[str, Any]]):
     DECISION_PLANS[app_id] = configs
 
 
-class DecisionPlanBuilder(object):
+class DecisionPlanBuilder:
     def __init__(self):
         self.operators = []
         self.constants = []

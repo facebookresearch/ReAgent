@@ -69,7 +69,7 @@ def get_rank() -> int:
     )
 
 
-class lazy_property(object):
+class lazy_property:
     """
     More or less copy-pasta: http://stackoverflow.com/a/6849299
     Meant to be used for lazy evaluation of an object attribute.
