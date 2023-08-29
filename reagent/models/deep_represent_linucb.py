@@ -66,12 +66,13 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         l2_reg_lambda: float = 1.0,
         ucb_alpha: float = 1.0,
         gamma: float = 1.0,
-        use_batch_norm: bool = False,
+        use_batch_norm: bool = True,
         dropout_ratio: float = 0.0,
-        normalize_output: bool = False,
         use_layer_norm: bool = False,
         use_skip_connections: bool = True,
         mlp_layers: Optional[nn.Module] = None,
+        nn_e2e: bool = True,
+        # nn_e2e=True allows MLP to be trained with a nn.Linear module rather than with LinUCB module. Here the nn.Linear module is used to predict mu, but LinUCB is still used for sigma
     ):
         super().__init__(
             input_dim=sizes[-1]
@@ -89,7 +90,13 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
             len(sizes), len(activations)
         )
 
+        self.nn_e2e = nn_e2e
         self.raw_input_dim = input_dim  # input to the MLP
+
+        self.linear_layer = nn.Linear(
+            in_features=sizes[-1] + 1, out_features=1, bias=False
+        )
+
         # self.raw_input_dim --> MLP --> self.input_dim --> LinUCB --> ucb score
         if mlp_layers is None:
             self.deep_represent_layers = FullyConnectedNetwork(
@@ -97,7 +104,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
                 activations,
                 use_batch_norm=use_batch_norm,
                 dropout_ratio=dropout_ratio,
-                normalize_output=normalize_output,
+                normalize_output=True,  # output of FullyConnectedNetwork is normalized before fed to LinUCB module
                 use_layer_norm=use_layer_norm,
                 use_skip_connections=use_skip_connections,
             )
@@ -131,7 +138,12 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
 
         if ucb_alpha is None:
             ucb_alpha = self.ucb_alpha
-        pred_label = torch.matmul(mlp_out_with_ones, self.coefs)
+
+        if not self.nn_e2e:
+            pred_label = torch.matmul(mlp_out_with_ones, self.coefs)
+        else:
+            pred_label = self.linear_layer(mlp_out_with_ones).squeeze(-1)
+
         if ucb_alpha != 0:
             pred_sigma = torch.sqrt(
                 batch_quadratic_form(mlp_out_with_ones, self.inv_avg_A)
