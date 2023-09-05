@@ -68,6 +68,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         gamma: float = 1.0,
         use_batch_norm: bool = True,
         dropout_ratio: float = 0.0,
+        normalize_output: bool = True,
         use_layer_norm: bool = False,
         use_skip_connections: bool = True,
         mlp_layers: Optional[nn.Module] = None,
@@ -104,7 +105,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
                 activations,
                 use_batch_norm=use_batch_norm,
                 dropout_ratio=dropout_ratio,
-                normalize_output=True,  # output of FullyConnectedNetwork is normalized before fed to LinUCB module
+                normalize_output=normalize_output,  # output of FullyConnectedNetwork is normalized before fed to LinUCB module
                 use_layer_norm=use_layer_norm,
                 use_skip_connections=use_skip_connections,
             )
