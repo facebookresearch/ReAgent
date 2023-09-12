@@ -8,7 +8,9 @@ import numpy as np
 import pytest
 
 # pyre-ignore
-from pyspark.sql.functions import asc  # @manual=//python/wheel/pyspark:pyspark
+from pyspark.sql.functions import (  # @manual=fbsource//third-party/pypi/pyspark:pyspark
+    asc,
+)
 from reagent.data.oss_data_fetcher import OssDataFetcher
 from reagent.test.test_data.ex_mdps import generate_discrete_mdp_pandas_df
 
