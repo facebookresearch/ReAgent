@@ -155,7 +155,9 @@ class SparsePreprocessor(torch.nn.Module):
         self._id2name: Dict[int, str] = id2name
         self._name2id: Dict[str, int] = name2id
         if gen_torch_script:
+            # pyre-fixme[8]: Attribute has type `Dict[int, str]`; used as `Attribute`.
             self.id2name: Dict[int, str] = torch.jit.Attribute(id2name, Dict[int, str])
+            # pyre-fixme[8]: Attribute has type `Dict[str, int]`; used as `Attribute`.
             self.name2id: Dict[str, int] = torch.jit.Attribute(name2id, Dict[str, int])
         else:
             self.id2name: Dict[int, str] = id2name

@@ -143,6 +143,8 @@ class DiscreteDqnPredictorWrapper(torch.jit.ScriptModule):
     @torch.jit.script_method
     def forward(self, state: rlt.ServingFeatureData) -> Tuple[List[str], torch.Tensor]:
         q_values = self.dqn_with_preprocessor(state)
+        # pyre-fixme[7]: Expected `Tuple[List[str], Tensor]` but got
+        #  `Tuple[Attribute, typing.Any]`.
         return (self.action_names, q_values)
 
 
