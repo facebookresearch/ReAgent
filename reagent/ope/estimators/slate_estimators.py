@@ -607,6 +607,7 @@ class SlateSlotItemProbabilities(SlateSlotItemValues):
                 #  ...]]` but got `Union[bool, float, int]`.
                 dist[item] = 1.0
                 dists.append(value.replace(dist))
+                # pyre-fixme[6]: For 1st argument expected `Union[None, _NestedSequen...
                 ps[torch.arange(i + 1, slate_size), item] = 0.0
             self._slot_item_expectations = make_slot_item_distributions(
                 self.slots, dists
@@ -662,11 +663,13 @@ class SlateSlotItemProbabilities(SlateSlotItemValues):
             for i, value in zip(range(slate_size), self._values):
                 item = ps[i].argmax().item()
                 items.append(value.items[item])
+                # pyre-fixme[6]: For 1st argument expected `Union[None, _NestedSequen...
                 ps[torch.arange(i + 1, slate_size), item] = 0.0
         else:
             for i, value in zip(range(slate_size), self._values):
                 item = ps[i].multinomial(1).item()
                 items.append(value.items[item])
+                # pyre-fixme[6]: For 1st argument expected `Union[None, _NestedSequen...
                 ps[torch.arange(i + 1, slate_size), item] = 0.0
         return make_slate(slots, items)
 
