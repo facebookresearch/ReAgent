@@ -143,6 +143,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         if not self.nn_e2e:
             pred_label = torch.matmul(mlp_out_with_ones, self.coefs)
         else:
+            self.calculate_coefs_if_necessary()
             pred_label = self.linear_layer(mlp_out_with_ones).squeeze(-1)
 
         if ucb_alpha != 0:
