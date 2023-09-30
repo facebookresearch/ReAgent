@@ -1,5 +1,5 @@
-boost
-cmake
-gflags==2.2.2
-glog==0.4.0
-eigen==3.3.7
+boost==0.1
+cmake==3.21.1
+python-gflags==3.1.2
+glog==0.3.1
+eigency==1.77
