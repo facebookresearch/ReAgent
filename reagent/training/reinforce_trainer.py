@@ -13,7 +13,7 @@ from reagent.gym.policies.policy import Policy
 from reagent.models.base import ModelBase
 from reagent.optimizer.union import Optimizer__Union
 from reagent.training.reagent_lightning_module import ReAgentLightningModule
-from reagent.training.utils import discounted_returns, whiten
+from reagent.training.utils import calc_weighted_mean, discounted_returns, whiten
 
 logger = logging.getLogger(__name__)
 
@@ -59,13 +59,14 @@ class ReinforceTrainer(ReAgentLightningModule):
                     (or mean subtraction) simultaneously."
                 )
             self.value_net = value_net
-            self.value_loss_fn = torch.nn.MSELoss(reduction="mean")
+            self.value_loss_fn = torch.nn.MSELoss()
         else:
             self.value_net = None
         self.do_log_metrics = do_log_metrics
         if self.do_log_metrics:
             self.losses = []
             self.ips_ratio_means = []
+            self.Ns = []
 
     def _check_input(self, training_batch: rlt.PolicyGradientInput):
         assert training_batch.reward.ndim == 1
@@ -92,6 +93,7 @@ class ReinforceTrainer(ReAgentLightningModule):
         self._check_input(training_batch)
         actions = training_batch.action
         rewards = training_batch.reward.detach()
+        weights = training_batch.weight
         scorer_inputs = []
         if inspect.getattr_static(training_batch, "graph", None) is not None:
             # GNN
@@ -107,16 +109,19 @@ class ReinforceTrainer(ReAgentLightningModule):
         )
         if self.normalize:
             offset_reinforcement = whiten(
-                offset_reinforcement, subtract_mean=self.subtract_mean
+                offset_reinforcement, subtract_mean=self.subtract_mean, weight=weights
             )
         elif self.subtract_mean:
-            offset_reinforcement -= offset_reinforcement.mean()
+            offset_reinforcement -= calc_weighted_mean(
+                offset_reinforcement, weight=weights
+            )
         if self.offset_clamp_min:
             offset_reinforcement = offset_reinforcement.clamp(min=0)
         if self.value_net is not None:
             assert not (self.normalize or self.subtract_mean)
             baselines = self.value_net(training_batch.state).squeeze()
-            yield self.value_loss_fn(baselines, offset_reinforcement)
+            value_losses = self.value_loss_fn(baselines, offset_reinforcement)
+            yield calc_weighted_mean(value_losses, weight=weights)
             # subtract learned value function baselines from rewards
             offset_reinforcement = offset_reinforcement - baselines
 
@@ -128,13 +133,23 @@ class ReinforceTrainer(ReAgentLightningModule):
                 )
             ).float()
 
-        loss = -(offset_reinforcement.float().detach()) @ characteristic_eligibility
+        if training_batch.weight is None:
+            loss = -(offset_reinforcement.float().detach()) @ characteristic_eligibility
+            N = len(offset_reinforcement)
+        else:
+            loss = -(
+                (offset_reinforcement.float().detach() * weights)
+                @ characteristic_eligibility
+            )
+            # pyre-ignore [16]: `Optional` has no attribute `sum`
+            N = training_batch.weight.sum().item()
         if self.do_log_metrics:
-            detached_loss = loss.detach().cpu().item() / len(offset_reinforcement)
+            self.Ns.append(N)
+            detached_loss = loss.detach().cpu().item() / N
             self.losses.append(detached_loss)
             detached_ips_ratio_mean = (
-                characteristic_eligibility.detach().mean().cpu().item()
-            )
+                characteristic_eligibility.detach().sum().cpu().item()
+            ) / N
             self.ips_ratio_means.append(detached_ips_ratio_mean)
             assert self.logger is not None
             self.logger.log_metrics(
@@ -150,11 +165,12 @@ class ReinforceTrainer(ReAgentLightningModule):
         if self.do_log_metrics:
             self.logger.log_metrics(
                 {
-                    "Training_loss/per_epoch": sum(self.losses) / len(self.losses),
+                    "Training_loss/per_epoch": sum(self.losses) / sum(self.Ns),
                     "IPS_ratio_mean/per_epoch": sum(self.ips_ratio_means)
-                    / len(self.ips_ratio_means),
+                    / sum(self.Ns),
                 },
                 step=self.current_epoch,
             )
             self.losses = []
             self.ips_ratio_means = []
+            self.Ns = []
