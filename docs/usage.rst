@@ -151,7 +151,7 @@ Step 2 - Convert the data to the ``Timeline`` format
 
 Models are trained on consecutive pairs of state/action tuples. To assist in creating this table, we have an ``RLTimelineOperator`` spark operator. Let's build and run the timeline operator on the data:
 
-First, we need to build the Spark library that will execute the timeline.  Apache Spark is a platform for doing massively-parallel processing.  Although we are running this on a single file, Spark is designed to work on thousands of files distribued across many machines.  Explaining HDFS, Hive, and Spark are beyond the scope of this tutorial, but for large datasets it's important to understand these concepts and that it's possible to run ReAgent in a distributed environment by simply changing the location of the input from a file to an HDFS folder.
+First, we need to build the Spark library that will execute the timeline.  Apache Spark is a platform for doing massively-parallel processing.  Although we are running this on a single file, Spark is designed to work on thousands of files distributed across many machines.  Explaining HDFS, Hive, and Spark are beyond the scope of this tutorial, but for large datasets it's important to understand these concepts and that it's possible to run ReAgent in a distributed environment by simply changing the location of the input from a file to an HDFS folder.
 
 .. code-block::
 
@@ -165,7 +165,7 @@ When running spark locally, spark creates a fake "cluster" where it stores all o
    # Clear last run's spark data (in case of interruption)
    rm -Rf spark-warehouse derby.log metastore_db preprocessing/spark-warehouse preprocessing/metastore_db preprocessing/derby.log
 
-Now that we are ready, let's run our spark job on our local machine. This will produce a massive amount of logging (because we are running many systems that typically are distributed across many nodes) and there will be some exception stack traces printed because we are running in a psuedo-distributed mode.  Generally this is fine as long as the output data is generated. To do so, run the following Click command:
+Now that we are ready, let's run our spark job on our local machine. This will produce a massive amount of logging (because we are running many systems that typically are distributed across many nodes) and there will be some exception stack traces printed because we are running in a pseudo-distributed mode.  Generally this is fine as long as the output data is generated. To do so, run the following Click command:
 
 .. code-block::
 
@@ -183,7 +183,7 @@ The command essentially performs the following pseudo-code:
    spark = get_spark_session()
    df = spark.createDataFrame(pd_df)
 
-   # run timelime operator
+   # run timeline operator
    json_params = make_input_to_timeline_operator()
    spark._jvm.com.facebook.spark.rl.Timeline.main(json_params)
 
@@ -260,7 +260,7 @@ Now we are ready to train a model by running:
     training_output.output_path = torchscript_output_path
 
 Note that the model is trained purely on the randomly generated data we collected in Step 1.
-We are taking a batch of data that we generated previously and training by looping over that data and interatively learning a better policy than the policy that generated the data.
+We are taking a batch of data that we generated previously and training by looping over that data and interactively learning a better policy than the policy that generated the data.
 Effectively, this is learning to perform a task by observing completely random transitions from an environment! While doing so, we are not even building a dynamics model of the environment.
 
 NB: We can do the same for the ``eval_dataset`` if we want to perform CPE during training as a diagnosis tool.

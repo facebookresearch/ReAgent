@@ -68,7 +68,7 @@ Now, you can build our preprocessing JAR
 RASP (Not Actively Maintained)
 ^^^^
 
-RASP (ReAgent Serving Platform) is a decision-serving library. It also has standlone binary. It depends on libtorch,
+RASP (ReAgent Serving Platform) is a decision-serving library. It also has standalone binary. It depends on libtorch,
 which cannot be statically linked at the moment. Therefore, we don't have a pre-built version.
 
 To build the CLI, you'll need `CMake <https://cmake.org/>`_ and the following libraries:
