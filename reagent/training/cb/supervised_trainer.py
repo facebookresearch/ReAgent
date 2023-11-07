@@ -28,7 +28,7 @@ class SupervisedTrainer(BaseCBTrainerWithEval):
     def __init__(
         self,
         policy: Policy,
-        loss_type: str = "mse",  # one of the LossTypes names
+        loss_type: str = "mse",  # one of the LOSS_TYPES names
         lr: float = 1e-3,
         weight_decay: float = 0.0,
         *args,

@@ -8,6 +8,7 @@ from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
 from reagent.models.deep_represent_linucb import DeepRepresentLinearRegressionUCB
 from reagent.training.cb.linucb_trainer import LinUCBTrainer
+from reagent.training.cb.supervised_trainer import LOSS_TYPES
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
         policy: Policy,
         lr: float = 1e-3,
         weight_decay: float = 0.0,
+        loss_type: str = "mse",  # one of the LOSS_TYPES names
         **kwargs,
     ):
         super().__init__(
@@ -40,7 +42,7 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
             policy.scorer, DeepRepresentLinearRegressionUCB
         ), "Trainer requires the policy scorer to be DeepRepresentLinearRegressionUCB"
         self.scorer = policy.scorer
-        self.loss_fn = torch.nn.functional.mse_loss
+        self.loss_fn = LOSS_TYPES[loss_type]
         self.lr = lr
         self.weight_decay = weight_decay
 
