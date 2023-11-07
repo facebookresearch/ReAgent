@@ -23,7 +23,9 @@ class TestDeepRepresentLinUCB(unittest.TestCase):
 
     def setUp(self):
 
-        self.params = DeepRepresentLinUCBTrainerParameters(lr=1e-1)
+        self.params = DeepRepresentLinUCBTrainerParameters(
+            lr=1e-1, loss_type="cross_entropy"
+        )
 
         input_dim = 100
         sizes = [20]
@@ -43,6 +45,7 @@ class TestDeepRepresentLinUCB(unittest.TestCase):
             sizes=sizes + [linucb_inp_dim],
             activations=activations,
             mlp_layers=customized_layers,
+            output_activation="sigmoid",
         )
 
         self.policy = Policy(scorer=policy_network, sampler=GreedyActionSampler())
@@ -50,7 +53,7 @@ class TestDeepRepresentLinUCB(unittest.TestCase):
         self.batch = CBInput(
             context_arm_features=torch.rand(2, 2, input_dim),
             action=torch.tensor([[0], [1]], dtype=torch.long),
-            reward=torch.tensor([[1.5], [-2.3]]),
+            reward=torch.tensor([[0.3], [0.1]]),
         )  # random Gaussian features
 
     def test_linucb_training_step(self):
