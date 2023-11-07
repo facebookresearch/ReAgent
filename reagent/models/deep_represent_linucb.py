@@ -4,7 +4,7 @@ import logging
 from typing import Dict, List, Optional
 
 import torch
-from reagent.models.fully_connected_network import FullyConnectedNetwork
+from reagent.models.fully_connected_network import ACTIVATION_MAP, FullyConnectedNetwork
 from reagent.models.linear_regression import batch_quadratic_form, LinearRegressionUCB
 from torch import nn
 
@@ -63,6 +63,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         sizes: List[int],  # MLP hidden layers of the deep_represent module
         activations: List[str],
         *,
+        output_activation: str = "linear",
         l2_reg_lambda: float = 1.0,
         ucb_alpha: float = 1.0,
         gamma: float = 1.0,
@@ -97,6 +98,7 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
         self.linear_layer = nn.Linear(
             in_features=sizes[-1] + 1, out_features=1, bias=False
         )
+        self.output_activation = ACTIVATION_MAP[output_activation]()
 
         # self.raw_input_dim --> MLP --> self.input_dim --> LinUCB --> ucb score
         if mlp_layers is None:
@@ -141,20 +143,25 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
             ucb_alpha = self.ucb_alpha
 
         if not self.nn_e2e:
-            pred_label = torch.matmul(mlp_out_with_ones, self.coefs)
+            pred_label_linear = torch.matmul(mlp_out_with_ones, self.coefs)
+
         else:
             self.calculate_coefs_if_necessary()
-            pred_label = self.linear_layer(mlp_out_with_ones).squeeze(-1)
+            pred_label_linear = self.linear_layer(mlp_out_with_ones).squeeze(-1)
 
         if ucb_alpha != 0:
             pred_sigma = torch.sqrt(
                 batch_quadratic_form(mlp_out_with_ones, self.inv_avg_A)
                 / torch.clamp(self.sum_weight, min=0.00001)
             )
-            ucb = pred_label + ucb_alpha * pred_sigma
+            ucb_linear = pred_label_linear + ucb_alpha * pred_sigma
         else:
-            pred_sigma = torch.zeros_like(pred_label)
-            ucb = pred_label
+            pred_sigma = torch.zeros_like(pred_label_linear)
+            ucb_linear = pred_label_linear
+
+        # apply output activation to point prediction and UCB
+        pred_label = self.output_activation(pred_label_linear)
+        ucb = self.output_activation(ucb_linear)
         return {
             "pred_label": pred_label,
             "pred_sigma": pred_sigma,
@@ -190,9 +197,9 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
             inp=mlp_out_with_ones, ucb_alpha=ucb_alpha
         )
 
-        pred_label = model_output["pred_label"]
+        pred_label = self.output_activation(model_output["pred_label"])
         pred_sigma = model_output["pred_sigma"]
-        ucb = model_output["ucb"]
+        ucb = self.output_activation(model_output["ucb"])
         return {
             "pred_label": pred_label,
             "pred_sigma": pred_sigma,

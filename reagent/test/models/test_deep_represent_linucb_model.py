@@ -15,14 +15,16 @@ class TestDeepRepresentLinearRegressionUCB(unittest.TestCase):
         sizes = [6]
         linucb_inp_dim = 3
         activations = ["relu", "relu"]
+        output_activation = "sigmoid"
 
         model = DeepRepresentLinearRegressionUCB(
             input_dim=input_dim,
             sizes=sizes + [linucb_inp_dim],
             activations=activations,
+            output_activation=output_activation,
         )
 
-        batch_size = 2
+        batch_size = 150
         raw_input = torch.randn(batch_size, input_dim)
         self.assertEqual(
             (batch_size, linucb_inp_dim),  # check deep_represent output size
@@ -48,3 +50,10 @@ class TestDeepRepresentLinearRegressionUCB(unittest.TestCase):
         self.assertEqual(
             (batch_size,), pred_label.shape
         )  # pred_label is 1-d tensor of same batch size as input
+
+        self.assertTrue(
+            (ucb >= 0.0).all() and (ucb <= 1.0).all()
+        )  # model output in [0;1] because of sigmoid activation
+        self.assertTrue(
+            (pred_label >= 0.0).all() and (pred_label <= 1.0).all()
+        )  # model output in [0;1] because of sigmoid activation
