@@ -49,3 +49,4 @@ class InputColumn:
     ARMS = "arms"
     ARM_PRESENCE = "arm_presence"
     ACTION_LOG_PROBABILITY = "action_log_probability"
+    LABEL = "label"
