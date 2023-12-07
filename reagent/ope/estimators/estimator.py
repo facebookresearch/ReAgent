@@ -258,6 +258,8 @@ class Evaluator:
             tmp_file_names = []
             for task in self._tasks:
                 fp = tempfile.NamedTemporaryFile()
+                # pyre-fixme[6]: For 2nd argument expected `SupportsWrite[bytes]`
+                #  but got `_TemporaryFileWrapper[bytes]`.
                 pickle.dump(task, fp, protocol=pickle.HIGHEST_PROTOCOL)
                 fp.flush()
                 tmp_files.append(fp)
