@@ -9,7 +9,12 @@ from .no_validation import NoValidation  # noqa
 
 
 if IS_FB_ENVIRONMENT:
+    # pyre-fixme[21]: Could not find module
+    #  `fblearner.flow.projects.rl.validation.clients`.
     import fblearner.flow.projects.rl.validation.clients  # noqa
+
+    # pyre-fixme[21]: Could not find module
+    #  `fblearner.flow.projects.rl.validation.common`.
     import fblearner.flow.projects.rl.validation.common  # noqa
 
 

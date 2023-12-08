@@ -10,7 +10,12 @@ from .no_publishing import NoPublishing  # noqa
 
 
 if IS_FB_ENVIRONMENT:
+    # pyre-fixme[21]: Could not find module
+    #  `fblearner.flow.projects.rl.publishing.clients`.
     import fblearner.flow.projects.rl.publishing.clients  # noqa
+
+    # pyre-fixme[21]: Could not find module
+    #  `fblearner.flow.projects.rl.publishing.common`.
     import fblearner.flow.projects.rl.publishing.common  # noqa
 
 
