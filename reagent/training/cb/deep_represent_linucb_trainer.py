@@ -20,8 +20,8 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
     This is extension of LinUCBTrainer. More details refer to docstring of LinUCBTrainer.
 
     Reference:
-    - LinUCB : https://arxiv.org/pdf/2012.01780.pdf
-    - DeepRepresentLinUCB : https://arxiv.org/pdf/1003.0146.pdf
+    - LinUCB : https://arxiv.org/pdf/1003.0146.pdf
+    - DeepRepresentLinUCB : https://arxiv.org/pdf/2012.01780.pdf
     """
 
     @resolve_defaults
