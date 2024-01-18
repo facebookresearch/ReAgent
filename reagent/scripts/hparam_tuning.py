@@ -13,6 +13,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import numpy as np
 import torch.multiprocessing as mp
 from ax.service.ax_client import AxClient
+from ax.service.utils.instantiation import ObjectiveProperties
 
 
 def ax_evaluate_params(
@@ -126,8 +127,7 @@ def run_ax_search(
     ax_client.create_experiment(
         name=f"hparams_search_{id_}",
         parameters=ax_params,
-        objective_name=obj_name,
-        minimize=minimize,
+        objectives={obj_name: ObjectiveProperties(minimize=minimize)},
         parameter_constraints=ax_param_constraints,
         choose_generation_strategy_kwargs={
             "max_parallelism_override": num_concur_samples,
