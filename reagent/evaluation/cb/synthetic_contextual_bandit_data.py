@@ -218,6 +218,8 @@ class DynamicBanditEnv:
         """
         sample_batch_idx = random.randint(0, self.num_unique_batches - 1)
         arms_ids_batch = self.all_unique_arm_ids[sample_batch_idx]
+        # pyre-fixme[7]: Expected `Tuple[Tensor, Tensor]` but got `Tuple[int,
+        #  typing.Any]`.
         return sample_batch_idx, arms_ids_batch
 
     def gen_all_arms_feature_distribution(self) -> None:
