@@ -28,12 +28,16 @@ class TypeWrapper(Generic[ValueType]):
 
     def __index__(self) -> int:
         try:
+            # pyre-fixme[6]: For 1st argument expected `Union[SupportsTrunc, str,
+            #  SupportsIndex, SupportsInt, Buffer]` but got `ValueType`.
             return int(self.value)
         except Exception:
             raise ValueError(f"{self} cannot be used as index")
 
     def __int__(self) -> int:
         try:
+            # pyre-fixme[6]: For 1st argument expected `Union[SupportsTrunc, str,
+            #  SupportsIndex, SupportsInt, Buffer]` but got `ValueType`.
             return int(self.value)
         except Exception:
             raise ValueError(f"{self} cannot be converted to int")
@@ -168,6 +172,8 @@ class Objects(Generic[KeyType, ValueType], ABC):
     def index_of(self, key: KeyType) -> int:
         if self._key_to_index is None:
             try:
+                # pyre-fixme[6]: For 1st argument expected `Union[SupportsTrunc,
+                #  str, SupportsIndex, SupportsInt, Buffer]` but got `KeyType`.
                 index = int(key)
                 if 0 <= index < len(self):
                     return index

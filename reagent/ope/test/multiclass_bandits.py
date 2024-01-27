@@ -135,13 +135,11 @@ class UCIMultiClassDataset:
     ):
         total_len = len(self._data_frame)
         train_len = int(total_len * ratios[0])
-        # pyre-fixme[20]: Argument `k` expected.
         train_choices = random.sample(range(total_len), train_len)
         train_x = np.take(self._features, train_choices, axis=0)
         train_y = np.take(self._class_indices, train_choices)
         train_r = np.take(self._one_hots, train_choices, axis=0)
         fit_len = int(train_len * ratios[1])
-        # pyre-fixme[20]: Argument `k` expected.
         fit_choices = random.sample(range(train_len), fit_len)
         fit_x = np.take(train_x, fit_choices, axis=0)
         fit_y = np.take(train_y, fit_choices)
@@ -262,7 +260,6 @@ def evaluate_all(
     for estimators, num_samples in experiments:
         samples = []
         for _ in range(num_samples):
-            # pyre-fixme[20]: Argument `k` expected.
             qid = random.sample(test_queries, 1)
             label = int(dataset.labels[qid].item())
             log_action, log_action_probabilities = log_policy(qid)
