@@ -538,7 +538,6 @@ class SlateItemProbabilities(SlateItemValues):
                 if max_size <= 0 or max_size > len(next_buffer):
                     buffer = next_buffer
                 else:
-                    # pyre-fixme[20]: Argument `k` expected.
                     buffer = random.sample(next_buffer, max_size)
             return [([SlateItem(i) for i in b[0]], b[1]) for b in buffer]
 
