@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cmath>
 #include <ctime>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -20,13 +21,6 @@
 #include <Eigen/Dense>
 #include <nlohmann/json.hpp>
 #include <taskflow/taskflow.hpp>
-#if __has_include("filesystem")
-#include <filesystem>
-namespace filesystem = std::filesystem;
-#else
-#include <experimental/filesystem>
-namespace filesystem = std::experimental::filesystem;
-#endif
 
 #include "reagent/serving/core/Containers.h"
 #include "reagent/serving/core/DecisionServiceException.h"
@@ -42,4 +36,4 @@ namespace filesystem = std::experimental::filesystem;
 namespace reagent {
 std::string generateUuid4();
 
-}  // namespace reagent
+} // namespace reagent
