@@ -509,6 +509,8 @@ class TransformerSyntheticRewardNet(nn.Module):
             batch_first=False,
         )
         self.transformer = nn.TransformerEncoder(
+            # pyre-fixme[6]: For 1st argument expected `TransformerEncoderLayer` but
+            #  got `PETransformerEncoderLayer`.
             encoder_layer,
             num_encoder_layers,
         )
