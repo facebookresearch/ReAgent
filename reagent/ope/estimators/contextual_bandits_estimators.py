@@ -350,9 +350,11 @@ class IPSEstimator(Estimator):
         ) = self._compute_metric_data(torch.tensor(tgt_vals), log_avg.average)
         return EstimatorResult(
             log_reward=log_avg.average,
-            estimated_reward=tgt_avg.average
-            if not self._weighted
-            else tgt_avg.average / acc_weight.total,
+            estimated_reward=(
+                tgt_avg.average
+                if not self._weighted
+                else tgt_avg.average / acc_weight.total
+            ),
             ground_truth_reward=gt_avg.average,
             estimated_weight=tgt_avg.count,
             estimated_reward_normalized=tgt_score_normalized,

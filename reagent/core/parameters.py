@@ -144,9 +144,9 @@ class NormalizationParameters(BaseDataClass):
     mean: Optional[float] = None
     stddev: Optional[float] = None
     possible_values: Optional[List[int]] = None  # Assume present for ENUM type
-    quantiles: Optional[
-        List[float]
-    ] = None  # Assume present for QUANTILE type and sorted
+    quantiles: Optional[List[float]] = (
+        None  # Assume present for QUANTILE type and sorted
+    )
     min_value: Optional[float] = None
     max_value: Optional[float] = None
 

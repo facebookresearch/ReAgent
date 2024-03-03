@@ -98,7 +98,7 @@ class OPEstimatorAdapter:
                         # pyre-fixme[6]: For 2nd param expected `Sequence[float]`
                         #  but got `Tensor`.
                         tgt_rewards=edp.model_rewards[idx],
-                    )
+                    ),
                     # item features not specified as edp came from trained reward model
                 )
             )

@@ -327,9 +327,13 @@ class IPSEstimator(RLEstimator):
             EstimatorResult(
                 self._log_reward(input.gamma, input.log),
                 estimate,
-                None
-                if input.ground_truth is None
-                else self._estimate_value(input.gamma, input.log, input.ground_truth),
+                (
+                    None
+                    if input.ground_truth is None
+                    else self._estimate_value(
+                        input.gamma, input.log, input.ground_truth
+                    )
+                ),
             )
         )
         logging.info(
@@ -386,9 +390,13 @@ class DoublyRobustEstimator(IPSEstimator):
             EstimatorResult(
                 self._log_reward(input.gamma, input.log),
                 estimate,
-                None
-                if input.ground_truth is None
-                else self._estimate_value(input.gamma, input.log, input.ground_truth),
+                (
+                    None
+                    if input.ground_truth is None
+                    else self._estimate_value(
+                        input.gamma, input.log, input.ground_truth
+                    )
+                ),
             )
         )
         logging.info(
@@ -507,9 +515,13 @@ class MAGICEstimator(IPSEstimator):
             EstimatorResult(
                 self._log_reward(input.gamma, input.log),
                 estimate,
-                None
-                if input.ground_truth is None
-                else self._estimate_value(input.gamma, input.log, input.ground_truth),
+                (
+                    None
+                    if input.ground_truth is None
+                    else self._estimate_value(
+                        input.gamma, input.log, input.ground_truth
+                    )
+                ),
             )
         )
         logging.info(
@@ -611,9 +623,13 @@ class NeuralDualDICE(RLEstimator):
             EstimatorResult(
                 self._log_reward(input.gamma, input.log),
                 estimate,
-                None
-                if input.ground_truth is None
-                else self._estimate_value(input.gamma, input.log, input.ground_truth),
+                (
+                    None
+                    if input.ground_truth is None
+                    else self._estimate_value(
+                        input.gamma, input.log, input.ground_truth
+                    )
+                ),
             )
         )
         return results
@@ -726,9 +742,11 @@ class NeuralDualDICE(RLEstimator):
                 samples["reward"].append(t.reward)
 
         return {
-            k: torch.stack(v).to(self.device)
-            if "action" in k
-            else torch.tensor(v, dtype=torch.float).to(self.device)
+            k: (
+                torch.stack(v).to(self.device)
+                if "action" in k
+                else torch.tensor(v, dtype=torch.float).to(self.device)
+            )
             for k, v in samples.items()
         }
 

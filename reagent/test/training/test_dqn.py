@@ -243,9 +243,7 @@ class TestDQN(unittest.TestCase):
         self.assertEqual(discount_tensor.shape[0], self.batch_size)
         self.assertEqual(discount_tensor.shape[1], 1)
         self.assertTrue(
-            torch.isclose(
-                discount_tensor, torch.tensor(trainer.gamma**time_diff)
-            ).all()
+            torch.isclose(discount_tensor, torch.tensor(trainer.gamma**time_diff)).all()
         )
 
         # multi_steps

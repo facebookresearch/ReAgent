@@ -249,14 +249,14 @@ class SingleStepSyntheticSparseArchRewardNet(nn.Module):
         # action_dense_out shape: seq_len, batch_size, embed_dim
         action_dense_out = self.action_dense_arch(action)
 
-        sparse_data_per_step: List[
-            KeyedJaggedTensor
-        ] = self.create_sparse_data_per_step(
-            state_id_list,
-            state_id_score_list,
-            action_id_list,
-            action_id_score_list,
-            seq_len,
+        sparse_data_per_step: List[KeyedJaggedTensor] = (
+            self.create_sparse_data_per_step(
+                state_id_list,
+                state_id_score_list,
+                action_id_list,
+                action_id_score_list,
+                seq_len,
+            )
         )
         sparse_embed_per_step = [
             self.sparse_arch(sparse_data_per_step[i]) for i in range(seq_len)

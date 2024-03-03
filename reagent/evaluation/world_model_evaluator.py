@@ -99,10 +99,10 @@ class FeatureImportanceEvaluator:
                     action_feature_boundaries[i],
                     action_feature_boundaries[i + 1],
                 )
-                action_features[
-                    :, boundary_start:boundary_end
-                ] = self.compute_median_feature_value(
-                    action_features[:, boundary_start:boundary_end]
+                action_features[:, boundary_start:boundary_end] = (
+                    self.compute_median_feature_value(
+                        action_features[:, boundary_start:boundary_end]
+                    )
                 )
 
             action_features = action_features.reshape((seq_len, batch_size, action_dim))
@@ -127,10 +127,10 @@ class FeatureImportanceEvaluator:
                 state_feature_boundaries[i],
                 state_feature_boundaries[i + 1],
             )
-            state_features[
-                :, boundary_start:boundary_end
-            ] = self.compute_median_feature_value(
-                state_features[:, boundary_start:boundary_end]
+            state_features[:, boundary_start:boundary_end] = (
+                self.compute_median_feature_value(
+                    state_features[:, boundary_start:boundary_end]
+                )
             )
             state_features = state_features.reshape((seq_len, batch_size, state_dim))
             new_batch = MemoryNetworkInput(

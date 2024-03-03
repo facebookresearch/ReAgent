@@ -295,9 +295,11 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
         # we can treat this as expected ground truth value
         model_propensities_next_states = masked_softmax(
             all_next_action_scores,
-            inp.possible_next_actions_mask
-            if trainer.maxq_learning
-            else inp.next_action,
+            (
+                inp.possible_next_actions_mask
+                if trainer.maxq_learning
+                else inp.next_action
+            ),
             trainer.rl_temperature,
         )
         metric_q_values = trainer.q_network_cpe(inp.state).gather(
@@ -412,9 +414,11 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
 
         model_propensities_next_states = masked_softmax(
             all_next_action_scores,
-            inp.possible_next_actions_mask
-            if trainer.maxq_learning
-            else inp.next_action,
+            (
+                inp.possible_next_actions_mask
+                if trainer.maxq_learning
+                else inp.next_action
+            ),
             trainer.rl_temperature,
         )
         # q_values at offset + logged action idx

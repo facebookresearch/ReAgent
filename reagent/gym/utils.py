@@ -373,10 +373,15 @@ def feature_transform(
             # for next features where we replace them when terminal
             assert replace_when_terminal is not None
             return [
-                [single_elem_transform(feat) for feat in multi_steps_features]
-                if not terminal[idx]
-                else [single_elem_transform(feat) for feat in multi_steps_features[:-1]]
-                + [replace_when_terminal]
+                (
+                    [single_elem_transform(feat) for feat in multi_steps_features]
+                    if not terminal[idx]
+                    else [
+                        single_elem_transform(feat)
+                        for feat in multi_steps_features[:-1]
+                    ]
+                    + [replace_when_terminal]
+                )
                 for idx, multi_steps_features in enumerate(features)
             ]
     else:
@@ -385,9 +390,11 @@ def feature_transform(
         else:
             assert replace_when_terminal is not None
             return [
-                single_elem_transform(feat)
-                if not terminal[idx]
-                else replace_when_terminal
+                (
+                    single_elem_transform(feat)
+                    if not terminal[idx]
+                    else replace_when_terminal
+                )
                 for idx, feat in enumerate(features)
             ]
 

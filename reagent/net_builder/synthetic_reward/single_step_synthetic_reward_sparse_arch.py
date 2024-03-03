@@ -56,10 +56,10 @@ class SingleStepSparseArchSyntheticReward(SyntheticRewardNetBuilder):
         else:
             action_dense_dim = len(discrete_action_names)
 
-        embedding_bag_configs: List[
-            EmbeddingBagConfig
-        ] = embedding_bag_configs_from_feature_configs(
-            feature_config_list,
+        embedding_bag_configs: List[EmbeddingBagConfig] = (
+            embedding_bag_configs_from_feature_configs(
+                feature_config_list,
+            )
         )
         embedding_bag_col = EmbeddingBagCollection(
             device=torch.device("meta"), tables=embedding_bag_configs
