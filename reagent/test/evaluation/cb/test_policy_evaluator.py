@@ -18,7 +18,7 @@ def _compare_state_dicts(state_dict_1, state_dict_2):
     if len(state_dict_1) != len(state_dict_2):
         return False
 
-    for ((k_1, v_1), (k_2, v_2)) in zip(
+    for (k_1, v_1), (k_2, v_2) in zip(
         sorted(state_dict_1.items()), sorted(state_dict_2.items())
     ):
         if k_1 != k_2:

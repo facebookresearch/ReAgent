@@ -174,9 +174,11 @@ def split_sequence_keyed_jagged_tensor(
                 keys=keys,
                 lengths=torch.cat([split_dict[i][k][0] for k in keys]),
                 values=torch.cat([split_dict[i][k][1] for k in keys]),
-                weights=torch.cat([split_dict[i][k][2] for k in keys])
-                if has_weights
-                else None,
+                weights=(
+                    torch.cat([split_dict[i][k][2] for k in keys])
+                    if has_weights
+                    else None
+                ),
             )
         )
     return result

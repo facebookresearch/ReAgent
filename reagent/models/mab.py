@@ -92,8 +92,7 @@ class MABBaseModel(torch.nn.Module):
                 self.sum_reward_by_arm_id.get(arm_id, 0.0) + weight * reward
             )
             self.sum_squared_reward_by_arm_id[arm_id] = (
-                self.sum_squared_reward_by_arm_id.get(arm_id, 0.0)
-                + weight * reward**2
+                self.sum_squared_reward_by_arm_id.get(arm_id, 0.0) + weight * reward**2
             )
         end = time.time()
         logger.info(f"Batch learn time: {end - start}")

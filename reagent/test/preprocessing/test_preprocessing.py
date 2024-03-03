@@ -280,9 +280,9 @@ class TestPreprocessing(unittest.TestCase):
                 feature_values,
                 feature_type=self._feature_type_override(feature_name),
             )
-            feature_values[
-                0
-            ] = MISSING_VALUE  # Set one entry to MISSING_VALUE to test that
+            feature_values[0] = (
+                MISSING_VALUE  # Set one entry to MISSING_VALUE to test that
+            )
 
             preprocessor = Preprocessor(
                 {feature_name: normalization_parameters[feature_name]}, False

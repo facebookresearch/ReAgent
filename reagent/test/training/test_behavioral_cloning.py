@@ -34,7 +34,7 @@ def get_dummy_batch(action_type, num_batches):
             [1, 1, 0, 0],
             [0, 1, 1, 0],
             [0, 0, 1, 1],
-            [1, 0, 0, 1]
+            [1, 0, 0, 1],
             # 1 means no mask. This mask keeps the label position (diagonal position) and some other position
         ]
     )

@@ -34,10 +34,10 @@ class EmbeddingBagConcat(ModelBase):
             config.name for config in model_feature_config.id_score_list_feature_configs
         ]
 
-        embedding_bag_configs: List[
-            EmbeddingBagConfig
-        ] = embedding_bag_configs_from_feature_configs(
-            [model_feature_config],
+        embedding_bag_configs: List[EmbeddingBagConfig] = (
+            embedding_bag_configs_from_feature_configs(
+                [model_feature_config],
+            )
         )
         assert (
             embedding_bag_configs
@@ -109,9 +109,9 @@ class EmbeddingBagConcat(ModelBase):
 
         if not state.id_score_list_features_raw and state.id_score_list_features:
             for ft_name in self._id_score_list_feature_names:
-                state.id_score_list_features_raw[
-                    ft_name
-                ] = state.id_score_list_features[ft_name]
+                state.id_score_list_features_raw[ft_name] = (
+                    state.id_score_list_features[ft_name]
+                )
 
         # id_score_list is (offset, key, value); weighted sum pooling
         id_score_list_embeddings = [

@@ -363,9 +363,11 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
 
         model_propensities_next_states = masked_softmax(
             all_next_action_scores,
-            training_batch.possible_next_actions_mask
-            if self.maxq_learning
-            else training_batch.next_action,
+            (
+                training_batch.possible_next_actions_mask
+                if self.maxq_learning
+                else training_batch.next_action
+            ),
             self.rl_temperature,
         )
 
@@ -411,9 +413,11 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         # which is called on the eval_table_sample in the gather_eval_data() function below.
         model_propensities = masked_softmax(
             all_action_scores,
-            training_batch.possible_actions_mask
-            if self.maxq_learning
-            else training_batch.action,
+            (
+                training_batch.possible_actions_mask
+                if self.maxq_learning
+                else training_batch.action
+            ),
             self.rl_temperature,
         )
         # Extract rewards predicted by the reward_network. The other columns will

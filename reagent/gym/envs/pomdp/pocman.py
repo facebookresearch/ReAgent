@@ -466,9 +466,9 @@ class PocManEnv(Env):
     def print_internal_state(self):
         print("Step", self.step_cnt)
         print_maze = self.maze.astype(str)
-        print_maze[
-            self.internal_state.agent_pos.x, self.internal_state.agent_pos.y
-        ] = "A"
+        print_maze[self.internal_state.agent_pos.x, self.internal_state.agent_pos.y] = (
+            "A"
+        )
         ghost_str = ""
         for g, ghost in enumerate(self.internal_state.ghosts):
             print_maze[ghost.pos.x, ghost.pos.y] = "G"

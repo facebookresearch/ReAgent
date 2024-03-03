@@ -122,9 +122,13 @@ class GridWorld(Environment):
         else:
             return (
                 to_pos,
-                0.0
-                if not self.use_taxicab_reward
-                else np.exp(-2 * self._taxi_distance(to_pos, self.goal) / self.size[0]),
+                (
+                    0.0
+                    if not self.use_taxicab_reward
+                    else np.exp(
+                        -2 * self._taxi_distance(to_pos, self.goal) / self.size[0]
+                    )
+                ),
                 False,
             )
 

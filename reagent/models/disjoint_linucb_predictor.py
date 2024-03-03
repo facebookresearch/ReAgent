@@ -55,7 +55,6 @@ class DisjointLinearRegressionUCB(ModelBase):
         ucb_alpha: float = 1.0,
         gamma: float = 1.0,
     ):
-
         """
         self.A: num_arms * dim * dim
         self.A_inv: num_arms * dim * dim

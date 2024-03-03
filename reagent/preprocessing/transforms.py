@@ -987,14 +987,16 @@ class StackVarLength:
             assert values[0].ndim == 1
             max_length = max(len(x) for x in values)
             padded_values = [
-                x
-                if len(x) == max_length
-                else torch.cat(
-                    (
-                        x,
+                (
+                    x
+                    if len(x) == max_length
+                    else torch.cat(
                         (
-                            self.default_value * torch.ones((max_length - len(x),))
-                        ).type_as(x),
+                            x,
+                            (
+                                self.default_value * torch.ones((max_length - len(x),))
+                            ).type_as(x),
+                        )
                     )
                 )
                 for x in values

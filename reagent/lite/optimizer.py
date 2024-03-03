@@ -1392,7 +1392,6 @@ class LinearBayesianByBackprop(nn.Module):
     """
 
     def __init__(self, input_features, output_features, prior_var=1.0):
-
         """
         Initialization of our layer, prior is a normal distribution
         centered in 0 and of variance prior_var.

@@ -638,12 +638,16 @@ class PreprocessedRankingInput(TensorDataClass):
             state=FeatureData(float_features=state),
             src_seq=FeatureData(float_features=src_seq),
             src_src_mask=src_src_mask,
-            tgt_in_seq=FeatureData(float_features=tgt_in_seq)
-            if tgt_in_seq is not None
-            else None,
-            tgt_out_seq=FeatureData(float_features=tgt_out_seq)
-            if tgt_out_seq is not None
-            else None,
+            tgt_in_seq=(
+                FeatureData(float_features=tgt_in_seq)
+                if tgt_in_seq is not None
+                else None
+            ),
+            tgt_out_seq=(
+                FeatureData(float_features=tgt_out_seq)
+                if tgt_out_seq is not None
+                else None
+            ),
             tgt_tgt_mask=tgt_tgt_mask,
             slate_reward=slate_reward,
             position_reward=position_reward,
@@ -653,12 +657,16 @@ class PreprocessedRankingInput(TensorDataClass):
             tgt_out_probs=tgt_out_probs,
             optim_tgt_in_idx=optim_tgt_in_idx,
             optim_tgt_out_idx=optim_tgt_out_idx,
-            optim_tgt_in_seq=FeatureData(float_features=optim_tgt_in_seq)
-            if optim_tgt_in_seq is not None
-            else None,
-            optim_tgt_out_seq=FeatureData(float_features=optim_tgt_out_seq)
-            if optim_tgt_out_seq is not None
-            else None,
+            optim_tgt_in_seq=(
+                FeatureData(float_features=optim_tgt_in_seq)
+                if optim_tgt_in_seq is not None
+                else None
+            ),
+            optim_tgt_out_seq=(
+                FeatureData(float_features=optim_tgt_out_seq)
+                if optim_tgt_out_seq is not None
+                else None
+            ),
             extras=extras if extras is not None else None,
         )
 
@@ -1118,15 +1126,15 @@ class CBInput(TensorDataClass):
     chosen_arm_id: Final[Optional[torch.Tensor]] = None
     arm_presence: Final[Optional[torch.Tensor]] = None
     action: Final[Optional[torch.Tensor]] = None  # chosen arm
-    reward: Final[
-        Optional[torch.Tensor]
-    ] = None  # reward of the chosen arm. Used mostly for Offline Evalution. `label` is used as target for training.
-    label: Final[
-        Optional[torch.Tensor]
-    ] = None  # label used for model training. Could be same as `reward`, or something else.
-    rewards_all_arms: Final[
-        Optional[torch.Tensor]
-    ] = None  # rewards of all arms of the episode
+    reward: Final[Optional[torch.Tensor]] = (
+        None  # reward of the chosen arm. Used mostly for Offline Evalution. `label` is used as target for training.
+    )
+    label: Final[Optional[torch.Tensor]] = (
+        None  # label used for model training. Could be same as `reward`, or something else.
+    )
+    rewards_all_arms: Final[Optional[torch.Tensor]] = (
+        None  # rewards of all arms of the episode
+    )
     action_log_probability: Final[Optional[torch.Tensor]] = None
     weight: Final[Optional[torch.Tensor]] = None
     importance_weight: Final[Optional[torch.Tensor]] = None

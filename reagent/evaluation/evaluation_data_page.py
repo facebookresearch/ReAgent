@@ -489,17 +489,17 @@ class EvaluationDataPage(rlt.TensorDataClass):
             gamma,
         )
         if self.logged_metrics is not None:
-            logged_metrics_values: Optional[
-                torch.Tensor
-            ] = EvaluationDataPage.compute_values_for_mdps(
-                self.logged_metrics,
-                # pyre-fixme[6]: Expected `Tensor` for 2nd param but got
-                #  `Optional[torch.Tensor]`.
-                self.mdp_id,
-                # pyre-fixme[6]: Expected `Tensor` for 3rd param but got
-                #  `Optional[torch.Tensor]`.
-                self.sequence_number,
-                gamma,
+            logged_metrics_values: Optional[torch.Tensor] = (
+                EvaluationDataPage.compute_values_for_mdps(
+                    self.logged_metrics,
+                    # pyre-fixme[6]: Expected `Tensor` for 2nd param but got
+                    #  `Optional[torch.Tensor]`.
+                    self.mdp_id,
+                    # pyre-fixme[6]: Expected `Tensor` for 3rd param but got
+                    #  `Optional[torch.Tensor]`.
+                    self.sequence_number,
+                    gamma,
+                )
             )
         else:
             logged_metrics_values = None
