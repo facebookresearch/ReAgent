@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+
+# pyre-unsafe
 """
 A simple linear dynamic system
 https://www.argmin.net/2018/02/08/lqr/

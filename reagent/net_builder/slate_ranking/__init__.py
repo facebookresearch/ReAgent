@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+# pyre-unsafe
+
 from typing import Optional
 
 from reagent.core.registry_meta import wrap_oss_with_dataclass

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+# pyre-unsafe
+
 import gym
 import gym_minigrid  # noqa
 import numpy as np

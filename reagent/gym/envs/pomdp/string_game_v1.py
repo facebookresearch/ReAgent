@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+
+# pyre-unsafe
 """
 A game with a stochastic length of the MDP but no longer than 3.
 
