@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+# pyre-unsafe
+
 """
 Traditional MAB setup has sequence length = 1 always. In this setup, the
 distributions of the arms rewards changes every round, and the agent is presented

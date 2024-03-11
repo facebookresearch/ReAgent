@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+
+# pyre-unsafe
 """
 A network which implements a cross entropy method-based planner
 

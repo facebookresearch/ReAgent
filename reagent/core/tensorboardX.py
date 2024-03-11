@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+# pyre-unsafe
+
 """
 Context library to allow dropping tensorboardX anywhere in the codebase.
 If there is no SummaryWriter in the context, function calls will be no-op.

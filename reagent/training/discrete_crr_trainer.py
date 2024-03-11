@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+# pyre-unsafe
+
 # Note: this files is modeled after td3_trainer.py
 
 import logging

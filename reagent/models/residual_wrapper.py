@@ -1,3 +1,4 @@
+# pyre-unsafe
 import torch
 from torch import nn
 

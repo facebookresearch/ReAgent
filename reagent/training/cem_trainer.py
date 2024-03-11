@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+
+# pyre-unsafe
 """
 The Trainer for Cross-Entropy Method. The idea is that an ensemble of
  world models are fitted to predict transitions and reward functions.

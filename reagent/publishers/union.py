@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+# pyre-unsafe
+
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.core.tagged_union import TaggedUnion
 

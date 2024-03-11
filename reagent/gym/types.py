@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+# pyre-unsafe
+
 # Please DO NOT import gym in here. We might have installation without gym depending on
 # this module for typing
 

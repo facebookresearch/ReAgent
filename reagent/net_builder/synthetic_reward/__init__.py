@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+
+# pyre-unsafe
 from . import (  # noqa  # noqa  # noqa  # noqa
     ngram_synthetic_reward,
     sequence_synthetic_reward,

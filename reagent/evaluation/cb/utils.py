@@ -1,3 +1,4 @@
+# pyre-unsafe
 from dataclasses import replace
 from typing import Optional
 

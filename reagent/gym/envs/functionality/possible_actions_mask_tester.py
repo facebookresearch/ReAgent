@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+
+# pyre-unsafe
 """
 Simple environment to test possible_actions_mask.
 State simply tells you which iteration it is, but doesn't tell anything about

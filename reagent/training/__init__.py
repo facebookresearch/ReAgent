@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+
+# pyre-unsafe
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 from reagent.training.behavioral_cloning_trainer import BehavioralCloningTrainer
 from reagent.training.c51_trainer import C51Trainer

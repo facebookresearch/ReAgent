@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+# pyre-unsafe
+
 from datetime import datetime as RecurringPeriod  # noqa
 from typing import Dict, List, Optional, Tuple
 

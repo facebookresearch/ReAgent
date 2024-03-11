@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
+# pyre-unsafe
+
 import functools
 from dataclasses import Field, fields, MISSING
 from inspect import isclass, Parameter, signature

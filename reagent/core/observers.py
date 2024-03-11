@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
+# pyre-unsafe
+
 import logging
 from typing import Any, Dict, Iterable, List, Optional
 

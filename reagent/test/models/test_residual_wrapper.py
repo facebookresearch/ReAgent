@@ -1,3 +1,4 @@
+# pyre-unsafe
 import unittest
 
 import numpy.testing as npt
