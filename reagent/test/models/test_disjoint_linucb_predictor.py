@@ -6,6 +6,8 @@
 import unittest
 
 import numpy as np
+
+# pyre-fixme[21]: Could not find module `numpy.testing`.
 import numpy.testing as npt
 import torch
 from reagent.core.types import CBInput
