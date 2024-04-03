@@ -5,7 +5,6 @@
 
 import unittest
 
-# pyre-fixme[21]: Could not find module `numpy.testing`.
 import numpy.testing as npt
 import torch
 from reagent.preprocessing.identify_types import CONTINUOUS_ACTION, DO_NOT_PREPROCESS
