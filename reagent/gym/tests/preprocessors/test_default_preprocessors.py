@@ -49,7 +49,6 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
     @unittest.skipIf(not HAS_RECSIM, "Recsim is not installed")
     def test_recsim_interest_evolution(self) -> None:
         num_candidate = 10
-        # pyre-fixme[16]: Module `envs` has no attribute `RecSim`.
         env = RecSim(
             num_candidates=num_candidate, slate_size=3, resample_documents=False
         )
@@ -74,7 +73,6 @@ class TestMakeDefaultObsPreprocessor(unittest.TestCase):
     @unittest.skipIf(not HAS_RECSIM, "Recsim is not installed")
     def test_recsim_interest_exploration(self) -> None:
         num_candidate = 10
-        # pyre-fixme[16]: Module `envs` has no attribute `RecSim`.
         env = RecSim(
             num_candidates=num_candidate,
             slate_size=3,

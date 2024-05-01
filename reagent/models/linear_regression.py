@@ -76,8 +76,6 @@ def reduce_avg(
     total_weight = (
         sync_ddp_if_available(
             cur_distributed_sum_weight.clone(),
-            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
-            #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
         )
         + sum_weight
@@ -86,8 +84,6 @@ def reduce_avg(
         avg_val * sum_weight
         + sync_ddp_if_available(
             cur_distributed_avg_val * cur_distributed_sum_weight,
-            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
-            #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
         )
     ) / total_weight
@@ -179,13 +175,9 @@ class LinearRegressionUCB(UCBBaseModel):
         self.avg_b = reduce_avg(
             self.avg_b, self.sum_weight, self.cur_avg_b, self.cur_sum_weight
         )
-        # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]` but
-        #  got `RedOpType`.
         self.num_obs += sync_ddp_if_available(self.cur_num_obs, reduce_op=ReduceOp.SUM)
         self.sum_weight += sync_ddp_if_available(
             self.cur_sum_weight,
-            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
-            #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
         )
 

@@ -73,22 +73,16 @@ class PolicyEvaluator(BaseOfflineEval):
 
         sum_weight_accepted = sync_ddp_if_available(
             self.sum_weight_accepted_local.clone(),
-            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
-            #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
         )
 
         sum_importance_weight_accepted = sync_ddp_if_available(
             self.sum_importance_weight_accepted_local.clone(),
-            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
-            #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
         )
 
         sum_weight_all_data = sync_ddp_if_available(
             self.sum_weight_all_data_local.clone(),
-            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
-            #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
         )
 
@@ -96,22 +90,16 @@ class PolicyEvaluator(BaseOfflineEval):
 
         sum_reward_weighted_accepted = sync_ddp_if_available(
             self.sum_reward_weighted_accepted_local.clone(),
-            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
-            #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
         )
 
         sum_reward_importance_weighted_accepted = sync_ddp_if_available(
             self.sum_reward_importance_weighted_accepted_local.clone(),
-            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
-            #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
         )
 
         sum_reward_weighted_all_data = sync_ddp_if_available(
             self.sum_reward_weighted_all_data_local.clone(),
-            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
-            #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
         )
         sum_reward_weighted_rejected = (
@@ -120,14 +108,10 @@ class PolicyEvaluator(BaseOfflineEval):
 
         sum_size_weighted_accepted = sync_ddp_if_available(
             self.sum_size_weighted_accepted_local.clone(),
-            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
-            #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
         )
         sum_size_weighted_all_data = sync_ddp_if_available(
             self.sum_size_weighted_all_data_local.clone(),
-            # pyre-fixme[6]: For 2nd argument expected `Union[None, str, ReduceOp]`
-            #  but got `RedOpType`.
             reduce_op=ReduceOp.SUM,
         )
         sum_size_weighted_rejected = (
