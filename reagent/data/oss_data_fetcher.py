@@ -85,8 +85,6 @@ def hash_mdp_id_and_subsample(df, sample_range: Optional[Tuple[float, float]] = 
     if sample_range:
         lower_bound = sample_range[0] / 100.0 * MAX_UINT32
         upper_bound = sample_range[1] / 100.0 * MAX_UINT32
-        # pyre-fixme[58]: `<=` is not supported for operand types `float` and `Column`.
-        # pyre-fixme[58]: `<=` is not supported for operand types `Column` and `float`.
         df = df.filter((lower_bound <= col("mdp_id")) & (col("mdp_id") <= upper_bound))
     return df
 
