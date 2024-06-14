@@ -128,6 +128,7 @@ def train_eval_lightning(
     reader_options: Optional[ReaderOptions] = None,
     checkpoint_path: Optional[str] = None,
     resource_options: Optional[ResourceOptions] = None,
+    manifold_tb_logger_name: Optional[str] = None,
 ) -> pl.Trainer:
     resource_options = resource_options or ResourceOptions()
     use_gpu = resource_options.use_gpu
