@@ -17,8 +17,6 @@ model:
         softmax_policy: false
         q_network_loss: mse
       double_q_learning: true
-      minibatch_size: 128
-      minibatches_per_step: 1
       optimizer:
         Adam:
           lr: 0.01
