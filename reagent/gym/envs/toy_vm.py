@@ -14,7 +14,7 @@ from reagent.core.dataclasses import dataclass
 from reagent.gym.envs.env_wrapper import EnvWrapper
 from reagent.gym.envs.recsim import RecsimObsPreprocessor
 from reagent.gym.envs.wrappers.recsim import ValueWrapper
-from scipy.special import expit, logit  # @manual=third-party//scipy:scipy-py
+from scipy.special import expit, logit  # @manual=fbsource//third-party/pypi/scipy:scipy
 
 
 Document = namedtuple("Document", ["tap", "quality", "abandon"])
