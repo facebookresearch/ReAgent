@@ -15,8 +15,10 @@ import torch
 from reagent.core.parameters import NormalizationParameters
 from reagent.preprocessing import identify_types
 from reagent.preprocessing.identify_types import DEFAULT_MAX_UNIQUE_ENUM, FEATURE_TYPES
-from scipy import stats  # @manual=third-party//scipy:scipy-py
-from scipy.stats.mstats import mquantiles  # @manual=third-party//scipy:scipy-py
+from scipy import stats  # @manual=fbsource//third-party/pypi/scipy:scipy
+from scipy.stats.mstats import (  # @manual=fbsource//third-party/pypi/scipy:scipy
+    mquantiles,
+)
 
 
 logger = logging.getLogger(__name__)
