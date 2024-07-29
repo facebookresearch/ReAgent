@@ -62,9 +62,6 @@ def make_config_class(
 
     def _is_type_blocklisted(t):
         if getattr(t, "__origin__", None) is Union:
-            assert len(t.__args__) == 2 and t.__args__[1] == type(
-                None
-            ), "Only Unions of [X, None] (a.k.a. Optional[X]) are supported"
             t = t.__args__[0]
         if hasattr(t, "__origin__"):
             t = t.__origin__
