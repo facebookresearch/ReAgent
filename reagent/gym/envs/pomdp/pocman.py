@@ -117,12 +117,12 @@ class InternalState:
         self.power_duration = 0
 
 
-# pyre-fixme[13]: Attribute `home` is never initialized.
-# pyre-fixme[13]: Attribute `max_x` is never initialized.
-# pyre-fixme[13]: Attribute `max_y` is never initialized.
 class Ghost:
+    # pyre-fixme[13]: Attribute `max_x` is never initialized.
     max_x: int
+    # pyre-fixme[13]: Attribute `max_y` is never initialized.
     max_y: int
+    # pyre-fixme[13]: Attribute `home` is never initialized.
     home: Position
 
     def __init__(self, env, pos, direction, ghost_range):

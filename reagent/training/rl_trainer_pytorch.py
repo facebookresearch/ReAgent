@@ -12,7 +12,6 @@ from reagent.core.parameters import RLParameters
 logger = logging.getLogger(__name__)
 
 
-# pyre-fixme[13]: Attribute `rl_parameters` is never initialized.
 class RLTrainerMixin:
     # Q-value for action that is not possible. Guaranteed to be worse than any
     # legitimate action
@@ -22,6 +21,7 @@ class RLTrainerMixin:
     _use_seq_num_diff_as_time_diff = None
     _maxq_learning = None
     _multi_steps = None
+    # pyre-fixme[13]: Attribute `rl_parameters` is never initialized.
     rl_parameters: RLParameters
 
     @property

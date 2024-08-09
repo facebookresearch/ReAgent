@@ -37,8 +37,6 @@ def id_to_type(id) -> str:
         return "CONTINUOUS_ACTION"
     if id == CONTINUOUS_SMALL_FEATURE_ID:
         return "DO_NOT_PREPROCESS"
-    # pyre-fixme[58]: `+` is not supported for operand types `str` and `(object) ->
-    #  int`.
     assert False, "Invalid feature id: " + id
 
 
