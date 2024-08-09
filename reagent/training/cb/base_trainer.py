@@ -120,6 +120,7 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
                     model_output = eval_module.eval_model(batch.context_arm_features)
                 elif isinstance(eval_module.eval_model, MABBaseModel):
                     model_output = eval_module.eval_model(batch.arms)
+                # pyre-fixme[61]: `model_output` is undefined, or not always defined.
                 ucb = model_output["ucb"]
                 eval_scores = ucb
                 model_actions = get_model_actions(eval_scores, batch.arm_presence)

@@ -78,12 +78,12 @@ def get_sample_range(
     )
 
 
-# pyre-fixme[13]: Attribute `_normalization_data_map` is never initialized.
-# pyre-fixme[13]: Attribute `_train_dataset` is never initialized.
-# pyre-fixme[13]: Attribute `_eval_dataset` is never initialized.
 class ManualDataModule(ReAgentDataModule):
+    # pyre-fixme[13]: Attribute `_normalization_data_map` is never initialized.
     _normalization_data_map: Dict[str, NormalizationData]
+    # pyre-fixme[13]: Attribute `_train_dataset` is never initialized.
     _train_dataset: Dataset
+    # pyre-fixme[13]: Attribute `_eval_dataset` is never initialized.
     _eval_dataset: Optional[Dataset]
 
     def __init__(

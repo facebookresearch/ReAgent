@@ -184,6 +184,7 @@ class FullyConnectedProbabilisticNetwork(ModelBase):
         ret = 0
         for x in self.linear_bbbs:
             ret += x.log_post
+        # pyre-fixme[7]: Expected `Tensor` but got `int`.
         return ret
 
     def sample_elbo(self, input: torch.Tensor, target: torch.Tensor, num_samples: int):

@@ -119,9 +119,7 @@ class Preprocessor(Module):
         :param input tensor
         """
         assert (
-            input.shape
-            == input_presence_byte.shape
-            # pyre-fixme[16]: Callable `input` has no attribute `shape`.
+            input.shape == input_presence_byte.shape
         ), f"{input.shape} != {input_presence_byte.shape}"
         outputs = []
         split_input = torch.split(input, self.split_sections, dim=1)

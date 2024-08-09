@@ -166,6 +166,8 @@ def split_sequence_keyed_jagged_tensor(
             split_dict[i][key] = (
                 lengths[i::num_steps],
                 torch.cat(splitted_values[i::num_steps]),
+                # pyre-fixme[61]: `splitted_weights` is undefined, or not always
+                #  defined.
                 torch.cat(splitted_weights[i::num_steps]) if has_weights else None,
             )
 
