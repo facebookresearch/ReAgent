@@ -163,6 +163,7 @@ class PETransformerEncoderLayer(nn.Module):
             src,  # value
             attn_mask=src_mask,
             key_padding_mask=src_key_padding_mask,
+            is_causal=is_causal,
         )[0]
         # add transformer related residual
         src = src + self.dropout1(src2)
