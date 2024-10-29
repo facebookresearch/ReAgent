@@ -17,4 +17,4 @@ class DiskConfigProvider : public ConfigProvider {
   void initialize(DecisionService* decisionService) override;
   void readConfig(const std::string& path);
 };
-}  // namespace reagent
+} // namespace reagent

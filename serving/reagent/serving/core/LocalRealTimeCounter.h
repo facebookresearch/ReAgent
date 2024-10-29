@@ -18,7 +18,9 @@ class LocalRealTimeCounter : public RealTimeCounter {
 
   virtual void addValue(const std::string& key, double value) override;
 
-  void setWindowSize(int windowSize) { windowSize_ = windowSize; }
+  void setWindowSize(int windowSize) {
+    windowSize_ = windowSize;
+  }
 
   virtual void clear(const std::string& key) override;
 
@@ -27,4 +29,4 @@ class LocalRealTimeCounter : public RealTimeCounter {
   int windowSize_;
 };
 
-}  // namespace reagent
+} // namespace reagent

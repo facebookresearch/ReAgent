@@ -40,4 +40,4 @@ class PropensityFit : public Operator {
     return configeratorPath + std::string("/") + name_;
   }
 };
-} // namespace ml
+} // namespace reagent

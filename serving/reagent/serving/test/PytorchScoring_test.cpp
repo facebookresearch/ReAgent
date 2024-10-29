@@ -13,7 +13,7 @@
 namespace reagent {
 
 TEST(PytorchActionValueScoringTest, SimpleDiscrete) {
-#if 0  // Need to train a libtorch model before we can turn this test on
+#if 0 // Need to train a libtorch model before we can turn this test on
   const auto PLAN_NAME = std::string("/");
   auto service = std::make_shared<DecisionService>(
       std::make_shared<ConfigProvider>(),
@@ -49,4 +49,4 @@ TEST(PytorchActionValueScoringTest, SimpleDiscrete) {
 #endif
 }
 
-}  // namespace ml
+} // namespace reagent

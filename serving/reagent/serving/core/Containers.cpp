@@ -68,7 +68,8 @@ void constant_value_to_json(const ConstantValue& value, json& j) {
         } else if (std::is_same_v<T, RankedActionList>) {
           j["ranked_action_list"] = arg;
         } else if (std::is_same_v<
-                       T, std::unordered_map<std::string, StringDoubleMap>>) {
+                       T,
+                       std::unordered_map<std::string, StringDoubleMap>>) {
           j["map_map_double_value"] = arg;
         } else {
           LOG(FATAL) << "INVALID OUTPUT OPERATOR";
@@ -79,4 +80,4 @@ void constant_value_to_json(const ConstantValue& value, json& j) {
       value);
 }
 
-}  // namespace reagent
+} // namespace reagent

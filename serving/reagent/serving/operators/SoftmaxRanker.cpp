@@ -2,17 +2,19 @@
 #include "reagent/serving/core/OperatorFactory.h"
 
 namespace reagent {
-SoftmaxRanker::SoftmaxRanker(const std::string& name,
-                             const std::string& planName,
-                             const StringStringMap& inputDepMap,
-                             const DecisionService* const decisionService)
+SoftmaxRanker::SoftmaxRanker(
+    const std::string& name,
+    const std::string& planName,
+    const StringStringMap& inputDepMap,
+    const DecisionService* const decisionService)
     : Operator(name, planName, inputDepMap, decisionService) {
   int seed = std::chrono::system_clock::now().time_since_epoch().count();
   generator_.seed(seed);
 }
 
-OperatorData SoftmaxRanker::run(const DecisionRequest&,
-                                const StringOperatorDataMap& namedInputs) {
+OperatorData SoftmaxRanker::run(
+    const DecisionRequest&,
+    const StringOperatorDataMap& namedInputs) {
   const StringDoubleMap& input =
       std::get<StringDoubleMap>(namedInputs.at("values"));
   double temperature = std::get<double>(namedInputs.at("temperature"));
@@ -20,8 +22,9 @@ OperatorData SoftmaxRanker::run(const DecisionRequest&,
   return ret;
 }
 
-RankedActionList SoftmaxRanker::run(const StringDoubleMap& input,
-                                    double temperature) {
+RankedActionList SoftmaxRanker::run(
+    const StringDoubleMap& input,
+    double temperature) {
   std::vector<double> values;
   StringList names;
   for (auto& it : input) {
@@ -46,8 +49,8 @@ RankedActionList SoftmaxRanker::run(const StringDoubleMap& input,
     }
 
     // Sample from weighted distribution
-    std::discrete_distribution<int> dist(std::begin(tmpValues),
-                                         std::end(tmpValues));
+    std::discrete_distribution<int> dist(
+        std::begin(tmpValues), std::end(tmpValues));
     int sample = dist(generator_);
     rollingPropensity *= tmpValues[sample];
 
@@ -61,4 +64,4 @@ RankedActionList SoftmaxRanker::run(const StringDoubleMap& input,
 
 REGISTER_OPERATOR(SoftmaxRanker, "SoftmaxRanker");
 
-}  // namespace reagent
+} // namespace reagent

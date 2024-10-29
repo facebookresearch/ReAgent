@@ -17,9 +17,8 @@ class Softmax : public Operator {
 
   virtual OperatorData run(
       const DecisionRequest& request,
-      const StringOperatorDataMap& namedInputs)
-      override;
+      const StringOperatorDataMap& namedInputs) override;
 
   virtual StringDoubleMap run(const StringDoubleMap& input, double temperature);
 };
-} // namespace ml
+} // namespace reagent

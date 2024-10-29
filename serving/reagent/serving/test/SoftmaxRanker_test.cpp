@@ -26,4 +26,4 @@ TEST(SoftmaxRankerTests, SimpleSort) {
   }
 }
 
-}  // namespace ml
+} // namespace reagent

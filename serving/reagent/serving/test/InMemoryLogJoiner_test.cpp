@@ -100,4 +100,4 @@ TEST(InMemoryLogJoinerTests, NotMatch) {
   EXPECT_TRUE(loggedData.at(0).decision_response->request_id == REQUEST_ID);
 }
 
-}  // namespace reagent
+} // namespace reagent

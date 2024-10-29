@@ -3,8 +3,9 @@
 #include "reagent/serving/core/OperatorFactory.h"
 
 namespace reagent {
-OperatorData Softmax::run(const DecisionRequest&,
-                          const StringOperatorDataMap& namedInputs) {
+OperatorData Softmax::run(
+    const DecisionRequest&,
+    const StringOperatorDataMap& namedInputs) {
   const StringDoubleMap& input =
       std::get<StringDoubleMap>(namedInputs.at("values"));
   double temperature = std::get<double>(namedInputs.at("temperature"));
@@ -32,4 +33,4 @@ StringDoubleMap Softmax::run(const StringDoubleMap& input, double temperature) {
 
 REGISTER_OPERATOR(Softmax, "Softmax");
 
-}  // namespace ml
+} // namespace reagent

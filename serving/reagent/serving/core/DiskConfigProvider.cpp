@@ -1,5 +1,5 @@
 #include "reagent/serving/core/DiskConfigProvider.h"
-#include <boost/filesystem.hpp>  // We have to use boost until OSX 10.15 :-(
+#include <boost/filesystem.hpp> // We have to use boost until OSX 10.15 :-(
 #include "reagent/serving/core/DecisionService.h"
 
 namespace reagent {
@@ -14,8 +14,8 @@ void DiskConfigProvider::initialize(DecisionService* decisionService) {
 }
 
 inline std::string ReadFile(const std::string& fileName) {
-  std::ifstream ifs(fileName.c_str(),
-                    std::ios::in | std::ios::binary | std::ios::ate);
+  std::ifstream ifs(
+      fileName.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
 
   std::ifstream::pos_type fileSize = ifs.tellg();
   ifs.seekg(0, std::ios::beg);
@@ -54,4 +54,4 @@ void DiskConfigProvider::readConfig(const std::string& path) {
     LOG(ERROR) << er.what();
   }
 }
-}  // namespace reagent
+} // namespace reagent

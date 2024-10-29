@@ -34,7 +34,7 @@ inline void EXPECT_RANKEDACTIONLIST_NEAR(
     const RankedActionList& st1,
     const RankedActionList& st2) {
   EXPECT_EQ(st1.size(), st2.size());
-  for (int a=0;a<int(st1.size());a++) {
+  for (int a = 0; a < int(st1.size()); a++) {
     EXPECT_EQ(st1[a].name, st2[a].name);
     EXPECT_NEAR(st1[a].propensity, st2[a].propensity, 1e-3);
   }
@@ -42,4 +42,4 @@ inline void EXPECT_RANKEDACTIONLIST_NEAR(
 
 std::shared_ptr<DecisionService> makeTestDecisionService();
 
-} // namespace ml
+} // namespace reagent

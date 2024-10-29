@@ -8,10 +8,11 @@
 namespace reagent {
 std::shared_ptr<DecisionService> makeTestDecisionService() {
   return std::make_shared<DecisionService>(
-      std::make_shared<ConfigProvider>(), std::shared_ptr<ActionValueScorer>(),
+      std::make_shared<ConfigProvider>(),
+      std::shared_ptr<ActionValueScorer>(),
       std::make_shared<InMemoryLogJoiner>(),
       std::make_shared<LocalRealTimeCounter>(),
       std::make_shared<SharedParameterHandler>());
 }
 
-}  // namespace ml
+} // namespace reagent

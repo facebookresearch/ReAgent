@@ -21,8 +21,8 @@ TEST(DecisionService, Simple) {
     OperatorDefinition expressionOpThrift;
     expressionOpThrift.name = "expression_op";
     expressionOpThrift.op_name = "Expression";
-    expressionOpThrift.input_dep_map = {{"equation", "equation_value"},
-                                        {"input", "input"}};
+    expressionOpThrift.input_dep_map = {
+        {"equation", "equation_value"}, {"input", "input"}};
 
     ConstantValue epsilonValueThrift;
     epsilonValueThrift = 0.0;
@@ -34,8 +34,8 @@ TEST(DecisionService, Simple) {
     OperatorDefinition eGreedyThrift;
     eGreedyThrift.name = "EpsilonGreedyRanker";
     eGreedyThrift.op_name = "EpsilonGreedyRanker";
-    eGreedyThrift.input_dep_map = {{"epsilon","epsilon_value"},
-				   {"values","expression_op"}};
+    eGreedyThrift.input_dep_map = {
+        {"epsilon", "epsilon_value"}, {"values", "expression_op"}};
 
     decisionConfig.operators = {expressionOpThrift, eGreedyThrift};
     decisionConfig.constants = {expressionThrift, epsilonThrift};
@@ -61,4 +61,4 @@ TEST(DecisionService, Simple) {
   EXPECT_RANKEDACTIONLIST_NEAR(response.actions, expectedOutput);
 }
 
-}  // namespace reagent
+} // namespace reagent

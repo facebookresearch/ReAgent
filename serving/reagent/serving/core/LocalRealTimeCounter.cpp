@@ -56,4 +56,4 @@ void LocalRealTimeCounter::clear(const std::string& key) {
   }
 }
 
-}  // namespace reagent
+} // namespace reagent

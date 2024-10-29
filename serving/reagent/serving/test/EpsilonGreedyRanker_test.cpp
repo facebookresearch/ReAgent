@@ -19,7 +19,7 @@ TEST(EpsilonGreedyRankerTests, EpsilonZero) {
       EpsilonGreedyRanker("epsilongreedyranker", PLAN_NAME, {}, service.get())
           .run(DecisionRequest(), namedInputs));
 
-  RankedActionList expectedResult = {{"1",1.0}, {"0",1.0}};
+  RankedActionList expectedResult = {{"1", 1.0}, {"0", 1.0}};
   EXPECT_RANKEDACTIONLIST_NEAR(result, expectedResult);
 }
 
@@ -48,4 +48,4 @@ TEST(EpsilonGreedyRankerTests, EpsilonGTZero) {
   EXPECT_TRUE(sum > 50);
 }
 
-} // namespace ml
+} // namespace reagent

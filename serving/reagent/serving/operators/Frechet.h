@@ -17,10 +17,9 @@ class Frechet : public Operator {
 
   virtual OperatorData run(
       const DecisionRequest& request,
-      const StringOperatorDataMap& namedInputs)
-      override;
+      const StringOperatorDataMap& namedInputs) override;
 
   virtual StringDoubleMap
   run(const StringDoubleMap& input, double rho, double gamma, int seed);
 };
-} // namespace ml
+} // namespace reagent

@@ -27,4 +27,4 @@ void SharedParameterHandler::updateParameter(
   it->second->updateValues(values);
 }
 
-} // namespace ml
+} // namespace reagent

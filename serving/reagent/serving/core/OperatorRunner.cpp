@@ -7,7 +7,8 @@ auto DAG_TIMEOUT = std::chrono::seconds(30);
 namespace reagent {
 StringOperatorDataMap OperatorRunner::run(
     const std::vector<std::shared_ptr<Operator>>& operators,
-    const StringOperatorDataMap& constants, const DecisionRequest& request,
+    const StringOperatorDataMap& constants,
+    const DecisionRequest& request,
     const OperatorData& extraInput) {
   StringOperatorDataMap finishedOperators;
   std::mutex finishedOperatorMutex;
@@ -81,4 +82,4 @@ StringOperatorDataMap OperatorRunner::run(
 
   return finishedOperators;
 }
-}  // namespace reagent
+} // namespace reagent

@@ -22,4 +22,4 @@ TEST(InputFromRequestTests, Simple) {
       INPUT_DATA);
 }
 
-} // namespace ml
+} // namespace reagent

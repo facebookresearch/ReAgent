@@ -19,4 +19,4 @@ class RealTimeCounter {
   virtual void clear(const std::string& key) = 0;
 };
 
-} // namespace ml
+} // namespace reagent

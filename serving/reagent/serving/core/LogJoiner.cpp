@@ -8,8 +8,9 @@ void LogJoiner::addRewardToFeedback(Feedback* feedback) {}
 DecisionWithFeedback LogJoiner::deserializeAndJoinDecisionAndFeedback(
     StringList decisionAndFeedback) {
   if (decisionAndFeedback.size() != 2) {
-    LOG_AND_THROW("Somehow ended up with more than 2 values for the same key: "
-                  << decisionAndFeedback.size());
+    LOG_AND_THROW(
+        "Somehow ended up with more than 2 values for the same key: "
+        << decisionAndFeedback.size());
   }
 
   DecisionWithFeedback first = json::parse(decisionAndFeedback.at(0));
@@ -33,4 +34,4 @@ DecisionWithFeedback LogJoiner::deserializeAndJoinDecisionAndFeedback(
   return first;
 }
 
-}  // namespace reagent
+} // namespace reagent

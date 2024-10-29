@@ -115,4 +115,4 @@ double PropensityFit::getShift(const std::string& actionName) {
 
 REGISTER_OPERATOR(PropensityFit, "PropensityFit");
 
-} // namespace ml
+} // namespace reagent
