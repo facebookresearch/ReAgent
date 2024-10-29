@@ -22,4 +22,4 @@ TEST(SoftmaxTests, OneUniform) {
       expectedOutput);
 }
 
-}  // namespace ml
+} // namespace reagent

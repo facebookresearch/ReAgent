@@ -28,4 +28,4 @@ TEST(ExpressionTests, Simple) {
       expectedOutput);
 }
 
-}  // namespace ml
+} // namespace reagent

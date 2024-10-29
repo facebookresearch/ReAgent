@@ -20,12 +20,13 @@ class EpsilonGreedyRanker : public Operator {
 
   virtual OperatorData run(
       const DecisionRequest& request,
-      const StringOperatorDataMap& namedInputs)
-      override;
+      const StringOperatorDataMap& namedInputs) override;
 
-  virtual RankedActionList runInternal(const StringDoubleMap& input, double epsilon);
+  virtual RankedActionList runInternal(
+      const StringDoubleMap& input,
+      double epsilon);
 
-protected:
+ protected:
   std::mt19937 generator_;
 };
-} // namespace ml
+} // namespace reagent

@@ -18,10 +18,9 @@ class ActionValueScoring : public Operator {
 
   virtual OperatorData run(
       const DecisionRequest& request,
-      const StringOperatorDataMap& namedInputs)
-      override;
+      const StringOperatorDataMap& namedInputs) override;
 
   StringDoubleMap
   runInternal(int modelId, int snapshotId, const DecisionRequest& request);
 };
-} // namespace ml
+} // namespace reagent

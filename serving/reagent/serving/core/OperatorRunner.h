@@ -9,12 +9,13 @@ class OperatorRunner {
  public:
   OperatorRunner() {}
 
-  StringOperatorDataMap run(const std::vector<std::shared_ptr<Operator>>& ops,
-                            const StringOperatorDataMap& constants,
-                            const DecisionRequest& request,
-                            const OperatorData& extraInput);
+  StringOperatorDataMap run(
+      const std::vector<std::shared_ptr<Operator>>& ops,
+      const StringOperatorDataMap& constants,
+      const DecisionRequest& request,
+      const OperatorData& extraInput);
 
  protected:
   tf::Executor taskExecutor_;
 };
-}  // namespace reagent
+} // namespace reagent

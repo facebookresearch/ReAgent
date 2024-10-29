@@ -18,9 +18,9 @@
 #include <vector>
 
 #include <glog/logging.h>
-#include <Eigen/Dense>
 #include <nlohmann/json.hpp>
 #include <taskflow/taskflow.hpp>
+#include <Eigen/Dense>
 
 #include "reagent/serving/core/Containers.h"
 #include "reagent/serving/core/DecisionServiceException.h"

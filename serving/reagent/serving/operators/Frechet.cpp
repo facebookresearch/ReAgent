@@ -3,8 +3,9 @@
 #include "reagent/serving/core/OperatorFactory.h"
 
 namespace reagent {
-OperatorData Frechet::run(const DecisionRequest&,
-                          const StringOperatorDataMap& namedInputs) {
+OperatorData Frechet::run(
+    const DecisionRequest&,
+    const StringOperatorDataMap& namedInputs) {
   const StringDoubleMap& input =
       std::get<StringDoubleMap>(namedInputs.at("values"));
   double rho = std::get<double>(namedInputs.at("rho"));
@@ -19,8 +20,8 @@ OperatorData Frechet::run(const DecisionRequest&,
   return ret;
 }
 
-StringDoubleMap Frechet::run(const StringDoubleMap& input, double rho,
-                             double gamma, int seed) {
+StringDoubleMap
+Frechet::run(const StringDoubleMap& input, double rho, double gamma, int seed) {
   // Based on work from Leon & Badri outlined here:
   // https://fb.workplace.com/groups/121372781874504/permalink/159419624736486/
 
@@ -44,4 +45,4 @@ StringDoubleMap Frechet::run(const StringDoubleMap& input, double rho,
 
 REGISTER_OPERATOR(Frechet, "Frechet");
 
-}  // namespace ml
+} // namespace reagent

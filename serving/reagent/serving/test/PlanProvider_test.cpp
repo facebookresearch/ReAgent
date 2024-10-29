@@ -22,8 +22,8 @@ TEST(ConfigProvider, Simple) {
     OperatorDefinition expressionOpThrift;
     expressionOpThrift.name = ("expression_op");
     expressionOpThrift.op_name = ("Expression");
-    expressionOpThrift.input_dep_map = {{"equation", "equation_value"},
-                                        {"input", "input"}};
+    expressionOpThrift.input_dep_map = {
+        {"equation", "equation_value"}, {"input", "input"}};
 
     decisionConfig.operators = {expressionOpThrift};
     decisionConfig.constants = {expressionThrift};
@@ -43,4 +43,4 @@ TEST(ConfigProvider, Simple) {
   EXPECT_SYMBOLTABLE_NEAR(output, expectedOutput);
 }
 
-}  // namespace ml
+} // namespace reagent

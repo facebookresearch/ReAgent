@@ -48,4 +48,4 @@ RankedActionList EpsilonGreedyRanker::runInternal(
 
 REGISTER_OPERATOR(EpsilonGreedyRanker, "EpsilonGreedyRanker");
 
-} // namespace ml
+} // namespace reagent

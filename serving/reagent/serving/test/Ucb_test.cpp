@@ -117,4 +117,4 @@ TEST(UcbTests, UcbDecisionService) {
   EXPECT_NEAR(ucbOp->getArmExpectation("Arm2"), 0.75, 0.01);
 }
 
-}  // namespace reagent
+} // namespace reagent

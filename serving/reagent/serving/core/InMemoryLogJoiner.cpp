@@ -46,4 +46,4 @@ std::deque<DecisionWithFeedback> InMemoryLogJoiner::getLoggedData() {
   return loggedData_;
 }
 
-}  // namespace reagent
+} // namespace reagent

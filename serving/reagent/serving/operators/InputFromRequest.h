@@ -17,7 +17,6 @@ class InputFromRequest : public Operator {
 
   virtual OperatorData run(
       const DecisionRequest& request,
-      const StringOperatorDataMap& namedInputs)
-      override;
+      const StringOperatorDataMap& namedInputs) override;
 };
-} // namespace ml
+} // namespace reagent

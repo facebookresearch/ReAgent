@@ -39,12 +39,13 @@ DecisionResponse DecisionService::attachIdAndProcess(DecisionRequest request) {
   auto plan = getPlan(request.plan_name);
 
   OperatorData inputOperatorData = request.input;
-  auto allOperatorData = runner_.run(plan->getOperators(), plan->getConstants(),
-                                     request, inputOperatorData);
+  auto allOperatorData = runner_.run(
+      plan->getOperators(), plan->getConstants(), request, inputOperatorData);
   auto outputDataIt = allOperatorData.find(plan->getOutputOperatorName());
   if (outputDataIt == allOperatorData.end()) {
-    LOG_AND_THROW("Output op missing from plan "
-                  << request.plan_name << " " << plan->getOutputOperatorName());
+    LOG_AND_THROW(
+        "Output op missing from plan " << request.plan_name << " "
+                                       << plan->getOutputOperatorName());
   }
   const RankedActionList outputData =
       std::get<RankedActionList>(outputDataIt->second);
@@ -111,9 +112,9 @@ void DecisionService::_giveFeedback(
       const auto& depOperatorName = inputDepEntry.second;
       auto it = operatorOutputs.find(depOperatorName);
       if (it == operatorOutputs.end()) {
-        LOG_AND_THROW("Could not find data of "
-                      << depOperatorName
-                      << " for finished operator: " << op->getName());
+        LOG_AND_THROW(
+            "Could not find data of "
+            << depOperatorName << " for finished operator: " << op->getName());
       }
       namedInputs[inputName] = it->second;
     }
@@ -128,7 +129,8 @@ void DecisionService::_giveFeedback(
 }
 
 std::shared_ptr<DecisionPlan> DecisionService::createPlan(
-    const std::string& planName, const DecisionConfig& config) {
+    const std::string& planName,
+    const DecisionConfig& config) {
   std::vector<std::shared_ptr<Operator>> operators =
       OperatorFactory::getInstance()->createFromConfig(planName, config, this);
   if (operators.empty()) {
@@ -147,4 +149,4 @@ std::shared_ptr<DecisionPlan> DecisionService::createPlan(
   return plan;
 }
 
-}  // namespace reagent
+} // namespace reagent

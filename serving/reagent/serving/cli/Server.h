@@ -22,4 +22,4 @@ class Server {
   std::shared_ptr<DecisionService> decisionService_;
   int port_;
 };
-}  // namespace reagent
+} // namespace reagent

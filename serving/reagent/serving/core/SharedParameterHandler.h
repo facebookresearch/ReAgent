@@ -51,4 +51,4 @@ class SharedParameterHandler {
     return std::string("Parameter_Store_") + parameter_name;
   }
 };
-} // namespace ml
+} // namespace reagent

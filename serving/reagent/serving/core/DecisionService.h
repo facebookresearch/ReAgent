@@ -32,8 +32,9 @@ class DecisionService {
     logJoiner_->deserializeAndJoinDecisionAndFeedback(decisionAndFeedback);
   }
 
-  std::shared_ptr<DecisionPlan> createPlan(const std::string& planName,
-                                           const DecisionConfig& config);
+  std::shared_ptr<DecisionPlan> createPlan(
+      const std::string& planName,
+      const DecisionConfig& config);
 
   std::shared_ptr<DecisionPlan> getPlan(const std::string& name);
 
@@ -45,7 +46,9 @@ class DecisionService {
     return actionValueScorer_;
   }
 
-  inline std::shared_ptr<LogJoiner> getLogJoiner() const { return logJoiner_; }
+  inline std::shared_ptr<LogJoiner> getLogJoiner() const {
+    return logJoiner_;
+  }
 
   inline std::shared_ptr<RealTimeCounter> getRealTimeCounter() const {
     return realTimeCounter_;
@@ -70,4 +73,4 @@ class DecisionService {
   std::shared_ptr<SharedParameterHandler> sharedParameterHandler_;
 };
 
-}  // namespace reagent
+} // namespace reagent

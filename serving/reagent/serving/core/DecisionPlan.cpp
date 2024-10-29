@@ -7,8 +7,7 @@ DecisionPlan::DecisionPlan(
     const DecisionConfig& config,
     const std::vector<std::shared_ptr<Operator>>& operators,
     const StringOperatorDataMap& constants)
-    : config_(config), operators_(operators), constants_(constants) {
-}
+    : config_(config), operators_(operators), constants_(constants) {}
 
 double DecisionPlan::evaluateRewardFunction(const StringDoubleMap& metrics) {
   exprtk::symbol_table<double> symbolTable;
@@ -25,4 +24,4 @@ double DecisionPlan::evaluateRewardFunction(const StringDoubleMap& metrics) {
   return value;
 }
 
-}  // namespace reagent
+} // namespace reagent

@@ -8,12 +8,14 @@ std::shared_ptr<OperatorFactory> OperatorFactory::getInstance() {
 }
 
 void OperatorFactory::registerOperatorConstructor(
-    const std::string& opName, OperatorConstructor constructor) {
+    const std::string& opName,
+    OperatorConstructor constructor) {
   constructors_[opName] = constructor;
 }
 
 std::shared_ptr<Operator> OperatorFactory::createOp(
-    const std::string& planName, const OperatorDefinition& definition,
+    const std::string& planName,
+    const OperatorDefinition& definition,
     const DecisionService* const decisionService) {
   auto name = definition.name;
   auto inputDepMap = definition.input_dep_map;
@@ -31,7 +33,8 @@ std::shared_ptr<Operator> OperatorFactory::createOp(
 }
 
 std::vector<std::shared_ptr<Operator>> OperatorFactory::createFromConfig(
-    const std::string& planName, const DecisionConfig& config,
+    const std::string& planName,
+    const DecisionConfig& config,
     const DecisionService* const decisionService) {
   std::vector<std::shared_ptr<Operator>> operators;
   for (auto it : config.operators) {
@@ -41,4 +44,4 @@ std::vector<std::shared_ptr<Operator>> OperatorFactory::createFromConfig(
   return operators;
 }
 
-}  // namespace reagent
+} // namespace reagent

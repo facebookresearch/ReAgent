@@ -43,4 +43,4 @@ TEST(FrechetTests, FixedSeed) {
   // EXPECT_NEAR(result["1"], 3.1848281496136037, 1e-3);
 }
 
-} // namespace ml
+} // namespace reagent

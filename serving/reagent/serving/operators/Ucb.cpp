@@ -6,24 +6,27 @@
 #include <gflags/gflags.h>
 
 namespace {
-std::string getArmKey(const std::string& configPath,
-                      const std::string& operatorName,
-                      const std::string& action) {
+std::string getArmKey(
+    const std::string& configPath,
+    const std::string& operatorName,
+    const std::string& action) {
   return configPath + "/" + operatorName + "/" + action + "/ARM";
 }
 
-std::string getBatchKey(const std::string& configPath,
-                        const std::string& operatorName,
-                        const std::string& action) {
+std::string getBatchKey(
+    const std::string& configPath,
+    const std::string& operatorName,
+    const std::string& action) {
   return configPath + "/" + operatorName + "/" + action + "/BATCH";
 }
 
-}  // namespace
+} // namespace
 
 namespace reagent {
 
-OperatorData Ucb::run(const DecisionRequest& request,
-                      const StringOperatorDataMap& namedInputs) {
+OperatorData Ucb::run(
+    const DecisionRequest& request,
+    const StringOperatorDataMap& namedInputs) {
   auto input = namedInputs.at("method");
   std::string* methodName = std::get_if<std::string>(&input);
   if (!methodName) {
@@ -33,8 +36,9 @@ OperatorData Ucb::run(const DecisionRequest& request,
   return ret;
 }
 
-RankedActionList Ucb::runInternal(const DecisionRequest& request,
-                                  const std::string& method) {
+RankedActionList Ucb::runInternal(
+    const DecisionRequest& request,
+    const std::string& method) {
   auto arms = Operator::getActionNamesFromRequest(request);
 
   int64_t totalPulls = 0;
@@ -88,9 +92,10 @@ RankedActionList Ucb::runInternal(const DecisionRequest& request,
   return RankedActionList({{armToPull, propensity}});
 }
 
-void Ucb::giveFeedback(const Feedback& feedback,
-                       const StringOperatorDataMap& pastInputs,
-                       const OperatorData& pastOutput) {
+void Ucb::giveFeedback(
+    const Feedback& feedback,
+    const StringOperatorDataMap& pastInputs,
+    const OperatorData& pastOutput) {
   int batchSize = 1;
   if (pastInputs.count("batch_size")) {
     batchSize = int(std::get<int64_t>(pastInputs.at("batch_size")));
@@ -114,4 +119,4 @@ double Ucb::getArmExpectation(const std::string& armName) {
 
 REGISTER_OPERATOR(Ucb, "Ucb");
 
-}  // namespace reagent
+} // namespace reagent

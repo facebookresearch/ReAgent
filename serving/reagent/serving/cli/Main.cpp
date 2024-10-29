@@ -30,6 +30,8 @@ int Main(int argc, char** argv) {
     sleep(1);
   }
 }
-}  // namespace reagent
+} // namespace reagent
 
-int main(int argc, char** argv) { return reagent::Main(argc, argv); }
+int main(int argc, char** argv) {
+  return reagent::Main(argc, argv);
+}

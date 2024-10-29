@@ -28,9 +28,10 @@ class InMemoryLogJoiner : public LogJoiner {
     }
   }
 
-  void logDecision(const DecisionRequest& request,
-                   const DecisionResponse& decisionResponse,
-                   const StringOperatorDataMap& operator_outputs) override;
+  void logDecision(
+      const DecisionRequest& request,
+      const DecisionResponse& decisionResponse,
+      const StringOperatorDataMap& operator_outputs) override;
 
   void logFeedback(Feedback feedback) override;
 
@@ -45,4 +46,4 @@ class InMemoryLogJoiner : public LogJoiner {
   std::unordered_map<std::string, DecisionWithFeedback> unjoinedData_;
 };
 
-}  // namespace reagent
+} // namespace reagent

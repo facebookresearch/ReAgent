@@ -49,4 +49,4 @@ TEST(PropensityFit, Simple) {
       0.5);
 }
 
-} // namespace ml
+} // namespace reagent

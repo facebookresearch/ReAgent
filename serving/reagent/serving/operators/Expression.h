@@ -17,11 +17,10 @@ class Expression : public Operator {
 
   virtual OperatorData run(
       const DecisionRequest& request,
-      const StringOperatorDataMap& namedInputs)
-      override;
+      const StringOperatorDataMap& namedInputs) override;
 
   virtual double runInternal(
       const std::string& equation,
       const StringDoubleMap& symbolTable);
 };
-} // namespace ml
+} // namespace reagent
