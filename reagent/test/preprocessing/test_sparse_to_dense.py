@@ -54,6 +54,7 @@ class TestSparseToDense(unittest.TestCase):
         )
         value, presence = processor.process(self.int_keyed_sparse_data)
         assert torch.allclose(value, self.expected_value_missing)
+        # pyre-fixme[6]: For 1st argument expected `Tensor` but got `bool`.
         assert torch.all(presence == self.expected_presence_missing)
 
     def test_str_key_sparse_to_dense(self) -> None:
@@ -63,6 +64,7 @@ class TestSparseToDense(unittest.TestCase):
         )
         value, presence = processor.process(self.str_keyed_sparse_data)
         assert torch.allclose(value, self.expected_value_0)
+        # pyre-fixme[6]: For 1st argument expected `Tensor` but got `bool`.
         assert torch.all(presence == self.expected_presence_0)
 
         # string keys, set_missing_value_to_zero=False
@@ -71,4 +73,5 @@ class TestSparseToDense(unittest.TestCase):
         )
         value, presence = processor.process(self.str_keyed_sparse_data)
         assert torch.allclose(value, self.expected_value_missing)
+        # pyre-fixme[6]: For 1st argument expected `Tensor` but got `bool`.
         assert torch.all(presence == self.expected_presence_missing)
