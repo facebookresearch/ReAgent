@@ -17,6 +17,7 @@ With following set-up (where ARM_INIT_VALUE = 100 and NUM_ARMS = 5), the
 optimal policy can accumulate a reward of 500 per run.
 Note that if the policy picks an illegal action at any time, the game ends.
 """
+
 import random
 
 import gym

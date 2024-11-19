@@ -21,7 +21,6 @@ def run_feature_validation(
     state_float_features_batch_size: int,
     action_float_features_batch_size: int,
 ) -> None:
-
     assert (
         state_float_features_dim == 2
     ), f"Expected dimension of state is 2. Got {state_float_features_dim}"

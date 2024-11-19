@@ -54,7 +54,6 @@ class TestPolicyEvaluator(unittest.TestCase):
         )
 
     def test_process_all_data(self):
-
         state_dict_before = copy.deepcopy(self.eval_module.state_dict())
         self.eval_module._process_all_data(self.batch)
         state_dict_after = copy.deepcopy(self.eval_module.state_dict())

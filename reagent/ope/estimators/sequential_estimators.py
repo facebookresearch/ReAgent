@@ -557,6 +557,7 @@ class NeuralDualDICE(RLEstimator):
                             giving the average zeta loss, average nu loss, and self
         reporting_frequency: The number of batches between outputting the state of the training
     """
+
     state_dim: int
     action_dim: int
     deterministic_env: bool

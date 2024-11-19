@@ -96,7 +96,6 @@ class GreedyActionSampler(Sampler):
 
     @torch.no_grad()
     def sample_action(self, scores: torch.Tensor) -> rlt.ActorOutput:
-
         batch_size, num_actions = scores.shape
         raw_action = self._get_greedy_indices(scores)
         action = F.one_hot(raw_action, num_actions)

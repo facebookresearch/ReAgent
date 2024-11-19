@@ -26,7 +26,6 @@ class TestBayesByBackpropTraining(unittest.TestCase):
         pl.seed_everything(123)
 
     def test_probabilistic_network(self):
-
         net = FullyConnectedProbabilisticNetwork(
             [2, 16, 16, 1], ["relu", "relu", "linear"], prior_var=1
         )

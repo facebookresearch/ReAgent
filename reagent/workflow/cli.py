@@ -65,7 +65,6 @@ def select_relevant_params(config_dict, ConfigClass):
 @click.argument("config_file", type=click.File("r"))
 @click.option("--extra-options", default=None)
 def run(workflow, config_file, extra_options) -> None:
-
     func, ConfigClass = _load_func_and_config_class(workflow)
 
     # print(ConfigClass.__pydantic_model__.schema_json())

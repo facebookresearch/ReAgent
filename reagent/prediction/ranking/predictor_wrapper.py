@@ -105,8 +105,7 @@ class DeterminantalPointProcessPredictorWrapper(torch.jit.ScriptModule):
             L[torch.arange(num_items), torch.arange(num_items)] = (
                 # pyre-fixme[58]: `**` is not supported for operand types `Tensor`
                 #  and `int`.
-                quality_scores.squeeze(1)
-                ** 2
+                quality_scores.squeeze(1) ** 2
             )
         elif self.kernel == Kernel.RBF:
             L = (

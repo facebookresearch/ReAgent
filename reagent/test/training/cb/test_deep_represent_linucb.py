@@ -22,7 +22,6 @@ class TestDeepRepresentLinUCB(unittest.TestCase):
     """
 
     def setUp(self):
-
         self.params = DeepRepresentLinUCBTrainerParameters(
             lr=1e-1, loss_type="cross_entropy"
         )

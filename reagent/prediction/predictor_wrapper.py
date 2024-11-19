@@ -849,7 +849,6 @@ class MDNRNNWithPreprocessor(ModelBase):
         state_with_presence: Tuple[torch.Tensor, torch.Tensor],
         action: torch.Tensor,
     ):
-
         batch_size, state_dim = state_with_presence[0].size()
         preprocessed_state = (
             self.state_preprocessor(state_with_presence[0], state_with_presence[1])

@@ -41,9 +41,7 @@ class EmbeddingBagConcat(ModelBase):
                 [model_feature_config],
             )
         )
-        assert (
-            embedding_bag_configs
-        ), "No embedding bag config generated. Please double check model_feature_config."
+        assert embedding_bag_configs, "No embedding bag config generated. Please double check model_feature_config."
 
         # Assume all id features will be mapped to the same number of dimensions
         assert (

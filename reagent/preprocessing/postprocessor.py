@@ -35,11 +35,14 @@ class Postprocessor(nn.Module):
             len(feature_types) == 1
         ), "All dimensions of actions should have the same preprocessing"
         self.feature_type = list(feature_types)[0]
-        assert self.feature_type in {
-            DISCRETE_ACTION,
-            CONTINUOUS_ACTION,
-            DO_NOT_PREPROCESS,
-        }, f"{self.feature_type} is not DISCRETE_ACTION, CONTINUOUS_ACTION or DO_NOT_PREPROCESS"
+        assert (
+            self.feature_type
+            in {
+                DISCRETE_ACTION,
+                CONTINUOUS_ACTION,
+                DO_NOT_PREPROCESS,
+            }
+        ), f"{self.feature_type} is not DISCRETE_ACTION, CONTINUOUS_ACTION or DO_NOT_PREPROCESS"
 
         self.device = torch.device("cuda" if use_gpu else "cpu")
 

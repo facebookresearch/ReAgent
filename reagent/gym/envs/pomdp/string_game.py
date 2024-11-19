@@ -14,6 +14,7 @@ is exactly the action just taken (i.e., the transition function only depends on
 the action). Each episode is limited to 6 steps. Therefore, the optimal policy
 is to choose actions "ABBABB" in sequence which results to +10 reward.
 """
+
 import itertools
 import logging
 from collections import deque

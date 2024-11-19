@@ -186,14 +186,18 @@ class TestOPEModuleAlgs(unittest.TestCase):
             dr_estimator, TestOPEModuleAlgs.GAMMA, device=device
         ).estimate(edp)
 
-        self.assertAlmostEqual(
-            adapter_results.raw,
-            module_results.raw,
-            delta=TestOPEModuleAlgs.CPE_PASS_BAR,
-        ), f"OPE adapter results differed too much from underlying module (Diff: {abs(adapter_results.raw - module_results.raw)} > {TestOPEModuleAlgs.CPE_PASS_BAR})"
-        self.assertLess(
-            adapter_results.raw, TestOPEModuleAlgs.CPE_MAX_VALUE
-        ), f"OPE adapter results are too large ({adapter_results.raw} > {TestOPEModuleAlgs.CPE_MAX_VALUE})"
+        (
+            self.assertAlmostEqual(
+                adapter_results.raw,
+                module_results.raw,
+                delta=TestOPEModuleAlgs.CPE_PASS_BAR,
+            ),
+            f"OPE adapter results differed too much from underlying module (Diff: {abs(adapter_results.raw - module_results.raw)} > {TestOPEModuleAlgs.CPE_PASS_BAR})",
+        )
+        (
+            self.assertLess(adapter_results.raw, TestOPEModuleAlgs.CPE_MAX_VALUE),
+            f"OPE adapter results are too large ({adapter_results.raw} > {TestOPEModuleAlgs.CPE_MAX_VALUE})",
+        )
 
     def test_seq2slate_eval_data_page(self):
         """

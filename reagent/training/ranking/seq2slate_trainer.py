@@ -222,9 +222,7 @@ class Seq2SlateTrainer(ReAgentLightningModule):
         eval_advantage = (
             # pyre-fixme[58]: `-` is not supported for operand types
             #  `Optional[torch.Tensor]` and `Any`.
-            (batch.slate_reward - b)
-            .flatten()
-            .cpu()
+            (batch.slate_reward - b).flatten().cpu()
         )
 
         ranked_slate_output = seq2slate_net(batch, Seq2SlateMode.RANK_MODE, greedy=True)

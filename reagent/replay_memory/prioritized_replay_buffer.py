@@ -153,9 +153,9 @@ class PrioritizedReplayBuffer(circular_replay_buffer.ReplayBuffer):
             [0, replay_capacity).
           priorities: float, the corresponding priorities.
         """
-        assert (
-            indices.dtype == np.int32
-        ), "Indices must be integers, " "given: {}".format(indices.dtype)
+        assert indices.dtype == np.int32, (
+            "Indices must be integers, " "given: {}".format(indices.dtype)
+        )
         for index, priority in zip(indices, priorities):
             self.sum_tree.set(index, priority)
 

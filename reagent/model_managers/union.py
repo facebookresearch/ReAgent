@@ -3,7 +3,7 @@
 
 # pyre-unsafe
 
-""" Register all ModelManagers. Must import them before filling union. """
+"""Register all ModelManagers. Must import them before filling union."""
 
 from typing import Optional
 

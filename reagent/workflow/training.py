@@ -278,8 +278,7 @@ def run_validator(
     validator: ModelValidator__Union, training_output: RLTrainingOutput
 ) -> RLTrainingOutput:
     assert (
-        training_output.validation_result
-        is None
+        training_output.validation_result is None
         # pyre-fixme[16]: `RLTrainingOutput` has no attribute `validation_output`.
     ), f"validation_output was set to f{training_output.validation_output}"
     model_validator = validator.value
@@ -297,8 +296,7 @@ def run_publisher(
     recurring_period: Optional[RecurringPeriod],
 ) -> RLTrainingOutput:
     assert (
-        training_output.publishing_result
-        is None
+        training_output.publishing_result is None
         # pyre-fixme[16]: `RLTrainingOutput` has no attribute `publishing_output`.
     ), f"publishing_output was set to f{training_output.publishing_output}"
     model_publisher = publisher.value

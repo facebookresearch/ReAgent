@@ -10,6 +10,7 @@ vector.Embedded states improve performance in POMDPs compared to just using
 one-step observations as states because they encode more historical information
 than one-step observations.
 """
+
 import logging
 from collections import deque
 from typing import Optional

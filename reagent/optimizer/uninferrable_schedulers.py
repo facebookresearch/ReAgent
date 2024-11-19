@@ -15,6 +15,7 @@ default values that cannot be inferred:
 Sometimes there are no defaults to infer from, so we got to include those here.
 TODO: remove this file once we can infer everything.
 """
+
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from reagent.core.dataclasses import dataclass
@@ -24,7 +25,6 @@ from .scheduler import LearningRateSchedulerConfig
 
 # Inside FB, we have more sophisticated classes to serialize Callables
 if not IS_FB_ENVIRONMENT:
-
     # To allow string-based configuration, we need these Mixins to convert
     # from strings to Callables
     class _LRLambdaMixin:

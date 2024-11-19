@@ -175,7 +175,7 @@ def identify_parameter(
 
 
 def get_feature_config(
-    float_features: Optional[List[Tuple[int, str]]]
+    float_features: Optional[List[Tuple[int, str]]],
 ) -> rlt.ModelFeatureConfig:
     float_features = float_features or []
     float_feature_infos = [
@@ -187,7 +187,7 @@ def get_feature_config(
 
 
 def get_num_output_features(
-    normalization_parameters: Dict[int, NormalizationParameters]
+    normalization_parameters: Dict[int, NormalizationParameters],
 ) -> int:
     return sum(
         map(
@@ -219,7 +219,7 @@ def get_feature_start_indices(
 
 
 def sort_features_by_normalization(
-    normalization_parameters: Dict[int, NormalizationParameters]
+    normalization_parameters: Dict[int, NormalizationParameters],
 ) -> Tuple[List[int], List[int]]:
     """
     Helper function to return a sorted list from a normalization map.

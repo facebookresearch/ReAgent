@@ -46,7 +46,7 @@ def normalization_helper(
     allowedlist_features = set(allowedlist_features or [])
 
     def validate_allowedlist_features(
-        params: Dict[int, NormalizationParameters]
+        params: Dict[int, NormalizationParameters],
     ) -> None:
         if not allowedlist_features:
             return

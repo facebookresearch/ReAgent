@@ -6,6 +6,7 @@
 """
 We should revisit this at some point. Config classes shouldn't subclass from this.
 """
+
 import dataclasses
 from typing import cast
 
