@@ -538,8 +538,8 @@ class TestComboOptimizer(unittest.TestCase):
         assert (
             np.mean(qlearning_res) < 0.42
         ), "QLearning should end up better than local minimum (0.43)"
-        assert np.mean(qlearning_res) < np.mean(
-            pg_res
+        assert (
+            np.mean(qlearning_res) < np.mean(pg_res)
         ), f"In this setting. qlearning should be better than policy gradient over {repeat} repeats"
 
     def test_sol_to_tensors(self):

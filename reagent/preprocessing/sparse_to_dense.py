@@ -85,7 +85,6 @@ class PythonSparseToDenseProcessor(SparseToDenseProcessor):
 
 class PythonIdScoreListToTensorProcessor:
     def __init__(self, id_score_list_feature_ids) -> None:
-
         self.id_score_list_feature_ids = id_score_list_feature_ids
 
     def __call__(

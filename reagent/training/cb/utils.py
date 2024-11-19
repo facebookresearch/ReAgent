@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def add_chosen_arm_features(
-    batch: Union[CBInput, List[CBInput]]
+    batch: Union[CBInput, List[CBInput]],
 ) -> Union[CBInput, List[CBInput]]:
     """
     Add the features for chosen arms to the batch.
@@ -128,7 +128,6 @@ def get_model_actions(
         else:
             model_actions = torch.argmax(scores, dim=1).reshape(-1, 1)
     else:
-
         if randomize_ties:
             model_actions = argmax_random_tie_breaks(scores, mask)
         else:
@@ -136,8 +135,6 @@ def get_model_actions(
             scores_masked = torch.masked.as_masked_tensor(scores, mask.bool())
             model_actions = (
                 # pyre-fixme[16]: `Tensor` has no attribute `get_data`.
-                torch.argmax(scores_masked, dim=1)
-                .get_data()
-                .reshape(-1, 1)
+                torch.argmax(scores_masked, dim=1).get_data().reshape(-1, 1)
             )
     return model_actions

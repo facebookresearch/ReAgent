@@ -6,6 +6,7 @@
 A simple linear dynamic system
 https://www.argmin.net/2018/02/08/lqr/
 """
+
 import logging
 
 import numpy as np

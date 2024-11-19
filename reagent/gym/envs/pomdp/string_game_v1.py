@@ -26,6 +26,7 @@ If we plan with consideration of termination probabilities, "B" is better. Becau
 The expected Q-value of "A" = 0.5 * 0 + 0.5 * max(0.5 * 0 + 0.5 * max(5, 0), 0) = 1.25
 The expected Q-value of "B" = 0.1 * 0 + 0.9 * max(0.5 * 4 + 0.5 * max(0, 0), 0) = 1.8
 """
+
 import logging
 from collections import defaultdict, deque
 

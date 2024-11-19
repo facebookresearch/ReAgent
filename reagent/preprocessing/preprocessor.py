@@ -334,8 +334,7 @@ class Preprocessor(Module):
         for p in norm_params:
             assert (
                 # pyre-fixme[16]: `Optional` has no attribute `__abs__`.
-                abs(p.boxcox_lambda)
-                > 1e-6
+                abs(p.boxcox_lambda) > 1e-6
             ), "Invalid value for boxcox lambda: " + str(p.boxcox_lambda)
         self._create_parameter(
             begin_index,

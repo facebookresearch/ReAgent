@@ -130,8 +130,7 @@ class UCBTuned(BaseUCB):
             - avg_rewards**2
             + torch.sqrt(
                 # pyre-fixme[6]: For 1st param expected `Tensor` but got `float`.
-                2
-                * log_t_over_ni
+                2 * log_t_over_ni
             )  # additional term to make the estimate conservative (unlikely to underestimate)
         )
         return avg_rewards + self.alpha * torch.sqrt(

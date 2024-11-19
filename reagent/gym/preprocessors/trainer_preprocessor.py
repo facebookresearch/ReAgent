@@ -3,7 +3,7 @@
 
 # pyre-unsafe
 
-""" Get default preprocessors for training time. """
+"""Get default preprocessors for training time."""
 
 import inspect
 import logging

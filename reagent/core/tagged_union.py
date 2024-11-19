@@ -27,7 +27,6 @@ if IS_FB_ENVIRONMENT:
             return cls(**{key: cls.__annotations__[key](**v[key])})
 
 else:
-
     from dataclasses import fields
 
     class TaggedUnion:

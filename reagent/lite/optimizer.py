@@ -1454,7 +1454,6 @@ class MLPBayesianByBackprop(nn.Module):
     """
 
     def __init__(self, input_dim, hidden_dim, noise_tol=0.1, prior_var=1.0):
-
         # network initialization with "upgraded" Linear BayesianByBackprop layers
         super().__init__()
 

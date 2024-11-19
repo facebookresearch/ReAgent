@@ -16,7 +16,9 @@ from reagent.core.tagged_union import TaggedUnion
 class A:
     @resolve_defaults
     def __init__(
-        self, a: int = 1, b: int = field(default_factory=lambda: 2)  # noqa
+        self,
+        a: int = 1,
+        b: int = field(default_factory=lambda: 2),  # noqa
     ) -> None:
         self.a = a
         self.b = b

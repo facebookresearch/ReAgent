@@ -118,9 +118,7 @@ def single_evaluation_bandit_algo(
         steps_before_update = min(
             remaining_steps, update_every
         )  # take this many steps until next model update
-        arm_id = (
-            algo.get_action()
-        )  # this action will be reused until next model update if freeze_scores_btw_updates
+        arm_id = algo.get_action()  # this action will be reused until next model update if freeze_scores_btw_updates
         for i in range(steps_before_update):
             # iterate through steps without updating the model
             if (not freeze_scores_btw_updates) and (i > 0):

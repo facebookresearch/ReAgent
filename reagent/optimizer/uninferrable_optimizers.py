@@ -12,6 +12,7 @@ default values that cannot be inferred:
 - None
 TODO: remove this file once we can infer everything.
 """
+
 from typing import Optional, Tuple
 
 from reagent.core.dataclasses import dataclass

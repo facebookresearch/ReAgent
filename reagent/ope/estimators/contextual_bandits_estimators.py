@@ -611,8 +611,7 @@ class SwitchEstimator(DMEstimator):
             var = (1.0 / (estimated_values.shape[0] ** 2)) * torch.sum(
                 # pyre-fixme[58]: `**` is not supported for operand types `Tensor`
                 #  and `int`.
-                (estimated_values - torch.mean(estimated_values))
-                ** 2
+                (estimated_values - torch.mean(estimated_values)) ** 2
             ).item()
             bias = torch.mean(
                 torch.sum(expected_rmax * (ws > candidate).float(), dim=1, keepdim=True)

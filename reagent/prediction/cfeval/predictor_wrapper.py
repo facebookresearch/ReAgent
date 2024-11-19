@@ -34,9 +34,12 @@ class BanditRewardNetPredictorWrapper(torch.jit.ScriptModule):
         reward_predictions = self.reward_model_with_preprocessor(state)
         num_examples = reward_predictions.size()[0]
         num_actions = len(self.action_names)
-        assert reward_predictions.shape == (
-            num_examples,
-            num_actions,
+        assert (
+            reward_predictions.shape
+            == (
+                num_examples,
+                num_actions,
+            )
         ), f"Invalid shape {reward_predictions.shape} != ({num_examples}, {num_actions})"
         mask = torch.ones_like(reward_predictions, dtype=torch.uint8)
         return (reward_predictions, mask)
