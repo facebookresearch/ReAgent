@@ -46,6 +46,8 @@ class TestSyntheticBandit(unittest.TestCase):
             max_epochs=max_epochs,
         )
         coefs_post_train = agent.trainer.scorer.avg_A
+        # pyre-fixme[6]: For 1st argument expected `Tensor` but got `Union[Tensor,
+        #  Module]`.
         assert torch.count_nonzero(coefs_post_train) > 0
         assert accumulated_regrets[-1] >= accumulated_regrets[0]
 
