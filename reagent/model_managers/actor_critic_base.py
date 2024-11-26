@@ -29,7 +29,11 @@ from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
 from reagent.reporting.actor_critic_reporter import ActorCriticReporter
 from reagent.training import ReAgentLightningModule
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.identify_types_flow`.
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import (
     Dataset,
     ModelFeatureConfigProvider__Union,
@@ -63,16 +67,20 @@ class ActorPolicyWrapper(Policy):
 
 @dataclass
 class ActorCriticBase(ModelManager):
+    # pyre-fixme[11]: Annotation `PreprocessingOptions` is not defined as a type.
     state_preprocessing_options: Optional[PreprocessingOptions] = None
     action_preprocessing_options: Optional[PreprocessingOptions] = None
     action_feature_override: Optional[str] = None
+    # pyre-fixme[11]: Annotation `ModelFeatureConfigProvider__Union` is not defined
+    #  as a type.
     state_feature_config_provider: ModelFeatureConfigProvider__Union = field(
-        # pyre-fixme[28]: Unexpected keyword argument `raw`.
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         default_factory=lambda: ModelFeatureConfigProvider__Union(
             raw=RawModelFeatureConfigProvider(float_feature_infos=[])
         )
     )
     action_float_features: List[Tuple[int, str]] = field(default_factory=list)
+    # pyre-fixme[11]: Annotation `ReaderOptions` is not defined as a type.
     reader_options: Optional[ReaderOptions] = None
     eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
     save_critic_bool: bool = True
@@ -121,6 +129,7 @@ class ActorCriticBase(ModelManager):
 
     def get_state_preprocessing_options(self) -> PreprocessingOptions:
         state_preprocessing_options = (
+            # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
             self.state_preprocessing_options or PreprocessingOptions()
         )
         state_features = [
@@ -134,6 +143,7 @@ class ActorCriticBase(ModelManager):
 
     def get_action_preprocessing_options(self) -> PreprocessingOptions:
         action_preprocessing_options = (
+            # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
             self.action_preprocessing_options or PreprocessingOptions()
         )
         action_features = [
@@ -159,11 +169,14 @@ class ActorCriticBase(ModelManager):
     def get_data_module(
         self,
         *,
+        # pyre-fixme[11]: Annotation `TableSpec` is not defined as a type.
         input_table_spec: Optional[TableSpec] = None,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
         reader_options: Optional[ReaderOptions] = None,
         setup_data: Optional[Dict[str, bytes]] = None,
         saved_setup_data: Optional[Dict[str, bytes]] = None,
+        # pyre-fixme[11]: Annotation `ResourceOptions` is not defined as a type.
         resource_options: Optional[ResourceOptions] = None,
     ) -> Optional[ReAgentDataModule]:
         return ActorCriticDataModule(
@@ -188,6 +201,7 @@ class ActorCriticDataModule(ManualDataModule):
         Derive preprocessing parameters from data.
         """
         # Run state feature identification
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         state_normalization_parameters = identify_normalization_parameters(
             input_table_spec,
             InputColumn.STATE_FEATURES,
@@ -195,6 +209,7 @@ class ActorCriticDataModule(ManualDataModule):
         )
 
         # Run action feature identification
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         action_normalization_parameters = identify_normalization_parameters(
             input_table_spec,
             InputColumn.ACTION,
@@ -220,6 +235,7 @@ class ActorCriticDataModule(ManualDataModule):
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
         data_fetcher: DataFetcher,
+        # pyre-fixme[11]: Annotation `Dataset` is not defined as a type.
     ) -> Dataset:
         return data_fetcher.query_data(
             input_table_spec=input_table_spec,

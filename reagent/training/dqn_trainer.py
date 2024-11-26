@@ -233,6 +233,7 @@ class DQNTrainer(DQNTrainerBaseLightning):
 
         # Get Q-value of action taken
         all_q_values = self.q_network(batch.state)
+        # pyre-fixme[16]: `DQNTrainer` has no attribute `all_action_scores`.
         self.all_action_scores = all_q_values.detach()
         q_values = torch.sum(all_q_values * batch.action, 1, keepdim=True)
         td_loss = self.q_network_loss(q_values, target_q_values.detach())

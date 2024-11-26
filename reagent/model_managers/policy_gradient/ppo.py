@@ -21,6 +21,8 @@ from reagent.net_builder.unions import (
     ValueNetBuilder__Union,
 )
 from reagent.training import PPOTrainer, PPOTrainerParameters, ReAgentLightningModule
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import ModelFeatureConfigProvider__Union, RewardOptions
 
 
@@ -38,6 +40,8 @@ class PPO(ModelManager):
         default_factory=lambda: DiscreteDQNNetBuilder__Union(Dueling=Dueling())
     )
     value_net_builder: Optional[ValueNetBuilder__Union] = None
+    # pyre-fixme[11]: Annotation `ModelFeatureConfigProvider__Union` is not defined
+    #  as a type.
     state_feature_config_provider: ModelFeatureConfigProvider__Union = field(
         # pyre-ignore
         default_factory=lambda: ModelFeatureConfigProvider__Union(
@@ -61,6 +65,7 @@ class PPO(ModelManager):
         self,
         normalization_data_map: Dict[str, NormalizationData],
         use_gpu: bool,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
     ) -> PPOTrainer:
         policy_net_builder = self.policy_net_builder.value

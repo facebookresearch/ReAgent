@@ -15,6 +15,8 @@ from reagent.ope.estimators.sequential_estimators import (
     ValueFunction,
 )
 from reagent.ope.estimators.types import Action, ActionDistribution, ActionSpace
+
+# pyre-fixme[21]: Could not find module `reagent.ope.test.envs`.
 from reagent.ope.test.envs import Environment, PolicyLogGenerator
 from reagent.ope.utils import RunningAverage
 
@@ -106,7 +108,12 @@ class TabularValueFunction(ValueFunction):
 
 class EstimatedStateValueFunction(ValueFunction):
     def __init__(
-        self, policy: RLPolicy, env: Environment, gamma: float, num_episodes: int = 100
+        self,
+        policy: RLPolicy,
+        # pyre-fixme[11]: Annotation `Environment` is not defined as a type.
+        env: Environment,
+        gamma: float,
+        num_episodes: int = 100,
     ) -> None:
         self._policy = policy
         self._env = env
@@ -116,6 +123,7 @@ class EstimatedStateValueFunction(ValueFunction):
         self._estimate_value()
 
     def _estimate_value(self) -> None:
+        # pyre-fixme[16]: Module `ope` has no attribute `test`.
         tgt_generator = PolicyLogGenerator(self._env, self._policy)
         log = {}
         for state in self._env.states:
@@ -243,6 +251,7 @@ class MonteCarloValueFunction(TabularValueFunction):
         self._first_visit = first_visit
         self._count_threshold = count_threshold
         self._max_iteration = max_iteration
+        # pyre-fixme[16]: Module `ope` has no attribute `test`.
         self._log_generator = PolicyLogGenerator(env, policy)
         self._state_counts = {}
 
@@ -307,6 +316,7 @@ class MonteCarloTrainer:
     def __init__(self, env: Environment, policy: TabularPolicy) -> None:
         self._env = env
         self._policy = policy
+        # pyre-fixme[16]: Module `ope` has no attribute `test`.
         self._log_generator = PolicyLogGenerator(env, policy)
 
     def train(

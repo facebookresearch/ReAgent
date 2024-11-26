@@ -32,7 +32,11 @@ from reagent.preprocessing.preprocessor import Preprocessor
 from reagent.preprocessing.types import InputColumn
 from reagent.reporting.discrete_dqn_reporter import DiscreteDQNReporter
 from reagent.training import ReAgentLightningModule
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.identify_types_flow`.
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import (
     Dataset,
     ModelFeatureConfigProvider__Union,
@@ -49,13 +53,17 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DiscreteDQNBase(ModelManager):
     target_action_distribution: Optional[List[float]] = None
+    # pyre-fixme[11]: Annotation `ModelFeatureConfigProvider__Union` is not defined
+    #  as a type.
     state_feature_config_provider: ModelFeatureConfigProvider__Union = field(
-        # pyre-fixme[28]: Unexpected keyword argument `raw`.
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         default_factory=lambda: ModelFeatureConfigProvider__Union(
             raw=RawModelFeatureConfigProvider(float_feature_infos=[])
         )
     )
+    # pyre-fixme[11]: Annotation `PreprocessingOptions` is not defined as a type.
     preprocessing_options: Optional[PreprocessingOptions] = None
+    # pyre-fixme[11]: Annotation `ReaderOptions` is not defined as a type.
     reader_options: Optional[ReaderOptions] = None
     eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
 
@@ -88,6 +96,8 @@ class DiscreteDQNBase(ModelManager):
             )
         else:
             sampler = GreedyActionSampler()
+            # pyre-fixme[6]: For 1st argument expected `ModelBase` but got
+            #  `Union[Tensor, Module]`.
             scorer = discrete_dqn_scorer(trainer_module.q_network)
             return Policy(scorer=scorer, sampler=sampler)
 
@@ -97,6 +107,7 @@ class DiscreteDQNBase(ModelManager):
 
     def get_state_preprocessing_options(self) -> PreprocessingOptions:
         state_preprocessing_options = (
+            # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
             self.preprocessing_options or PreprocessingOptions()
         )
         state_features = [
@@ -115,11 +126,14 @@ class DiscreteDQNBase(ModelManager):
     def get_data_module(
         self,
         *,
+        # pyre-fixme[11]: Annotation `TableSpec` is not defined as a type.
         input_table_spec: Optional[TableSpec] = None,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
         reader_options: Optional[ReaderOptions] = None,
         setup_data: Optional[Dict[str, bytes]] = None,
         saved_setup_data: Optional[Dict[str, bytes]] = None,
+        # pyre-fixme[11]: Annotation `ResourceOptions` is not defined as a type.
         resource_options: Optional[ResourceOptions] = None,
     ) -> Optional[ReAgentDataModule]:
         return DiscreteDqnDataModule(
@@ -148,6 +162,7 @@ class DiscreteDqnDataModule(ManualDataModule):
         self, input_table_spec: TableSpec
     ) -> Dict[str, NormalizationData]:
         preprocessing_options = (
+            # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
             self.model_manager.preprocessing_options or PreprocessingOptions()
         )
         state_features = [
@@ -160,6 +175,7 @@ class DiscreteDqnDataModule(ManualDataModule):
         )
         return {
             NormalizationKey.STATE: NormalizationData(
+                # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
                 dense_normalization_parameters=identify_normalization_parameters(
                     input_table_spec, InputColumn.STATE_FEATURES, preprocessing_options
                 )
@@ -172,6 +188,7 @@ class DiscreteDqnDataModule(ManualDataModule):
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
         data_fetcher: DataFetcher,
+        # pyre-fixme[11]: Annotation `Dataset` is not defined as a type.
     ) -> Dataset:
         return data_fetcher.query_data(
             input_table_spec=input_table_spec,

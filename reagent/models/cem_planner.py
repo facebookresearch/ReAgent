@@ -187,6 +187,7 @@ class CEMPlannerNetwork(nn.Module):
             acc_reward_vec[i] = self.acc_rewards_of_one_solution(
                 init_state, solutions[i], i
             )
+        # pyre-fixme[7]: Expected `float` but got `ndarray[Any, dtype[Any]]`.
         return acc_reward_vec
 
     @torch.no_grad()

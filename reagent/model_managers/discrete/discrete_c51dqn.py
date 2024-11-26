@@ -12,6 +12,8 @@ from reagent.model_managers.discrete_dqn_base import DiscreteDQNBase
 from reagent.net_builder.categorical_dqn.categorical import Categorical
 from reagent.net_builder.unions import CategoricalDQNNetBuilder__Union
 from reagent.training import C51Trainer, C51TrainerParameters, ReAgentLightningModule
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import RewardOptions
 
 
@@ -57,6 +59,7 @@ class DiscreteC51DQN(DiscreteDQNBase):
         self,
         normalization_data_map: Dict[str, NormalizationData],
         use_gpu: bool,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
     ) -> C51Trainer:
         net_builder = self.net_builder.value

@@ -24,6 +24,8 @@ from reagent.net_builder.value.fully_connected import (
     FullyConnected as ValueFullyConnected,
 )
 from reagent.training import ReAgentLightningModule, SACTrainer, SACTrainerParameters
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import RewardOptions
 
 
@@ -67,6 +69,7 @@ class SAC(ActorCriticBase):
         self,
         normalization_data_map: Dict[str, NormalizationData],
         use_gpu: bool,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
     ) -> SACTrainer:
         actor_net_builder = self.actor_net_builder.value

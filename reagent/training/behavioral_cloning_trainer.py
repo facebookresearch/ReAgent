@@ -77,6 +77,8 @@ class BehavioralCloningTrainer(ReAgentLightningModule):
                 "label tensor format or dimension does not match loss function"
             )
         assert torch.all(
+            # pyre-fixme[58]: `*` is not supported for operand types `Tensor` and
+            #  `Optional[Tensor]`.
             training_batch.action * training_batch.possible_actions_mask
             == training_batch.action
         )  # check all labels are not masked out

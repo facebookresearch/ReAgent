@@ -90,6 +90,7 @@ class MultiStageTrainer(ReAgentLightningModule):
                 r.flush(epoch)
 
     def on_fit_start(self) -> None:
+        # pyre-fixme[16]: `MultiStageTrainer` has no attribute `_starting_epoch`.
         self._starting_epoch = self.trainer.current_epoch
         # Connecting pl.Trainer to stage trainers
         for t in self._trainers:
@@ -108,6 +109,7 @@ class MultiStageTrainer(ReAgentLightningModule):
         self.reporter.set_flush_function(None)
 
     def on_test_start(self) -> None:
+        # pyre-fixme[16]: `MultiStageTrainer` has no attribute `_starting_epoch`.
         self._starting_epoch = self.trainer.current_epoch
         self._in_testing_loop = True
 

@@ -14,6 +14,8 @@ from reagent.core.parameters import NormalizationData
 from reagent.data.reagent_data_module import ReAgentDataModule
 from reagent.reporting.reporter_base import ReporterBase
 from reagent.training import MultiStageTrainer, ReAgentLightningModule
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import (
     Dataset,
     ReaderOptions,
@@ -23,6 +25,8 @@ from reagent.workflow.types import (
     RLTrainingReport,
     TableSpec,
 )
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.utils`.
 from reagent.workflow.utils import get_rank, train_eval_lightning
 
 
@@ -59,11 +63,15 @@ class ModelManager:
     def get_data_module(
         self,
         *,
+        # pyre-fixme[11]: Annotation `TableSpec` is not defined as a type.
         input_table_spec: Optional[TableSpec] = None,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
         setup_data: Optional[Dict[str, bytes]] = None,
         saved_setup_data: Optional[Dict[str, bytes]] = None,
+        # pyre-fixme[11]: Annotation `ReaderOptions` is not defined as a type.
         reader_options: Optional[ReaderOptions] = None,
+        # pyre-fixme[11]: Annotation `ResourceOptions` is not defined as a type.
         resource_options: Optional[ResourceOptions] = None,
     ) -> Optional[ReAgentDataModule]:
         """
@@ -94,6 +102,7 @@ class ModelManager:
     def train(
         self,
         trainer_module: ReAgentLightningModule,
+        # pyre-fixme[11]: Annotation `Dataset` is not defined as a type.
         train_dataset: Optional[Dataset],
         eval_dataset: Optional[Dataset],
         test_dataset: Optional[Dataset],
@@ -102,6 +111,7 @@ class ModelManager:
         reader_options: ReaderOptions,
         resource_options: ResourceOptions,
         checkpoint_path: Optional[str] = None,
+        # pyre-fixme[11]: Annotation `RLTrainingOutput` is not defined as a type.
     ) -> Tuple[RLTrainingOutput, pl.Trainer]:
         """
         Train the model
@@ -127,6 +137,7 @@ class ModelManager:
         trainer_module.set_reporter(reporter)
         assert data_module is not None
 
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         lightning_trainer = train_eval_lightning(
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
@@ -140,12 +151,11 @@ class ModelManager:
             resource_options=resource_options,
         )
 
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         rank = get_rank()
         if rank == 0:
             trainer_logger = lightning_trainer.logger
-            # pyre-fixme[16]: `Optional` has no attribute `line_plot_aggregated`.
             logger_data = trainer_logger.line_plot_aggregated
-            # pyre-fixme[16]: `Optional` has no attribute `clear_local_data`.
             trainer_logger.clear_local_data()
             if reporter is None:
                 training_report = None
@@ -155,12 +165,14 @@ class ModelManager:
                     reporter.generate_training_report()
                 )
             return (
+                # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
                 RLTrainingOutput(
                     training_report=training_report, logger_data=logger_data
                 ),
                 lightning_trainer,
             )
         # Output from processes with non-0 rank is not used
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         return RLTrainingOutput(), lightning_trainer
 
     # TODO: make abstract

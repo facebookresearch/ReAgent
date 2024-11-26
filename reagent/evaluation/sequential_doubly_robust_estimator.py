@@ -27,11 +27,17 @@ class SequentialDoublyRobustEstimator:
         num_examples = edp.logged_rewards.shape[0]
 
         estimated_state_values = torch.sum(
-            edp.model_propensities * edp.model_values, dim=1
+            # pyre-fixme[58]: `*` is not supported for operand types `Tensor` and
+            #  `Optional[Tensor]`.
+            edp.model_propensities * edp.model_values,
+            dim=1,
         )
 
         estimated_q_values_for_logged_action = torch.sum(
-            edp.model_values * edp.action_mask, dim=1
+            # pyre-fixme[58]: `*` is not supported for operand types
+            #  `Optional[Tensor]` and `Tensor`.
+            edp.model_values * edp.action_mask,
+            dim=1,
         )
 
         target_propensity_for_action = torch.sum(

@@ -72,7 +72,6 @@ def run(workflow, config_file, extra_options) -> None:
     # ConfigClass. Then convert that instance to dict (via .asdict()) and apply to
     # the function
 
-    # pyre-fixme[16]: Module `yaml` has no attribute `YAML`.
     yaml = YAML(typ="safe")
     config_dict = yaml.load(config_file.read())
     assert config_dict is not None, "failed to read yaml file"

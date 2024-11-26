@@ -19,6 +19,7 @@ def ActionValueScoring(model_id: int, snapshot_id: int):
     pass
 
 
+# pyre-fixme[9]: seed has type `int`; used as `None`.
 def EpsilonGreedyRanker(epsilon: float, values: Dict, seed: int = None):
     """The operator that implements iterative epsilon greedy ranker
 
@@ -37,6 +38,7 @@ def Expression(equation: str):
     pass
 
 
+# pyre-fixme[9]: seed has type `int`; used as `None`.
 def Frechet(values: Dict, rho: float, gamma: float, seed: int = None):
     """The operator that implements Frechet ranking
 
@@ -73,6 +75,7 @@ def Softmax(temperature: float, values: Dict):
     pass
 
 
+# pyre-fixme[9]: seed has type `int`; used as `None`.
 def SoftmaxRanker(temperature: float, values: Dict, seed: int = None):
     """The operator that implements iterative softmax ranker
 

@@ -26,6 +26,8 @@ from reagent.core.parameters import NormalizationData
 from reagent.data.data_fetcher import DataFetcher
 from reagent.data.oss_data_fetcher import OssDataFetcher
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import (
     Dataset,
     ReaderOptions,
@@ -43,7 +45,9 @@ class TrainEvalSampleRanges(NamedTuple):
 
 
 def get_sample_range(
-    input_table_spec: TableSpec, calc_cpe_in_training: bool
+    # pyre-fixme[11]: Annotation `TableSpec` is not defined as a type.
+    input_table_spec: TableSpec,
+    calc_cpe_in_training: bool,
 ) -> TrainEvalSampleRanges:
     table_sample = input_table_spec.table_sample
     eval_table_sample = input_table_spec.eval_table_sample
@@ -81,26 +85,31 @@ def get_sample_range(
 class ManualDataModule(ReAgentDataModule):
     # pyre-fixme[13]: Attribute `_normalization_data_map` is never initialized.
     _normalization_data_map: Dict[str, NormalizationData]
-    # pyre-fixme[13]: Attribute `_train_dataset` is never initialized.
+    # pyre-fixme[11]: Annotation `Dataset` is not defined as a type.
     _train_dataset: Dataset
-    # pyre-fixme[13]: Attribute `_eval_dataset` is never initialized.
     _eval_dataset: Optional[Dataset]
 
     def __init__(
         self,
         *,
         input_table_spec: Optional[TableSpec] = None,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
         setup_data: Optional[Dict[str, bytes]] = None,
         saved_setup_data: Optional[Dict[str, bytes]] = None,
+        # pyre-fixme[11]: Annotation `ReaderOptions` is not defined as a type.
         reader_options: Optional[ReaderOptions] = None,
+        # pyre-fixme[11]: Annotation `ResourceOptions` is not defined as a type.
         resource_options: Optional[ResourceOptions] = None,
         model_manager=None,
     ):
         super().__init__()
         self.input_table_spec = input_table_spec
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         self.reward_options = reward_options or RewardOptions()
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         self.reader_options = reader_options or ReaderOptions()
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         self.resource_options = resource_options or ResourceOptions(gpu=0)
         self._model_manager = model_manager
         self.setup_data = setup_data
@@ -250,7 +259,6 @@ class ManualDataModule(ReAgentDataModule):
         reader_options = self.reader_options
         assert reader_options
         data_reader = make_batch_reader(
-            # pyre-fixme[16]: `HiveDataSetClass` has no attribute `parquet_url`.
             dataset.parquet_url,
             num_epochs=1,
             reader_pool_type=reader_options.petastorm_reader_pool_type,

@@ -9,6 +9,8 @@ import logging
 from reagent.core import aggregators as agg
 from reagent.core.observers import IntervalAggregatingObserver, ValueListObserver
 from reagent.reporting.reporter_base import ReporterBase
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.training_reports`.
 from reagent.workflow.training_reports import SlateQTrainingReport
 
 
@@ -51,5 +53,9 @@ class SlateQReporter(ReporterBase):
             )
         }
 
+    # pyre-fixme[15]: `generate_training_report` overrides method defined in
+    #  `ReporterBase` inconsistently.
+    # pyre-fixme[11]: Annotation `SlateQTrainingReport` is not defined as a type.
     def generate_training_report(self) -> SlateQTrainingReport:
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         return SlateQTrainingReport()

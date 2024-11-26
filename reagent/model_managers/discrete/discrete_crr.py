@@ -37,6 +37,8 @@ from reagent.training import (
     DiscreteCRRTrainer,
     ReAgentLightningModule,
 )
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import RewardOptions
 
 logger = logging.getLogger(__name__)
@@ -103,6 +105,7 @@ class DiscreteCRR(DiscreteDQNBase):
         self,
         normalization_data_map: Dict[str, NormalizationData],
         use_gpu: bool,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
     ) -> DiscreteCRRTrainer:
         actor_net_builder = self.actor_net_builder.value
@@ -132,6 +135,7 @@ class DiscreteCRR(DiscreteDQNBase):
             )
             q2_network_target = q2_network.get_target_network()
 
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         reward_options = reward_options or RewardOptions()
         metrics_to_score = get_metrics_to_score(reward_options.metric_reward_values)
 

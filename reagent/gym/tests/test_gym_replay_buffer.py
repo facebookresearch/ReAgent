@@ -10,6 +10,7 @@ from reagent.gym.envs import Gym
 from reagent.gym.envs.wrappers.simple_minigrid import SimpleObsWrapper
 from reagent.gym.utils import create_df_from_replay_buffer
 from reagent.preprocessing.sparse_to_dense import PythonSparseToDenseProcessor
+
 from reagent.test.base.horizon_test_base import HorizonTestBase
 
 logger = logging.getLogger(__name__)

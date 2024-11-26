@@ -16,6 +16,8 @@ from reagent.model_managers.world_model_base import WorldModelBase
 from reagent.models.world_model import MemoryNetwork
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import RewardOptions
 
 
@@ -37,6 +39,7 @@ class WorldModel(WorldModelBase):
         self,
         normalization_data_map: Dict[str, NormalizationData],
         use_gpu: bool,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
     ) -> MDNRNNTrainer:
         memory_network = MemoryNetwork(

@@ -82,8 +82,11 @@ class ConfigBase(metaclass=ConfigBaseMeta):
 
 
 class Operator(ConfigBase):
+    # pyre-fixme[13]: Attribute `name` is never initialized.
     name: str
+    # pyre-fixme[13]: Attribute `op_name` is never initialized.
     op_name: str
+    # pyre-fixme[13]: Attribute `input_dep_map` is never initialized.
     input_dep_map: Dict[str, str]
 
 
@@ -101,7 +104,9 @@ ConstantValue = Union[
 
 
 class Constant(ConfigBase):
+    # pyre-fixme[13]: Attribute `name` is never initialized.
     name: str
+    # pyre-fixme[13]: Attribute `value` is never initialized.
     value: ConstantValue
 
 
@@ -112,8 +117,13 @@ class DecisionRewardAggreation(Enum):
 
 
 class DecisionConfig(ConfigBase):
+    # pyre-fixme[13]: Attribute `operators` is never initialized.
     operators: List[Operator]
+    # pyre-fixme[13]: Attribute `constants` is never initialized.
     constants: List[Constant]
+    # pyre-fixme[13]: Attribute `num_actions_to_choose` is never initialized.
     num_actions_to_choose: int
+    # pyre-fixme[13]: Attribute `reward_function` is never initialized.
     reward_function: str
+    # pyre-fixme[13]: Attribute `reward_aggregator` is never initialized.
     reward_aggregator: DecisionRewardAggreation

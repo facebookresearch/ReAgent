@@ -93,10 +93,15 @@ class ARSOptimizer:
             2 * self.n_pert,
         ), "rewards must have length 2 * n_pert"
         rank = {}
+        # pyre-fixme[9]: rewards has type `Tensor`; used as `ndarray[Any, Any]`.
         rewards = rewards.numpy()
         for pert_idx in range(self.n_pert):
             reward_pos = rewards[2 * pert_idx]
             reward_neg = rewards[2 * pert_idx + 1]
+            # pyre-fixme[6]: For 1st argument expected `SupportsRichComparisonT` but
+            #  got `Tensor`.
+            # pyre-fixme[6]: For 2nd argument expected `SupportsRichComparisonT` but
+            #  got `Tensor`.
             rank[pert_idx] = max(reward_pos, reward_neg)
             self.perturbations[pert_idx] *= reward_pos - reward_neg
         std_r = np.std(rewards)

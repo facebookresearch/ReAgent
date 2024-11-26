@@ -70,6 +70,7 @@ class SyntheticRewardNetBuilder:
                 seq_len,
                 state_preprocessor,
                 action_preprocessor,
+                # pyre-fixme[29]: `Union[Tensor, Module]` is not a function.
                 synthetic_reward_network.export_mlp().cpu().eval(),
             )
         else:

@@ -77,6 +77,8 @@ def create_synthetic_data(
     )
     eval_dataloader = DataLoader(eval_batches, collate_fn=lambda x: x[0])
 
+    # pyre-fixme[7]: Expected `BehavioralCloningModelInput` but got
+    #  `Tuple[DataLoader[Any], DataLoader[Any]]`.
     return train_dataloader, eval_dataloader  # list of BehavioralCloningModelInput
 
 
@@ -88,6 +90,7 @@ def train_bc_model(train_dataloader, num_epochs) -> pl.LightningModule:
         activations=["relu", "relu", "relu"],
     )
 
+    # pyre-fixme[28]: Unexpected keyword argument `Adam`.
     optimizer = Optimizer__Union(Adam=classes["Adam"]())
     bc_trainer = BehavioralCloningTrainer(bc_net=bc_net, optimizer=optimizer)
     pl_trainer = pl.Trainer(max_epochs=num_epochs, deterministic=True)
@@ -100,6 +103,7 @@ def validation_prob_vs_label(
     batch: rlt.BehavioralCloningModelInput,
     batch_idx: int,
 ):
+    # pyre-fixme[29]: `Union[Tensor, Module]` is not a function.
     masked_logits = bc_trainer.bc_net(
         batch.state,
         batch.possible_actions_mask,
@@ -119,7 +123,10 @@ def eval_bc_model(eval_dataloader, bc_trainer) -> torch.Tensor:
     eval_xentropy_loss = total_xentropy_loss / N_eval
 
     # at the last batch, check whether probs matches labels
+    # pyre-fixme[61]: `batch` is undefined, or not always defined.
+    # pyre-fixme[61]: `batch_idx` is undefined, or not always defined.
     validation_prob_vs_label(bc_trainer, batch, batch_idx)
+    # pyre-fixme[7]: Expected `Tensor` but got `float`.
     return eval_xentropy_loss
 
 

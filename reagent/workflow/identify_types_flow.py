@@ -5,10 +5,15 @@
 
 from typing import Dict, List, Optional
 
+# pyre-fixme[21]: Could not find module `reagent.core.types`.
 import reagent.core.types as rlt
 
 from pyspark.sql.functions import col, collect_list, explode
+
+# pyre-fixme[21]: Could not find module `reagent.data.spark_utils`.
 from reagent.data.spark_utils import get_spark_session
+
+# pyre-fixme[21]: Could not find module `reagent.preprocessing.normalization`.
 from reagent.preprocessing.normalization import (
     get_feature_norm_metadata,
     NormalizationParameters,
@@ -46,6 +51,7 @@ def normalization_helper(
     allowedlist_features = set(allowedlist_features or [])
 
     def validate_allowedlist_features(
+        # pyre-fixme[11]: Annotation `NormalizationParameters` is not defined as a type.
         params: Dict[int, NormalizationParameters],
     ) -> None:
         if not allowedlist_features:
@@ -65,6 +71,7 @@ def normalization_helper(
         for row in rows:
             assert "feature_name" in row
             assert "feature_values" in row
+            # pyre-fixme[16]: Module `reagent` has no attribute `preprocessing`.
             norm_metdata = get_feature_norm_metadata(
                 row["feature_name"], row["feature_values"], norm_params
             )
@@ -87,6 +94,7 @@ def identify_normalization_parameters(
     seed: Optional[int] = None,
 ) -> Dict[int, NormalizationParameters]:
     """Get normalization parameters"""
+    # pyre-fixme[16]: Module `reagent` has no attribute `data`.
     sqlCtx = get_spark_session()
     df = sqlCtx.sql(f"SELECT * FROM {table_spec.table_name}")
     df = create_normalization_spec_spark(
@@ -135,6 +143,7 @@ def create_normalization_spec_spark(
 
 # TODO: for OSS
 def identify_sparse_normalization_parameters(
+    # pyre-fixme[11]: Annotation `ModelFeatureConfig` is not defined as a type.
     feature_config: rlt.ModelFeatureConfig,
     table_spec: TableSpec,
     id_list_column: str,

@@ -81,6 +81,8 @@ class DummyTrainer(ReAgentLightningModule):
         y = self.linear2(x)
         yield self.loss_fn(y, label)
 
+    # pyre-fixme[14]: `validation_step` overrides method defined in
+    #  `LightningModule` inconsistently.
     def validation_step(self, batch, batch_idx: int):
         print(f"validation_step {self.name}")
         self._call_count["validation"] += 1
@@ -93,6 +95,8 @@ class DummyTrainer(ReAgentLightningModule):
         for output in outputs:
             assert set(output.keys()) == set(self.validation_keys)
 
+    # pyre-fixme[14]: `test_step` overrides method defined in `LightningModule`
+    #  inconsistently.
     def test_step(self, batch, batch_idx: int):
         print(f"test_step {self.name}")
         self._call_count["test"] += 1

@@ -26,7 +26,11 @@ from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.preprocessing.types import InputColumn
 from reagent.training import ReAgentLightningModule
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.identify_types_flow`.
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
@@ -40,10 +44,12 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ParametricDQNBase(ModelManager):
+    # pyre-fixme[11]: Annotation `PreprocessingOptions` is not defined as a type.
     state_preprocessing_options: Optional[PreprocessingOptions] = None
     action_preprocessing_options: Optional[PreprocessingOptions] = None
     state_float_features: Optional[List[Tuple[int, str]]] = None
     action_float_features: Optional[List[Tuple[int, str]]] = None
+    # pyre-fixme[11]: Annotation `ReaderOptions` is not defined as a type.
     reader_options: Optional[ReaderOptions] = None
     eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
 
@@ -74,6 +80,8 @@ class ParametricDQNBase(ModelManager):
         """Create an online DiscreteDQN Policy from env."""
 
         # FIXME: this only works for one-hot encoded actions
+        # pyre-fixme[16]: Item `Tensor` of `Tensor | Module` has no attribute
+        #  `input_prototype`.
         action_dim = trainer_module.q_network.input_prototype()[1].float_features.shape[
             1
         ]
@@ -88,6 +96,8 @@ class ParametricDQNBase(ModelManager):
             sampler = SoftmaxActionSampler(temperature=self.rl_parameters.temperature)
             scorer = parametric_dqn_scorer(
                 max_num_actions=action_dim,
+                # pyre-fixme[6]: For 2nd argument expected `ModelBase` but got
+                #  `Union[Tensor, Module]`.
                 q_network=trainer_module.q_network,
             )
             return Policy(scorer=scorer, sampler=sampler)
@@ -129,10 +139,13 @@ class ParametricDqnDataModule(ManualDataModule):
         return self.model_manager.eval_parameters.calc_cpe_in_training
 
     def run_feature_identification(
-        self, input_table_spec: TableSpec
+        self,
+        # pyre-fixme[11]: Annotation `TableSpec` is not defined as a type.
+        input_table_spec: TableSpec,
     ) -> Dict[str, NormalizationData]:
         # Run state feature identification
         state_preprocessing_options = (
+            # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
             self.model_manager.state_preprocessing_options or PreprocessingOptions()
         )
         state_features = [
@@ -144,12 +157,14 @@ class ParametricDqnDataModule(ManualDataModule):
             state_preprocessing_options, allowedlist_features=state_features
         )
 
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         state_normalization_parameters = identify_normalization_parameters(
             input_table_spec, InputColumn.STATE_FEATURES, state_preprocessing_options
         )
 
         # Run action feature identification
         action_preprocessing_options = (
+            # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
             self.model_manager.action_preprocessing_options or PreprocessingOptions()
         )
         action_features = [
@@ -160,6 +175,7 @@ class ParametricDqnDataModule(ManualDataModule):
         action_preprocessing_options = replace(
             action_preprocessing_options, allowedlist_features=action_features
         )
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         action_normalization_parameters = identify_normalization_parameters(
             input_table_spec, InputColumn.ACTION, action_preprocessing_options
         )
@@ -176,8 +192,10 @@ class ParametricDqnDataModule(ManualDataModule):
         self,
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: RewardOptions,
         data_fetcher: DataFetcher,
+        # pyre-fixme[11]: Annotation `Dataset` is not defined as a type.
     ) -> Dataset:
         raise NotImplementedError
 

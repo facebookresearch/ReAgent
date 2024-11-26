@@ -18,6 +18,8 @@ from reagent.net_builder.value.fully_connected import FullyConnected
 from reagent.net_builder.value.seq2reward_rnn import Seq2RewardNetBuilder
 from reagent.reporting.seq2reward_reporter import Seq2RewardReporter
 from reagent.training.world_model.seq2reward_trainer import Seq2RewardTrainer
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import PreprocessingOptions, RewardOptions
 
 
@@ -45,12 +47,14 @@ class Seq2RewardModel(WorldModelBase):
         default_factory=Seq2RewardTrainerParameters
     )
 
+    # pyre-fixme[11]: Annotation `PreprocessingOptions` is not defined as a type.
     preprocessing_options: Optional[PreprocessingOptions] = None
 
     def build_trainer(
         self,
         normalization_data_map: Dict[str, NormalizationData],
         use_gpu: bool,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
     ) -> Seq2RewardTrainer:
         seq2reward_network = self.net_builder.value.build_value_network(

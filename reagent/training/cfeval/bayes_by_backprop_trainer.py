@@ -18,6 +18,7 @@ class BayesByBackpropTrainer(BanditRewardNetTrainer):
     ):
         weight = self._get_sample_weight(training_batch)
 
+        # pyre-fixme[29]: `Union[Tensor, Module]` is not a function.
         loss = self.reward_net.sample_elbo(
             torch.cat([training_batch.action, training_batch.state.float_features], 1),
             training_batch.reward,
@@ -49,6 +50,7 @@ class BayesByBackpropTrainer(BanditRewardNetTrainer):
             batch = self._training_batch_type.from_dict(batch)
 
         weight = self._get_sample_weight(batch)
+        # pyre-fixme[29]: `Union[Tensor, Module]` is not a function.
         loss = self.reward_net.sample_elbo(
             torch.cat([batch.action, batch.state.float_features], 1),
             batch.reward,

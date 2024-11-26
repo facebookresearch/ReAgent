@@ -21,6 +21,8 @@ from reagent.training import (
     QRDQNTrainerParameters,
     ReAgentLightningModule,
 )
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import RewardOptions
 
 
@@ -66,6 +68,7 @@ class DiscreteQRDQN(DiscreteDQNBase):
         self,
         normalization_data_map: Dict[str, NormalizationData],
         use_gpu: bool,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
     ) -> QRDQNTrainer:
         net_builder = self.net_builder.value
@@ -78,6 +81,7 @@ class DiscreteQRDQN(DiscreteDQNBase):
 
         q_network_target = q_network.get_target_network()
 
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         reward_options = reward_options or RewardOptions()
         metrics_to_score = get_metrics_to_score(reward_options.metric_reward_values)
 

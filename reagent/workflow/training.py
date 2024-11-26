@@ -9,15 +9,35 @@ import time
 from typing import Dict, Optional
 
 import torch
+
+# pyre-fixme[21]: Could not find module `reagent.core.parameters`.
 from reagent.core.parameters import NormalizationData
+
+# pyre-fixme[21]: Could not find module `reagent.core.tensorboardX`.
 from reagent.core.tensorboardX import summary_writer_context
+
+# pyre-fixme[21]: Could not find module `reagent.data.manual_data_module`.
 from reagent.data.manual_data_module import get_sample_range
+
+# pyre-fixme[21]: Could not find module `reagent.data.oss_data_fetcher`.
 from reagent.data.oss_data_fetcher import OssDataFetcher
+
+# pyre-fixme[21]: Could not find module `reagent.model_managers.model_manager`.
 from reagent.model_managers.model_manager import ModelManager
+
+# pyre-fixme[21]: Could not find module `reagent.model_managers.union`.
 from reagent.model_managers.union import ModelManager__Union
+
+# pyre-fixme[21]: Could not find module `reagent.publishers.union`.
 from reagent.publishers.union import ModelPublisher__Union
+
+# pyre-fixme[21]: Could not find module `reagent.validators.union`.
 from reagent.validators.union import ModelValidator__Union
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.env`.
 from reagent.workflow.env import get_new_named_entity_ids, get_workflow_id
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import (
     Dataset,
     ModuleNameToEntityId,
@@ -28,6 +48,8 @@ from reagent.workflow.types import (
     RLTrainingOutput,
     TableSpec,
 )
+
+# pyre-fixme[21]: Could not find module `torch.utils.tensorboard`.
 from torch.utils.tensorboard import SummaryWriter
 
 
@@ -35,22 +57,33 @@ logger = logging.getLogger(__name__)
 
 
 def identify_and_train_network(
+    # pyre-fixme[11]: Annotation `TableSpec` is not defined as a type.
     input_table_spec: TableSpec,
+    # pyre-fixme[11]: Annotation `ModelManager__Union` is not defined as a type.
     model: ModelManager__Union,
     num_epochs: int,
     use_gpu: Optional[bool] = None,
+    # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
     reward_options: Optional[RewardOptions] = None,
+    # pyre-fixme[11]: Annotation `ReaderOptions` is not defined as a type.
     reader_options: Optional[ReaderOptions] = None,
+    # pyre-fixme[11]: Annotation `ResourceOptions` is not defined as a type.
     resource_options: Optional[ResourceOptions] = None,
     warmstart_path: Optional[str] = None,
+    # pyre-fixme[11]: Annotation `ModelValidator__Union` is not defined as a type.
     validator: Optional[ModelValidator__Union] = None,
+    # pyre-fixme[11]: Annotation `ModelPublisher__Union` is not defined as a type.
     publisher: Optional[ModelPublisher__Union] = None,
+    # pyre-fixme[11]: Annotation `RLTrainingOutput` is not defined as a type.
 ) -> RLTrainingOutput:
     if use_gpu is None:
         # pyre-fixme[35]: Target cannot be annotated.
+        # pyre-fixme[16]: Module `torch` has no attribute `cuda`.
         use_gpu: bool = torch.cuda.is_available()
 
+    # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
     reward_options = reward_options or RewardOptions()
+    # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
     reader_options = reader_options or ReaderOptions()
 
     manager = model.value
@@ -94,6 +127,7 @@ def query_and_train(
     *,
     setup_data: Optional[Dict[str, bytes]] = None,
     saved_setup_data: Optional[Dict[str, bytes]] = None,
+    # pyre-fixme[11]: Annotation `NormalizationData` is not defined as a type.
     normalization_data_map: Optional[Dict[str, NormalizationData]] = None,
     reward_options: Optional[RewardOptions] = None,
     reader_options: Optional[ReaderOptions] = None,
@@ -101,18 +135,24 @@ def query_and_train(
     warmstart_path: Optional[str] = None,
     validator: Optional[ModelValidator__Union] = None,
     publisher: Optional[ModelPublisher__Union] = None,
+    # pyre-fixme[11]: Annotation `ModuleNameToEntityId` is not defined as a type.
     named_model_ids: Optional[ModuleNameToEntityId] = None,
+    # pyre-fixme[11]: Annotation `RecurringPeriod` is not defined as a type.
     recurring_period: Optional[RecurringPeriod] = None,
 ) -> RLTrainingOutput:
+    # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
     child_workflow_id = get_workflow_id()
     if named_model_ids is None:
-        # pyre-fixme[20]: Argument `model_type_id` expected.
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         named_model_ids = get_new_named_entity_ids(model.value.serving_module_names())
 
     logger.info("Starting query")
 
+    # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
     reward_options = reward_options or RewardOptions()
+    # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
     reader_options = reader_options or ReaderOptions()
+    # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
     resource_options = resource_options or ResourceOptions()
     manager = model.value
 
@@ -148,9 +188,11 @@ def query_and_train(
 
     train_dataset = None
     eval_dataset = None
+    # pyre-fixme[16]: Module `reagent` has no attribute `data`.
     data_fetcher = OssDataFetcher()
     if normalization_data_map is not None:
         calc_cpe_in_training = manager.should_generate_eval_dataset
+        # pyre-fixme[16]: Module `reagent` has no attribute `data`.
         sample_range_output = get_sample_range(input_table_spec, calc_cpe_in_training)
         train_dataset = manager.query_data(
             input_table_spec=input_table_spec,
@@ -203,7 +245,9 @@ def query_and_train(
 
 
 def train_workflow(
+    # pyre-fixme[11]: Annotation `ModelManager` is not defined as a type.
     model_manager: ModelManager,
+    # pyre-fixme[11]: Annotation `Dataset` is not defined as a type.
     train_dataset: Optional[Dataset],
     eval_dataset: Optional[Dataset],
     *,
@@ -218,6 +262,7 @@ def train_workflow(
     resource_options: Optional[ResourceOptions] = None,
     warmstart_path: Optional[str] = None,
 ) -> RLTrainingOutput:
+    # pyre-fixme[16]: Module `torch` has no attribute `utils`.
     writer = SummaryWriter()
     logger.info("TensorBoard logging location is: {}".format(writer.log_dir))
 
@@ -245,11 +290,14 @@ def train_workflow(
     )
 
     if not reader_options:
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         reader_options = ReaderOptions()
 
     if not resource_options:
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         resource_options = ResourceOptions()
 
+    # pyre-fixme[16]: Module `reagent` has no attribute `core`.
     with summary_writer_context(writer):
         train_output, lightning_trainer = model_manager.train(
             trainer_module,
@@ -268,6 +316,7 @@ def train_workflow(
         trainer_module, normalization_data_map
     ).items():
         torchscript_output_path = f"{model_manager.__class__.__name__}_{module_name}_{round(time.time())}.torchscript"
+        # pyre-fixme[16]: Module `torch` has no attribute `jit`.
         torch.jit.save(serving_module, torchscript_output_path)
         logger.info(f"Saved {module_name} to {torchscript_output_path}")
         output_paths[module_name] = torchscript_output_path
@@ -279,7 +328,6 @@ def run_validator(
 ) -> RLTrainingOutput:
     assert (
         training_output.validation_result is None
-        # pyre-fixme[16]: `RLTrainingOutput` has no attribute `validation_output`.
     ), f"validation_output was set to f{training_output.validation_output}"
     model_validator = validator.value
     validation_result = model_validator.validate(training_output)
@@ -297,7 +345,6 @@ def run_publisher(
 ) -> RLTrainingOutput:
     assert (
         training_output.publishing_result is None
-        # pyre-fixme[16]: `RLTrainingOutput` has no attribute `publishing_output`.
     ), f"publishing_output was set to f{training_output.publishing_output}"
     model_publisher = publisher.value
     model_manager = model_chooser.value
