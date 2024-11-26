@@ -17,6 +17,8 @@ from reagent.model_managers.model_manager import ModelManager
 from reagent.preprocessing.normalization import get_feature_config
 from reagent.reporting.slate_q_reporter import SlateQReporter
 from reagent.training import ReAgentLightningModule
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import PreprocessingOptions
 
 
@@ -27,6 +29,7 @@ logger = logging.getLogger(__name__)
 class SlateQBase(ModelManager):
     slate_feature_id: int = 0
     slate_score_id: Tuple[int, int] = (0, 0)
+    # pyre-fixme[11]: Annotation `PreprocessingOptions` is not defined as a type.
     item_preprocessing_options: Optional[PreprocessingOptions] = None
     state_preprocessing_options: Optional[PreprocessingOptions] = None
     state_float_features: Optional[List[Tuple[int, str]]] = None
@@ -74,6 +77,8 @@ class SlateQBase(ModelManager):
         else:
             scorer = slate_q_scorer(
                 num_candidates=self.num_candidates,
+                # pyre-fixme[6]: For 2nd argument expected `ModelBase` but got
+                #  `Union[Tensor, Module]`.
                 q_network=trainer_module.q_network,
             )
             sampler = TopKSampler(k=self.slate_size)

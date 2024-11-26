@@ -17,6 +17,8 @@ from reagent.training import (
     SlateQTrainer,
     SlateQTrainerParameters,
 )
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import RewardOptions
 
 
@@ -53,6 +55,7 @@ class SlateQ(SlateQBase):
         self,
         normalization_data_map: Dict[str, NormalizationData],
         use_gpu: bool,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
     ) -> SlateQTrainer:
         net_builder = self.net_builder.value

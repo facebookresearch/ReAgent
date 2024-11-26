@@ -156,6 +156,7 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
         ).mean()
 
         yield loss
+        # pyre-fixme[16]: `QRDQNTrainer` has no attribute `loss`.
         self.loss = loss.detach()
 
         # Get Q-values of next states, used in computing cpe
@@ -199,7 +200,11 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
     ) -> torch.Tensor:
         # Apply reward boost if specified
         reward_boosts = torch.sum(
-            actions.float() * self.reward_boosts, dim=1, keepdim=True
+            # pyre-fixme[58]: `*` is not supported for operand types `Tensor` and
+            #  `Union[Tensor, Module]`.
+            actions.float() * self.reward_boosts,
+            dim=1,
+            keepdim=True,
         )
         return rewards + reward_boosts
 

@@ -39,7 +39,6 @@ class TestQRDQN(unittest.TestCase):
         self.x = FeatureData(float_features=torch.rand(5, 10))
         self.eval_parameters = EvaluationParameters(calc_cpe_in_training=True)
         self.num_output_nodes = (len(self.metrics_to_score) + 1) * len(
-            # pyre-fixme[16]: `QRDQNTrainerParameters` has no attribute `actions`.
             self.params.actions
         )
         self.reward_network = FullyConnectedDQN(
@@ -77,7 +76,6 @@ class TestQRDQN(unittest.TestCase):
             q_network_cpe_target=q_network_cpe_target,
             metrics_to_score=self.metrics_to_score,
             evaluation=evaluation,
-            # pyre-fixme[16]: `QRDQNTrainerParameters` has no attribute `asdict`.
             **params.asdict(),
         )
 

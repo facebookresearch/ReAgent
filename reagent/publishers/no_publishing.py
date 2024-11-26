@@ -9,6 +9,8 @@ from reagent.core.dataclasses import dataclass
 from reagent.core.result_types import NoPublishingResults
 from reagent.model_managers.model_manager import ModelManager
 from reagent.publishers.model_publisher import ModelPublisher
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import (
     ModuleNameToEntityId,
     RecurringPeriod,
@@ -27,10 +29,13 @@ class NoPublishing(ModelPublisher):
     def do_publish(
         self,
         model_manager: ModelManager,
+        # pyre-fixme[11]: Annotation `RLTrainingOutput` is not defined as a type.
         training_output: RLTrainingOutput,
         setup_data: Optional[Dict[str, bytes]],
+        # pyre-fixme[11]: Annotation `ModuleNameToEntityId` is not defined as a type.
         recurring_workflow_ids: ModuleNameToEntityId,
         child_workflow_id: int,
+        # pyre-fixme[11]: Annotation `RecurringPeriod` is not defined as a type.
         recurring_period: Optional[RecurringPeriod],
     ) -> NoPublishingResults:
         return NoPublishingResults(success=True)

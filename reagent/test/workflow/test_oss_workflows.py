@@ -17,6 +17,8 @@ from click.testing import CliRunner
 from reagent.core.parameters import NormalizationParameters
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.workflow.types import Dataset
+
+# pyre-fixme[21]: Could not find name `YAML` in `ruamel.yaml`.
 from ruamel.yaml import YAML
 
 
@@ -43,6 +45,7 @@ DISCRETE_DQN_BASE = "reagent.model_managers.discrete_dqn_base"
 
 def get_test_workflow_config(path_to_config: str, use_gpu: bool):
     """Loads and modifies config to fun fast."""
+    # pyre-fixme[16]: Module `yaml` has no attribute `YAML`.
     yaml = YAML(typ="safe")
     with open(path_to_config, "r") as f:
         config = yaml.load(f)

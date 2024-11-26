@@ -10,6 +10,8 @@ from typing import List, Optional
 
 from reagent.core.registry_meta import RegistryMeta
 from reagent.core.result_registries import ValidationResult
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import RLTrainingOutput, TableSpec
 
 logger = logging.getLogger(__name__)
@@ -23,8 +25,10 @@ class ModelValidator(metaclass=RegistryMeta):
 
     def validate(
         self,
+        # pyre-fixme[11]: Annotation `RLTrainingOutput` is not defined as a type.
         training_output: RLTrainingOutput,
         result_history: Optional[List[RLTrainingOutput]] = None,
+        # pyre-fixme[11]: Annotation `TableSpec` is not defined as a type.
         input_table_spec: Optional[TableSpec] = None,
     ):
         """

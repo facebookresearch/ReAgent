@@ -17,6 +17,8 @@ from pyspark.sql.types import (
 )
 from reagent.data.data_fetcher import DataFetcher
 from reagent.data.spark_utils import get_spark_session, get_table_url
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import Dataset, TableSpec
 
 
@@ -380,6 +382,7 @@ def rand_string(length):
     return "".join(random.choice(letters) for _ in range(length))
 
 
+# pyre-fixme[11]: Annotation `Dataset` is not defined as a type.
 def upload_as_parquet(df) -> Dataset:
     """Generate a random parquet. Fails if cannot generate a non-existent name."""
 
@@ -401,12 +404,14 @@ def upload_as_parquet(df) -> Dataset:
     # pyre-fixme[61]: `rand_name` may not be initialized here.
     parquet_url = get_table_url(rand_name)
     logger.info(f"Saved parquet to {parquet_url}")
+    # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
     return Dataset(parquet_url=parquet_url)
 
 
 class OssDataFetcher(DataFetcher):
     def query_data(
         self,
+        # pyre-fixme[11]: Annotation `TableSpec` is not defined as a type.
         input_table_spec: TableSpec,
         discrete_action: bool,
         actions: Optional[List[str]] = None,
@@ -420,7 +425,6 @@ class OssDataFetcher(DataFetcher):
         other preprocessing such as sparse2dense.
         """
         sqlCtx = get_spark_session()
-        # pyre-ignore
         df = sqlCtx.sql(f"SELECT * FROM {input_table_spec.table_name}")
         df = set_reward_col_as_reward(
             df,

@@ -6,6 +6,7 @@
 import logging
 from typing import List, Optional, Tuple
 
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import Dataset, TableSpec
 
 
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 class DataFetcher:
     def query_data(
         self,
+        # pyre-fixme[11]: Annotation `TableSpec` is not defined as a type.
         input_table_spec: TableSpec,
         discrete_action: bool,
         actions: Optional[List[str]] = None,
@@ -23,6 +25,7 @@ class DataFetcher:
         sample_range: Optional[Tuple[float, float]] = None,
         multi_steps: Optional[int] = None,
         gamma: Optional[float] = None,
+        # pyre-fixme[11]: Annotation `Dataset` is not defined as a type.
     ) -> Dataset:
         raise NotImplementedError()
 

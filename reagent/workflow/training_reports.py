@@ -5,16 +5,23 @@
 
 from typing import Optional
 
+# pyre-fixme[21]: Could not find module `reagent.core.dataclasses`.
 from reagent.core.dataclasses import dataclass
+
+# pyre-fixme[21]: Could not find module `reagent.core.result_registries`.
 from reagent.core.result_registries import TrainingReport
+
+# pyre-fixme[21]: Could not find module `reagent.evaluation.cpe`.
 from reagent.evaluation.cpe import CpeEstimate
 
 
 @dataclass
+# pyre-fixme[11]: Annotation `TrainingReport` is not defined as a type.
 class DQNTrainingReport(TrainingReport):
     __registry_name__ = "dqn_report"
 
     td_loss: Optional[float] = None
+    # pyre-fixme[11]: Annotation `CpeEstimate` is not defined as a type.
     reward_ips: Optional[CpeEstimate] = None
     reward_dm: Optional[CpeEstimate] = None
     reward_dr: Optional[CpeEstimate] = None

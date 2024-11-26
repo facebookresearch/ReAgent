@@ -24,6 +24,8 @@ from reagent.preprocessing.identify_types import CONTINUOUS_ACTION
 from reagent.preprocessing.normalization import get_num_output_features
 from reagent.training import ReAgentLightningModule
 from reagent.training.cem_trainer import CEMTrainer
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import RewardOptions
 
 
@@ -75,6 +77,7 @@ class CrossEntropyMethod(WorldModelBase):
         self,
         normalization_data_map: Dict[str, NormalizationData],
         use_gpu: bool,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
     ) -> CEMTrainer:
         # pyre-fixme[45]: Cannot instantiate abstract class `WorldModel`.

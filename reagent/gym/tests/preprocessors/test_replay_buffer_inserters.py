@@ -15,6 +15,7 @@ from reagent.gym.envs import EnvWrapper
 from reagent.gym.preprocessors import make_replay_buffer_inserter
 from reagent.gym.types import Transition
 from reagent.replay_memory import ReplayBuffer
+
 from reagent.test.base.horizon_test_base import HorizonTestBase
 
 

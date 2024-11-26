@@ -7,7 +7,6 @@ import unittest
 import numpy as np
 import pytest
 
-# pyre-fixme[21]: Could not find `pyspark`.
 from pyspark.sql.functions import asc
 from reagent.data.oss_data_fetcher import OssDataFetcher
 from reagent.test.test_data.ex_mdps import generate_parametric_mdp_pandas_df

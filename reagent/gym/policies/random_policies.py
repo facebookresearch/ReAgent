@@ -138,7 +138,6 @@ class ContinuousRandomPolicy(Policy):
         obs: torch.Tensor = obs.float_features
         assert obs.dim() >= 2, f"obs has shape {obs.shape} (dim < 2)"
         batch_size = obs.size(0)
-        # pyre-fixme[6]: For 1st param expected `Size` but got `Tuple[int]`.
         action = self.dist.sample((batch_size,))
         # sum over action_dim (since assuming i.i.d. per coordinate)
         log_prob = self.dist.log_prob(action).sum(1)

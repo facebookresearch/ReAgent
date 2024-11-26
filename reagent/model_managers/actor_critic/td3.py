@@ -28,6 +28,8 @@ from reagent.net_builder.unions import (
 )
 from reagent.reporting.td3_reporter import TD3Reporter
 from reagent.training import ReAgentLightningModule, TD3Trainer, TD3TrainerParameters
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import RewardOptions
 
 
@@ -65,6 +67,7 @@ class TD3(ActorCriticBase):
         self,
         normalization_data_map: Dict[str, NormalizationData],
         use_gpu: bool,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
     ) -> TD3Trainer:
         actor_net_builder = self.actor_net_builder.value

@@ -6,6 +6,7 @@
 import logging
 from typing import Dict, List, Optional
 
+# pyre-fixme[21]: Could not find module `pytorch_lightning`.
 import pytorch_lightning as pl
 import torch
 
@@ -15,10 +16,20 @@ from petastorm import make_batch_reader
 # pyre-fixme[21]: Could not find module `petastorm.pytorch`.
 # pyre-fixme[21]: Could not find module `petastorm.pytorch`.
 from petastorm.pytorch import DataLoader, decimal_friendly_collate
+
+# pyre-fixme[21]: Could not find module `reagent.core.oss_tensorboard_logger`.
 from reagent.core.oss_tensorboard_logger import OssTensorboardLogger
+
+# pyre-fixme[21]: Could not find module `reagent.data.spark_utils`.
 from reagent.data.spark_utils import get_spark_session
+
+# pyre-fixme[21]: Could not find module `reagent.preprocessing.batch_preprocessor`.
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
+
+# pyre-fixme[21]: Could not find module `reagent.training`.
 from reagent.training import StoppingEpochCallback
+
+# pyre-fixme[21]: Could not find module `reagent.training.reagent_lightning_module`.
 from reagent.training.reagent_lightning_module import has_test_step_override
 
 from .types import Dataset, ReaderOptions, ResourceOptions
@@ -28,10 +39,12 @@ logger = logging.getLogger(__name__)
 
 
 def get_table_row_count(parquet_url: str):
+    # pyre-fixme[16]: Module `reagent` has no attribute `data`.
     spark = get_spark_session()
     return spark.read.parquet(parquet_url).count()
 
 
+# pyre-fixme[11]: Annotation `BatchPreprocessor` is not defined as a type.
 def collate_and_preprocess(batch_preprocessor: BatchPreprocessor, use_gpu: bool):
     """Helper for Petastorm's DataLoader to preprocess.
     TODO(kaiwenw): parallelize preprocessing by using transform of Petastorm reader
@@ -71,6 +84,7 @@ def get_petastorm_dataloader(
 
 
 # TODO: Move this to appropriate location
+# pyre-fixme[11]: Annotation `LightningDataModule` is not defined as a type.
 class PetastormLightningDataModule(pl.LightningDataModule):
     def __init__(self, train_dataset, eval_dataset, batch_preprocessor, reader_options):
         super().__init__()
@@ -110,7 +124,9 @@ def get_rank() -> int:
     the main process and is the default if torch.distributed isn't set up
     """
     return (
+        # pyre-fixme[16]: Module `torch` has no attribute `distributed`.
         torch.distributed.get_rank()
+        # pyre-fixme[16]: Module `torch` has no attribute `distributed`.
         if torch.distributed.is_available() and torch.distributed.is_initialized()
         else 0
     )
@@ -128,6 +144,7 @@ def train_eval_lightning(
     reader_options: Optional[ReaderOptions] = None,
     checkpoint_path: Optional[str] = None,
     resource_options: Optional[ResourceOptions] = None,
+    # pyre-fixme[11]: Annotation `Trainer` is not defined as a type.
 ) -> pl.Trainer:
     resource_options = resource_options or ResourceOptions()
     use_gpu = resource_options.use_gpu
@@ -136,14 +153,17 @@ def train_eval_lightning(
         train_dataset, eval_dataset, batch_preprocessor, reader_options
     )
     trainer = pl.Trainer(
+        # pyre-fixme[16]: Module `reagent` has no attribute `core`.
         logger=OssTensorboardLogger(save_dir="pl_log_tensorboard", name=logger_name),
         max_epochs=num_epochs * 1000,
         gpus=int(use_gpu),
         reload_dataloaders_every_n_epochs=1,
         resume_from_checkpoint=checkpoint_path,
+        # pyre-fixme[16]: Module `reagent` has no attribute `training`.
         callbacks=[StoppingEpochCallback(num_epochs)],
     )
     trainer.fit(trainer_module, datamodule=datamodule)
+    # pyre-fixme[16]: Module `reagent` has no attribute `training`.
     if has_test_step_override(trainer_module):
         trainer.test(ckpt_path=None, datamodule=datamodule)
     else:

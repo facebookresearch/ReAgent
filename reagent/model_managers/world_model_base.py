@@ -12,7 +12,11 @@ from reagent.data.data_fetcher import DataFetcher
 from reagent.data.manual_data_module import ManualDataModule
 from reagent.preprocessing.batch_preprocessor import BatchPreprocessor
 from reagent.preprocessing.types import InputColumn
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.identify_types_flow`.
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
@@ -40,9 +44,12 @@ class WorldModelDataModule(ManualDataModule):
         return False
 
     def run_feature_identification(
-        self, input_table_spec: TableSpec
+        self,
+        # pyre-fixme[11]: Annotation `TableSpec` is not defined as a type.
+        input_table_spec: TableSpec,
     ) -> Dict[str, NormalizationData]:
         # Run state feature identification
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         state_preprocessing_options = PreprocessingOptions()
         state_features = [
             ffi.feature_id
@@ -54,6 +61,7 @@ class WorldModelDataModule(ManualDataModule):
             state_preprocessing_options, allowedlist_features=state_features
         )
 
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         state_normalization_parameters = identify_normalization_parameters(
             input_table_spec, InputColumn.STATE_FEATURES, state_preprocessing_options
         )
@@ -68,8 +76,10 @@ class WorldModelDataModule(ManualDataModule):
         self,
         input_table_spec: TableSpec,
         sample_range: Optional[Tuple[float, float]],
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: RewardOptions,
         data_fetcher: DataFetcher,
+        # pyre-fixme[11]: Annotation `Dataset` is not defined as a type.
     ) -> Dataset:
         raise NotImplementedError()
 

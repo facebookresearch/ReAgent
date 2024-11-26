@@ -558,6 +558,9 @@ class Trainer(ABC):
             x_na = x_na[cs, :]
             y_na = y_na[cs]
             w_na = w_na[cs] if w_na is not None else None
+        # pyre-fixme[7]: Expected `Tuple[ndarray[Any, Any], ndarray[Any, Any],
+        #  ndarray[Any, Any]]` but got `Tuple[ndarray[Any, Any], ndarray[Any, Any],
+        #  Optional[ndarray[Any, Any]]]`.
         return x_na, y_na, w_na
 
     def reset(self) -> None:

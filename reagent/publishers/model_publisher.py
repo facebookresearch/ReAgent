@@ -10,6 +10,8 @@ from typing import Dict, Optional
 from reagent.core.registry_meta import RegistryMeta
 from reagent.core.result_registries import PublishingResult
 from reagent.model_managers.model_manager import ModelManager
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import (
     ModuleNameToEntityId,
     RecurringPeriod,
@@ -26,11 +28,14 @@ class ModelPublisher(metaclass=RegistryMeta):
     def publish(
         self,
         model_manager: ModelManager,
+        # pyre-fixme[11]: Annotation `RLTrainingOutput` is not defined as a type.
         training_output: RLTrainingOutput,
         setup_data: Optional[Dict[str, bytes]],
         # Mapping from serving_module name -> recurring_workflow_id
+        # pyre-fixme[11]: Annotation `ModuleNameToEntityId` is not defined as a type.
         recurring_workflow_ids: ModuleNameToEntityId,
         child_workflow_id: int,
+        # pyre-fixme[11]: Annotation `RecurringPeriod` is not defined as a type.
         recurring_period: Optional[RecurringPeriod],
     ):
         """

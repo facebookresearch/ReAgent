@@ -17,6 +17,8 @@ from reagent.prediction.cfeval.predictor_wrapper import BanditRewardNetPredictor
 from reagent.reporting.discrete_dqn_reporter import DiscreteDQNReporter
 from reagent.training import DQNTrainer, DQNTrainerParameters, ReAgentLightningModule
 from reagent.training.dqn_trainer_base import DQNTrainerBaseLightning
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import RewardOptions
 
 
@@ -62,6 +64,7 @@ class DiscreteDQN(DiscreteDQNBase):
         self,
         normalization_data_map: Dict[str, NormalizationData],
         use_gpu: bool,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
     ) -> DQNTrainer:
         net_builder = self.net_builder.value
@@ -73,6 +76,7 @@ class DiscreteDQN(DiscreteDQNBase):
 
         q_network_target = q_network.get_target_network()
 
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         reward_options = reward_options or RewardOptions()
         metrics_to_score = get_metrics_to_score(reward_options.metric_reward_values)
 

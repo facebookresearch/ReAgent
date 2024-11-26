@@ -169,6 +169,7 @@ class TestDisjointLinUCB(unittest.TestCase):
 
         # 2nd round training
         torch.manual_seed(0)
+        # pyre-fixme[16]: `TestDisjointLinUCB` has no attribute `batch_2nd_round`.
         self.batch_2nd_round = [
             CBInput(
                 context_arm_features=torch.randn((10, self.x_dim)),
@@ -179,6 +180,8 @@ class TestDisjointLinUCB(unittest.TestCase):
                 reward=torch.randn((3, 1)),
             ),
         ]
+        # pyre-fixme[16]: `TestDisjointLinUCB` has no attribute
+        #  `second_batch_2nd_round`.
         self.second_batch_2nd_round = [
             CBInput(
                 context_arm_features=torch.randn((10, self.x_dim)),
@@ -207,6 +210,7 @@ class TestDisjointLinUCB(unittest.TestCase):
             x1 = self.batch[arm].context_arm_features.numpy()
             x2 = self.batch_2nd_round[arm].context_arm_features.numpy()
             x3 = self.second_batch_2nd_round[arm].context_arm_features.numpy()
+            # pyre-fixme[16]: Optional type has no attribute `squeeze`.
             reward1 = self.batch[arm].reward.squeeze().numpy()
             reward2 = self.batch_2nd_round[arm].reward.squeeze().numpy()
             reward3 = self.second_batch_2nd_round[arm].reward.squeeze().numpy()

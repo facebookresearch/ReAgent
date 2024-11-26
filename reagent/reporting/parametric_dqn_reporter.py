@@ -9,6 +9,8 @@ import logging
 from reagent.core import aggregators as agg
 from reagent.core.observers import IntervalAggregatingObserver
 from reagent.reporting.reporter_base import ReporterBase
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.training_reports`.
 from reagent.workflow.training_reports import ParametricDQNTrainingReport
 
 
@@ -57,5 +59,9 @@ class ParametricDQNReporter(ReporterBase):
         super().__init__(self.value_list_observers, self.aggregating_observers)
 
     # TODO: write this for OSS
+    # pyre-fixme[15]: `generate_training_report` overrides method defined in
+    #  `ReporterBase` inconsistently.
+    # pyre-fixme[11]: Annotation `ParametricDQNTrainingReport` is not defined as a type.
     def generate_training_report(self) -> ParametricDQNTrainingReport:
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         return ParametricDQNTrainingReport()

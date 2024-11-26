@@ -75,6 +75,8 @@ class SumTree:
         level_size = 1
         for _ in range(tree_depth + 1):
             nodes_at_this_depth = np.zeros(level_size)
+            # pyre-fixme[6]: For 1st argument expected `List[float]` but got
+            #  `ndarray[Any, dtype[Any]]`.
             self.nodes.append(nodes_at_this_depth)
 
             level_size *= 2

@@ -70,7 +70,10 @@ class DisjointLinUCBTrainer(BaseCBTrainerWithEval):
             x.t(), x * weight
         )  # dim (DA*DC, DA*DC)
         self.scorer.cur_b[arm_idx] += torch.matmul(
-            x.t(), y * weight
+            x.t(),
+            # pyre-fixme[58]: `*` is not supported for operand types
+            #  `Optional[Tensor]` and `Tensor`.
+            y * weight,
         ).squeeze()  # dim (DA*DC,)
 
     # pyre-ignore

@@ -7,7 +7,6 @@ import unittest
 import numpy as np
 import pytest
 
-# pyre-ignore
 from pyspark.sql.functions import (  # @manual=fbsource//third-party/pypi/pyspark:pyspark
     asc,
 )

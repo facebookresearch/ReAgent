@@ -30,7 +30,11 @@ from reagent.training import (
     RewardNetTrainer,
     RewardNetworkTrainerParameters,
 )
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.identify_types_flow`.
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
+
+# pyre-fixme[21]: Could not find module `reagent.workflow.types`.
 from reagent.workflow.types import (
     Dataset,
     PreprocessingOptions,
@@ -66,6 +70,7 @@ class SyntheticReward(ModelManager):
         )
     )
     eval_parameters: EvaluationParameters = field(default_factory=EvaluationParameters)
+    # pyre-fixme[11]: Annotation `PreprocessingOptions` is not defined as a type.
     state_preprocessing_options: Optional[PreprocessingOptions] = None
     action_preprocessing_options: Optional[PreprocessingOptions] = None
     state_feature_config: rlt.ModelFeatureConfig = field(
@@ -106,11 +111,15 @@ class SyntheticReward(ModelManager):
     def get_data_module(
         self,
         *,
+        # pyre-fixme[11]: Annotation `TableSpec` is not defined as a type.
         input_table_spec: Optional[TableSpec] = None,
+        # pyre-fixme[11]: Annotation `RewardOptions` is not defined as a type.
         reward_options: Optional[RewardOptions] = None,
+        # pyre-fixme[11]: Annotation `ReaderOptions` is not defined as a type.
         reader_options: Optional[ReaderOptions] = None,
         setup_data: Optional[Dict[str, bytes]] = None,
         saved_setup_data: Optional[Dict[str, bytes]] = None,
+        # pyre-fixme[11]: Annotation `ResourceOptions` is not defined as a type.
         resource_options: Optional[ResourceOptions] = None,
     ) -> Optional[ReAgentDataModule]:
         return SyntheticRewardDataModule(
@@ -190,6 +199,7 @@ class SyntheticRewardDataModule(ManualDataModule):
     ) -> Dict[str, NormalizationData]:
         """Identify dense feature normalization parameters"""
         state_preprocessing_options = (
+            # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
             self.model_manager.state_preprocessing_options or PreprocessingOptions()
         )
         state_features = [
@@ -201,6 +211,7 @@ class SyntheticRewardDataModule(ManualDataModule):
             state_preprocessing_options, allowedlist_features=state_features
         )
 
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         state_normalization_parameters = identify_normalization_parameters(
             input_table_spec, InputColumn.STATE_FEATURES, state_preprocessing_options
         )
@@ -212,6 +223,7 @@ class SyntheticRewardDataModule(ManualDataModule):
             }
         # Run action feature identification
         action_preprocessing_options = (
+            # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
             self.model_manager.action_preprocessing_options or PreprocessingOptions()
         )
         action_features = [
@@ -222,6 +234,7 @@ class SyntheticRewardDataModule(ManualDataModule):
         action_preprocessing_options = replace(
             action_preprocessing_options, allowedlist_features=action_features
         )
+        # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
         action_normalization_parameters = identify_normalization_parameters(
             input_table_spec, InputColumn.ACTION, action_preprocessing_options
         )
@@ -240,6 +253,7 @@ class SyntheticRewardDataModule(ManualDataModule):
         sample_range: Optional[Tuple[float, float]],
         reward_options: RewardOptions,
         data_fetcher: DataFetcher,
+        # pyre-fixme[11]: Annotation `Dataset` is not defined as a type.
     ) -> Dataset:
         return data_fetcher.query_data_synthetic_reward(
             input_table_spec=input_table_spec,

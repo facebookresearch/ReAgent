@@ -319,10 +319,16 @@ class EvaluationDataPage(rlt.TensorDataClass):
         metrics: Optional[torch.Tensor] = None,
     ):
         old_q_train_state = trainer.q_network.training
+        # pyre-fixme[16]: Item `Tensor` of `Tensor | Module` has no attribute
+        #  `training`.
         old_reward_train_state = trainer.reward_network.training
+        # pyre-fixme[16]: Item `Tensor` of `Tensor | Module` has no attribute
+        #  `training`.
         old_q_cpe_train_state = trainer.q_network_cpe.training
         trainer.q_network.train(False)
+        # pyre-fixme[16]: Item `Tensor` of `Tensor | Module` has no attribute `train`.
         trainer.reward_network.train(False)
+        # pyre-fixme[16]: Item `Tensor` of `Tensor | Module` has no attribute `train`.
         trainer.q_network_cpe.train(False)
 
         num_actions = trainer.num_actions
@@ -330,6 +336,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
 
         # pyre-fixme[6]: Expected `Tensor` for 2nd param but got `FeatureData`.
         rewards = trainer.boost_rewards(rewards, actions)
+        # pyre-fixme[29]: `Union[Module, Tensor]` is not a function.
         model_values = trainer.q_network_cpe(states)[:, 0:num_actions]
         # TODO: make generic get_action_idxs for each trainer class
         # Note: model_outputs are obtained from the q_network for DQN algorithms
@@ -355,6 +362,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
             + str(possible_actions_mask.shape)
         )
 
+        # pyre-fixme[29]: `Union[Module, Tensor]` is not a function.
         rewards_and_metric_rewards = trainer.reward_network(states)
 
         # In case we reuse the modular for Q-network
@@ -384,6 +392,7 @@ class EvaluationDataPage(rlt.TensorDataClass):
             model_metrics_for_logged_action = None
             model_metrics_values_for_logged_action = None
         else:
+            # pyre-fixme[29]: `Union[Module, Tensor]` is not a function.
             model_metrics_values = trainer.q_network_cpe(states)
             # Backward compatility
             if hasattr(model_metrics_values, "q_values"):
@@ -423,8 +432,10 @@ class EvaluationDataPage(rlt.TensorDataClass):
                 model_metrics_values_for_logged_action_list, dim=1
             )
 
+        # pyre-fixme[16]: Item `Tensor` of `Tensor | Module` has no attribute `train`.
         trainer.q_network_cpe.train(old_q_cpe_train_state)
         trainer.q_network.train(old_q_train_state)
+        # pyre-fixme[16]: Item `Tensor` of `Tensor | Module` has no attribute `train`.
         trainer.reward_network.train(old_reward_train_state)
 
         return cls(

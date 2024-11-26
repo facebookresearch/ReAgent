@@ -224,11 +224,13 @@ class TestLinUCB(unittest.TestCase):
 
         # 2nd round training
         torch.manual_seed(0)
+        # pyre-fixme[16]: `TestLinUCB` has no attribute `batch_2nd_round`.
         self.batch_2nd_round = CBInput(
             context_arm_features=torch.randn((10, self.num_arms, self.x_dim)),
             reward=torch.randn((10, 1)),
             action=torch.tensor([[0], [1]], dtype=torch.long).repeat(5, 1),
         )
+        # pyre-fixme[16]: `TestLinUCB` has no attribute `second_batch_2nd_round`.
         self.second_batch_2nd_round = CBInput(
             context_arm_features=torch.randn((6, self.num_arms, self.x_dim)),
             reward=torch.randn((6, 1)),
@@ -250,19 +252,28 @@ class TestLinUCB(unittest.TestCase):
         out2 = model_output2["ucb"]
 
         # the feature matrix and model parameter and eval output (computed by hand)
+        # pyre-fixme[16]: Item `list` of `list[CBInput] | CBInput` has no attribute
+        #  `features_of_chosen_arm`.
         x1 = add_chosen_arm_features(self.batch).features_of_chosen_arm.numpy()
+        # pyre-fixme[16]: Item `list` of `list[CBInput] | CBInput` has no attribute
+        #  `features_of_chosen_arm`.
         x2 = add_chosen_arm_features(
             self.batch_2nd_round
         ).features_of_chosen_arm.numpy()
+        # pyre-fixme[16]: Item `list` of `list[CBInput] | CBInput` has no attribute
+        #  `features_of_chosen_arm`.
         x3 = add_chosen_arm_features(
             self.second_batch_2nd_round
         ).features_of_chosen_arm.numpy()
+        # pyre-fixme[16]: Optional type has no attribute `squeeze`.
         reward1 = self.batch.reward.squeeze().numpy()
         reward2 = self.batch_2nd_round.reward.squeeze().numpy()
         reward3 = self.second_batch_2nd_round.reward.squeeze().numpy()
 
         # all matrix and vectors are the same
+        # pyre-fixme[58]: `@` is not supported for operand types `float` and `Any`.
         A = scorer.gamma * x1.T @ x1 + x2.T @ x2 + x3.T @ x3
+        # pyre-fixme[58]: `@` is not supported for operand types `float` and `Any`.
         b = scorer.gamma * x1.T @ reward1 + x2.T @ reward2 + x3.T @ reward3
         npt.assert_allclose(
             (scorer.avg_A * scorer.sum_weight).numpy(),
