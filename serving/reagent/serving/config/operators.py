@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+# pyre-unsafe
+
 from typing import Dict
 
 import reagent.serving.config.namespace as namespace

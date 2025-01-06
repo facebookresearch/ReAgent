@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
+
+# pyre-unsafe
 from enum import Enum
 from typing import Dict, List, Tuple, Union
 

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # Copyright 2004-present Facebook. All Rights Reserved.
 
+# pyre-unsafe
+
 # pyre-fixme[21]: Could not find module `reagent.serving.config.builder`.
 from reagent.serving.config.builder import (
     DecisionPlanBuilder,

@@ -1,3 +1,4 @@
+# pyre-unsafe
 """
 How to use:
     buck test reagent:training_tests -- TestDeepRepresentLinUCB
