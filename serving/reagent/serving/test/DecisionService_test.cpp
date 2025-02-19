@@ -1,8 +1,6 @@
 #include "reagent/serving/test/TestHeaders.h"
 
-#include "reagent/serving/core/ConfigProvider.h"
 #include "reagent/serving/core/DecisionService.h"
-#include "reagent/serving/core/OperatorRunner.h"
 
 namespace reagent {
 TEST(DecisionService, Simple) {

@@ -1,8 +1,6 @@
 #include "reagent/serving/test/TestHeaders.h"
 
 #include "reagent/serving/core/DecisionServiceException.h"
-#include "reagent/serving/core/OperatorFactory.h"
-#include "reagent/serving/core/OperatorRunner.h"
 #include "reagent/serving/operators/Frechet.h"
 
 namespace reagent {

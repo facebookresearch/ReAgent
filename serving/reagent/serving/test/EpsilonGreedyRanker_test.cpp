@@ -1,7 +1,5 @@
 #include "reagent/serving/test/TestHeaders.h"
 
-#include "reagent/serving/core/OperatorFactory.h"
-#include "reagent/serving/core/OperatorRunner.h"
 #include "reagent/serving/operators/EpsilonGreedyRanker.h"
 
 namespace reagent {
