@@ -4,8 +4,6 @@
 #include "reagent/serving/core/RealTimeCounter.h"
 #include "reagent/serving/core/SharedParameterHandler.h"
 
-#include <gflags/gflags.h>
-
 namespace {
 std::string createCounterKey(
     const std::string& configPath,

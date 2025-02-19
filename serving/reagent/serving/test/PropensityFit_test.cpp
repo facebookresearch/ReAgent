@@ -1,9 +1,6 @@
 #include "reagent/serving/test/TestHeaders.h"
 
 #include "reagent/serving/core/LocalRealTimeCounter.h"
-#include "reagent/serving/core/OperatorFactory.h"
-#include "reagent/serving/core/OperatorRunner.h"
-#include "reagent/serving/core/SharedParameterHandler.h"
 #include "reagent/serving/operators/PropensityFit.h"
 
 namespace reagent {

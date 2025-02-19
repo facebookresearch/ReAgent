@@ -3,8 +3,6 @@
 #include "reagent/serving/core/OperatorFactory.h"
 #include "reagent/serving/core/RealTimeCounter.h"
 
-#include <gflags/gflags.h>
-
 namespace {
 std::string getArmKey(
     const std::string& configPath,
