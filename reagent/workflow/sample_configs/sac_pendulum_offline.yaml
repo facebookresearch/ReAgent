@@ -1,4 +1,4 @@
-env_name: Pendulum-v0
+env_name: Pendulum-v1
 model_path: "pendulum_batch_rl_model.torchscript"
 pkl_path: "/tmp/tmp_pickle.pkl"
 input_table_spec:
