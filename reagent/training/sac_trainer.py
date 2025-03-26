@@ -76,7 +76,6 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
         alpha_optimizer: Optional[Optimizer__Union] = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
-        minibatch_size: int = 1024,
         entropy_temperature: float = 0.01,
         logged_action_uniform_prior: bool = True,
         target_entropy: float = -1.0,
