@@ -10,7 +10,6 @@ model:
         maxq_learning: true
         temperature: 1.0
       double_q_learning: true
-      minibatches_per_step: 1
       optimizer:
         AdamW:
           lr: 0.001
