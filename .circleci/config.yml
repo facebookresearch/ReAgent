@@ -89,10 +89,15 @@ commands:
             sudo apt-get install zip
             curl -s "https://get.sdkman.io" | bash
             source "$HOME/.sdkman/bin/sdkman-init.sh"
+            sleep 5
             sdk version
+            sleep 5
             sdk install java 8.0.292.hs-adpt
+            sleep 5
             sdk install scala
+            sleep 5
             sdk install maven
+            sleep 5
             sdk install spark 3.1.1
       - run:
           name: Build preprocessing package
