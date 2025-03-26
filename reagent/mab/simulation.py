@@ -188,15 +188,25 @@ def multiple_evaluations_bandit_algo(
         )
         for _ in range(n_bandits)
     )
-    with Pool(num_processes) as pool:
-        pseudo_regrets = pool.starmap(
-            partial(
-                single_evaluation_bandit_algo,
+    if num_processes == 1:
+        pseudo_regrets = [
+            single_evaluation_bandit_algo(
+                *a,
                 update_every=update_every,
                 freeze_scores_btw_updates=freeze_scores_btw_updates,
-            ),
-            arguments,
-        )
+            )
+            for a in arguments
+        ]
+    else:
+        with Pool(num_processes) as pool:
+            pseudo_regrets = pool.starmap(
+                partial(
+                    single_evaluation_bandit_algo,
+                    update_every=update_every,
+                    freeze_scores_btw_updates=freeze_scores_btw_updates,
+                ),
+                arguments,
+            )
     return np.stack(pseudo_regrets).mean(0)
 
 
