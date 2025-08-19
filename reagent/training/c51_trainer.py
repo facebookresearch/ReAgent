@@ -30,8 +30,6 @@ class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
         actions: List[str] = field(default_factory=list),  # noqa: B008
         rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
         double_q_learning: bool = True,
-        minibatch_size: int = 1024,
-        minibatches_per_step: int = 1,
         num_atoms: int = 51,
         qmin: float = -100,
         qmax: float = 200,
@@ -47,9 +45,6 @@ class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
             rl (optional): an instance of the RLParameter class, which
                 defines relevant hyperparameters
             double_q_learning (optional): whether or not double Q learning, enabled by default,
-            minibatch_size (optional): the size of the minibatch
-            minibatches_per_step (optional): the number of minibatch updates
-                per training step
             num_atoms (optional): number of "canonical returns"in the discretized value distributions
             qmin (optional): minimum q-value
             qmax (optional): maximum q-value
@@ -58,8 +53,6 @@ class C51Trainer(RLTrainerMixin, ReAgentLightningModule):
         """
         super().__init__()
         self.double_q_learning = double_q_learning
-        self.minibatch_size = minibatch_size
-        self.minibatches_per_step = minibatches_per_step
         self._actions = actions
         self.q_network = q_network
         self.q_network_target = q_network_target

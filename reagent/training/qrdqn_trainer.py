@@ -39,8 +39,6 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
         rl: RLParameters = field(default_factory=RLParameters),  # noqa: B008
         double_q_learning: bool = True,
         num_atoms: int = 51,
-        minibatch_size: int = 1024,
-        minibatches_per_step: int = 1,
         optimizer: Optimizer__Union = field(  # noqa: B008
             default_factory=Optimizer__Union.default
         ),
@@ -59,8 +57,6 @@ class QRDQNTrainer(DQNTrainerBaseLightning):
         )
         # TODO: check to ensure no rl parameter value is set that isn't actively used by class
         self.double_q_learning = double_q_learning
-        self.minibatch_size = minibatch_size
-        self.minibatches_per_step = minibatches_per_step
         self._actions = actions
 
         self.q_network = q_network
