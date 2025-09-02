@@ -14,7 +14,7 @@ from reagent.preprocessing.normalization import (
     MAX_FEATURE_VALUE,
     MIN_FEATURE_VALUE,
 )
-from torch.nn import Module, Parameter  # @manual="//caffe2:torch"
+from torch.nn import Module, Parameter  # @manual=//caffe2:torch
 
 
 logger = logging.getLogger(__name__)
