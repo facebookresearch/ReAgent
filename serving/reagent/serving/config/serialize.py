@@ -41,7 +41,7 @@ def _value_to_json(cls, value):
     if value is None:
         return value
     elif _is_optional(cls) and len(cls.__args__) == 2:
-        sub_cls = cls.__args__[0] if type(None) != cls.__args__[0] else cls.__args__[1]
+        sub_cls = cls.__args__[1] if cls.__args__[0] is type(None) else cls.__args__[0]
         return _value_to_json(sub_cls, value)
     elif cls_type == Union:
         real_cls = type(value)
