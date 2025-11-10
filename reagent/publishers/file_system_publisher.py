@@ -40,7 +40,7 @@ VALUE_FIELD = "torchscript_path"
 if HAS_TINYDB:
 
     @dataclass
-    class FileSystemPublisher(ModelPublisher):
+    class FileSystemPublisher(ModelPublisher):  # noqa: F811 conditional definition when tinydb is available
         """Uses a file to serve as a key-value store.
         The key is the str/repr representation of the ModelManager.
         The value is the path to the torchscipt model.
