@@ -4,9 +4,10 @@
 # pyre-unsafe
 
 import functools
+import types
 from dataclasses import Field, fields, MISSING
 from inspect import isclass, Parameter, signature
-from typing import List, Optional, Type, Union
+from typing import get_args, get_origin, List, Optional, Type, Union
 
 from reagent.core.dataclasses import dataclass
 from torch import nn
@@ -61,11 +62,15 @@ def make_config_class(
     blocklist_set = set(blocklist or [])
 
     def _is_type_blocklisted(t):
-        if getattr(t, "__origin__", None) is Union:
-            t = t.__args__[0]
+        origin = get_origin(t)
+        if origin is Union or isinstance(t, types.UnionType):
+            args = get_args(t)
+            if args:
+                t = args[0]
         if hasattr(t, "__origin__"):
             t = t.__origin__
-        assert isclass(t), f"{t} is not a class."
+        if not isclass(t):
+            return False
         return any(issubclass(t, blocklist_type) for blocklist_type in blocklist_types)
 
     def _is_valid_param(p):
