@@ -7,7 +7,6 @@ import logging
 from typing import Optional
 
 import torch
-
 from pytorch_lightning.utilities.distributed import ReduceOp, sync_ddp_if_available
 from reagent.models.base import ModelBase
 

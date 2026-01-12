@@ -4,7 +4,6 @@
 # pyre-unsafe
 import torch
 from reagent.gym.policies.samplers.discrete_sampler import EpsilonGreedyActionSampler
-
 from reagent.test.base.horizon_test_base import HorizonTestBase
 
 

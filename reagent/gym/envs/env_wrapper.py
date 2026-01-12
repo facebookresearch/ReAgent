@@ -68,9 +68,9 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
         action = actor_output.action
         action_space = self.action_space
         # Canonical rule to return one-hot encoded actions for discrete
-        assert (
-            len(action.shape) == 2 and action.shape[0] == 1
-        ), f"{action} (shape: {action.shape}) is not a single action!"
+        assert len(action.shape) == 2 and action.shape[0] == 1, (
+            f"{action} (shape: {action.shape}) is not a single action!"
+        )
         if isinstance(action_space, spaces.Discrete):
             return action.squeeze(0).argmax()
         elif isinstance(action_space, spaces.MultiDiscrete):
@@ -91,17 +91,17 @@ class EnvWrapper(gym.core.Wrapper, metaclass=RegistryMeta):
     def serving_action_extractor(self, actor_output: rlt.ActorOutput) -> torch.Tensor:
         action = actor_output.action
         action_space = self.action_space
-        assert (
-            len(action.shape) == 2 and action.shape[0] == 1
-        ), f"{action.shape} isn't (1, action_dim)"
+        assert len(action.shape) == 2 and action.shape[0] == 1, (
+            f"{action.shape} isn't (1, action_dim)"
+        )
         if isinstance(action_space, spaces.Discrete):
             return action.squeeze(0).argmax().view([])
         elif isinstance(action_space, spaces.MultiDiscrete):
             return action.squeeze(0)
         elif isinstance(action_space, spaces.Box):
-            assert (
-                len(action_space.shape) == 1
-            ), f"Unsupported Box with shape {action_space.shape}"
+            assert len(action_space.shape) == 1, (
+                f"Unsupported Box with shape {action_space.shape}"
+            )
             return action.squeeze(0)
         else:
             raise NotImplementedError(f"Unsupported action space: {action_space}")

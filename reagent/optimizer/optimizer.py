@@ -64,14 +64,14 @@ class OptimizerConfig(metaclass=RegistryMeta):
     def make_optimizer_scheduler(
         self, params
     ) -> Dict[str, Union[torch.optim.Optimizer, torch.optim.lr_scheduler._LRScheduler]]:
-        assert (
-            len(self.lr_schedulers) <= 1
-        ), "Multiple schedulers for one optimizer is no longer supported"
+        assert len(self.lr_schedulers) <= 1, (
+            "Multiple schedulers for one optimizer is no longer supported"
+        )
         # Assuming the classname is the same as the torch class name
         torch_optimizer_class = getattr(torch.optim, type(self).__name__)
-        assert is_torch_optimizer(
-            torch_optimizer_class
-        ), f"{torch_optimizer_class} is not an optimizer."
+        assert is_torch_optimizer(torch_optimizer_class), (
+            f"{torch_optimizer_class} is not an optimizer."
+        )
         filtered_args = {
             k: getattr(self, k)
             for k in inspect.signature(torch_optimizer_class).parameters

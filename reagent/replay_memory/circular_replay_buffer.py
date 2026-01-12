@@ -109,16 +109,16 @@ class DenseMetadata(ElementMetadata):
         return np.zeros(self.shape, dtype=self.dtype)
 
     def validate(self, name: str, input):
-        assert not isinstance(
-            input, (dict, torch.Tensor)
-        ), f"{name}: {type(input)} is dict or torch.Tensor"
+        assert not isinstance(input, (dict, torch.Tensor)), (
+            f"{name}: {type(input)} is dict or torch.Tensor"
+        )
         arr = np.array(input)
         dtype = arr.dtype
         if dtype == np.dtype("float64"):
             dtype = np.dtype("float32")
-        assert (
-            arr.shape == self.shape and dtype == self.dtype
-        ), f"{name}: Expected {self.shape} {self.dtype}, got {arr.shape} {dtype}"
+        assert arr.shape == self.shape and dtype == self.dtype, (
+            f"{name}: Expected {self.shape} {self.dtype}, got {arr.shape} {dtype}"
+        )
 
     def create_storage(self, capacity: int):
         array_shape = [capacity, *self.shape]
@@ -168,9 +168,9 @@ class IDListMetadata(ElementMetadata):
             assert k in self.keys, f"{name}: {k} not in {self.keys}"
             arr = np.array(v)
             if len(arr) > 0:
-                assert (
-                    arr.dtype == np.int64
-                ), f"{name}: {v} arr has dtype {arr.dtype}, not np.int64"
+                assert arr.dtype == np.int64, (
+                    f"{name}: {v} arr has dtype {arr.dtype}, not np.int64"
+                )
 
     def create_storage(self, capacity: int):
         array_shape = (capacity,)
@@ -225,16 +225,16 @@ class IDScoreListMetadata(ElementMetadata):
         for k, v in input.items():
             assert isinstance(k, str), f"{name}: {k} ({type(k)}) is not str"
             assert k in self.keys, f"{name}: {k} not in {self.keys}"
-            assert (
-                isinstance(v, tuple) and len(v) == 2
-            ), f"{name}: {v} ({type(v)}) is not len 2 tuple"
+            assert isinstance(v, tuple) and len(v) == 2, (
+                f"{name}: {v} ({type(v)}) is not len 2 tuple"
+            )
             ids = np.array(v[0])
             scores = np.array(v[1])
             assert len(ids) == len(scores), f"{name}: {len(ids)} != {len(scores)}"
             if len(ids) > 0:
-                assert (
-                    ids.dtype == np.int64
-                ), f"{name}: ids dtype {ids.dtype} isn't np.int64"
+                assert ids.dtype == np.int64, (
+                    f"{name}: ids dtype {ids.dtype} isn't np.int64"
+                )
                 assert scores.dtype in (
                     np.float32,
                     np.float64,
@@ -260,9 +260,9 @@ class IDScoreListMetadata(ElementMetadata):
                     cur_ids, cur_scores = [], []
                 else:
                     cur_ids, cur_scores = elem[k]
-                assert len(cur_ids) == len(
-                    cur_scores
-                ), f"{len(cur_ids)} != {len(cur_scores)}"
+                assert len(cur_ids) == len(cur_scores), (
+                    f"{len(cur_ids)} != {len(cur_scores)}"
+                )
                 offsets.append(len(ids))
                 ids.extend(cur_ids)
                 scores.extend(cur_scores)
@@ -347,8 +347,7 @@ class ReplayBuffer:
         """
         if replay_capacity < update_horizon + stack_size:
             raise ValueError(
-                "There is not enough capacity to cover "
-                "update_horizon and stack_size."
+                "There is not enough capacity to cover update_horizon and stack_size."
             )
 
         if return_as_timeline_format:
@@ -392,9 +391,9 @@ class ReplayBuffer:
     def initialize_buffer(self, **kwargs):
         """Initialize replay buffer based on first input"""
         kwarg_keys = set(kwargs.keys())
-        assert set(REQUIRED_KEYS).issubset(
-            kwarg_keys
-        ), f"{kwarg_keys} doesn't contain all of {REQUIRED_KEYS}"
+        assert set(REQUIRED_KEYS).issubset(kwarg_keys), (
+            f"{kwarg_keys} doesn't contain all of {REQUIRED_KEYS}"
+        )
 
         # arbitrary order for extra keys
         self._extra_keys = list(kwarg_keys - set(REQUIRED_KEYS))
@@ -605,9 +604,9 @@ class ReplayBuffer:
 
     def sample_all_valid_transitions(self):
         valid_indices = self._is_index_valid.nonzero().squeeze(1)
-        assert (
-            valid_indices.ndim == 1
-        ), f"Expecting 1D tensor since is_index_valid is 1D. Got {valid_indices}."
+        assert valid_indices.ndim == 1, (
+            f"Expecting 1D tensor since is_index_valid is 1D. Got {valid_indices}."
+        )
         return self.sample_transition_batch(
             batch_size=len(valid_indices), indices=valid_indices
         )
@@ -642,9 +641,9 @@ class ReplayBuffer:
         if indices is None:
             indices = self.sample_index_batch(batch_size)
         else:
-            assert isinstance(
-                indices, torch.Tensor
-            ), f"Indices {indices} have type {type(indices)} instead of torch.Tensor"
+            assert isinstance(indices, torch.Tensor), (
+                f"Indices {indices} have type {type(indices)} instead of torch.Tensor"
+            )
             indices = indices.type(dtype=torch.int64)
         assert len(indices) == batch_size
 
@@ -690,9 +689,9 @@ class ReplayBuffer:
                 batch = self._get_batch_for_indices(element_name, indices)
             elif element_name.startswith("next_"):
                 store_name = element_name[len("next_") :]
-                assert (
-                    store_name in self._store
-                ), f"{store_name} is not in {self._store.keys()}"
+                assert store_name in self._store, (
+                    f"{store_name} is not in {self._store.keys()}"
+                )
                 batch = self._get_batch_for_indices(
                     store_name, next_indices, steps_for_timeline_format
                 )

@@ -144,9 +144,9 @@ class GridWorld(Environment):
         assert isinstance(value, tuple), f"got type {type(value)} instead of tuple"
         # pyre-fixme[23]: Unable to unpack single value, 2 were expected.
         (x, y) = value
-        assert isinstance(x, int) and isinstance(
-            y, int
-        ), "Gridworld expects states to be Tuple[int, int]"
+        assert isinstance(x, int) and isinstance(y, int), (
+            "Gridworld expects states to be Tuple[int, int]"
+        )
         if state.value in self.walls or state.value == self.goal:
             return StateReward(State((x, y), state.is_terminal), 0.0)
         if action.value == 0:
@@ -284,9 +284,9 @@ class NoiseGridWorldModel(Environment):
 
     def next_state_reward_dist(self, state: State, action: Action) -> StateDistribution:
         probs = [self.noise_prob] * len(self.action_space)
-        assert isinstance(
-            action.value, int
-        ), f"got type {type(action.value)} instead of int"
+        assert isinstance(action.value, int), (
+            f"got type {type(action.value)} instead of int"
+        )
         # pyre-fixme[16]: `int` has no attribute `__setitem__`.
         probs[action.value] = 1 - self.epsilon
         states = {}
@@ -357,8 +357,7 @@ if __name__ == "__main__":
         ground_truth = EstimatedStateValueFunction(target_policy, gridworld, GAMMA)
 
     logging.info(
-        f"Target Policy ground truth values:\n"
-        f"{gridworld.dump_value_func(ground_truth)}"
+        f"Target Policy ground truth values:\n{gridworld.dump_value_func(ground_truth)}"
     )
 
     logging.info(

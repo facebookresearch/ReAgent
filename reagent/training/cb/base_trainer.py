@@ -47,9 +47,9 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
         self.eval_model_update_critical_weight = eval_model_update_critical_weight
         self.recmetric_module = recmetric_module
         self.log_every_n_steps = log_every_n_steps
-        assert (log_every_n_steps > 0) == (
-            recmetric_module is not None
-        ), "recmetric_module should be provided if and only if log_every_n_steps > 0"
+        assert (log_every_n_steps > 0) == (recmetric_module is not None), (
+            "recmetric_module should be provided if and only if log_every_n_steps > 0"
+        )
 
     def _check_input(self, batch: CBInput, offline_eval: bool = False) -> None:
         """

@@ -214,7 +214,7 @@ def evaluate_gym(
         f"List of rewards: {rewards}\n"
         f"Passing score bar: {passing_score_bar}"
     )
-    assert (
-        avg_reward >= passing_score_bar
-    ), f"{avg_reward} fails to pass the bar of {passing_score_bar}!"
+    assert avg_reward >= passing_score_bar, (
+        f"{avg_reward} fails to pass the bar of {passing_score_bar}!"
+    )
     return

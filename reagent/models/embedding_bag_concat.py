@@ -41,12 +41,14 @@ class EmbeddingBagConcat(ModelBase):
                 [model_feature_config],
             )
         )
-        assert embedding_bag_configs, "No embedding bag config generated. Please double check model_feature_config."
+        assert embedding_bag_configs, (
+            "No embedding bag config generated. Please double check model_feature_config."
+        )
 
         # Assume all id features will be mapped to the same number of dimensions
-        assert (
-            len({config.embedding_dim for config in embedding_bag_configs}) == 1
-        ), "Please ensure all embedding_dims in id_mapping_config are the same"
+        assert len({config.embedding_dim for config in embedding_bag_configs}) == 1, (
+            "Please ensure all embedding_dims in id_mapping_config are the same"
+        )
         embedding_dim = embedding_bag_configs[0].embedding_dim
 
         self.embedding_bags = torch.nn.ModuleDict(

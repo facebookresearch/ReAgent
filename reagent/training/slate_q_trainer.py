@@ -112,9 +112,9 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
     ) -> rlt.DocList:
         # for invalid indices, simply set action to 0 so we can batch index still
         if terminal_mask is not None:
-            assert terminal_mask.shape == (
-                action.shape[0],
-            ), f"{terminal_mask.shape} != 0th dim of {action.shape}"
+            assert terminal_mask.shape == (action.shape[0],), (
+                f"{terminal_mask.shape} != 0th dim of {action.shape}"
+            )
             action[terminal_mask] = torch.zeros_like(action[terminal_mask])
         docs = state.candidate_docs
         assert docs is not None
@@ -198,9 +198,9 @@ class SlateQTrainer(RLTrainerMixin, ReAgentLightningModule):
         )
 
     def train_step_gen(self, training_batch: rlt.SlateQInput, batch_idx: int):
-        assert isinstance(
-            training_batch, rlt.SlateQInput
-        ), f"learning input is a {type(training_batch)}"
+        assert isinstance(training_batch, rlt.SlateQInput), (
+            f"learning input is a {type(training_batch)}"
+        )
 
         reward = training_batch.reward
         reward_mask = training_batch.reward_mask

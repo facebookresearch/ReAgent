@@ -186,6 +186,4 @@ class SumTree:
             nodes_at_this_depth[node_index] += delta_value
             node_index //= 2
 
-        assert node_index == 0, (
-            "Sum tree traversal failed, final node index " "is not 0."
-        )
+        assert node_index == 0, "Sum tree traversal failed, final node index is not 0."

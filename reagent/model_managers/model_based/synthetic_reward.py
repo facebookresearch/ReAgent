@@ -98,7 +98,9 @@ class SyntheticReward(ModelManager):
             assert (
                 type(self.discrete_action_names) is list
                 and len(self.discrete_action_names) > 1
-            ), f"Assume this is a discrete action problem, you need to specify at least 2 actions. Got {self.discrete_action_names}."
+            ), (
+                f"Assume this is a discrete action problem, you need to specify at least 2 actions. Got {self.discrete_action_names}."
+            )
         else:
             assert (
                 self.action_preprocessing_options is None

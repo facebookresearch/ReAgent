@@ -301,7 +301,7 @@ class CEMPlannerNetwork(nn.Module):
         logger.debug(
             f"Choose action {best_next_action_idx}."
             f"Stats: {reward_tally} / {first_action_tally}"
-            f" = {reward_tally/first_action_tally} "
+            f" = {reward_tally / first_action_tally} "
         )
         # pyre-fixme[7]: Expected `Tuple[int, ndarray]` but got `Tuple[typing.Any,
         #  Tensor]`.

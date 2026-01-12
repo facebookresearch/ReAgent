@@ -51,9 +51,9 @@ def create_predictor_policy_from_model(serving_module, **kwargs) -> Policy:
     elif module_name.endswith("ParametricDqnPredictorWrapper"):
         # TODO: remove this dependency
         max_num_actions = kwargs.get("max_num_actions", None)
-        assert (
-            max_num_actions is not None
-        ), f"max_num_actions not given for Parametric DQN."
+        assert max_num_actions is not None, (
+            f"max_num_actions not given for Parametric DQN."
+        )
         q_network = ParametricDqnPredictorUnwrapper(serving_module)
 
         # TODO: write SlateQ Wrapper

@@ -64,10 +64,10 @@ class FullyConnectedActor(ModelBase):
         assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
         self.state_dim = state_dim
         self.action_dim = action_dim
-        assert len(sizes) == len(
-            activations
-        ), "The numbers of sizes and activations must match; got {} vs {}".format(
-            len(sizes), len(activations)
+        assert len(sizes) == len(activations), (
+            "The numbers of sizes and activations must match; got {} vs {}".format(
+                len(sizes), len(activations)
+            )
         )
         self.action_activation = action_activation
         self.fc = FullyConnectedNetwork(
@@ -137,10 +137,10 @@ class GaussianFullyConnectedActor(ModelBase):
         assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
         self.state_dim = state_dim
         self.action_dim = action_dim
-        assert len(sizes) == len(
-            activations
-        ), "The numbers of sizes and activations must match; got {} vs {}".format(
-            len(sizes), len(activations)
+        assert len(sizes) == len(activations), (
+            "The numbers of sizes and activations must match; got {} vs {}".format(
+                len(sizes), len(activations)
+            )
         )
         # The last layer is mean & scale for reparameterization trick
         self.fc = FullyConnectedNetwork(
@@ -282,10 +282,10 @@ class DirichletFullyConnectedActor(ModelBase):
         assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
         self.state_dim = state_dim
         self.action_dim = action_dim
-        assert len(sizes) == len(
-            activations
-        ), "The numbers of sizes and activations must match; got {} vs {}".format(
-            len(sizes), len(activations)
+        assert len(sizes) == len(activations), (
+            "The numbers of sizes and activations must match; got {} vs {}".format(
+                len(sizes), len(activations)
+            )
         )
 
         # The last layer gives the concentration of the distribution.

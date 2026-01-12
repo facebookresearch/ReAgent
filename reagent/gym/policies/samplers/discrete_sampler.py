@@ -35,12 +35,12 @@ class SoftmaxActionSampler(Sampler):
         self.temperature = temperature
         self.temperature_decay = temperature_decay
         self.minimum_temperature = minimum_temperature
-        assert (
-            temperature_decay <= 1.0
-        ), f"Invalid temperature_decay>1: {temperature_decay}."
-        assert (
-            minimum_temperature <= temperature
-        ), f"minimum_temperature ({minimum_temperature}) exceeds initial temperature ({temperature})"
+        assert temperature_decay <= 1.0, (
+            f"Invalid temperature_decay>1: {temperature_decay}."
+        )
+        assert minimum_temperature <= temperature, (
+            f"minimum_temperature ({minimum_temperature}) exceeds initial temperature ({temperature})"
+        )
 
     def _get_distribution(
         self, scores: torch.Tensor
@@ -49,15 +49,15 @@ class SoftmaxActionSampler(Sampler):
 
     @torch.no_grad()
     def sample_action(self, scores: torch.Tensor) -> rlt.ActorOutput:
-        assert (
-            scores.dim() == 2
-        ), f"scores shape is {scores.shape}, not (batch_size, num_actions)"
+        assert scores.dim() == 2, (
+            f"scores shape is {scores.shape}, not (batch_size, num_actions)"
+        )
         batch_size, num_actions = scores.shape
         m = self._get_distribution(scores)
         raw_action = m.sample()
-        assert raw_action.shape == (
-            batch_size,
-        ), f"{raw_action.shape} != ({batch_size}, )"
+        assert raw_action.shape == (batch_size,), (
+            f"{raw_action.shape} != ({batch_size}, )"
+        )
         action = F.one_hot(raw_action, num_actions)
         assert action.ndim == 2
         log_prob = m.log_prob(raw_action)
@@ -89,9 +89,9 @@ class GreedyActionSampler(Sampler):
     """
 
     def _get_greedy_indices(self, scores: torch.Tensor) -> torch.Tensor:
-        assert (
-            len(scores.shape) == 2
-        ), f"scores shape is {scores.shape}, not (batchsize, num_actions)"
+        assert len(scores.shape) == 2, (
+            f"scores shape is {scores.shape}, not (batchsize, num_actions)"
+        )
         return scores.argmax(dim=1)
 
     @torch.no_grad()

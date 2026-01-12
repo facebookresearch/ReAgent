@@ -43,12 +43,12 @@ class SlateQ(SlateQBase):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
-        assert (
-            self.slate_size > 0
-        ), f"Please set valid slate_size (currently {self.slate_size})"
-        assert (
-            self.num_candidates > 0
-        ), f"Please set valid num_candidates (currently {self.num_candidates})"
+        assert self.slate_size > 0, (
+            f"Please set valid slate_size (currently {self.slate_size})"
+        )
+        assert self.num_candidates > 0, (
+            f"Please set valid num_candidates (currently {self.num_candidates})"
+        )
         self.eval_parameters = self.trainer_param.evaluation
 
     def build_trainer(

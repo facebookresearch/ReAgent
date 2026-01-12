@@ -28,8 +28,8 @@ logger = logging.getLogger(__name__)
 def print_mdnrnn_losses(minibatch, model_index, losses) -> None:
     logger.info(
         f"{minibatch}-th minibatch {model_index}-th model: \n"
-        f'loss={losses["loss"]}, bce={losses["bce"]}, '
-        f'gmm={losses["gmm"]}, mse={losses["mse"]}\n'
+        f"loss={losses['loss']}, bce={losses['bce']}, "
+        f"gmm={losses['gmm']}, mse={losses['mse']}\n"
     )
 
 

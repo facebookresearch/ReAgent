@@ -58,9 +58,9 @@ class MultiStageTrainer(ReAgentLightningModule):
         else:
             # By default, assume CompoundReporter with the same
             # number of reporters as trainers
-            assert len(self._trainers) == len(
-                reporter._reporters
-            ), f"{len(self._trainers)} != {len(reporter._reporters)}"
+            assert len(self._trainers) == len(reporter._reporters), (
+                f"{len(self._trainers)} != {len(reporter._reporters)}"
+            )
             for t, r in zip(self._trainers, reporter._reporters):
                 t.set_reporter(r)
 
@@ -140,9 +140,9 @@ class MultiStageTrainer(ReAgentLightningModule):
     def training_step(self, batch, batch_idx: int, optimizer_idx: int = 0):
         trainer_idx, offset = self._optimizer_step_to_trainer_idx[optimizer_idx]
         epoch_trainer_idx = self._get_trainer_idx_from_epoch()
-        assert (
-            trainer_idx == epoch_trainer_idx
-        ), f"Got {trainer_idx}; expected {epoch_trainer_idx}"
+        assert trainer_idx == epoch_trainer_idx, (
+            f"Got {trainer_idx}; expected {epoch_trainer_idx}"
+        )
         return self._trainers[trainer_idx].training_step(
             batch, batch_idx, optimizer_idx - offset
         )

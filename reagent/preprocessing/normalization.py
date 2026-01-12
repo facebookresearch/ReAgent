@@ -68,9 +68,9 @@ def identify_parameter(
     assert feature_type in identify_types.FEATURE_TYPES, "unknown type {}".format(
         feature_type
     )
-    assert (
-        len(values) >= MINIMUM_SAMPLES_TO_IDENTIFY
-    ), "insufficient information to identify parameter"
+    assert len(values) >= MINIMUM_SAMPLES_TO_IDENTIFY, (
+        "insufficient information to identify parameter"
+    )
 
     min_value = float(np.min(values))
     max_value = float(np.max(values))
@@ -227,9 +227,9 @@ def sort_features_by_normalization(
     # Sort features by feature type
     sorted_features: List[int] = []
     feature_starts: List[int] = []
-    assert isinstance(
-        list(normalization_parameters.keys())[0], int
-    ), "Normalization Parameters need to be int"
+    assert isinstance(list(normalization_parameters.keys())[0], int), (
+        "Normalization Parameters need to be int"
+    )
     for feature_type in FEATURE_TYPES:
         feature_starts.append(len(sorted_features))
         for feature in sorted(normalization_parameters.keys()):
@@ -277,9 +277,9 @@ def get_feature_norm_metadata(feature_name, feature_value_list, norm_params):
 
     feature_values = np.array(feature_value_list, dtype=np.float32)
     assert not (np.any(np.isinf(feature_values))), "Feature values contain infinity"
-    assert not (
-        np.any(np.isnan(feature_values))
-    ), "Feature values contain nan (are there nulls in the feature values?)"
+    assert not (np.any(np.isnan(feature_values))), (
+        "Feature values contain nan (are there nulls in the feature values?)"
+    )
     normalization_parameters = identify_parameter(
         feature_name,
         feature_values,

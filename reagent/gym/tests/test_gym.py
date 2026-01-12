@@ -25,7 +25,6 @@ from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.model_managers.union import ModelManager__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
-
 from reagent.test.base.horizon_test_base import HorizonTestBase
 
 
@@ -266,9 +265,9 @@ def run_test_replay_buffer(
     )
 
     eval_rewards = eval_policy(env, serving_policy, num_eval_episodes, serving=True)
-    assert (
-        eval_rewards.mean() >= passing_score_bar
-    ), f"Eval reward is {eval_rewards.mean()}, less than < {passing_score_bar}.\n"
+    assert eval_rewards.mean() >= passing_score_bar, (
+        f"Eval reward is {eval_rewards.mean()}, less than < {passing_score_bar}.\n"
+    )
 
 
 def run_test_online_episode(
@@ -320,9 +319,9 @@ def run_test_online_episode(
         max_steps=env.max_steps,
         num_processes=1,
     ).squeeze(1)
-    assert (
-        eval_rewards.mean() >= passing_score_bar
-    ), f"Eval reward is {eval_rewards.mean()}, less than < {passing_score_bar}.\n"
+    assert eval_rewards.mean() >= passing_score_bar, (
+        f"Eval reward is {eval_rewards.mean()}, less than < {passing_score_bar}.\n"
+    )
 
 
 if __name__ == "__main__":

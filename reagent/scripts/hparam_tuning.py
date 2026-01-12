@@ -120,9 +120,9 @@ def run_ax_search(
         A dict of best hyperparameters found by Ax
     """
     for p in ax_params:
-        assert (
-            p["name"] not in fixed_params
-        ), f'Parameter {p["name"]} appers in both fixed and search parameters'
+        assert p["name"] not in fixed_params, (
+            f"Parameter {p['name']} appers in both fixed and search parameters"
+        )
     if ax_param_constraints is None:
         ax_param_constraints = []
     ax_client = AxClient()

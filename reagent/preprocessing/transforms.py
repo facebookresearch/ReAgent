@@ -286,9 +286,9 @@ class IDScoreListFeatures:
         self.keys = keys
         self.feature_configs = feature_configs
         self.id_mapping_configs = id_mapping_configs
-        assert len(self.keys) == len(
-            self.feature_configs
-        ), "There should be as many keys as feature_configs"
+        assert len(self.keys) == len(self.feature_configs), (
+            "There should be as many keys as feature_configs"
+        )
         self._id_2_embed_size = _build_id_2_embedding_size(
             keys,
             # pyre-fixme[6]: For 2nd param expected `List[List[BaseDataClass]]` but
@@ -360,9 +360,9 @@ class MapIDListFeatures:
     ):
         self.id_list_keys = id_list_keys
         self.id_score_list_keys = id_score_list_keys
-        assert (
-            set(id_list_keys).intersection(set(id_score_list_keys)) == set()
-        ), f"id_list_keys: {id_list_keys}; id_score_list_keys: {id_score_list_keys}"
+        assert set(id_list_keys).intersection(set(id_score_list_keys)) == set(), (
+            f"id_list_keys: {id_list_keys}; id_score_list_keys: {id_score_list_keys}"
+        )
         self.feature_config = feature_config
         self.sparse_preprocessor = make_sparse_preprocessor(
             feature_config=feature_config, device=device, gen_torch_script=False
@@ -428,9 +428,9 @@ class ColumnVector:
             else:
                 raise NotImplementedError(f"value of type {type(raw_value)}.")
 
-            assert value.ndim == 1 or (
-                value.ndim == 2 and value.shape[1] == 1
-            ), f"Invalid shape for key {k}: {value.shape}"
+            assert value.ndim == 1 or (value.ndim == 2 and value.shape[1] == 1), (
+                f"Invalid shape for key {k}: {value.shape}"
+            )
             data[k] = value.reshape(-1, 1)
 
         return data
@@ -451,9 +451,9 @@ class ExtractValue:
         extra_val_list = []
         for k in self.keys:
             raw_list = data[k]
-            assert isinstance(
-                raw_list, list
-            ), f"Extra key - {k} must be of format list(tuple(tensor, tensor))"
+            assert isinstance(raw_list, list), (
+                f"Extra key - {k} must be of format list(tuple(tensor, tensor))"
+            )
             assert len(raw_list) != 0, f"Extra key - {k} cannot be an empty list"
             for raw_value in raw_list:
                 value, presence = raw_value
@@ -474,9 +474,9 @@ class MaskByPresence:
     def __call__(self, data):
         for k in self.keys:
             value_presence = data[k]
-            assert (
-                isinstance(value_presence, tuple) and len(value_presence) == 2
-            ), f"Not valid value, presence tuple: {value_presence}"
+            assert isinstance(value_presence, tuple) and len(value_presence) == 2, (
+                f"Not valid value, presence tuple: {value_presence}"
+            )
             value, presence = value_presence
             assert value.shape == presence.shape, (
                 f"Unmatching value shape ({value.shape})"

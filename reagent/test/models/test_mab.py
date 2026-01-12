@@ -7,7 +7,6 @@ import unittest
 from dataclasses import replace
 
 import numpy as np
-
 import numpy.testing as npt
 import torch
 from reagent.core.types import CBInput

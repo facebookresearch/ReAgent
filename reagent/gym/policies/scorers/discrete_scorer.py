@@ -23,9 +23,9 @@ def apply_possible_actions_mask(
     if possible_actions_mask is None:
         return scores
     possible_actions_mask = possible_actions_mask.unsqueeze(0)
-    assert (
-        scores.shape == possible_actions_mask.shape
-    ), f"{scores.shape} != {possible_actions_mask.shape}"
+    assert scores.shape == possible_actions_mask.shape, (
+        f"{scores.shape} != {possible_actions_mask.shape}"
+    )
     scores[~possible_actions_mask] = invalid_score
     return scores
 
@@ -63,9 +63,9 @@ def discrete_dqn_serving_scorer(q_network: torch.nn.Module) -> Scorer:
 
 
 def get_parametric_input(max_num_actions: int, obs: rlt.FeatureData):
-    assert (
-        len(obs.float_features.shape) == 2
-    ), f"{obs.float_features.shape} is not (batch_size, state_dim)."
+    assert len(obs.float_features.shape) == 2, (
+        f"{obs.float_features.shape} is not (batch_size, state_dim)."
+    )
     batch_size, _ = obs.float_features.shape
     possible_actions = get_possible_actions_for_gym(batch_size, max_num_actions).to(
         obs.float_features.device

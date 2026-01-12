@@ -8,7 +8,6 @@ import unittest
 
 import numpy.testing as npt
 import torch
-
 import torch.nn as nn
 import torch.nn.init as init
 from reagent.core import types as rlt

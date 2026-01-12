@@ -107,7 +107,7 @@ class TestValues(unittest.TestCase):
     class TestTupleFloatKeyValues(Values[TestTupleFloatType]):
         def _new_key(self, k: int):
             raise TypeError(
-                f"value {k} invalid for " f"{TestValues.TestTupleFloatType.__name__}"
+                f"value {k} invalid for {TestValues.TestTupleFloatType.__name__}"
             )
 
     def setUp(self) -> None:

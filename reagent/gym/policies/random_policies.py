@@ -105,9 +105,9 @@ class ContinuousRandomPolicy(Policy):
     def __init__(self, low: torch.Tensor, high: torch.Tensor) -> None:
         self.low = low
         self.high = high
-        assert (
-            low.shape == high.shape
-        ), f"low.shape = {low.shape}, high.shape = {high.shape}"
+        assert low.shape == high.shape, (
+            f"low.shape = {low.shape}, high.shape = {high.shape}"
+        )
         self.dist = torch.distributions.uniform.Uniform(self.low, self.high)
 
     @classmethod
@@ -118,9 +118,9 @@ class ContinuousRandomPolicy(Policy):
                 f"Action space is discrete. Try using DiscreteRandomPolicy instead."
             )
         elif isinstance(action_space, gym.spaces.Box):
-            assert (
-                len(action_space.shape) == 1
-            ), f"Box with shape {action_space.shape} not supported."
+            assert len(action_space.shape) == 1, (
+                f"Box with shape {action_space.shape} not supported."
+            )
             low, high = CONTINUOUS_TRAINING_ACTION_RANGE
             # broadcast low and high to shape
             np_ones = np.ones(action_space.shape)

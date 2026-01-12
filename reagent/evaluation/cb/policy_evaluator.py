@@ -157,7 +157,9 @@ class PolicyEvaluator(BaseOfflineEval):
             self.sum_importance_weight_accepted_local.item() == 0.0
             # pyre-fixme[29]: `Union[(self: TensorBase) -> Union[bool, float, int],
             #  Tensor, Module]` is not a function.
-        ), f"Non-zero local weight {self.sum_importance_weight_appected_local.item()} in the evaluator. _aggregate_across_instances() Should have beed called to aggregate across all instances and zero-out the local values."
+        ), (
+            f"Non-zero local weight {self.sum_importance_weight_appected_local.item()} in the evaluator. _aggregate_across_instances() Should have beed called to aggregate across all instances and zero-out the local values."
+        )
         # return the average reward
         return (
             self.sum_reward_importance_weighted_accepted

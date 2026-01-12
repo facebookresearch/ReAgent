@@ -36,9 +36,9 @@ class DuelingQNetwork(ModelBase):
         super().__init__()
         self.shared_network = shared_network
         input_prototype = shared_network.input_prototype()
-        assert isinstance(
-            input_prototype, rlt.FeatureData
-        ), "shared_network should expect FeatureData as input"
+        assert isinstance(input_prototype, rlt.FeatureData), (
+            "shared_network should expect FeatureData as input"
+        )
         self.advantage_network = advantage_network
         self.value_network = value_network
 

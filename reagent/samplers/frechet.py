@@ -99,9 +99,9 @@ class FrechetSort(Sampler):
         """
         upto = self.upto
         if equiv_len_override is not None:
-            assert (
-                equiv_len_override.shape == (scores.shape[0],)
-            ), f"Invalid shape {equiv_len_override.shape}, compared to scores {scores.shape}. equiv_len_override {equiv_len_override}"
+            assert equiv_len_override.shape == (scores.shape[0],), (
+                f"Invalid shape {equiv_len_override.shape}, compared to scores {scores.shape}. equiv_len_override {equiv_len_override}"
+            )
             upto = equiv_len_override.long()
             if self.topk is not None and torch.any(equiv_len_override > self.topk):
                 raise ValueError(

@@ -7,7 +7,6 @@ from typing import Dict, List, Optional
 
 # pyre-fixme[21]: Could not find module `reagent.core.types`.
 import reagent.core.types as rlt
-
 from pyspark.sql.functions import col, collect_list, explode
 
 # pyre-fixme[21]: Could not find module `reagent.data.spark_utils`.

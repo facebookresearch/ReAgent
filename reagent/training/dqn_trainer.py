@@ -352,9 +352,9 @@ class DQNTrainer(DQNTrainerBaseLightning):
 
         Example: tensor([1.0, 0.0, 1.0]) -> {"1": 1.0, "2": 0.0, "3": 1.0}.
         """
-        assert dense.size() == (
-            self.num_actions,
-        ), f"Invalid dense size {dense.size()} != {(self.num_actions,)}"
+        assert dense.size() == (self.num_actions,), (
+            f"Invalid dense size {dense.size()} != {(self.num_actions,)}"
+        )
         retval = {}
         for i, a in enumerate(self._actions):
             retval[a] = dense[i]

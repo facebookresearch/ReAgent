@@ -242,8 +242,7 @@ class DMEstimator(RLEstimator):
             )
         )
         logging.info(
-            f"{self}: finishing evaluating["
-            f"process_time={time.process_time() - stime}]"
+            f"{self}: finishing evaluating[process_time={time.process_time() - stime}]"
         )
         return results
 
@@ -339,8 +338,7 @@ class IPSEstimator(RLEstimator):
             )
         )
         logging.info(
-            f"{self}: finishing evaluating["
-            f"process_time={time.process_time() - stime}]"
+            f"{self}: finishing evaluating[process_time={time.process_time() - stime}]"
         )
         return results
 
@@ -402,8 +400,7 @@ class DoublyRobustEstimator(IPSEstimator):
             )
         )
         logging.info(
-            f"{self}: finishing evaluating["
-            f"process_time={time.process_time() - stime}]"
+            f"{self}: finishing evaluating[process_time={time.process_time() - stime}]"
         )
         return results
 
@@ -527,8 +524,7 @@ class MAGICEstimator(IPSEstimator):
             )
         )
         logging.info(
-            f"{self}: finishing evaluating["
-            f"process_time={time.process_time() - stime}]"
+            f"{self}: finishing evaluating[process_time={time.process_time() - stime}]"
         )
         return results
 

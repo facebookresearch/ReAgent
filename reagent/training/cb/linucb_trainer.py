@@ -39,9 +39,9 @@ class LinUCBTrainer(BaseCBTrainerWithEval):
         **kwargs,
     ):
         super().__init__(automatic_optimization=automatic_optimization, *args, **kwargs)
-        assert isinstance(
-            policy.scorer, LinearRegressionUCB
-        ), "LinUCBTrainer requires the policy scorer to be LinearRegressionUCB"
+        assert isinstance(policy.scorer, LinearRegressionUCB), (
+            "LinUCBTrainer requires the policy scorer to be LinearRegressionUCB"
+        )
         self.scorer = policy.scorer
 
     def configure_optimizers(self):

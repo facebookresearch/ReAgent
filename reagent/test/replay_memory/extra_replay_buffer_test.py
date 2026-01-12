@@ -141,9 +141,9 @@ def generic_stack_multi_steps_test_helper(
             actual_rb_index += 1
             i += 1
         actual_rb_index += stack_size - 1
-    assert (
-        actual_rb_index <= buffer_size
-    ), f"{actual_rb_index} is larger than {buffer_size}"
+    assert actual_rb_index <= buffer_size, (
+        f"{actual_rb_index} is larger than {buffer_size}"
+    )
 
     expected["terminal"] = np.expand_dims(terminal_array, axis=1)
     for k in expected:
@@ -194,9 +194,9 @@ def generic_stack_multi_steps_test_helper(
         assert isinstance(batch_val, list), f"batch[{k}] has type {type(batch_val)}"
         assert len(batch_val) == batch_size
         for i in range(batch_size):
-            assert isinstance(
-                batch_val[i], torch.Tensor
-            ), f"batch[{k}][{i}] has type {type(batch_val[i])};\n{batch_val}"
+            assert isinstance(batch_val[i], torch.Tensor), (
+                f"batch[{k}][{i}] has type {type(batch_val[i])};\n{batch_val}"
+            )
             assert batch_val[i].shape[0] == batch.step[i], (
                 f"batch[{k}][{i}] {batch_val[i].shape} doesn't start "
                 f"with {batch.step[i]};\n{batch_val}"

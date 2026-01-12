@@ -94,9 +94,9 @@ class FullyConnectedNetwork(ModelBase):
         # this list stores all the layers in the network
         modules: List[nn.Module] = []
 
-        assert (
-            len(layers) == len(activations) + 1
-        ), f"Invalid number of layers {len(layers)} and activations {len(activations)}. Number of layers needs to be 1 + number of activations"
+        assert len(layers) == len(activations) + 1, (
+            f"Invalid number of layers {len(layers)} and activations {len(activations)}. Number of layers needs to be 1 + number of activations"
+        )
 
         for i, ((in_dim, out_dim), activation) in enumerate(
             zip(zip(layers, layers[1:]), activations)
@@ -188,10 +188,10 @@ class FloatFeatureFullyConnected(ModelBase):
         assert output_dim > 0, "output_dim must be > 0, got {}".format(output_dim)
         self.state_dim = state_dim
         self.output_dim = output_dim
-        assert len(sizes) == len(
-            activations
-        ), "The numbers of sizes and activations must match; got {} vs {}".format(
-            len(sizes), len(activations)
+        assert len(sizes) == len(activations), (
+            "The numbers of sizes and activations must match; got {} vs {}".format(
+                len(sizes), len(activations)
+            )
         )
         self.num_atoms = num_atoms
         self.fc = FullyConnectedNetwork(

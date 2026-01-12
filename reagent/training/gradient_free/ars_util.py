@@ -86,12 +86,12 @@ class ARSOptimizer:
         reward should be something like
         [reward_pert1_pos, reward_pert1_neg, reward_pert2_pos, reward_pert2_neg, ...]
         """
-        assert (
-            len(self.perturbations) > 0
-        ), "must call sample_perturbed_params before this function"
-        assert rewards.shape == (
-            2 * self.n_pert,
-        ), "rewards must have length 2 * n_pert"
+        assert len(self.perturbations) > 0, (
+            "must call sample_perturbed_params before this function"
+        )
+        assert rewards.shape == (2 * self.n_pert,), (
+            "rewards must have length 2 * n_pert"
+        )
         rank = {}
         # pyre-fixme[9]: rewards has type `Tensor`; used as `ndarray[Any, Any]`.
         rewards = rewards.numpy()

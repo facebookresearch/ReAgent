@@ -21,9 +21,9 @@ class LearningRateSchedulerConfig(metaclass=RegistryMeta):
         torch_lr_scheduler_class = getattr(
             torch.optim.lr_scheduler, type(self).__name__
         )
-        assert is_torch_lr_scheduler(
-            torch_lr_scheduler_class
-        ), f"{torch_lr_scheduler_class} is not a scheduler."
+        assert is_torch_lr_scheduler(torch_lr_scheduler_class), (
+            f"{torch_lr_scheduler_class} is not a scheduler."
+        )
 
         filtered_args = {
             k: getattr(self, k)

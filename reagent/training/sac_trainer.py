@@ -271,9 +271,9 @@ class SACTrainer(RLTrainerMixin, ReAgentLightningModule):
             advantage = (min_q_actor_value - cur_value).detach()
             # pyre-fixme[16]: `Optional` has no attribute `get_weight_from_advantage`.
             crr_weight = self.crr_config.get_weight_from_advantage(advantage)
-            assert (
-                actor_log_prob.shape == crr_weight.shape
-            ), f"{actor_log_prob.shape} != {crr_weight.shape}"
+            assert actor_log_prob.shape == crr_weight.shape, (
+                f"{actor_log_prob.shape} != {crr_weight.shape}"
+            )
             actor_loss = -(actor_log_prob * crr_weight.detach())
         else:
             actor_loss = self.entropy_temperature * actor_log_prob - min_q_actor_value

@@ -116,9 +116,9 @@ class DiscreteCRRTrainer(DQNTrainerBaseLightning):
 
         self.q2_network = q2_network
         if self.q2_network is not None:
-            assert (
-                q2_network_target is not None
-            ), "q2_network provided without a target network"
+            assert q2_network_target is not None, (
+                "q2_network provided without a target network"
+            )
             self.q2_network_target = q2_network_target
 
         self.actor_network = actor_network

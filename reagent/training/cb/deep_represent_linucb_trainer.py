@@ -40,9 +40,9 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
             policy=policy,
             **kwargs,
         )
-        assert isinstance(
-            policy.scorer, DeepRepresentLinearRegressionUCB
-        ), "Trainer requires the policy scorer to be DeepRepresentLinearRegressionUCB"
+        assert isinstance(policy.scorer, DeepRepresentLinearRegressionUCB), (
+            "Trainer requires the policy scorer to be DeepRepresentLinearRegressionUCB"
+        )
         self.scorer = policy.scorer
         self.loss_fn = LOSS_TYPES[loss_type]
         self.lr = lr
@@ -77,9 +77,9 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
 
         assert batch.label is not None  # to satisfy Pyre
         label = batch.label.squeeze(-1)
-        assert (
-            pred_label.shape == label.shape
-        ), f"Shapes of model prediction {pred_label.shape} and label {label.shape} have to match"
+        assert pred_label.shape == label.shape, (
+            f"Shapes of model prediction {pred_label.shape} and label {label.shape} have to match"
+        )
         # compute the NN loss
         # weighted average loss
         losses = self.loss_fn(pred_label, label, reduction="none")

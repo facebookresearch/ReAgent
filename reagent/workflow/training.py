@@ -326,9 +326,9 @@ def train_workflow(
 def run_validator(
     validator: ModelValidator__Union, training_output: RLTrainingOutput
 ) -> RLTrainingOutput:
-    assert (
-        training_output.validation_result is None
-    ), f"validation_output was set to f{training_output.validation_output}"
+    assert training_output.validation_result is None, (
+        f"validation_output was set to f{training_output.validation_output}"
+    )
     model_validator = validator.value
     validation_result = model_validator.validate(training_output)
     return dataclasses.replace(training_output, validation_result=validation_result)
@@ -343,9 +343,9 @@ def run_publisher(
     child_workflow_id: int,
     recurring_period: Optional[RecurringPeriod],
 ) -> RLTrainingOutput:
-    assert (
-        training_output.publishing_result is None
-    ), f"publishing_output was set to f{training_output.publishing_output}"
+    assert training_output.publishing_result is None, (
+        f"publishing_output was set to f{training_output.publishing_output}"
+    )
     model_publisher = publisher.value
     model_manager = model_chooser.value
     publishing_result = model_publisher.publish(

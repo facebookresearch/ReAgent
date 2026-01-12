@@ -56,9 +56,9 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
         elif rl.q_network_loss == "bce_with_logits":
             # The loss is only used when gamma = 0, reward is between 0 and 1
             # and we need to calculate NE as metrics.
-            assert (
-                rl.gamma == 0
-            ), "bce_with_logits loss is only supported when gamma is 0."
+            assert rl.gamma == 0, (
+                "bce_with_logits loss is only supported when gamma is 0."
+            )
             self.q_network_loss = F.binary_cross_entropy_with_logits
         else:
             raise Exception(
@@ -145,29 +145,29 @@ class ParametricDQNTrainer(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningModu
                 all_next_q_values_target,
                 training_batch.possible_next_actions_mask.float(),
             )
-            assert (
-                len(next_q_values.shape) == 2 and next_q_values.shape[1] == 1
-            ), f"{next_q_values.shape}"
+            assert len(next_q_values.shape) == 2 and next_q_values.shape[1] == 1, (
+                f"{next_q_values.shape}"
+            )
 
         else:
             # SARSA (Use the target network)
             _, next_q_values = self.get_detached_model_outputs(
                 training_batch.next_state, training_batch.next_action
             )
-            assert (
-                len(next_q_values.shape) == 2 and next_q_values.shape[1] == 1
-            ), f"{next_q_values.shape}"
+            assert len(next_q_values.shape) == 2 and next_q_values.shape[1] == 1, (
+                f"{next_q_values.shape}"
+            )
 
         target_q_values = reward + not_terminal * discount_tensor * next_q_values
-        assert (
-            target_q_values.shape[-1] == 1
-        ), f"{target_q_values.shape} doesn't end with 1"
+        assert target_q_values.shape[-1] == 1, (
+            f"{target_q_values.shape} doesn't end with 1"
+        )
 
         # Get Q-value of action taken
         q_values = self.q_network(training_batch.state, training_batch.action)
-        assert (
-            target_q_values.shape == q_values.shape
-        ), f"{target_q_values.shape} != {q_values.shape}."
+        assert target_q_values.shape == q_values.shape, (
+            f"{target_q_values.shape} != {q_values.shape}."
+        )
         td_loss = self.q_network_loss(q_values, target_q_values)
         yield td_loss
 

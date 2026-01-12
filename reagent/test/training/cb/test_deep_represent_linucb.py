@@ -10,7 +10,6 @@ import torch
 from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy
 from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
-
 from reagent.models.deep_represent_linucb import DeepRepresentLinearRegressionUCB
 from reagent.models.fully_connected_network import FullyConnectedNetwork
 from reagent.training.cb.deep_represent_linucb_trainer import DeepRepresentLinUCBTrainer

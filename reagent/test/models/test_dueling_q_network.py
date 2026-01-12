@@ -10,7 +10,6 @@ from typing import Union
 import torch
 import torch.nn as nn
 from reagent.core import types as rlt
-
 from reagent.models.dueling_q_network import DuelingQNetwork, ParametricDuelingQNetwork
 from reagent.test.models.test_utils import run_model_jit_trace
 

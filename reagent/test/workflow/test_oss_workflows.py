@@ -99,12 +99,15 @@ class TestOSSWorkflows(HorizonTestBase):
                 parquet_url=f"file://{os.path.abspath(DQN_WORKFLOW_PARQUET_REL_PATH)}"
             )
             mock_normalization = mock_cartpole_normalization()
-            with patch(
-                "reagent.data.oss_data_fetcher.OssDataFetcher.query_data",
-                return_value=mock_dataset,
-            ), patch(
-                f"{DISCRETE_DQN_BASE}.identify_normalization_parameters",
-                return_value=mock_normalization,
+            with (
+                patch(
+                    "reagent.data.oss_data_fetcher.OssDataFetcher.query_data",
+                    return_value=mock_dataset,
+                ),
+                patch(
+                    f"{DISCRETE_DQN_BASE}.identify_normalization_parameters",
+                    return_value=mock_normalization,
+                ),
             ):
                 # call the cli test
                 result = runner.invoke(

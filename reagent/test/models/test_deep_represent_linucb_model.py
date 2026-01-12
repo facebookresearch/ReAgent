@@ -2,7 +2,6 @@
 import unittest
 
 import torch
-
 from reagent.models.deep_represent_linucb import DeepRepresentLinearRegressionUCB
 
 

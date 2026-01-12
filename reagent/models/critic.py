@@ -21,17 +21,17 @@ def run_feature_validation(
     state_float_features_batch_size: int,
     action_float_features_batch_size: int,
 ) -> None:
-    assert (
-        state_float_features_dim == 2
-    ), f"Expected dimension of state is 2. Got {state_float_features_dim}"
+    assert state_float_features_dim == 2, (
+        f"Expected dimension of state is 2. Got {state_float_features_dim}"
+    )
 
-    assert (
-        action_float_features_dim == state_float_features_dim
-    ), "Dimensions of state and action mismatch"
+    assert action_float_features_dim == state_float_features_dim, (
+        "Dimensions of state and action mismatch"
+    )
 
-    assert (
-        state_float_features_batch_size == action_float_features_batch_size
-    ), "Batch sizes of state and action mismatch"
+    assert state_float_features_batch_size == action_float_features_batch_size, (
+        "Batch sizes of state and action mismatch"
+    )
 
 
 class FullyConnectedCritic(ModelBase):
@@ -57,10 +57,10 @@ class FullyConnectedCritic(ModelBase):
         assert action_dim > 0, "action_dim must be > 0, got {}".format(action_dim)
         self.state_dim = state_dim
         self.action_dim = action_dim
-        assert len(sizes) == len(
-            activations
-        ), "The numbers of sizes and activations must match; got {} vs {}".format(
-            len(sizes), len(activations)
+        assert len(sizes) == len(activations), (
+            "The numbers of sizes and activations must match; got {} vs {}".format(
+                len(sizes), len(activations)
+            )
         )
         self.fc = FullyConnectedNetwork(
             [state_dim + action_dim] + sizes + [output_dim],

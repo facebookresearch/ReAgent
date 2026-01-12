@@ -34,9 +34,9 @@ class DisjointLinUCBTrainer(BaseCBTrainerWithEval):
         **kwargs,
     ):
         super().__init__(automatic_optimization=automatic_optimization, *args, **kwargs)
-        assert isinstance(
-            policy.scorer, DisjointLinearRegressionUCB
-        ), "DisjointLinUCBTrainer requires the policy scorer to be DisjointLinearRegressionUCB"
+        assert isinstance(policy.scorer, DisjointLinearRegressionUCB), (
+            "DisjointLinUCBTrainer requires the policy scorer to be DisjointLinearRegressionUCB"
+        )
         self.scorer = policy.scorer
         self.num_arms = policy.scorer.num_arms
 

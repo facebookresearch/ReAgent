@@ -25,10 +25,8 @@ from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.model_managers.union import ModelManager__Union
 from reagent.models.world_model import MemoryNetwork
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
-
 from reagent.test.base.horizon_test_base import HorizonTestBase
 from reagent.training.world_model.mdnrnn_trainer import MDNRNNTrainer
-
 from reagent.workflow.types import RewardOptions
 from tqdm import tqdm
 
@@ -383,9 +381,9 @@ def train_mdnrnn_and_train_on_embedded_env(
         agent=agent,
         num_processes=1,
     )
-    assert (
-        np.mean(rewards) >= passing_score_bar
-    ), f"average reward doesn't pass our bar {passing_score_bar}"
+    assert np.mean(rewards) >= passing_score_bar, (
+        f"average reward doesn't pass our bar {passing_score_bar}"
+    )
     return rewards
 
 
@@ -393,9 +391,9 @@ class TestWorldModel(HorizonTestBase):
     @staticmethod
     def verify_result(result_dict: Dict[str, float], expected_top_features: List[str]):
         top_feature = max(result_dict, key=result_dict.get)
-        assert (
-            top_feature in expected_top_features
-        ), f"top_feature: {top_feature}, expected_top_features: {expected_top_features}"
+        assert top_feature in expected_top_features, (
+            f"top_feature: {top_feature}, expected_top_features: {expected_top_features}"
+        )
 
     def test_mdnrnn(self):
         """Test MDNRNN feature importance and feature sensitivity."""

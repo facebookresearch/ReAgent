@@ -10,7 +10,6 @@ from typing import Dict, Optional
 
 import reagent
 from pyspark.sql import SparkSession
-
 from pyspark.sql.functions import col
 
 

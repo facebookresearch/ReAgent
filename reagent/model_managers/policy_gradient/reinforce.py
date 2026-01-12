@@ -59,9 +59,9 @@ class Reinforce(ModelManager):
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
         self._policy: Optional[Policy] = None
-        assert (
-            len(self.action_names) > 1
-        ), f"REINFORCE needs at least 2 actions. Got {self.action_names}."
+        assert len(self.action_names) > 1, (
+            f"REINFORCE needs at least 2 actions. Got {self.action_names}."
+        )
 
     @property
     def action_names(self):

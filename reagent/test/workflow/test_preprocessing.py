@@ -63,12 +63,12 @@ class TestPreprocessing(ReagentSQLTestBase):
                 f"mean {info['mean']}, stddev {info['stddev']}."
             )
             assert normalization_params[k].feature_type == CONTINUOUS
-            assert (
-                abs(normalization_params[k].mean - info["mean"]) < 0.05
-            ), f"{normalization_params[k].mean} not close to {info['mean']}"
-            assert abs(
-                normalization_params[k].stddev - info["stddev"] < 0.2
-            ), f"{normalization_params[k].stddev} not close to {info['stddev']}"
+            assert abs(normalization_params[k].mean - info["mean"]) < 0.05, (
+                f"{normalization_params[k].mean} not close to {info['mean']}"
+            )
+            assert abs(normalization_params[k].stddev - info["stddev"] < 0.2), (
+                f"{normalization_params[k].stddev} not close to {info['stddev']}"
+            )
         logger.info("identify_normalization_parameters seems fine.")
 
 

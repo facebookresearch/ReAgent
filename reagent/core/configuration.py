@@ -55,9 +55,9 @@ def make_config_class(
 
     parameters = signature(func).parameters
 
-    assert (
-        allowlist is None or blocklist is None
-    ), "allowlist & blocklist are mutually exclusive"
+    assert allowlist is None or blocklist is None, (
+        "allowlist & blocklist are mutually exclusive"
+    )
 
     blocklist_set = set(blocklist or [])
 

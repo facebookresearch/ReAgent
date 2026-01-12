@@ -19,12 +19,12 @@ def rescale_actions(
     prev_max: torch.Tensor,
 ) -> torch.Tensor:
     """Scale from [prev_min, prev_max] to [new_min, new_max]"""
-    assert torch.all(prev_min <= actions) and torch.all(
-        actions <= prev_max
-    ), f"{actions} has values outside of [{prev_min}, {prev_max}]."
-    assert torch.all(
-        new_min <= new_max
-    ), f"{new_min} is (has coordinate) greater than {new_max}."
+    assert torch.all(prev_min <= actions) and torch.all(actions <= prev_max), (
+        f"{actions} has values outside of [{prev_min}, {prev_max}]."
+    )
+    assert torch.all(new_min <= new_max), (
+        f"{new_min} is (has coordinate) greater than {new_max}."
+    )
     prev_range = prev_max - prev_min
     new_range = new_max - new_min
     return ((actions - prev_min) / prev_range) * new_range + new_min

@@ -38,9 +38,9 @@ def replay_buffer_to_pre_timeline_df(
     terminal = batch.terminal.squeeze(1).tolist()
     assert len(batch.action.shape) == 2
     if is_discrete_action:
-        assert (
-            batch.action.shape[1] == 1
-        ), f"discrete action batch with shape {batch.action.shape}"
+        assert batch.action.shape[1] == 1, (
+            f"discrete action batch with shape {batch.action.shape}"
+        )
         # Discrete action space, should be str
         action = [str(a.item()) for a in batch.action]
         # assuming we've explored the whole action space

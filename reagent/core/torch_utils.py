@@ -214,9 +214,9 @@ def reorder_data_kjt(x: KeyedJaggedTensor, indices: torch.Tensor):
     """
     num_keys = len(x.keys())
     num_data = len(indices)
-    assert (
-        len(x.lengths()) == num_keys * num_data
-    ), "The num of data indicated by input arg indices does not match with input KeyedJaggedTensor"
+    assert len(x.lengths()) == num_keys * num_data, (
+        "The num of data indicated by input arg indices does not match with input KeyedJaggedTensor"
+    )
 
     acc_lengths_per_key = torch.cumsum(torch.tensor(x.length_per_key()), dim=0)
     values_per_key = torch.tensor_split(x.values(), acc_lengths_per_key)[:-1]

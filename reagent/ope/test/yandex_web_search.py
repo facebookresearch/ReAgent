@@ -393,8 +393,7 @@ class TrainingDataset:
                 self._query_terms = query_terms
                 self._position_relevances = position_relevances
                 logging.info(
-                    f"  loaded {len(self._queries)}, "
-                    f"  time {time.process_time() - st}"
+                    f"  loaded {len(self._queries)},   time {time.process_time() - st}"
                 )
         else:
             all_queries = {}

@@ -264,9 +264,9 @@ class DocList(TensorDataClass):
     value: torch.Tensor = None
 
     def __post_init__(self):
-        assert (
-            len(self.float_features.shape) == 3
-        ), f"Unexpected shape: {self.float_features.shape}"
+        assert len(self.float_features.shape) == 3, (
+            f"Unexpected shape: {self.float_features.shape}"
+        )
         if self.mask is None:
             self.mask = self.float_features.new_ones(
                 self.float_features.shape[:2], dtype=torch.bool
@@ -348,18 +348,18 @@ class FeatureData(TensorDataClass):
         )
 
     def get_tiled_batch(self, num_tiles: int):
-        assert (
-            self.has_float_features_only
-        ), f"only works for float features now: {self}"
+        assert self.has_float_features_only, (
+            f"only works for float features now: {self}"
+        )
         """
         tiled_feature should be (batch_size * num_tiles, feature_dim)
         forall i in [batch_size],
         tiled_feature[i*num_tiles:(i+1)*num_tiles] should be feat[i]
         """
         feat = self.float_features
-        assert (
-            len(feat.shape) == 2
-        ), f"Need feat shape to be (batch_size, feature_dim), got {feat.shape}."
+        assert len(feat.shape) == 2, (
+            f"Need feat shape to be (batch_size, feature_dim), got {feat.shape}."
+        )
         batch_size, _ = feat.shape
         tiled_feat = feat.repeat_interleave(repeats=num_tiles, dim=0)
         return FeatureData(float_features=tiled_feat)
@@ -405,9 +405,9 @@ def _embed_states(x: FeatureData) -> FeatureData:
         """
         n = state.shape[0]
         assert len(state.shape) == 2, f"{state.shape} != (batch_size, user_dim)"
-        assert (
-            len(candidates.shape) == 3
-        ), f"{candidates.shape} != (batch_size, num_candidates, candidate_dim)"
+        assert len(candidates.shape) == 3, (
+            f"{candidates.shape} != (batch_size, num_candidates, candidate_dim)"
+        )
         assert candidates.shape[0] == n, f"{candidates.shape} 0th dim != {n}"
         # TODO: have an embedder here
         # NOTE: mean aggregation is not very effective here

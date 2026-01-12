@@ -17,7 +17,7 @@ class Sequential(
 
     def input_prototype(self):
         first = self[0]
-        assert isinstance(
-            first, ModelBase
-        ), "The first module of Sequential has to be ModelBase"
+        assert isinstance(first, ModelBase), (
+            "The first module of Sequential has to be ModelBase"
+        )
         return first.input_prototype()

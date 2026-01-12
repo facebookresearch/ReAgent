@@ -43,9 +43,9 @@ class DiscreteDQN(DiscreteDQNBase):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
-        assert (
-            len(self.action_names) > 1
-        ), f"DiscreteDQNModel needs at least 2 actions. Got {self.action_names}."
+        assert len(self.action_names) > 1, (
+            f"DiscreteDQNModel needs at least 2 actions. Got {self.action_names}."
+        )
         if self.trainer_param.minibatch_size % 8 != 0:
             logger.warn(
                 f"minibatch size ({self.trainer_param.minibatch_size}) "

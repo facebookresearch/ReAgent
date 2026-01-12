@@ -21,9 +21,7 @@ from reagent.gym.runners.gymrunner import evaluate_for_n_episodes
 from reagent.gym.utils import build_normalizer, fill_replay_buffer
 from reagent.model_managers.union import ModelManager__Union
 from reagent.replay_memory.circular_replay_buffer import ReplayBuffer
-
 from reagent.test.base.horizon_test_base import HorizonTestBase
-
 from reagent.workflow.types import RewardOptions
 
 
@@ -147,9 +145,9 @@ def run_test_offline(
     logger.info(f"Evaluating after training for {num_train_epochs} epochs: ")
     eval_rewards = evaluate_cem(env, manager, trainer, num_eval_episodes)
     mean_rewards = np.mean(eval_rewards)
-    assert (
-        mean_rewards >= passing_score_bar
-    ), f"{mean_rewards} doesn't pass the bar {passing_score_bar}."
+    assert mean_rewards >= passing_score_bar, (
+        f"{mean_rewards} doesn't pass the bar {passing_score_bar}."
+    )
 
 
 if __name__ == "__main__":

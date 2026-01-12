@@ -22,10 +22,10 @@ def post(url: str, content: Any) -> Any:
             jsondataasbytes = json.dumps(content).encode("utf-8")  # needs to be bytes
             req.add_header("Content-Length", str(len(jsondataasbytes)))
             response = urllib.request.urlopen(req, jsondataasbytes)
-            assert (
-                response.getcode() == 200
-            ), "Error making request to ReAgent server: {} {}".format(
-                response.getcode(), response.read().decode("utf-8")
+            assert response.getcode() == 200, (
+                "Error making request to ReAgent server: {} {}".format(
+                    response.getcode(), response.read().decode("utf-8")
+                )
             )
             return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as e:

@@ -44,9 +44,9 @@ def fill_replay_buffer(
     env, replay_buffer: ReplayBuffer, desired_size: int, agent: Agent
 ):
     """Fill replay buffer with transitions until size reaches desired_size."""
-    assert (
-        0 < desired_size and desired_size <= replay_buffer._replay_capacity
-    ), f"It's not true that 0 < {desired_size} <= {replay_buffer._replay_capacity}."
+    assert 0 < desired_size and desired_size <= replay_buffer._replay_capacity, (
+        f"It's not true that 0 < {desired_size} <= {replay_buffer._replay_capacity}."
+    )
     assert replay_buffer.size < desired_size, (
         f"Replay buffer already has {replay_buffer.size} elements. "
         f"(more than desired_size = {desired_size})"
@@ -92,9 +92,9 @@ def fill_replay_buffer(
 
 def build_state_normalizer(env: EnvWrapper):
     if isinstance(env.observation_space, spaces.Box):
-        assert (
-            len(env.observation_space.shape) == 1
-        ), f"{env.observation_space.shape} has dim > 1, and is not supported."
+        assert len(env.observation_space.shape) == 1, (
+            f"{env.observation_space.shape} has dim > 1, and is not supported."
+        )
         return only_continuous_normalizer(
             list(range(env.observation_space.shape[0])),
             env.observation_space.low,
@@ -112,9 +112,9 @@ def build_action_normalizer(env: EnvWrapper):
     if isinstance(action_space, spaces.Discrete):
         return discrete_action_normalizer(list(range(action_space.n)))
     elif isinstance(action_space, spaces.Box):
-        assert (
-            len(action_space.shape) == 1
-        ), f"Box action shape {action_space.shape} not supported."
+        assert len(action_space.shape) == 1, (
+            f"Box action shape {action_space.shape} not supported."
+        )
 
         action_dim = action_space.shape[0]
         return only_continuous_action_normalizer(

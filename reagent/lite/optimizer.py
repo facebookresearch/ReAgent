@@ -160,9 +160,9 @@ class ComboOptimizerBase:
         obj_exp_offset_scale: Optional[Tuple[float, float]] = None,
     ) -> None:
         for k in param:
-            assert isinstance(
-                param[k], Choice
-            ), "Only support discrete parameterization now"
+            assert isinstance(param[k], Choice), (
+                "Only support discrete parameterization now"
+            )
         self.param = param
         self.obj_func = obj_func_scaler(obj_func, obj_exp_offset_scale)
         self.batch_size = batch_size
@@ -851,12 +851,12 @@ class QLearningOptimizer(ComboOptimizerBase):
     ) -> None:
         self.model_dim = model_dim
         self.sorted_keys = sorted(param.keys())
-        assert (
-            start_temp <= 1.0 and start_temp > 0
-        ), "Starting temperature for epsilon-greedy should be between (0, 1]"
-        assert (
-            min_temp <= start_temp and min_temp >= 0
-        ), "Minimum temperature for epsilon-greedy should be between [0, start_temp]"
+        assert start_temp <= 1.0 and start_temp > 0, (
+            "Starting temperature for epsilon-greedy should be between (0, 1]"
+        )
+        assert min_temp <= start_temp and min_temp >= 0, (
+            "Minimum temperature for epsilon-greedy should be between [0, start_temp]"
+        )
         self.temp = start_temp
         self.min_temp = min_temp
         self.learning_rate = learning_rate
@@ -1299,9 +1299,9 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
         self.num_ensemble = num_ensemble
         self.input_dim = 0
         self.predictor = None
-        assert (
-            num_mutations >= batch_size
-        ), f"num_mutations ({num_mutations}) >= batch_size ({batch_size}) is not true"
+        assert num_mutations >= batch_size, (
+            f"num_mutations ({num_mutations}) >= batch_size ({batch_size}) is not true"
+        )
         super().__init__(
             param,
             obj_func,

@@ -79,20 +79,20 @@ class OraclePVM(RecSim):
     num_weights: int = 3
 
     def __post_init_post_parse__(self):
-        assert (
-            self.slate_size == self.num_candidates
-        ), f"Must be equal (slate_size) {self.slate_size} != (num_candidates) {self.num_candidates}"
+        assert self.slate_size == self.num_candidates, (
+            f"Must be equal (slate_size) {self.slate_size} != (num_candidates) {self.num_candidates}"
+        )
         super().__post_init_post_parse__()
         self.score_fns: List[SCORE_FUNCTION_T] = get_default_score_fns(self.num_weights)
         self.ground_truth_weights: List[float] = get_ground_truth_weights(
             self.num_weights
         )
-        assert len(self.score_fns) == len(
-            self.ground_truth_weights
-        ), f"{len(self.score_fns)} != {len(self.ground_truth_weights)}"
-        assert (
-            len(self.ground_truth_weights) == self.num_weights
-        ), f"{self.ground_truth_weights.shape} != {self.num_weights}"
+        assert len(self.score_fns) == len(self.ground_truth_weights), (
+            f"{len(self.score_fns)} != {len(self.ground_truth_weights)}"
+        )
+        assert len(self.ground_truth_weights) == self.num_weights, (
+            f"{self.ground_truth_weights.shape} != {self.num_weights}"
+        )
 
     def reset(self):
         self.prev_obs = super().reset()

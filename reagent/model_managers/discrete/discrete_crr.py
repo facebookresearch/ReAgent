@@ -89,9 +89,9 @@ class DiscreteCRR(DiscreteDQNBase):
 
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
-        assert (
-            len(self.action_names) > 1
-        ), f"DiscreteCRRModel needs at least 2 actions. Got {self.action_names}."
+        assert len(self.action_names) > 1, (
+            f"DiscreteCRRModel needs at least 2 actions. Got {self.action_names}."
+        )
 
     @property
     def action_names(self):

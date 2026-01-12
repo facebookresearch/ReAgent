@@ -6,7 +6,6 @@
 import unittest
 
 import numpy as np
-
 import numpy.testing as npt
 import torch
 from reagent.gym.policies.policy import Policy

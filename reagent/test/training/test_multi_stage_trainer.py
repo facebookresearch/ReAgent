@@ -70,9 +70,9 @@ class DummyTrainer(ReAgentLightningModule):
 
     def train_step_gen(self, training_batch, batch_idx: int):
         print(f"train_step_gen {self.name}")
-        assert (
-            self.current_epoch in self.expected_epochs
-        ), f"{self.current_epoch} {self.expected_epochs}"
+        assert self.current_epoch in self.expected_epochs, (
+            f"{self.current_epoch} {self.expected_epochs}"
+        )
         self._call_count["train"] += 1
         x, label = training_batch
 

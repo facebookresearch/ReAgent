@@ -2,11 +2,9 @@
 import unittest
 
 import numpy as np
-
 import torch
 from numpy import testing as npt
 from reagent.core.types import CBInput
-
 from reagent.training.cb.utils import (
     add_chosen_arm_features,
     argmax_random_tie_breaks,

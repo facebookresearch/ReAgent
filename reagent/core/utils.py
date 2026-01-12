@@ -27,9 +27,9 @@ def embedding_bag_configs_from_feature_configs(
     for config in configs:
         for id_mapping_name, id_mapping_config in config.id_mapping_config.items():
             if id_mapping_name in merged_id_mapping_config:
-                assert (
-                    merged_id_mapping_config[id_mapping_name] == id_mapping_config
-                ), f"Conflicting IdMappingConfigs for id_mapping_name={id_mapping_name}"
+                assert merged_id_mapping_config[id_mapping_name] == id_mapping_config, (
+                    f"Conflicting IdMappingConfigs for id_mapping_name={id_mapping_name}"
+                )
             else:
                 merged_id_mapping_config[id_mapping_name] = id_mapping_config
 

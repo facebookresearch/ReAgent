@@ -7,9 +7,7 @@ import unittest
 from unittest.mock import MagicMock
 
 import numpy as np
-
 import numpy.testing as npt
-
 import torch
 from pytorch_lightning.loggers import TensorBoardLogger
 from reagent.core.types import CBInput

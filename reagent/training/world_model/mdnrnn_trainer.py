@@ -56,7 +56,7 @@ class MDNRNNTrainer(ReAgentLightningModule):
         )
         if self.all_batches_processed % 10 == 0:
             logger.info(
-                f'loss={detached_losses["loss"]}, gmm={detached_losses["loss"]}, bce={detached_losses["bce"]}, mse={detached_losses["mse"]}'
+                f"loss={detached_losses['loss']}, gmm={detached_losses['loss']}, bce={detached_losses['bce']}, mse={detached_losses['mse']}"
             )
         loss = losses["loss"]
         # TODO: Must setup (or mock) trainer and a LoggerConnector to call self.log()!

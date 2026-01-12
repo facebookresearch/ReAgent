@@ -88,10 +88,10 @@ class DeepRepresentLinearRegressionUCB(LinearRegressionUCB):
 
         assert input_dim > 0, "input_dim must be > 0, got {}".format(input_dim)
         assert sizes[-1] > 0, "Last layer size must be > 0, got {}".format(sizes[-1])
-        assert len(sizes) == len(
-            activations
-        ), "The numbers of sizes and activations must match; got {} vs {}".format(
-            len(sizes), len(activations)
+        assert len(sizes) == len(activations), (
+            "The numbers of sizes and activations must match; got {} vs {}".format(
+                len(sizes), len(activations)
+            )
         )
 
         self.nn_e2e = nn_e2e

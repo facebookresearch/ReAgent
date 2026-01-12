@@ -125,16 +125,16 @@ class Seq2SlateTrainer(ReAgentLightningModule):
             ).log_probs
         )
         b = b.detach()
-        assert (
-            b.shape == reward.shape == model_propensities.shape
-        ), f"{b.shape} {reward.shape} {model_propensities.shape}"
+        assert b.shape == reward.shape == model_propensities.shape, (
+            f"{b.shape} {reward.shape} {model_propensities.shape}"
+        )
 
         impt_smpl, clamped_impt_smpl = self._compute_impt_smpl(
             model_propensities, batch.tgt_out_probs
         )
-        assert (
-            impt_smpl.shape == clamped_impt_smpl.shape == reward.shape
-        ), f"{impt_smpl.shape} {clamped_impt_smpl.shape} {reward.shape}"
+        assert impt_smpl.shape == clamped_impt_smpl.shape == reward.shape, (
+            f"{impt_smpl.shape} {clamped_impt_smpl.shape} {reward.shape}"
+        )
         # gradient is only w.r.t model_propensities
         assert (
             not reward.requires_grad

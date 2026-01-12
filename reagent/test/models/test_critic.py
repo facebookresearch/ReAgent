@@ -7,7 +7,6 @@ import logging
 import unittest
 
 import torch
-
 import torch.nn as nn
 from reagent.core import types as rlt
 from reagent.models.critic import FullyConnectedCritic

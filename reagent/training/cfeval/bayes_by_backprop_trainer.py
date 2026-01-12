@@ -39,8 +39,7 @@ class BayesByBackpropTrainer(BanditRewardNetTrainer):
         self.all_batches_processed += 1
         if self.all_batches_processed % 100 == 0:
             logger.info(
-                f"{self.all_batches_processed}-th batch: "
-                f"Loss={detached_loss.item()}"
+                f"{self.all_batches_processed}-th batch: Loss={detached_loss.item()}"
             )
 
         yield loss

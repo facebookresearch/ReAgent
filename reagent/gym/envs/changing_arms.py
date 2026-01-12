@@ -208,9 +208,9 @@ class ChangingArmsEnv(gym.Env):
     def step(self, action):
         if isinstance(action, np.ndarray):
             action = action.item()
-        assert (
-            0 <= action and action <= self.num_arms
-        ), f"out-of-bounds action {action}."
+        assert 0 <= action and action <= self.num_arms, (
+            f"out-of-bounds action {action}."
+        )
         reached_max_steps = self.num_steps >= self.max_steps
         self.num_steps += 1
 

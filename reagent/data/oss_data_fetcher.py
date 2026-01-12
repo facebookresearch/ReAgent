@@ -103,9 +103,9 @@ def make_sparse2dense(df, col_name: str, possible_keys: List):
     )
 
     def sparse2dense(map_col):
-        assert isinstance(
-            map_col, dict
-        ), f"{map_col} has type {type(map_col)} and is not a dict."
+        assert isinstance(map_col, dict), (
+            f"{map_col} has type {type(map_col)} and is not a dict."
+        )
         presence = []
         dense = []
         for key in possible_keys:
@@ -267,9 +267,9 @@ def parametric_action_preprocessing(
     multi_steps: Optional[int] = None,
     include_possible_actions: bool = True,
 ):
-    assert (
-        not include_possible_actions
-    ), "current we don't support include_possible_actions"
+    assert not include_possible_actions, (
+        "current we don't support include_possible_actions"
+    )
 
     next_map_udf = make_next_udf(multi_steps, MapType(LongType(), FloatType()))
     df = df.withColumn("next_action", next_map_udf("next_action"))

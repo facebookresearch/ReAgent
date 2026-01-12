@@ -39,9 +39,9 @@ def make_trainer_preprocessor(
     sig = inspect.signature(trainer.train_step_gen)
     logger.info(f"Deriving trainer_preprocessor from {sig.parameters}")
     # Assuming training_batch is in the first position (excluding self)
-    assert (
-        list(sig.parameters.keys())[0] == "training_batch"
-    ), f"{sig.parameters} doesn't have training batch in first position."
+    assert list(sig.parameters.keys())[0] == "training_batch", (
+        f"{sig.parameters} doesn't have training batch in first position."
+    )
     training_batch_type = sig.parameters["training_batch"].annotation
     assert training_batch_type != inspect.Parameter.empty
     try:
@@ -379,9 +379,9 @@ class ParametricDqnInputMaker:
 
     def __call__(self, batch):
         not_terminal = 1.0 - batch.terminal.float()
-        assert (
-            len(batch.state.shape) == 2
-        ), f"{batch.state.shape} is not (batch_size, state_dim)."
+        assert len(batch.state.shape) == 2, (
+            f"{batch.state.shape} is not (batch_size, state_dim)."
+        )
         batch_size, _ = batch.state.shape
         action, next_action = one_hot_actions(
             self.num_actions, batch.action, batch.next_action, batch.terminal

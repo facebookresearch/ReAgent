@@ -302,12 +302,12 @@ class TestComboOptimizer(unittest.TestCase):
                 f"Generation={i}, min_reward={torch.min(reward.data)}, "
                 f"history_min_reward={history_min_reward}"
             )
-        assert (
-            abs(best_rs_result - history_min_reward) < NEVERGRAD_TEST_THRES
-        ), f"Learning not converged. best random search={best_rs_result}, optimizer best result={history_min_reward}"
-        assert (
-            optimizer.best_solutions(1)[0][0] == history_min_reward
-        ), "Best solutions (n=1) inconsistent with the best reward"
+        assert abs(best_rs_result - history_min_reward) < NEVERGRAD_TEST_THRES, (
+            f"Learning not converged. best random search={best_rs_result}, optimizer best result={history_min_reward}"
+        )
+        assert optimizer.best_solutions(1)[0][0] == history_min_reward, (
+            "Best solutions (n=1) inconsistent with the best reward"
+        )
         # just test sampling() can run
         optimizer.sample(10)
 
@@ -335,9 +335,9 @@ class TestComboOptimizer(unittest.TestCase):
                 f"mean_sample_prob={torch.mean(torch.exp(sampled_log_probs))}, "
                 f"temperature={optimizer.temp}"
             )
-        assert (
-            abs(best_rs_result - mean_reward) < POLICY_GRADIENT_TEST_THRES
-        ), f"Learning not converged. best random search={best_rs_result}, optimizer mean result={mean_reward}"
+        assert abs(best_rs_result - mean_reward) < POLICY_GRADIENT_TEST_THRES, (
+            f"Learning not converged. best random search={best_rs_result}, optimizer mean result={mean_reward}"
+        )
         # just test sampling() can run
         optimizer.sample(10)
 
@@ -362,9 +362,9 @@ class TestComboOptimizer(unittest.TestCase):
             )
 
         eval_result = obj_func(optimizer.sample(1))
-        assert (
-            abs(best_rs_result - eval_result) < Q_LEARNING_TEST_THRES
-        ), f"Learning not converged. best random search={best_rs_result}, eval result={eval_result}"
+        assert abs(best_rs_result - eval_result) < Q_LEARNING_TEST_THRES, (
+            f"Learning not converged. best random search={best_rs_result}, eval result={eval_result}"
+        )
 
     def test_gumbel_softmax_optimizer_discrete(self):
         batch_size = 32
@@ -393,17 +393,17 @@ class TestComboOptimizer(unittest.TestCase):
                 f"min_reward={torch.min(reward.data)}, "
                 f"temperature={optimizer.temp}"
             )
-        assert (
-            optimizer.temp == optimizer.min_temp
-        ), "Towards the end of learning, GumbelSoftmax Optimizer should have a low temperature"
-        assert (
-            abs(best_rs_result - mean_reward) < GUMBEL_SOFTMAX_TEST_THRES
-        ), f"Learning not converged. best random search={best_rs_result}, optimizer mean result={mean_reward}"
+        assert optimizer.temp == optimizer.min_temp, (
+            "Towards the end of learning, GumbelSoftmax Optimizer should have a low temperature"
+        )
+        assert abs(best_rs_result - mean_reward) < GUMBEL_SOFTMAX_TEST_THRES, (
+            f"Learning not converged. best random search={best_rs_result}, optimizer mean result={mean_reward}"
+        )
         eval_obj_func = create_discrete_choice_obj_func(input_param, gt_net)
         eval_result = eval_obj_func(optimizer.sample(1))
-        assert (
-            abs(best_rs_result - eval_result) < GUMBEL_SOFTMAX_TEST_THRES
-        ), f"Learning not converged. best random search={best_rs_result}, eval result={eval_result}"
+        assert abs(best_rs_result - eval_result) < GUMBEL_SOFTMAX_TEST_THRES, (
+            f"Learning not converged. best random search={best_rs_result}, eval result={eval_result}"
+        )
 
     def run_policy_gradient_optimizer(
         self,
@@ -537,12 +537,12 @@ class TestComboOptimizer(unittest.TestCase):
         print(f"QLearning results over {repeat} repeats: {qlearning_res}")
         print(f"PG results over {repeat} repeats: {pg_res}")
 
-        assert (
-            np.mean(qlearning_res) < 0.42
-        ), "QLearning should end up better than local minimum (0.43)"
-        assert (
-            np.mean(qlearning_res) < np.mean(pg_res)
-        ), f"In this setting. qlearning should be better than policy gradient over {repeat} repeats"
+        assert np.mean(qlearning_res) < 0.42, (
+            "QLearning should end up better than local minimum (0.43)"
+        )
+        assert np.mean(qlearning_res) < np.mean(pg_res), (
+            f"In this setting. qlearning should be better than policy gradient over {repeat} repeats"
+        )
 
     def test_sol_to_tensors(self):
         input_param = discrete_input_param()
@@ -631,9 +631,9 @@ class TestComboOptimizer(unittest.TestCase):
         best_sol = optimizer.sample(1, 0.0)
         eval_result = obj_func(best_sol)
 
-        assert (
-            abs(best_rs_result - eval_result) < BAYESSIAN_MLP_TEST_THRES
-        ), f"Learning not converged. best random search={best_rs_result}, eval result={eval_result}"
+        assert abs(best_rs_result - eval_result) < BAYESSIAN_MLP_TEST_THRES, (
+            f"Learning not converged. best random search={best_rs_result}, eval result={eval_result}"
+        )
 
         sampled_solutions = {}
         for k in sorted(input_param.keys()):
@@ -643,9 +643,9 @@ class TestComboOptimizer(unittest.TestCase):
         min_acq_reward = torch.min(acq_reward).item()
         best_sol_acq_reward = optimizer.acquisition(sampled_sol=best_sol).item()
 
-        assert (
-            abs(best_sol_acq_reward - min_acq_reward) < BAYESSIAN_MLP_CONV_THRES
-        ), f"Learning not converged. min acquisition reward={min_acq_reward}, best solution's acquisition reward={best_sol_acq_reward}"
+        assert abs(best_sol_acq_reward - min_acq_reward) < BAYESSIAN_MLP_CONV_THRES, (
+            f"Learning not converged. min acquisition reward={min_acq_reward}, best solution's acquisition reward={best_sol_acq_reward}"
+        )
 
     def test_bayessian_optimizer_its_random_mutation_backprop_discrete(self):
         batch_size = 8
@@ -675,9 +675,9 @@ class TestComboOptimizer(unittest.TestCase):
         best_sol = optimizer.sample(1, 0.0)
         eval_result = obj_func(best_sol)
 
-        assert (
-            abs(best_rs_result - eval_result) < BAYESSIAN_MLP_TEST_THRES
-        ), f"Learning not converged. Best Random Search={best_rs_result}, Eval result={eval_result}"
+        assert abs(best_rs_result - eval_result) < BAYESSIAN_MLP_TEST_THRES, (
+            f"Learning not converged. Best Random Search={best_rs_result}, Eval result={eval_result}"
+        )
 
         sampled_solutions = {}
         for k in sorted(input_param.keys()):
@@ -689,6 +689,6 @@ class TestComboOptimizer(unittest.TestCase):
             sampled_sol=best_sol,
         ).item()
 
-        assert (
-            abs(best_sol_acq_reward - min_acq_reward) < BAYESSIAN_MLP_CONV_THRES
-        ), f"Learning not converged. Min acquisition reward={min_acq_reward}, best solution's acquisition reward={best_sol_acq_reward}"
+        assert abs(best_sol_acq_reward - min_acq_reward) < BAYESSIAN_MLP_CONV_THRES, (
+            f"Learning not converged. Min acquisition reward={min_acq_reward}, best solution's acquisition reward={best_sol_acq_reward}"
+        )

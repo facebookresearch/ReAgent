@@ -95,16 +95,16 @@ class SummaryWriterContext(metaclass=SummaryWriterContextMeta):
         assert category and title, "category & title must be set"
         if category not in cls._custom_scalars:
             cls._custom_scalars[category] = {}
-        assert (
-            title not in cls._custom_scalars[category]
-        ), "Title ({}) is already in category ({})".format(title, category)
+        assert title not in cls._custom_scalars[category], (
+            "Title ({}) is already in category ({})".format(title, category)
+        )
         cls._custom_scalars[category][title] = ["Multiline", tags]
 
     @classmethod
     def push(cls, writer):
-        assert isinstance(
-            writer, SummaryWriter
-        ), "writer is not a SummaryWriter: {}".format(writer)
+        assert isinstance(writer, SummaryWriter), (
+            "writer is not a SummaryWriter: {}".format(writer)
+        )
         cls._writer_stacks.append(writer)
 
     @classmethod

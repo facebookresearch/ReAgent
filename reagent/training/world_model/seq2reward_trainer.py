@@ -236,9 +236,9 @@ class Seq2RewardTrainer(ReAgentLightningModule):
 
         # make sure the prediction and target tensors have the same size
         # the size should both be (BATCH_SIZE, 1) in this case.
-        assert (
-            predicted_acc_reward.size() == target_acc_reward.size()
-        ), f"{predicted_acc_reward.size()}!={target_acc_reward.size()}"
+        assert predicted_acc_reward.size() == target_acc_reward.size(), (
+            f"{predicted_acc_reward.size()}!={target_acc_reward.size()}"
+        )
         return self.mse_loss(predicted_acc_reward, target_acc_reward)
 
     def get_step_entropy_loss(self, training_batch: rlt.MemoryNetworkInput):

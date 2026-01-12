@@ -43,9 +43,9 @@ class DiscreteC51DQN(DiscreteDQNBase):
     def __post_init_post_parse__(self):
         super().__post_init_post_parse__()
         assert len(self.action_names) > 1, "DiscreteC51DQN needs at least 2 actions"
-        assert (
-            self.trainer_param.minibatch_size % 8 == 0
-        ), "The minibatch size must be divisible by 8 for performance reasons."
+        assert self.trainer_param.minibatch_size % 8 == 0, (
+            "The minibatch size must be divisible by 8 for performance reasons."
+        )
 
     @property
     def action_names(self):

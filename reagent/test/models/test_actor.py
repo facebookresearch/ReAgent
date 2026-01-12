@@ -5,7 +5,6 @@
 
 import logging
 import unittest
-
 from typing import Union
 
 import numpy.testing as npt

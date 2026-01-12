@@ -32,9 +32,9 @@ class FinalLayer:
     tanh: bool = False
 
     def __post_init_post_parse__(self) -> None:
-        assert (
-            sum(map(lambda x: int(bool(x)), asdict(self).values())) <= 1
-        ), f"More than one option set {self}"
+        assert sum(map(lambda x: int(bool(x)), asdict(self).values())) <= 1, (
+            f"More than one option set {self}"
+        )
 
     def get(self):
         if self.score_cap:

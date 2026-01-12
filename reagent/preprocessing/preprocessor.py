@@ -118,9 +118,9 @@ class Preprocessor(Module):
         """Preprocess the input matrix
         :param input tensor
         """
-        assert (
-            input.shape == input_presence_byte.shape
-        ), f"{input.shape} != {input_presence_byte.shape}"
+        assert input.shape == input_presence_byte.shape, (
+            f"{input.shape} != {input_presence_byte.shape}"
+        )
         outputs = []
         split_input = torch.split(input, self.split_sections, dim=1)
         # NB: converting to float prevent ASAN heap-buffer-overflow
@@ -532,9 +532,9 @@ class Preprocessor(Module):
         feature_id_to_index = {}
         sorted_features = []
         feature_starts = []
-        assert isinstance(
-            list(self.normalization_parameters.keys())[0], int
-        ), "Normalization Parameters need to be int"
+        assert isinstance(list(self.normalization_parameters.keys())[0], int), (
+            "Normalization Parameters need to be int"
+        )
         for feature_type in FEATURE_TYPES:
             feature_starts.append(len(sorted_features))
             for feature in sorted(self.normalization_parameters.keys()):
@@ -550,9 +550,9 @@ class Preprocessor(Module):
         for i, feature in enumerate(self.sorted_features):
             feature_type = self.normalization_parameters[feature].feature_type
             feature_type_index = FEATURE_TYPES.index(feature_type)
-            assert (
-                feature_type_index >= on_feature_type
-            ), "Features are not sorted by feature type!"
+            assert feature_type_index >= on_feature_type, (
+                "Features are not sorted by feature type!"
+            )
             while feature_type_index > on_feature_type:
                 feature_starts.append(i)
                 on_feature_type += 1

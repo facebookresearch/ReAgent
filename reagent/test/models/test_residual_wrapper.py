@@ -3,7 +3,6 @@ import unittest
 
 import numpy.testing as npt
 import torch
-
 import torch.nn as nn
 from reagent.models.residual_wrapper import ResidualWrapper
 

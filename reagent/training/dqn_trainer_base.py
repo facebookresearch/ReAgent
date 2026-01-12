@@ -280,9 +280,9 @@ class DQNTrainerBaseLightning(DQNTrainerMixin, RLTrainerMixin, ReAgentLightningM
         # pyre-fixme[16]: `DQNTrainerBaseLightning` has no attribute
         #  `reward_network_optimizer`.
         self.reward_network_optimizer = optimizer
-        assert (
-            q_network_cpe is not None and q_network_cpe_target is not None
-        ), "q_network_cpe and q_network_cpe_target are required for CPE"
+        assert q_network_cpe is not None and q_network_cpe_target is not None, (
+            "q_network_cpe and q_network_cpe_target are required for CPE"
+        )
         # pyre-fixme[16]: `DQNTrainerBaseLightning` has no attribute `q_network_cpe`.
         self.q_network_cpe = q_network_cpe
         # pyre-fixme[16]: `DQNTrainerBaseLightning` has no attribute

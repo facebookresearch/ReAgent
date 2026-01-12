@@ -8,14 +8,11 @@ from dataclasses import replace
 from typing import Any, Optional, Tuple
 
 import reagent.core.types as rlt
-
 import torch
 from reagent.core.types import CBInput
 from reagent.gym.policies.policy import Policy as ReAgentPolicy
 from reagent.gym.policies.samplers.discrete_sampler import GreedyActionSampler
-
 from reagent.gym.types import Sampler, Scorer
-
 from reagent.models.linear_regression import LinearRegressionUCB
 from reagent.training.cb.base_trainer import BaseCBTrainerWithEval
 from reagent.training.cb.linucb_trainer import LinUCBTrainer

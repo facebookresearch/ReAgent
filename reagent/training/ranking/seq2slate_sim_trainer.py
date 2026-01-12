@@ -175,9 +175,9 @@ class Seq2SlateSimulationTrainer(Seq2SlateTrainer):
             )
             sim_slate_reward += distance_penalty * (self.MAX_DISTANCE - sim_distance)
 
-        assert (
-            len(sim_slate_reward.shape) == 2 and sim_slate_reward.shape[1] == 1
-        ), f"{sim_slate_reward.shape}"
+        assert len(sim_slate_reward.shape) == 2 and sim_slate_reward.shape[1] == 1, (
+            f"{sim_slate_reward.shape}"
+        )
 
         on_policy_input = rlt.PreprocessedRankingInput.from_input(
             state=training_input.state.float_features,

@@ -49,9 +49,9 @@ class ReagentSQLTestBase(SQLTestCase):
 
     def setUp(self):
         super().setUp()
-        assert not os.path.isdir(
-            HIVE_METASTORE
-        ), f"{HIVE_METASTORE} already exists! Try deleting it."
+        assert not os.path.isdir(HIVE_METASTORE), (
+            f"{HIVE_METASTORE} already exists! Try deleting it."
+        )
 
         random.seed(self.test_class_seed)
         torch.manual_seed(self.test_class_seed)

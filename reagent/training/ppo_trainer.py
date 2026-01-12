@@ -74,12 +74,12 @@ class PPOTrainer(ReAgentLightningModule):
         self.value_net = value_net
         if value_net is not None:
             self.value_loss_fn = torch.nn.MSELoss(reduction="mean")
-            assert (
-                not self.normalize
-            ), "Can't apply a value baseline and normalize rewards simultaneously"
-        assert (ppo_epsilon >= 0) and (
-            ppo_epsilon <= 1
-        ), "ppo_epslion has to be in [0;1]"
+            assert not self.normalize, (
+                "Can't apply a value baseline and normalize rewards simultaneously"
+            )
+        assert (ppo_epsilon >= 0) and (ppo_epsilon <= 1), (
+            "ppo_epslion has to be in [0;1]"
+        )
 
         self.traj_buffer = []
 
@@ -179,9 +179,9 @@ class PPOTrainer(ReAgentLightningModule):
             self.update_model()
 
     def update_model(self):
-        assert (
-            len(self.traj_buffer) == self.update_freq
-        ), "trajectory buffer does not have sufficient samples for model_update"
+        assert len(self.traj_buffer) == self.update_freq, (
+            "trajectory buffer does not have sufficient samples for model_update"
+        )
         for _ in range(self.update_epochs):
             # iterate through minibatches of PPO updates in random order
             random_order = torch.randperm(len(self.traj_buffer))

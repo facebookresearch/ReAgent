@@ -221,15 +221,15 @@ class SingleStepSyntheticSparseArchRewardNet(nn.Module):
         for i in range(1, len(embedding_bag_collection.embedding_bag_configs())):
             conf_prev = embedding_bag_collection.embedding_bag_configs()[i - 1]
             conf = embedding_bag_collection.embedding_bag_configs()[i]
-            assert (
-                conf_prev.embedding_dim == conf.embedding_dim
-            ), "All EmbeddingBagConfigs must have the same embedding_dim"
+            assert conf_prev.embedding_dim == conf.embedding_dim, (
+                "All EmbeddingBagConfigs must have the same embedding_dim"
+            )
 
         conf = embedding_bag_collection.embedding_bag_configs()[0]
         dense_output_size = dense_sizes[-1]
-        assert (
-            dense_output_size == conf.embedding_dim
-        ), "The last layer of dense_sizes should be equal to embedding_dim of sparse features"
+        assert dense_output_size == conf.embedding_dim, (
+            "The last layer of dense_sizes should be equal to embedding_dim of sparse features"
+        )
         assert overall_sizes[-1] == 1, "The last layer of overall_sizes should be 1"
 
     def forward(

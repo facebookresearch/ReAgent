@@ -330,9 +330,9 @@ class ActorWithPreprocessor(ModelBase):
         )
         model_output = self.model(state_feature_data)
         if self.serve_mean_policy:
-            assert (
-                model_output.squashed_mean is not None
-            ), "action mean is None and serve_mean_policy=True"
+            assert model_output.squashed_mean is not None, (
+                "action mean is None and serve_mean_policy=True"
+            )
             action = model_output.squashed_mean
         else:
             action = model_output.action
@@ -394,9 +394,9 @@ class RankingActorWithPreprocessor(ModelBase):
         state_with_presence: Tuple[torch.Tensor, torch.Tensor],
         candidate_with_presence_list: List[Tuple[torch.Tensor, torch.Tensor]],
     ):
-        assert (
-            len(candidate_with_presence_list) == self.num_candidates
-        ), f"{len(candidate_with_presence_list)} != {self.num_candidates}"
+        assert len(candidate_with_presence_list) == self.num_candidates, (
+            f"{len(candidate_with_presence_list)} != {self.num_candidates}"
+        )
         preprocessed_state = self.state_preprocessor(*state_with_presence)
         # each is batch_size x candidate_dim, result is batch_size x num_candidates x candidate_dim
         preprocessed_candidates = torch.stack(

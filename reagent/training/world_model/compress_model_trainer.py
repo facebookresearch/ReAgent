@@ -106,9 +106,9 @@ class CompressModelTrainer(ReAgentLightningModule):
             state_first_step.float_features,
             self.all_permut,
         )
-        assert (
-            compress_model_output.size() == target.size()
-        ), f"{compress_model_output.size()}!={target.size()}"
+        assert compress_model_output.size() == target.size(), (
+            f"{compress_model_output.size()}!={target.size()}"
+        )
         mse = F.mse_loss(compress_model_output, target)
 
         with torch.no_grad():
