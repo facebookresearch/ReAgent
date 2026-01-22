@@ -58,7 +58,7 @@ StringDoubleMap PytorchActionValueScorer::predict(
       // Create a vector of inputs.
       std::vector<torch::jit::IValue> inputs;
       auto stateWithPresence = c10::ivalue::Tuple::create({input, inputMask});
-      inputs.push_back(stateWithPresence);
+      inputs.emplace_back(stateWithPresence);
       auto result = model.forward(inputs);
       auto tupleResult = result.toTuple();
       auto outputActionNames = tupleResult->elements()[0];
