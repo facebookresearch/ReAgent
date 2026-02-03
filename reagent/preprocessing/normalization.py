@@ -10,7 +10,6 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import reagent.core.types as rlt
-import six
 import torch
 from reagent.core.parameters import NormalizationParameters
 from reagent.preprocessing import identify_types
@@ -241,7 +240,7 @@ def sort_features_by_normalization(
 
 def deserialize(parameters_json) -> Dict[int, NormalizationParameters]:
     parameters = {}
-    for feature, feature_parameters in six.iteritems(parameters_json):
+    for feature, feature_parameters in parameters_json.items():
         # Note: This is OK since NormalizationParameters is flat.
         params = NormalizationParameters(**json.loads(feature_parameters))
         # Check for negative enum IDs
@@ -257,7 +256,7 @@ def serialize_one(feature_parameters):
 
 def serialize(parameters):
     parameters_json = {}
-    for feature, feature_parameters in six.iteritems(parameters):
+    for feature, feature_parameters in parameters.items():
         parameters_json[feature] = serialize_one(feature_parameters)
     return parameters_json
 
