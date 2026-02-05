@@ -46,36 +46,36 @@ void constant_value_to_json(const ConstantValue& value, json& j) {
   j = std::visit(
       [j](auto&& arg) -> json {
         using T = std::decay_t<decltype(arg)>;
-        json j;
+        json result;
         if (std::is_same_v<T, std::string>) {
-          j["string_value"] = arg;
+          result["string_value"] = arg;
         } else if (std::is_same_v<T, int64_t>) {
-          j["int_value"] = arg;
+          result["int_value"] = arg;
         } else if (std::is_same_v<T, double>) {
-          j["double_value"] = arg;
+          result["double_value"] = arg;
         } else if (std::is_same_v<T, StringList>) {
-          j["list_string_value"] = arg;
+          result["list_string_value"] = arg;
         } else if (std::is_same_v<T, std::vector<int64_t>>) {
-          j["list_int_value"] = arg;
+          result["list_int_value"] = arg;
         } else if (std::is_same_v<T, std::vector<double>>) {
-          j["list_double_value"] = arg;
+          result["list_double_value"] = arg;
         } else if (std::is_same_v<T, StringStringMap>) {
-          j["map_string_value"] = arg;
+          result["map_string_value"] = arg;
         } else if (std::is_same_v<T, StringIntMap>) {
-          j["map_int_value"] = arg;
+          result["map_int_value"] = arg;
         } else if (std::is_same_v<T, StringDoubleMap>) {
-          j["map_double_value"] = arg;
+          result["map_double_value"] = arg;
         } else if (std::is_same_v<T, RankedActionList>) {
-          j["ranked_action_list"] = arg;
+          result["ranked_action_list"] = arg;
         } else if (std::is_same_v<
                        T,
                        std::unordered_map<std::string, StringDoubleMap>>) {
-          j["map_map_double_value"] = arg;
+          result["map_map_double_value"] = arg;
         } else {
           LOG(FATAL) << "INVALID OUTPUT OPERATOR";
           LOG_AND_THROW("Invalid output operator");
         }
-        return j;
+        return result;
       },
       value);
 }
