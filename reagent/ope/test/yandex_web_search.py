@@ -11,7 +11,16 @@ import pickle
 import random
 import sys
 import time
-from typing import Iterable, List, Mapping, MutableMapping, Optional, Sequence, Tuple
+from typing import (
+    Any,
+    Iterable,
+    List,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 import numpy as np
 import torch
@@ -347,7 +356,7 @@ def load_logged_queries(params) -> Sequence[TrainingQuery]:
 
 
 class TrainingDataset:
-    def __init__(self, params, device=None):
+    def __init__(self, params: Mapping[str, Any], device: Optional[Any] = None) -> None:
         if "folder" not in params:
             raise Exception('Please define "folder" in "dataset"')
         self._folder = params["folder"]
