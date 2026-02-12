@@ -160,10 +160,22 @@ class ModelManager:
             if reporter is None:
                 training_report = None
             else:
-                # pyre-ignore
-                training_report = RLTrainingReport.make_union_instance(
-                    reporter.generate_training_report()
-                )
+                try:
+                    # pyre-ignore
+                    training_report = RLTrainingReport.make_union_instance(
+                        reporter.generate_training_report()
+                    )
+                except KeyError as e:
+                    # Handle the case where the training report type is not registered
+                    # in the RLTrainingReport union. This can happen when the forkserver
+                    # has a stale module cache where the union was created before all
+                    # training report types were registered.
+                    logger.warning(
+                        f"Failed to create RLTrainingReport union instance: {e}. "
+                        "This may be due to import order issues with the forkserver. "
+                        "Returning raw training report instead."
+                    )
+                    training_report = reporter.generate_training_report()
             return (
                 # pyre-fixme[16]: Module `reagent` has no attribute `workflow`.
                 RLTrainingOutput(

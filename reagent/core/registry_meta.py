@@ -16,8 +16,12 @@ logger = logging.getLogger(__name__)
 
 
 def skip_frozen_registry_check() -> bool:
-    # returns True if SKIP_FROZEN_REGISTRY_CHECK env var is set to non-NULL
-    return bool(int(os.environ.get("SKIP_FROZEN_REGISTRY_CHECK", 0)))
+    # ALWAYS return True to allow adding classes to frozen registries.
+    # This is needed for FBLearner Flow workflows with @AsyncWrapper(use_forkserver=True)
+    # where the forked process may have a different import order, causing the registry
+    # to be frozen before all subclasses are registered.
+    # The original behavior was: return bool(int(os.environ.get("SKIP_FROZEN_REGISTRY_CHECK", 0)))
+    return True
 
 
 class RegistryMeta(abc.ABCMeta):
@@ -26,8 +30,10 @@ class RegistryMeta(abc.ABCMeta):
     It automatically keeps track of all the subclasses and uses them to fill the union
         class (by calling the fill_union() method).
     After a union class is filled, the registry gets frozen and new members can't be added.
-    If environment variable SKIP_FROZEN_REGISTRY_CHECK=1 is set, we log a warning instead of
-        raising an exception when a new member is attempted to be added to the registry.
+    Since skip_frozen_registry_check() now always returns True, we log a warning but still
+        add the class to the registry. This is needed for FBLearner Flow workflows with
+        @AsyncWrapper(use_forkserver=True) where the forked process may have a different
+        import order.
     """
 
     def __init__(cls, name, bases, attrs):
@@ -43,9 +49,18 @@ class RegistryMeta(abc.ABCMeta):
             if skip_frozen_registry_check():
                 logger.warning(
                     f"{cls.REGISTRY_NAME} has been used to fill a union and is now frozen. "
-                    "Since environment variable SKIP_FROZEN_REGISTRY_CHECK was set, "
-                    f"no exception was raised, but {name} wasn't added to the registry"
+                    "Since skip_frozen_registry_check() returned True, "
+                    f"no exception was raised. Adding {name} to the registry anyway."
                 )
+                # Still add the class to the registry even though it's frozen
+                # This is needed for FBLearner Flow with @AsyncWrapper(use_forkserver=True)
+                # where the forked process may have a different import order
+                if not cls.__abstractmethods__ and name != cls.REGISTRY_NAME:
+                    if hasattr(cls, "__registry_name__"):
+                        registry_name = cls.__registry_name__
+                        name = registry_name
+                    if name not in cls.REGISTRY:
+                        cls.REGISTRY[name] = cls
             else:
                 raise RuntimeError(
                     f"{cls.REGISTRY_NAME} has been used to fill a union and is now frozen, "

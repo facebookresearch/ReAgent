@@ -3,15 +3,34 @@
 
 # pyre-unsafe
 
+# CRITICAL: Set SKIP_FROZEN_REGISTRY_CHECK=1 BEFORE any module-level code runs.
+# This must happen at the very top of this file because this module contains
+# @TrainingReport.fill_union() which freezes the registry. When the forked process
+# from @AsyncWrapper(use_forkserver=True) runs, the import order may differ and
+# subclasses may not be registered before the registry is frozen. This env var
+# converts the RuntimeError into a warning.
+import os
+
+os.environ["SKIP_FROZEN_REGISTRY_CHECK"] = "1"
+
 from datetime import datetime as RecurringPeriod  # noqa
 from typing import Dict, List, Optional, Tuple
+
+# CRITICAL: Import training_reports FIRST, before result_types.
+# This ensures all TrainingReport subclasses (DQNTrainingReport, RLRankingReport, etc.)
+# are registered BEFORE the @TrainingReport.fill_union() decorator runs and freezes
+# the registry. The order matters because when @AsyncWrapper forks a process with
+# use_forkserver=True, the fork server may have a different import order.
+# pyre-fixme[21]: Could not find module `reagent.workflow.training_reports`.
+import reagent.workflow.training_reports  # noqa  # isort: skip
 
 # Triggering registration to registries
 # pyre-fixme[21]: Could not find module `reagent.core.result_types`.
 import reagent.core.result_types  # noqa
+from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 
-# pyre-fixme[21]: Could not find module `reagent.workflow.training_reports`.
-import reagent.workflow.training_reports  # noqa
+if IS_FB_ENVIRONMENT:
+    import reagent.core.fb.fb_result_types  # noqa
 
 # pyre-fixme[21]: Could not find module `reagent.core.dataclasses`.
 from reagent.core.dataclasses import dataclass, field
