@@ -11,7 +11,7 @@ from torchrec.sparse.jagged_tensor import JaggedTensor, KeyedJaggedTensor
 
 
 def dict_to_tensor(batch: Dict[str, np.ndarray], device: str = "cpu"):
-    return {k: torch.tensor(v).to(device) for k, v in batch.items()}
+    return {k: torch.tensor(v, device=device) for k, v in batch.items()}
 
 
 def rescale_torch_tensor(

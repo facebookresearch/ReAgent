@@ -97,9 +97,9 @@ class ModelWrapper(Model):
         self._model.eval()
         state_reward_tensor = (
             self._model(
-                torch.tensor(state.value, dtype=torch.float)
-                .reshape(-1, self._model._state_dim)
-                .to(self._device),
+                torch.tensor(
+                    state.value, dtype=torch.float, device=self._device
+                ).reshape(-1, self._model._state_dim),
                 torch.nn.functional.one_hot(
                     torch.tensor(action.value, dtype=torch.long),
                     self._model._action_dim,

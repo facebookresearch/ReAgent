@@ -133,7 +133,9 @@ def run_test_offline(
         num_batches=num_batches_per_epoch,
         device=device,
     )
-    data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
+    data_loader = torch.utils.data.DataLoader(
+        dataset, collate_fn=identity_collate, pin_memory=True
+    )
     pl_trainer = pl.Trainer(
         max_epochs=num_train_epochs,
         gpus=int(use_gpu),

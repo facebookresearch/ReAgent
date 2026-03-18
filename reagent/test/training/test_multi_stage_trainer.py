@@ -154,11 +154,10 @@ class TestMultiStageTrainer(unittest.TestCase):
         training_size = 100
         validation_size = 20
         train_dataloader = DataLoader(
-            make_dataset(input_dim, training_size), batch_size=5
+            make_dataset(input_dim, training_size), batch_size=5, pin_memory=True
         )
         validation_dataloader = DataLoader(
-            make_dataset(input_dim, validation_size),
-            batch_size=5,
+            make_dataset(input_dim, validation_size), batch_size=5, pin_memory=True
         )
 
         trainer = pl.Trainer(max_epochs=6, min_epochs=6)
@@ -166,8 +165,7 @@ class TestMultiStageTrainer(unittest.TestCase):
 
         test_size = 20
         test_dataloader = DataLoader(
-            make_dataset(input_dim, test_size),
-            batch_size=5,
+            make_dataset(input_dim, test_size), batch_size=5, pin_memory=True
         )
         trainer.test(dataloaders=test_dataloader)
         print(f"stage1 {stage1._call_count}")

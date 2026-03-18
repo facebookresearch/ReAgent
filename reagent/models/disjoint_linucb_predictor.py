@@ -119,8 +119,8 @@ class DisjointLinearRegressionUCB(ModelBase):
         device = self.b.device
         # add regularization here so that it's not double-counted under distributed training
         # send them to the same device to avoid errors when doing dpp, example failed job without this: aienv-0d5c64a3b3
-        m = self.A.to(device) + self.l2_reg_lambda * torch.eye(self.input_dim).to(
-            device
+        m = self.A.to(device) + self.l2_reg_lambda * torch.eye(
+            self.input_dim, device=device
         )
         self.inv_A = torch.linalg.pinv(m).contiguous()
         assert self.inv_A.size()[0] == self.b.size()[0]

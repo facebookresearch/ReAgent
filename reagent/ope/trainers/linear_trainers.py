@@ -320,7 +320,9 @@ class NNTrainer(Trainer):
             self._model = self._model.cuda()
         self._loss_fn = torch.nn.MSELoss(reduction="mean")
         learning_rate = 1e-3
-        optimizer = torch.optim.Adam(self._model.parameters(), lr=learning_rate)
+        optimizer = torch.optim.Adam(
+            self._model.parameters(), lr=learning_rate, foreach=True
+        )
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, "min", patience=5, verbose=True, threshold=1e-5
         )

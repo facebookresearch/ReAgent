@@ -493,7 +493,7 @@ class MAGICEstimator(IPSEstimator):
         # x = torch.rand((1, horizon), device=self.device, requires_grad=True)
         x = torch.zeros((1, horizon), device=self._device, requires_grad=True)
         # using SGD to find min x
-        optimizer = torch.optim.SGD([x], lr=lr)
+        optimizer = torch.optim.SGD([x], lr=lr, foreach=True)
         last_y = 0.0
         for i in range(100):
             x = torch.nn.functional.softmax(x, dim=1)
@@ -598,9 +598,9 @@ class NeuralDualDICE(RLEstimator):
                 assert t.last_state is not None, "Expected last_state, got None"
                 assert t.action is not None, "Expected action, got None"
                 zeta = self.zeta(
-                    torch.tensor(t.last_state.value, dtype=torch.float)
-                    .reshape(-1, self.state_dim)
-                    .to(self.device),
+                    torch.tensor(
+                        t.last_state.value, dtype=torch.float, device=self.device
+                    ).reshape(-1, self.state_dim),
                     torch.nn.functional.one_hot(
                         torch.tensor(t.action.value, dtype=torch.long), self.action_dim
                     )
@@ -670,8 +670,8 @@ class NeuralDualDICE(RLEstimator):
             )
         # pyre-fixme[58]: `**` is not supported for operand types `Tensor` and `Any`.
         weights = torch.full(
-            (unweighted_loss.shape[0], 1), gamma, dtype=torch.float
-        ).to(device=self.device) ** transition["timestep"].reshape((-1, 1))
+            (unweighted_loss.shape[0], 1), gamma, dtype=torch.float, device=self.device
+        ) ** transition["timestep"].reshape((-1, 1))
         return torch.sum(weights * unweighted_loss) / torch.sum(weights)
 
     def reset(self) -> None:
@@ -744,7 +744,7 @@ class NeuralDualDICE(RLEstimator):
             k: (
                 torch.stack(v).to(self.device)
                 if "action" in k
-                else torch.tensor(v, dtype=torch.float).to(self.device)
+                else torch.tensor(v, dtype=torch.float, device=self.device)
             )
             for k, v in samples.items()
         }
@@ -758,8 +758,12 @@ class NeuralDualDICE(RLEstimator):
         dataset = self._collect_data(input)
         logging.info(f"Data loading time: {time.process_time() - stime}")
 
-        zeta_optim = torch.optim.Adam(self.zeta_net.parameters(), lr=self.zeta_lr)
-        v_optim = torch.optim.Adam(self.v_net.parameters(), lr=self.value_lr)
+        zeta_optim = torch.optim.Adam(
+            self.zeta_net.parameters(), lr=self.zeta_lr, foreach=True
+        )
+        v_optim = torch.optim.Adam(
+            self.v_net.parameters(), lr=self.value_lr, foreach=True
+        )
         avg_zeta_loss = RunningAverage()
         avg_v_loss = RunningAverage()
         sample_time = time.process_time()

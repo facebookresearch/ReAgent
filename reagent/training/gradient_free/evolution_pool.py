@@ -57,7 +57,7 @@ class EvolutionPool:
             )
 
         self.optimizer = torch.optim.Adam(
-            self.parent_tensors.values(), lr=self.es_params.learning_rate
+            self.parent_tensors.values(), lr=self.es_params.learning_rate, foreach=True
         )
 
         self.populate_children(0)

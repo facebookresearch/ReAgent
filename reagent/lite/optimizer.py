@@ -525,7 +525,9 @@ class LogitBasedComboOptimizerBase(ComboOptimizerBase):
                 parameters.append(self.logits[k])
             else:
                 raise NotImplementedError()
-        self.optimizer = torch.optim.Adam(parameters, lr=self.learning_rate)
+        self.optimizer = torch.optim.Adam(
+            parameters, lr=self.learning_rate, foreach=True
+        )
 
     def sample(
         self, batch_size: int, temp: Optional[float] = GREEDY_TEMP
@@ -897,7 +899,7 @@ class QLearningOptimizer(ComboOptimizerBase):
                 nn.init.xavier_uniform_(p)
 
         self.optimizer = torch.optim.Adam(
-            self.q_net.parameters(), lr=self.learning_rate
+            self.q_net.parameters(), lr=self.learning_rate, foreach=True
         )
 
         logger.info(f"Number of total params: {_num_of_params(self.q_net)}")
@@ -1374,7 +1376,9 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
 
         for model in self.predictor:
             model.train()
-            optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
+            optimizer = torch.optim.Adam(
+                model.parameters(), lr=self.learning_rate, foreach=True
+            )
             for _ in range(self.epochs):
                 pred = model(x)
                 loss = F.mse_loss(pred, y)
@@ -1634,7 +1638,9 @@ class BayesianByBackpropOptimizer(BayesianOptimizerBase):
         losses = []
 
         self.predictor.train()
-        optimizer = torch.optim.Adam(self.predictor.parameters(), lr=self.learning_rate)
+        optimizer = torch.optim.Adam(
+            self.predictor.parameters(), lr=self.learning_rate, foreach=True
+        )
         for _ in range(self.epochs):
             optimizer.zero_grad()
             loss = self.predictor.sample_elbo(x, y, self.sample_size)

@@ -96,7 +96,7 @@ class FullyConnectedActor(ModelBase):
         ), f"{action.shape} != ({batch_size}, {self.action_dim})"
 
         if self.exploration_variance is None:
-            log_prob = torch.zeros(batch_size).to(action.device).float().view(-1, 1)
+            log_prob = torch.zeros(batch_size, device=action.device).float().view(-1, 1)
             return rlt.ActorOutput(action=action, log_prob=log_prob)
 
         noise = self.noise_dist.sample((batch_size,))

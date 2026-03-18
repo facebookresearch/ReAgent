@@ -68,7 +68,9 @@ def run_dynamic_bandit_env(
     )
 
     dataset = BanditDataset(env=env, agent=agent, num_obs=num_obs)
-    data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
+    data_loader = torch.utils.data.DataLoader(
+        dataset, collate_fn=identity_collate, pin_memory=True
+    )
     pl_trainer.fit(agent.trainer, data_loader)
     return agent, env.accumulated_rewards, env.accumulated_regrets
 

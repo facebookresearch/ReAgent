@@ -525,10 +525,8 @@ class PreprocessedRankingInput(TensorDataClass):
             torch.arange(candidate_num, device=device).repeat(batch_size, 1) + 2
         )
         src_src_mask = (
-            (torch.ones(batch_size, candidate_num, candidate_num))
-            .type(torch.int8)
-            .to(device)
-        )
+            torch.ones(batch_size, candidate_num, candidate_num, device=device)
+        ).type(torch.int8)
 
         def process_tgt_seq(action):
             if action is not None:

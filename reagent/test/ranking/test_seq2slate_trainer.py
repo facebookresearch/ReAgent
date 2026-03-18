@@ -77,9 +77,9 @@ def create_seq2slate_transformer(
 def create_on_policy_batch(
     seq2slate, batch_size, state_dim, candidate_num, candidate_dim, rank_seed, device
 ):
-    state = torch.randn(batch_size, state_dim).to(device)
-    candidates = torch.randn(batch_size, candidate_num, candidate_dim).to(device)
-    reward = torch.rand(batch_size, 1).to(device)
+    state = torch.randn(batch_size, state_dim, device=device)
+    candidates = torch.randn(batch_size, candidate_num, candidate_dim, device=device)
+    reward = torch.rand(batch_size, 1, device=device)
     batch = rlt.PreprocessedRankingInput.from_input(
         state=state, candidates=candidates, device=device
     )
@@ -211,7 +211,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             rank_seed,
             device,
         )
-        training_data = DataLoader([batch], collate_fn=lambda x: x[0])
+        training_data = DataLoader([batch], collate_fn=lambda x: x[0], pin_memory=True)
         pl_trainer = pl.Trainer(
             max_epochs=policy_gradient_interval,
             gpus=None if device == torch.device("cpu") else 1,
@@ -301,7 +301,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             seq2slate_net, batch_size, state_dim, candidate_num, candidate_dim, device
         )
 
-        training_data = DataLoader([batch], collate_fn=lambda x: x[0])
+        training_data = DataLoader([batch], collate_fn=lambda x: x[0], pin_memory=True)
         pl_trainer = pl.Trainer(
             max_epochs=policy_gradient_interval,
             gpus=None if device == torch.device("cpu") else 1,
@@ -375,7 +375,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             seq2slate_net, batch_size, state_dim, candidate_num, candidate_dim, device
         )
 
-        training_data = DataLoader([batch], collate_fn=lambda x: x[0])
+        training_data = DataLoader([batch], collate_fn=lambda x: x[0], pin_memory=True)
         pl_trainer = pl.Trainer(max_epochs=policy_gradient_interval, logger=False)
         pl_trainer.fit(trainer, training_data)
 

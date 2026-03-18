@@ -190,9 +190,11 @@ def create_string_game_data(
 
     num_training_batches = int(training_data_ratio * num_batches)
     training_data = DataLoader(
-        batches[:num_training_batches], collate_fn=lambda x: x[0]
+        batches[:num_training_batches], collate_fn=lambda x: x[0], pin_memory=True
     )
-    eval_data = DataLoader(batches[num_training_batches:], collate_fn=lambda x: x[0])
+    eval_data = DataLoader(
+        batches[num_training_batches:], collate_fn=lambda x: x[0], pin_memory=True
+    )
     return training_data, eval_data
 
 

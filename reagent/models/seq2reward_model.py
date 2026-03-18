@@ -84,8 +84,11 @@ class Seq2RewardNetwork(ModelBase):
         # ) torch tensor
         hidden = (
             state_embed,
-            torch.zeros(self.num_hidden_layers, batch_size, self.num_hiddens).to(
-                state.device
+            torch.zeros(
+                self.num_hidden_layers,
+                batch_size,
+                self.num_hiddens,
+                device=state.device,
             ),
         )
 

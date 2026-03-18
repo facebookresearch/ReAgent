@@ -72,12 +72,16 @@ def create_synthetic_data(
     train_batches = get_dummy_batch(
         action_type=SyntheticType.ACTION_TYPE.value, num_batches=num_batches_train
     )
-    train_dataloader = DataLoader(train_batches, collate_fn=lambda x: x[0])
+    train_dataloader = DataLoader(
+        train_batches, collate_fn=lambda x: x[0], pin_memory=True
+    )
 
     eval_batches = get_dummy_batch(
         action_type=SyntheticType.ACTION_TYPE.value, num_batches=num_batches_eval
     )
-    eval_dataloader = DataLoader(eval_batches, collate_fn=lambda x: x[0])
+    eval_dataloader = DataLoader(
+        eval_batches, collate_fn=lambda x: x[0], pin_memory=True
+    )
 
     # pyre-fixme[7]: Expected `BehavioralCloningModelInput` but got
     #  `Tuple[DataLoader[Any], DataLoader[Any]]`.

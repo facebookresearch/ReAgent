@@ -336,7 +336,7 @@ def run_seq2slate_tsp(
     )
 
     def evaluate():
-        best_test_reward = torch.full((batch_size,), 1e9).to(device)
+        best_test_reward = torch.full((batch_size,), 1e9, device=device)
         for _ in range(eval_sample_size):
             model_propensities, _, reward = rank_on_policy_and_eval(
                 seq2slate_net.to(device), test_batch, candidate_num, greedy=True
@@ -356,7 +356,9 @@ def run_seq2slate_tsp(
 
     evaluate()
 
-    training_data = DataLoader(train_batches, collate_fn=lambda x: x[0])
+    training_data = DataLoader(
+        train_batches, collate_fn=lambda x: x[0], pin_memory=True
+    )
     pl_trainer = pl.Trainer(
         max_epochs=epochs,
         gpus=None if device == torch.device("cpu") else 1,

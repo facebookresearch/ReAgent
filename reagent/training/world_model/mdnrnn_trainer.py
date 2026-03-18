@@ -36,7 +36,9 @@ class MDNRNNTrainer(ReAgentLightningModule):
 
         optimizers.append(
             torch.optim.Adam(
-                self.memory_network.mdnrnn.parameters(), lr=self.params.learning_rate
+                self.memory_network.mdnrnn.parameters(),
+                lr=self.params.learning_rate,
+                foreach=True,
             )
         )
 

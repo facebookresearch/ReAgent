@@ -125,7 +125,9 @@ def create_sequence_data(state_dim, action_dim, seq_len, batch_size, num_batches
 
 
 def train_and_eval(trainer, data, num_eval_batches=100, max_epochs=1):
-    train_dataloader = DataLoader(data[:-num_eval_batches], collate_fn=lambda x: x[0])
+    train_dataloader = DataLoader(
+        data[:-num_eval_batches], collate_fn=lambda x: x[0], pin_memory=True
+    )
     eval_data = data[-num_eval_batches:]
 
     # disable logging in tests

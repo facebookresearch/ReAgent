@@ -44,7 +44,7 @@ class SupervisedTrainer(BaseCBTrainerWithEval):
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         return torch.optim.Adam(
-            self.parameters(), lr=self.lr, weight_decay=self.weight_decay
+            self.parameters(), lr=self.lr, weight_decay=self.weight_decay, foreach=True
         )
 
     def cb_training_step(

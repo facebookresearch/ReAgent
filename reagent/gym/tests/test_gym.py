@@ -246,7 +246,9 @@ def run_test_replay_buffer(
         max_steps=200,
         device=device,
     )
-    data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
+    data_loader = torch.utils.data.DataLoader(
+        dataset, collate_fn=identity_collate, pin_memory=True
+    )
     torch.use_deterministic_algorithms(True, warn_only=True)
     pl_trainer = pl.Trainer(
         max_epochs=1,
@@ -309,7 +311,9 @@ def run_test_online_episode(
     dataset = EpisodicDataset(
         env=env, agent=agent, num_episodes=num_train_episodes, seed=SEED
     )
-    data_loader = torch.utils.data.DataLoader(dataset, collate_fn=identity_collate)
+    data_loader = torch.utils.data.DataLoader(
+        dataset, collate_fn=identity_collate, pin_memory=True
+    )
     pl_trainer.fit(trainer, data_loader)
 
     eval_rewards = evaluate_for_n_episodes(

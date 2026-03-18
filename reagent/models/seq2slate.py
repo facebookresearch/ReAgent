@@ -807,8 +807,8 @@ class Seq2SlateTransformerModel(nn.Module):
         if self.output_arch == Seq2SlateOutputArch.FRECHET_SORT:
             # encoder_scores shape: batch_size, src_seq_len
             encoder_scores = self.encoder_scorer(memory).squeeze(dim=2)
-            logits = torch.zeros(batch_size, tgt_seq_len, candidate_size).to(
-                encoder_scores.device
+            logits = torch.zeros(
+                batch_size, tgt_seq_len, candidate_size, device=encoder_scores.device
             )
             logits[:, :, :2] = float("-inf")
             logits[:, :, 2:] = encoder_scores.repeat(1, tgt_seq_len).reshape(

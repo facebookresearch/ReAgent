@@ -50,7 +50,10 @@ class DeepRepresentLinUCBTrainer(LinUCBTrainer):
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         return torch.optim.Adam(
-            self.scorer.parameters(), lr=self.lr, weight_decay=self.weight_decay
+            self.scorer.parameters(),
+            lr=self.lr,
+            weight_decay=self.weight_decay,
+            foreach=True,
         )
 
     def cb_training_step(

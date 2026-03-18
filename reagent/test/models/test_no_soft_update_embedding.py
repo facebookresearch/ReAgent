@@ -29,7 +29,7 @@ class TestNoSoftUpdteEmbedding(unittest.TestCase):
         for target_param, param in zip(model.parameters(), target_model.parameters()):
             self.assertIs(target_param, param)
 
-        optimizer = torch.optim.Adam(model.parameters())
+        optimizer = torch.optim.Adam(model.parameters(), foreach=True)
 
         x = torch.tensor([1, 2], dtype=torch.int64)
         emb = model(x)

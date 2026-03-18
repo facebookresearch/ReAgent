@@ -46,6 +46,7 @@ class CompressModelTrainer(ReAgentLightningModule):
                 "optimizer": torch.optim.Adam(
                     self.compress_model_network.parameters(),
                     lr=self.params.compress_model_learning_rate,
+                    foreach=True,
                 )
             }
         )
