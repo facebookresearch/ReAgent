@@ -4,7 +4,7 @@
 # pyre-unsafe
 
 import math
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import List, Optional
 
 import torch
