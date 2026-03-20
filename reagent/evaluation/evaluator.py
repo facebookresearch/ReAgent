@@ -8,7 +8,6 @@ from collections import Counter
 from typing import Dict, List, Optional
 
 import torch
-import torch.nn.functional as F
 from reagent.core.tracker import observable
 from reagent.evaluation.cpe import CpeDetails, CpeEstimateSet
 from reagent.evaluation.doubly_robust_estimator import DoublyRobustEstimator
