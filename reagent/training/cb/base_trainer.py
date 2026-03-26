@@ -186,7 +186,7 @@ class BaseCBTrainerWithEval(ABC, ReAgentLightningModule):
     def _log_recmetrics(self, step: Optional[int] = None) -> None:
         recmetric_module = self.recmetric_module
         assert recmetric_module is not None
-        computation_results = recmetric_module.compute().resolve()
+        computation_results = recmetric_module.compute()
         if get_rank() == 0:
             logger_ = self.logger
             assert logger_ is not None
