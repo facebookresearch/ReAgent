@@ -41,7 +41,6 @@ from reagent.workflow.types import (
     ReaderOptions,
     ResourceOptions,
     RewardOptions,
-    RLTrainingOutput,
     TableSpec,
 )
 
