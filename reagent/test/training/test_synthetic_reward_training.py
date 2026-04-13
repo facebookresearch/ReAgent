@@ -8,7 +8,7 @@ import unittest
 
 import pytorch_lightning as pl
 import torch
-from reagent.core import parameters as rlp, types as rlt
+from reagent.core import types as rlt
 from reagent.models.synthetic_reward import (
     NGramConvolutionalNetwork,
     NGramFullyConnectedNetwork,
