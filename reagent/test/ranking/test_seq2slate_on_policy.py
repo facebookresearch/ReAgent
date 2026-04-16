@@ -152,7 +152,7 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
         mask = subsequent_mask(3, torch.device("cpu"))
         assert torch.all(torch.eq(mask, expect_mask))
 
-    def test_mask_logits_by_idx(self):
+    def test_mask_logits_by_idx(self) -> None:
         logits = torch.tensor(
             [
                 [
@@ -190,8 +190,8 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
     @parameterized.expand(itertools.product(output_arch_list, temperature_list))
     @torch.no_grad()
     def test_seq2slate_transformer_propensity_computation(
-        self, output_arch, temperature
-    ):
+        self, output_arch: Seq2SlateOutputArch, temperature: float
+    ) -> None:
         """
         Test propensity computation of seq2slate net
         """
