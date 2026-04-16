@@ -8,11 +8,11 @@ from reagent.preprocessing.identify_types import CONTINUOUS, CONTINUOUS_ACTION
 from reagent.preprocessing.normalization import NormalizationParameters
 
 
-def _cont_norm():
+def _cont_norm() -> NormalizationParameters:
     return NormalizationParameters(feature_type=CONTINUOUS, mean=0.0, stddev=1.0)
 
 
-def _cont_action_norm():
+def _cont_action_norm() -> NormalizationParameters:
     return NormalizationParameters(
         feature_type=CONTINUOUS_ACTION, min_value=-3.0, max_value=3.0
     )
