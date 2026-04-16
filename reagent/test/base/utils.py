@@ -5,6 +5,7 @@
 
 import collections
 import csv
+from typing import Any, List, Optional
 
 import numpy as np
 import six
@@ -19,7 +20,11 @@ from reagent.preprocessing.normalization import (
 from scipy import special, stats
 
 
-def default_normalizer(feats, min_value=None, max_value=None):
+def default_normalizer(
+    feats: List[int],
+    min_value: Optional[float] = None,
+    max_value: Optional[float] = None,
+) -> "collections.OrderedDict[int, NormalizationParameters]":
     normalization_types = [
         NormalizationParameters(
             feature_type="BINARY",
@@ -97,7 +102,7 @@ def default_normalizer(feats, min_value=None, max_value=None):
     return normalization
 
 
-def write_lists_to_csv(path, *args) -> None:
+def write_lists_to_csv(path: str, *args: Any) -> None:
     rows = zip(*args)
     with open(path, "w") as f:
         writer = csv.writer(f)
