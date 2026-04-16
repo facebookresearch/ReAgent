@@ -3,7 +3,6 @@
 
 # pyre-unsafe
 
-import unittest
 from tempfile import TemporaryDirectory
 from unittest.mock import call, MagicMock
 
