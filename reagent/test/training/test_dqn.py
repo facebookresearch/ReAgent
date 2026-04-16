@@ -171,7 +171,7 @@ class TestDQN(unittest.TestCase):
         losses = list(loss_gen)
         self.assertEqual(len(losses), 4)
 
-    def test_configure_optimizers(self):
+    def test_configure_optimizers(self) -> None:
         trainer = self._construct_trainer()
         optimizers = trainer.configure_optimizers()
         # expecting a list of [
@@ -196,7 +196,7 @@ class TestDQN(unittest.TestCase):
         # expecting a [q_network optimizer, soft_update optimizer] list
         self.assertEqual(len(optimizers), 2)
 
-    def test_get_detached_model_outputs(self):
+    def test_get_detached_model_outputs(self) -> None:
         trainer = self._construct_trainer()
         q_out, q_target = trainer.get_detached_model_outputs(self.x)
         self.assertEqual(q_out.shape[0], q_target.shape[0], self.batch_size)
