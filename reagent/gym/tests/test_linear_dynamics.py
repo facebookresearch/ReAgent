@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestLinearDynamicsEnvironment(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         logging.getLogger().setLevel(logging.DEBUG)
 
     def test_random_vs_lqr(self):
@@ -27,7 +27,7 @@ class TestLinearDynamicsEnvironment(unittest.TestCase):
         env = Gym(env_name="LinearDynamics-v0")
         num_test_episodes = 500
 
-        def random_policy(env, state):
+        def random_policy(env: Gym, state: np.ndarray) -> np.ndarray:
             return np.random.uniform(
                 env.action_space.low, env.action_space.high, env.action_dim
             )
