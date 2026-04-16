@@ -53,7 +53,7 @@ class TestPolicyEvaluator(unittest.TestCase):
             action_log_probability=torch.tensor([[-2.0], [-3.0]], dtype=torch.float),
         )
 
-    def test_process_all_data(self):
+    def test_process_all_data(self) -> None:
         state_dict_before = copy.deepcopy(self.eval_module.state_dict())
         self.eval_module._process_all_data(self.batch)
         state_dict_after = copy.deepcopy(self.eval_module.state_dict())
@@ -99,7 +99,7 @@ class TestPolicyEvaluator(unittest.TestCase):
             state_dict_before["sum_reward_weighted_accepted_local"].item(),
         )
 
-    def test_process_used_data_accept_some(self):
+    def test_process_used_data_accept_some(self) -> None:
         # calling _process_used_data with non-zero weights should change the state and lead to correct reward value
         policy_network = LinearRegressionUCB(2)
         eval_module = PolicyEvaluator(policy_network)
@@ -107,7 +107,8 @@ class TestPolicyEvaluator(unittest.TestCase):
         batch = add_importance_weights(
             self.batch, torch.tensor([[1], [1]], dtype=torch.long)
         )  # 2nd action matches, 1st doesn't
-        importance_weight = torch.exp(-batch.action_log_probability[1, 0]).item()
+        assert batch.action_log_probability is not None
+        importance_weight = float(torch.exp(-batch.action_log_probability[1, 0]).item())
         eval_module._process_used_data(batch)
         eval_module._aggregate_across_instances()
         state_dict_after = copy.deepcopy(eval_module.state_dict())
@@ -117,20 +118,22 @@ class TestPolicyEvaluator(unittest.TestCase):
         self.assertEqual(
             eval_module.sum_importance_weight_accepted.item(), importance_weight
         )
+        reward = self.batch.reward
+        assert reward is not None
         self.assertEqual(
             eval_module.sum_reward_weighted_accepted.item(),
-            self.batch.reward[1, 0].item(),
+            reward[1, 0].item(),
         )
         self.assertAlmostEqual(
             eval_module.sum_reward_importance_weighted_accepted.item(),
-            importance_weight * self.batch.reward[1, 0].item(),
+            importance_weight * reward[1, 0].item(),
             places=5,
         )
         self.assertEqual(eval_module.sum_reward_weighted_accepted_local.item(), 0.0)
         self.assertEqual(
             eval_module.sum_reward_importance_weighted_accepted_local.item(), 0.0
         )
-        self.assertEqual(eval_module.get_avg_reward(), self.batch.reward[1, 0].item())
+        self.assertEqual(eval_module.get_avg_reward(), reward[1, 0].item())
 
     def test_update_eval_model(self):
         policy_network_1 = LinearRegressionUCB(2)
