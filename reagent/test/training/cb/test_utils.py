@@ -13,7 +13,7 @@ from reagent.training.cb.utils import (
 
 
 class TestCButils(unittest.TestCase):
-    def test_add_chosen_arm_features(self):
+    def test_add_chosen_arm_features(self) -> None:
         all_arms_features = torch.tensor(
             [[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=torch.float
         )
@@ -25,6 +25,9 @@ class TestCButils(unittest.TestCase):
             arms=arm_ids,
         )
         new_batch = add_chosen_arm_features(batch)
+        assert isinstance(new_batch, CBInput)
+        assert new_batch.features_of_chosen_arm is not None
+        assert new_batch.chosen_arm_id is not None
         npt.assert_equal(
             new_batch.features_of_chosen_arm.numpy(), np.array([[3.0, 4.0], [5.0, 6.0]])
         )
@@ -116,7 +119,7 @@ class TestCButils(unittest.TestCase):
             },
         )
 
-    def test_get_model_actions_not_randomize(self):
+    def test_get_model_actions_not_randomize(self) -> None:
         scores = torch.tensor(
             [[1, 20, 20], [4, 4, 3], [15, 10, 15], [100, float("inf"), float("inf")]]
         )
