@@ -64,7 +64,7 @@ def _create_replay_buffer_and_insert(env: EnvWrapper):
 
 
 class TestBasicReplayBufferInserter(HorizonTestBase):
-    def test_cartpole(self):
+    def test_cartpole(self) -> None:
         env = gym.make("CartPole-v0")
         replay_buffer, inserted = _create_replay_buffer_and_insert(env)
         batch = replay_buffer.sample_transition_batch(indices=torch.tensor([0]))
@@ -127,7 +127,7 @@ class TestRecSimReplayBufferInserter(HorizonTestBase):
             )
 
     @unittest.skipIf(not HAS_RECSIM, "RecSim not installed")
-    def test_recsim_interest_exploration(self):
+    def test_recsim_interest_exploration(self) -> None:
         num_candidate = 10
         slate_size = 3
         env = RecSim(
