@@ -5,7 +5,7 @@
 import logging
 import os
 import unittest
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import gym
 import numpy as np
@@ -45,7 +45,7 @@ def calculate_feature_importance(
     trainer: MDNRNNTrainer,
     use_gpu: bool,
     test_batch: rlt.MemoryNetworkInput,
-):
+) -> Dict[str, float]:
     assert isinstance(env.action_space, gym.spaces.Discrete)
     assert isinstance(env.observation_space, gym.spaces.Box)
     assert len(env.observation_space.shape) == 1
@@ -237,7 +237,7 @@ def create_embed_rl_dataset(
     seq_len: int,
     hidden_dim: int,
     use_gpu: bool,
-):
+) -> Tuple[ReplayBuffer, float, float]:
     assert isinstance(env.action_space, gym.spaces.Discrete)
     assert isinstance(env.observation_space, gym.spaces.Box)
     assert len(env.observation_space.shape) == 1
