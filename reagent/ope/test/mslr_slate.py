@@ -90,7 +90,9 @@ class MSLRDatasets:
     def name(self) -> str:
         return self._name
 
-    def _add(self, qid: Optional[int], feature_list: List[Tuple[float, Tensor]]):
+    def _add(
+        self, qid: Optional[int], feature_list: List[Tuple[float, Tensor]]
+    ) -> None:
         if qid is None or len(feature_list) == 0:
             return
         if qid in self._dict:
@@ -145,7 +147,7 @@ class MSLRDatasets:
                         print(f"{c} - {(time.process_time() - st) / c}")
                 self._add(prev_qid, features_list)
 
-    def save(self):
+    def save(self) -> None:
         if len(self._cache_file) == 0 or self._dict is None:
             return
         pickle_file = os.path.join(self._folder, self._cache_file)
