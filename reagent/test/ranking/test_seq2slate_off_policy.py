@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 
 
 class TestSeq2SlateOffPolicy(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
 
-    def test_seq2slate_transformer_off_policy_simple_tsp(self):
+    def test_seq2slate_transformer_off_policy_simple_tsp(self) -> None:
         """
         Solve Traveling Salesman Problem. Data comes from one set of nodes (cities).
         """
@@ -57,7 +57,7 @@ class TestSeq2SlateOffPolicy(unittest.TestCase):
 
     @pytest.mark.seq2slate_long
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_seq2slate_transformer_off_policy_hard_tsp(self):
+    def test_seq2slate_transformer_off_policy_hard_tsp(self) -> None:
         """
         Solve Traveling Salesman Problem. Data comes from multiple sets of cities.
         """
