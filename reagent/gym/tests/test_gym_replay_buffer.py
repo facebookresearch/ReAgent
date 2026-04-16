@@ -3,7 +3,9 @@
 
 # pyre-unsafe
 import logging
+from typing import Any, Dict, Tuple
 
+import numpy as np
 import numpy.testing as npt
 from reagent.core.parameters import ProblemDomain
 from reagent.gym.envs import Gym
@@ -33,14 +35,14 @@ class TestEnv(SimpleObsWrapper):
     def seed(self, *args, **kwargs):
         return self.env.seed(*args, **kwargs)
 
-    def reset(self, **kwargs):
+    def reset(self, **kwargs: Any) -> np.ndarray:
         self.mdp_id += 1
         self.sequence_number = 0
         res = self.env.reset(**kwargs)
         self.sart.append([self.mdp_id, self.sequence_number, res, None, None, None])
         return res
 
-    def step(self, action):
+    def step(self, action: int) -> Tuple[np.ndarray, float, bool, Dict[str, Any]]:
         res = self.env.step(action)
         (
             _,
