@@ -17,7 +17,7 @@ from reagent.test.ranking.seq2slate_utils import (
 
 
 class TestSeq2SlateSimulation(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
@@ -54,7 +54,7 @@ class TestSeq2SlateSimulation(unittest.TestCase):
 
     @pytest.mark.seq2slate_long
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_seq2slate_transformer_simulation_hard_tsp(self):
+    def test_seq2slate_transformer_simulation_hard_tsp(self) -> None:
         """
         Solve Traveling Salesman Problem. Data comes from multiple sets of cities.
         """
