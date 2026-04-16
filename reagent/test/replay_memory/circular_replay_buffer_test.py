@@ -53,7 +53,7 @@ class ReplayBufferTest(unittest.TestCase):
     def tearDown(self):
         self.tmp_dir.cleanup()
 
-    def testConstructor(self):
+    def testConstructor(self) -> None:
         memory = circular_replay_buffer.ReplayBuffer(
             stack_size=STACK_SIZE, replay_capacity=5, batch_size=BATCH_SIZE
         )
@@ -84,7 +84,7 @@ class ReplayBufferTest(unittest.TestCase):
         # Check if the cursor moved STACK_SIZE -1 zeros adds + 1, (the one above).
         self.assertEqual(memory.cursor(), STACK_SIZE)
 
-    def testLowCapacity(self):
+    def testLowCapacity(self) -> None:
         with self.assertRaisesRegex(ValueError, "There is not enough capacity"):
             circular_replay_buffer.ReplayBuffer(
                 stack_size=10,
