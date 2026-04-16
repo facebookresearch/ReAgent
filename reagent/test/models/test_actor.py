@@ -29,7 +29,7 @@ class ActorTorchScriptWrapper(nn.Module):
             GaussianFullyConnectedActor,
             DirichletFullyConnectedActor,
         ],
-    ):
+    ) -> None:
         super().__init__()
         self.model = model
 
@@ -139,7 +139,7 @@ class TestGaussianFullyConnectedActor(TestActorBase):
         )
         self.check_save_load(model, stochastic=True)
 
-    def test_save_load_batch_norm(self):
+    def test_save_load_batch_norm(self) -> None:
         state_dim = 8
         action_dim = 4
         model = GaussianFullyConnectedActor(
