@@ -52,7 +52,9 @@ class ParametricDuelingQNetworkTorchScriptWrapper(nn.Module):
 
 
 class TestDuelingQNetwork(unittest.TestCase):
-    def check_save_load(self, model: Union[DuelingQNetwork, ParametricDuelingQNetwork]):
+    def check_save_load(
+        self, model: Union[DuelingQNetwork, ParametricDuelingQNetwork]
+    ) -> None:
         if isinstance(model, ParametricDuelingQNetwork):
             script_model = ParametricDuelingQNetworkTorchScriptWrapper(model)
         else:
@@ -120,7 +122,7 @@ class TestDuelingQNetwork(unittest.TestCase):
         model.eval()
         self.check_save_load(model)
 
-    def test_save_load_parametric_action_batch_norm(self):
+    def test_save_load_parametric_action_batch_norm(self) -> None:
         state_dim = 8
         action_dim = 4
         model = ParametricDuelingQNetwork.make_fully_connected(
