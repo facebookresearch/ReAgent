@@ -24,7 +24,7 @@ class TestPOMDPEnvironment(unittest.TestCase):
         mean_acc_reward = self._test_env(env)
         assert 1.0 >= mean_acc_reward
 
-    def test_string_game(self):
+    def test_string_game(self) -> None:
         env = Gym(env_name="StringGame-v0")
         env.seed(313)
         mean_acc_reward = self._test_env(env)
@@ -36,7 +36,7 @@ class TestPOMDPEnvironment(unittest.TestCase):
         mean_acc_reward = self._test_env(env)
         assert -80 <= mean_acc_reward <= -70
 
-    def _test_env(self, env):
+    def _test_env(self, env: Gym) -> float:
         acc_rws = []
         num_test_episodes = 200
 
@@ -44,7 +44,9 @@ class TestPOMDPEnvironment(unittest.TestCase):
             start_time = time.time()
             env.reset()
             acc_rw = 0
-            for i in range(1, env.max_steps + 1):
+            max_steps = env.max_steps
+            assert max_steps is not None
+            for i in range(1, max_steps + 1):
                 env.print_internal_state()
                 action = env.random_action()
                 ob, rw, done, info = env.step(action)
