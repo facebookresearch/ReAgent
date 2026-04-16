@@ -135,7 +135,7 @@ def create_discrete_choice_gumbel_softmax_obj_func(ng_param, gt_net):
 
 
 class TestComboOptimizer(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         seed = 123
         random.seed(seed)
         np.random.seed(seed)
@@ -544,7 +544,7 @@ class TestComboOptimizer(unittest.TestCase):
             f"In this setting. qlearning should be better than policy gradient over {repeat} repeats"
         )
 
-    def test_sol_to_tensors(self):
+    def test_sol_to_tensors(self) -> None:
         input_param = discrete_input_param()
         sampled_sol = {
             "choice1": torch.tensor([0, 1, 2]),
