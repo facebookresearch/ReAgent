@@ -4,6 +4,7 @@
 # pyre-unsafe
 
 import logging
+from typing import Any, List, Optional
 
 import numpy as np
 import numpy.testing as npt
@@ -54,7 +55,12 @@ def get_stacked_transition(i, stack_size, traj_start_idx):
     return {k: np.stack(v, axis=-1) for k, v in res.items()}
 
 
-def setup_buffer(buffer_size, trajectory_lengths, stack_size=None, multi_steps=None):
+def setup_buffer(
+    buffer_size: int,
+    trajectory_lengths: List[int],
+    stack_size: Optional[int] = None,
+    multi_steps: Optional[int] = None,
+) -> Any:
     """We will insert one trajectory into the RB."""
     stack_size = stack_size if stack_size is not None else 1
     update_horizon = multi_steps if multi_steps is not None else 1
@@ -227,7 +233,7 @@ NUM_TRAJ_LIMIT = 10
 class ExtraReplayBufferTest(HorizonTestBase):
     """Stress tests for the replay buffer, especially for new flags."""
 
-    def test_stack_slaughter(self):
+    def test_stack_slaughter(self) -> None:
         stack_size = 7
         for i in range(1, NUM_TRAJ_LIMIT):
             traj_lengths = torch.randint(1, MAX_TRAJ_LEN, (i,))
