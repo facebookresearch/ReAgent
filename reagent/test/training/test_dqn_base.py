@@ -39,7 +39,7 @@ class MockDQNTrainer(DQNTrainerBaseLightning):
 
     @torch.no_grad()
     def get_detached_model_outputs(
-        self, state
+        self, state: FeatureData
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """Gets the q values from the model and target networks"""
         # pyre-fixme[29]: `Union[Tensor, Module]` is not a function.
@@ -524,7 +524,7 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
             batch_num * data_pages[0].eval_action_idxs.shape[0],
         )
 
-    def test_validation_step(self):
+    def test_validation_step(self) -> None:
         inp = DiscreteDqnInput(
             state=FeatureData(
                 float_features=torch.rand(self.batch_size, self.state_dim)
