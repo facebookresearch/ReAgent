@@ -191,7 +191,7 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(out["c"], expected["c"])
 
     @patch("reagent.preprocessing.transforms.Preprocessor")
-    def test_DenseNormalization(self, Preprocessor) -> None:
+    def test_DenseNormalization(self, Preprocessor: Mock) -> None:
         a_out = torch.tensor(1)
         b_out = torch.tensor(2)
         c_out = torch.tensor(3.0)
@@ -607,7 +607,7 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(out["a"].shape, torch.Size([2, 2, 3]))
         self.assertDictOfTensorEqual({"a": a_out_223}, out)
 
-    def _check_same_keys(self, dict_a, dict_b) -> None:
+    def _check_same_keys(self, dict_a: dict, dict_b: dict) -> None:
         self.assertSetEqual(set(dict_a.keys()), set(dict_b.keys()))
 
     def test_AppendConstant(self) -> None:
