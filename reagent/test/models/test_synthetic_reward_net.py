@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestSyntheticReward(unittest.TestCase):
-    def test_single_step_synthetic_reward(self):
+    def test_single_step_synthetic_reward(self) -> None:
         state_dim = 10
         action_dim = 2
         sizes = [256, 128]
@@ -230,7 +230,7 @@ class TestSyntheticReward(unittest.TestCase):
         output_activation = export_net.output_activation
         assert output_activation._get_name() == "LeakyReLU"
 
-    def test_single_step_sparse_arch_synthetic_reward(self):
+    def test_single_step_sparse_arch_synthetic_reward(self) -> None:
         state_dense_dim = 10
         action_dense_dim = 2
         dense_sizes = [256, 32]
