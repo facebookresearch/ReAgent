@@ -98,7 +98,7 @@ class GridWorld(Environment):
                         walls.append((r, c))
         return cls(size, start, goal, max_horizon, walls, use_taxicab_reward)
 
-    def reset(self, state: Optional[State] = None):
+    def reset(self, state: Optional[State] = None) -> State:
         super().reset(state)
         if self._current_state is None:
             self._current_state = State(self.start)
@@ -304,7 +304,9 @@ class NoiseGridWorldModel(Environment):
         return states
 
     @property
-    def observation_space(self):
+    def observation_space(
+        self,
+    ) -> Tuple[Tuple[int, ...], Tuple[Tuple[int, int], Tuple[int, int]]]:
         return self._gridworld.observation_space
 
     @property
