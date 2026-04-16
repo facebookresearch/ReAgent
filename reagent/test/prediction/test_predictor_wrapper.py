@@ -5,6 +5,7 @@
 
 import random
 import unittest
+from typing import Tuple
 
 import numpy.testing as npt
 import reagent.core.types as rlt
@@ -38,11 +39,11 @@ from reagent.test.prediction.test_prediction_utils import (
 
 
 def seq2slate_input_prototype_to_ranking_input(
-    state_input_prototype,
-    candidate_input_prototype,
-    state_preprocessor,
-    candidate_preprocessor,
-):
+    state_input_prototype: Tuple[torch.Tensor, torch.Tensor],
+    candidate_input_prototype: Tuple[torch.Tensor, torch.Tensor],
+    state_preprocessor: Preprocessor,
+    candidate_preprocessor: Preprocessor,
+) -> rlt.PreprocessedRankingInput:
     batch_size, candidate_size, candidate_dim = candidate_input_prototype[0].shape
     preprocessed_state = state_preprocessor(
         state_input_prototype[0], state_input_prototype[1]
@@ -213,11 +214,16 @@ class TestPredictorWrapper(unittest.TestCase):
         )
         self.assertTrue((expected_output == action).all())
 
-    def validate_seq2slate_output(self, expected_output, wrapper_output) -> None:
+    def validate_seq2slate_output(
+        self,
+        expected_output: rlt.RankingOutput,
+        wrapper_output: Tuple[torch.Tensor, torch.Tensor],
+    ) -> None:
         ranked_per_seq_probs, ranked_tgt_out_idx = (
             expected_output.ranked_per_seq_probs,
             expected_output.ranked_tgt_out_idx,
         )
+        assert ranked_tgt_out_idx is not None
         # -2 to offset padding symbol and decoder start symbol
         ranked_tgt_out_idx -= 2
 
