@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 
 
 class TestSeq2SlateInference(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
 
-    def test_seq2slate_scriptable(self):
+    def test_seq2slate_scriptable(self) -> None:
         state_dim = 2
         candidate_dim = 3
         num_stacked_layers = 2
