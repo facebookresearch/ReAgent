@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class FullyConnectedCriticTorchScriptWrapper(nn.Module):
-    def __init__(self, model: FullyConnectedCritic):
+    def __init__(self, model: FullyConnectedCritic) -> None:
         super().__init__()
         self.model = model
 
@@ -56,7 +56,7 @@ class TestFullyConnectedCritic(unittest.TestCase):
         single_q_value = model(state, action)
         self.assertEqual((1, 1), single_q_value.shape)
 
-    def test_save_load(self):
+    def test_save_load(self) -> None:
         state_dim = 8
         action_dim = 4
         model = FullyConnectedCritic(
