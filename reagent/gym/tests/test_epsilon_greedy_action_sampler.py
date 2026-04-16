@@ -8,7 +8,7 @@ from reagent.test.base.horizon_test_base import HorizonTestBase
 
 
 class EpsilonGreedyActionSamplerTest(HorizonTestBase):
-    def test_greedy_selection(self):
+    def test_greedy_selection(self) -> None:
         scores = torch.tensor(
             [
                 [1.0, 2.0, 3.0, 4.0, 5.0],
@@ -35,7 +35,7 @@ class EpsilonGreedyActionSamplerTest(HorizonTestBase):
 
         torch.testing.assert_allclose(action.log_prob, test_log_prob)
 
-    def test_uniform_random_selection(self):
+    def test_uniform_random_selection(self) -> None:
         scores = torch.tensor(
             [
                 [1.0, 2.0, 3.0, 4.0, 5.0],
