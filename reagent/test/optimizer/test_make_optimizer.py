@@ -4,6 +4,7 @@
 # pyre-unsafe
 
 import unittest
+from typing import Any, Dict
 
 import torch
 from reagent.optimizer.uninferrable_optimizers import Adam
@@ -22,7 +23,7 @@ class TestMakeOptimizer(unittest.TestCase):
     def setUp(self):
         self.model = torch.nn.Linear(3, 4)
 
-    def _verify_optimizer(self, optimizer_scheduler_pair):
+    def _verify_optimizer(self, optimizer_scheduler_pair: Dict[str, Any]) -> None:
         self.assertTrue(is_torch_optimizer(type(optimizer_scheduler_pair["optimizer"])))
         self.assertTrue(
             is_torch_lr_scheduler(type(optimizer_scheduler_pair["lr_scheduler"]))
@@ -50,7 +51,7 @@ class TestMakeOptimizer(unittest.TestCase):
             ).make_optimizer_scheduler(self.model.parameters())
         )
 
-    def test_make_optimizer_with_cosine_annealing_lr_scheduler(self):
+    def test_make_optimizer_with_cosine_annealing_lr_scheduler(self) -> None:
         self._verify_optimizer(
             Adam(
                 lr=0.001, lr_schedulers=[CosineAnnealingLR(T_max=1)]
