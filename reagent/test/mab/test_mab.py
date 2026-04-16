@@ -6,6 +6,7 @@
 import unittest
 from io import BytesIO
 from itertools import cycle
+from typing import List, Type
 from unittest import mock
 
 import numpy as np
@@ -15,6 +16,7 @@ from parameterized.parameterized import parameterized
 from pytorch_lightning import seed_everything
 from reagent.mab.mab_algorithm import (
     get_arm_indices,
+    MABAlgo,
     place_values_at_indices,
     randomized_argmax,
     reindex_multiple_tensors,
@@ -91,7 +93,7 @@ class TestMAButils(unittest.TestCase):
             best_idxs.add(randomized_argmax(x))
         self.assertSetEqual(best_idxs, expected_idxs)
 
-    def test_randomized_argmax(self):
+    def test_randomized_argmax(self) -> None:
         self._test_randomized_argmax(torch.tensor([1, 2, 3, 2, 3, 1, 3]), {2, 4, 6})
         self._test_randomized_argmax(
             torch.tensor(
@@ -379,9 +381,9 @@ class TestSimulation(unittest.TestCase):
         # make sure regret is non-decreasing
         self.assertGreaterEqual(np.diff(regret_trajectory, prepend=0).min(), 0)
 
-    def test_compare_bandit_algos(self):
+    def test_compare_bandit_algos(self) -> None:
         max_steps = 1000
-        algo_clss = [UCB1, MetricUCB, BernoulliBetaThompson]
+        algo_clss: List[Type[MABAlgo]] = [UCB1, MetricUCB, BernoulliBetaThompson]
         algo_names, regret_trajectories = compare_bandit_algos(
             algo_clss=algo_clss,
             bandit_cls=BernoilliMAB,
