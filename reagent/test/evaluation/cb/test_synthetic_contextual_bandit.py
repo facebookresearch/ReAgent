@@ -22,7 +22,7 @@ class TestSyntheticBandit(unittest.TestCase):
         num_unique_batches: int = 10,
         batch_size: int = 4,
         num_arms_per_episode: int = 2,
-    ):
+    ) -> None:
         self.feature_dim = feature_dim
         self.num_unique_batches = num_unique_batches
         self.batch_size = batch_size
@@ -36,7 +36,7 @@ class TestSyntheticBandit(unittest.TestCase):
         num_arms_per_episode: int = 2,
         num_obs: int = 101,
         max_epochs: int = 1,
-    ):
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         agent, accumulated_rewards, accumulated_regrets = run_dynamic_bandit_env(
             feature_dim=feature_dim,
             num_unique_batches=num_unique_batches,
