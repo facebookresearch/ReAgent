@@ -2,7 +2,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
 # pyre-unsafe
-import os
 import unittest
 from copy import deepcopy
 from typing import List
