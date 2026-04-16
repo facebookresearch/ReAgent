@@ -12,7 +12,7 @@ from torchrec.sparse.jagged_tensor import KeyedJaggedTensor
 
 class TestTypes(unittest.TestCase):
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_tensor_data_class_to_cuda(self):
+    def test_tensor_data_class_to_cuda(self) -> None:
         # Test if TensorDataClass.to(...) can move to designated device
         batch_size = 4
         dim = 5

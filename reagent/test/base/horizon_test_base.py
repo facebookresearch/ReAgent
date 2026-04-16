@@ -6,7 +6,7 @@
 import logging
 import random
 import unittest
-from typing import Callable
+from typing import Any, Callable
 
 import numpy as np
 import torch
@@ -32,7 +32,9 @@ class HorizonTestBase(unittest.TestCase):
         SummaryWriterContext._reset_globals()
 
     @classmethod
-    def run_from_config(cls, run_test: Callable, config_path: str, use_gpu: bool):
+    def run_from_config(
+        cls, run_test: Callable, config_path: str, use_gpu: bool
+    ) -> Any:
         # pyre-fixme[16]: Module `yaml` has no attribute `YAML`.
         yaml = YAML(typ="safe")
         with open(config_path, "r") as f:
