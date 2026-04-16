@@ -22,7 +22,7 @@ except ImportError as e:
 
 class CreateFromEnvTest(unittest.TestCase):
     @unittest.skipIf(not HAS_RECSIM, "recsim is not installed")
-    def test_create_from_recsim_interest_exploration(self):
+    def test_create_from_recsim_interest_exploration(self) -> None:
         env = RecSim(
             num_candidates=20,
             slate_size=3,
@@ -59,7 +59,7 @@ class CreateFromEnvTest(unittest.TestCase):
         )
 
     @unittest.skipIf(not HAS_RECSIM, "recsim is not installed")
-    def test_create_from_recsim_interest_evolution(self):
+    def test_create_from_recsim_interest_evolution(self) -> None:
         env = RecSim(num_candidates=20, slate_size=3, resample_documents=False)
         replay_buffer = ReplayBuffer(replay_capacity=100, batch_size=10)
         obs = env.reset()
