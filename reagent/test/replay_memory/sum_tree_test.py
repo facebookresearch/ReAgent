@@ -97,7 +97,7 @@ class SumTreeTest(unittest.TestCase):
         for _ in range(10000):
             self.assertEqual(self._tree.sample(query_value=0.1), 2)
 
-    def testSamplingWithSeedDoesNotAffectFutureCalls(self):
+    def testSamplingWithSeedDoesNotAffectFutureCalls(self) -> None:
         # Setting the seed here will set a deterministic random value r, which will
         # be used when sampling from the tree. Since it is scalled up by the total
         # sum value of the tree, M, we can see that r' * M + m = M, where:
@@ -143,7 +143,7 @@ class SumTreeTest(unittest.TestCase):
         for i in range(k):
             self.assertEqual(samples[i], i)
 
-    def testMaxRecordedProbability(self):
+    def testMaxRecordedProbability(self) -> None:
         k = 32
         self._tree.set(node_index=0, value=0)
         self.assertEqual(self._tree.max_recorded_priority, 1)
