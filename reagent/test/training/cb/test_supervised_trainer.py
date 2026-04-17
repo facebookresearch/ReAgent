@@ -44,20 +44,24 @@ class TestSupervisedTrainer(unittest.TestCase):
             reward=torch.tensor([[1.5], [2.3]], dtype=torch.float),
         )
 
-    def test_supervised_training_step(self):
+    def test_supervised_training_step(self) -> None:
         self.trainer.training_step(self.batch, 0)
         self.trainer.on_train_epoch_end()
 
-    def test_linucb_training_multiple_epochs(self):
+    def test_linucb_training_multiple_epochs(self) -> None:
         obss = []
+        batch_action = self.batch.action
+        batch_reward = self.batch.reward
+        assert batch_action is not None
+        assert batch_reward is not None
         for i in range(self.batch_size):
             obss.append(
                 CBInput(
                     context_arm_features=self.batch.context_arm_features[
                         i : i + 1, :, :
                     ],
-                    action=self.batch.action[[i]],
-                    reward=self.batch.reward[[i]],
+                    action=batch_action[[i]],
+                    reward=batch_reward[[i]],
                 )
             )
 
