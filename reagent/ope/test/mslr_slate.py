@@ -13,7 +13,7 @@ import random
 import sys
 import time
 from collections import OrderedDict
-from typing import Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -54,13 +54,13 @@ from torch import Tensor
 class MSLRDatasets:
     def __init__(
         self,
-        params,
+        params: Dict[str, Any],
         num_columns: int,
         anchor_url_features: List[int],
         body_features: List[int],
         dataset_name: str = "",
-        device=None,
-    ):
+        device: Optional[torch.device] = None,
+    ) -> None:
         if "folder" not in params:
             raise Exception('Please define "folder" in "dataset"')
         self._folder = params["folder"]
@@ -100,7 +100,7 @@ class MSLRDatasets:
         else:
             self._dict[qid] = feature_list
 
-    def load(self):
+    def load(self) -> None:
         pickle_file = os.path.join(self._folder, self._cache_file)
         if len(self._cache_file) > 0 and os.access(pickle_file, os.R_OK):
             logging.info(f"loading {pickle_file}")
@@ -119,7 +119,7 @@ class MSLRDatasets:
                 c = 0
                 st = time.process_time()
                 # feature index starts with 1, so leave features[0] as padding
-                features = list(range(self._num_columns - 1))
+                features: List[float] = [float(x) for x in range(self._num_columns - 1)]
                 features_list = []
                 prev_qid = None
                 for line in f.readlines():
