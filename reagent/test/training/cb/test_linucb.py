@@ -303,7 +303,7 @@ class TestLinUCB(unittest.TestCase):
         npt.assert_allclose(scorer.coefs.numpy(), theta, atol=1e-4, rtol=1e-4)
 
         # ucb scores are the same
-        def calculated_expected_ucb_scores(inp):
+        def calculated_expected_ucb_scores(inp: torch.Tensor) -> np.ndarray:
             expected_out = np.zeros(inp.size()[0])
             for i in range(inp.size()[0]):
                 x = inp[i].numpy()
@@ -318,7 +318,7 @@ class TestLinUCB(unittest.TestCase):
         expected_out2 = calculated_expected_ucb_scores(inp2)
         npt.assert_allclose(out2.numpy(), expected_out2, atol=1e-4, rtol=1e-4)
 
-    def test_recmetric_module(self):
+    def test_recmetric_module(self) -> None:
         recmetric_module = _get_recmetric_module()
         scorer = LinearRegressionUCB(self.x_dim)
         policy = Policy(scorer=scorer, sampler=GreedyActionSampler())
