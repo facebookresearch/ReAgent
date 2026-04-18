@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestMDNRNN(unittest.TestCase):
-    def test_gmm_loss(self):
+    def test_gmm_loss(self) -> None:
         # seq_len x batch_size x gaussian_size x feature_size
         # 1 x 1 x 2 x 2
         mus = torch.Tensor([[[[0.0, 0.0], [6.0, 6.0]]]])
@@ -68,7 +68,7 @@ class TestMDNRNN(unittest.TestCase):
     def test_mdnrnn_simulate_world_gpu(self):
         self._test_mdnrnn_simulate_world(use_gpu=True)
 
-    def _test_mdnrnn_simulate_world(self, use_gpu=False):
+    def _test_mdnrnn_simulate_world(self, use_gpu: bool = False) -> None:
         num_epochs = 300
         num_episodes = 400
         batch_size = 200
