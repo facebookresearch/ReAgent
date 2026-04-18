@@ -22,7 +22,7 @@ class TestSeq2SlateSimulation(unittest.TestCase):
         random.seed(0)
         torch.manual_seed(0)
 
-    def test_seq2slate_transformer_simulation_simple_tsp(self):
+    def test_seq2slate_transformer_simulation_simple_tsp(self) -> None:
         """
         Solve Traveling Salesman Problem. Data comes from one set of nodes (cities).
         """
