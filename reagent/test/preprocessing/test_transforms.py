@@ -4,7 +4,7 @@
 # pyre-unsafe
 import unittest
 from copy import deepcopy
-from typing import List
+from typing import Any, Callable, Dict, List
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -34,14 +34,16 @@ class TestTransforms(unittest.TestCase):
         )
         self.assertEqual(tensor_0, tensor_1, msg=msg)
 
-    def assertDictComparatorEqual(self, a, b, cmp) -> None:
+    def assertDictComparatorEqual(
+        self, a: Dict[str, Any], b: Dict[str, Any], cmp: Callable[..., Any]
+    ) -> None:
         """
         assertDictEqual() compares args with ==. This allows caller to override
         comparator via cmp argument.
         """
         self.assertIsInstance(a, dict, "First argument is not a dictionary")
         self.assertIsInstance(b, dict, "Second argument is not a dictionary")
-        self.assertSequenceEqual(a.keys(), b.keys())
+        self.assertSequenceEqual(list(a.keys()), list(b.keys()))
 
         for key in a.keys():
             self.assertTrue(cmp(a[key], b[key]), msg=f"Different at key {key}")
@@ -216,7 +218,7 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(torch.stack(in_2), torch.stack(b_in))
 
     @patch("reagent.preprocessing.transforms.Preprocessor")
-    def test_FixedLengthSequenceDenseNormalization(self, Preprocessor) -> None:
+    def test_FixedLengthSequenceDenseNormalization(self, Preprocessor: Mock) -> None:
         # test key mapping
         rand_gen = torch.Generator().manual_seed(0)
 
