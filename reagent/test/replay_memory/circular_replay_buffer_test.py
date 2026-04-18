@@ -35,7 +35,7 @@ BATCH_SIZE = 32
 
 
 class CheckpointableClass:
-    def __init__(self):
+    def __init__(self) -> None:
         self.attribute = 0
 
 
@@ -135,7 +135,7 @@ class ReplayBufferTest(unittest.TestCase):
             # Make sure the total reward is reward per step x update_horizon.
             self.assertEqual(batch[2][0], 10.0)
 
-    def testSampleTransitionBatch(self):
+    def testSampleTransitionBatch(self) -> None:
         replay_capacity = 10
         memory = circular_replay_buffer.ReplayBuffer(
             stack_size=1, replay_capacity=replay_capacity, batch_size=2
