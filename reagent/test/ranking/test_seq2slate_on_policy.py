@@ -93,7 +93,7 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
         assert torch.all(tgt_tgt_mask == expected_tgt_tgt_mask)
         assert torch.all(tgt_src_mask == expected_tgt_src_mask)
 
-    def test_per_symbol_to_per_seq_log_probs(self):
+    def test_per_symbol_to_per_seq_log_probs(self) -> None:
         """
         Test per_symbol_to_per_seq_log_probs method
         """
