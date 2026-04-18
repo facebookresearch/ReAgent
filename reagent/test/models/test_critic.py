@@ -23,7 +23,7 @@ class FullyConnectedCriticTorchScriptWrapper(nn.Module):
 
     def forward(
         self, state_float_features: torch.Tensor, action_float_features: torch.Tensor
-    ):
+    ) -> torch.Tensor:
         return self.model(
             rlt.FeatureData(float_features=state_float_features),
             rlt.FeatureData(float_features=action_float_features),
@@ -38,7 +38,7 @@ class TestFullyConnectedCritic(unittest.TestCase):
         script_model = FullyConnectedCriticTorchScriptWrapper(model)
         run_model_jit_trace(model, script_model)
 
-    def test_basic(self):
+    def test_basic(self) -> None:
         state_dim = 8
         action_dim = 4
         model = FullyConnectedCritic(
