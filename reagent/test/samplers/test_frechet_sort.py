@@ -8,7 +8,7 @@ from reagent.test.base.horizon_test_base import HorizonTestBase
 
 
 class FrechetSortTest(HorizonTestBase):
-    def test_log_prob(self):
+    def test_log_prob(self) -> None:
         scores = torch.tensor(
             [
                 [1.0, 2.0, 3.0, 4.0, 5.0],
@@ -47,7 +47,7 @@ class FrechetSortTest(HorizonTestBase):
 
         self.assertAlmostEqual(log_prob, log_probs[1])
 
-    def test_log_prob_padding(self):
+    def test_log_prob_padding(self) -> None:
         scores = torch.tensor(
             [
                 [1.0, 2.0, 3.0, 4.0, 5.0],
@@ -70,7 +70,8 @@ class FrechetSortTest(HorizonTestBase):
         self.assertLess(log_probs[0], log_probs[1])
 
         log_probs.sum().backward()
-        self.assertGreater(scores.grad.sum(), 0)
+        assert scores.grad is not None
+        self.assertGreater(scores.grad.sum().item(), 0)
 
         # manually calculating the log prob for the second case
         # 5 is padding, so we remove it here
