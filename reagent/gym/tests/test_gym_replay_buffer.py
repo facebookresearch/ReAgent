@@ -24,7 +24,7 @@ class TestEnv(SimpleObsWrapper):
     we can check if replay buffer is working correctly
     """
 
-    def __init__(self, env):
+    def __init__(self, env: Gym) -> None:
         self.env = env
         self.action_space = self.env.action_space
         # mdp_id, sequence_number, state, action, reward, terminal
@@ -70,7 +70,7 @@ class TestEnv(SimpleObsWrapper):
 
 
 class TestGymReplayBuffer(HorizonTestBase):
-    def test_create_df_from_replay_buffer(self):
+    def test_create_df_from_replay_buffer(self) -> None:
         env_name = "MiniGrid-Empty-5x5-v0"
         env = Gym(env_name=env_name)
         state_dim = env.observation_space.shape[0]
@@ -95,6 +95,7 @@ class TestGymReplayBuffer(HorizonTestBase):
         # Check data
         preprocessor = PythonSparseToDenseProcessor(list(range(state_dim)))
         for idx, row in df.iterrows():
+            assert isinstance(idx, int)
             df_mdp_id = row["mdp_id"]
             env_mdp_id = str(env.sart[idx][0])
             self.assertEqual(df_mdp_id, env_mdp_id)
