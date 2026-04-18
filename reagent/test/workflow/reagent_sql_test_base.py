@@ -9,6 +9,7 @@ import random
 import shutil
 
 import numpy as np
+import pandas as pd
 import torch
 from pyspark import SparkConf
 from reagent.data.spark_utils import DEFAULT_SPARK_CONFIG
@@ -63,12 +64,14 @@ class ReagentSQLTestBase(SQLTestCase):
         arr_a = np.array(series_a.tolist())
         np.testing.assert_equal(arr_a, arr_b)
 
-    def assertAllClose(self, series_a, arr_b):
+    def assertAllClose(self, series_a: pd.Series, arr_b: np.ndarray) -> None:
         """Assert panda series is allclose to np array"""
         arr_a = np.array(series_a.tolist())
         np.testing.assert_allclose(arr_a, arr_b)
 
-    def assertEqWithPresence(self, series_a, presence, arr_b):
+    def assertEqWithPresence(
+        self, series_a: pd.Series, presence: np.ndarray, arr_b: np.ndarray
+    ) -> None:
         """Assert panda series given presence array is equal to np array"""
         arr_a = np.array(series_a.tolist())
         present_a = arr_a[presence]
