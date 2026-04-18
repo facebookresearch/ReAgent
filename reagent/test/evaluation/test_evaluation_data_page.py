@@ -36,7 +36,7 @@ class FakeSeq2SlateRewardNetwork(nn.Module):
         tgt_out_seq: torch.Tensor,
         src_src_mask: torch.Tensor,
         tgt_out_idx: torch.Tensor,
-    ):
+    ) -> torch.Tensor:
         batch_size = state.shape[0]
         rewards = []
         for i in range(batch_size):
@@ -62,7 +62,7 @@ class FakeSeq2SlateRewardNetwork(nn.Module):
 
 
 class FakeSeq2SlateTransformerNet(nn.Module):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.fake_parms = nn.Linear(1, 1)
 
