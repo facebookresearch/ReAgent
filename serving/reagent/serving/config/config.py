@@ -5,11 +5,11 @@
 
 from collections import OrderedDict
 from enum import Enum
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Tuple, Union
 
 
 class ConfigBaseMeta(type):
-    def annotations_and_defaults(cls):
+    def annotations_and_defaults(cls) -> Tuple[OrderedDict, Dict[str, Any]]:
         annotations = OrderedDict()
         defaults = {}
         for base in reversed(cls.__bases__):
@@ -22,7 +22,7 @@ class ConfigBaseMeta(type):
         return annotations, defaults
 
     @property
-    def __annotations__(cls):
+    def __annotations__(cls) -> OrderedDict:
         annotations, _ = cls.annotations_and_defaults()
         return annotations
 
