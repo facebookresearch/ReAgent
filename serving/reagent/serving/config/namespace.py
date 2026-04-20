@@ -4,6 +4,7 @@
 # pyre-unsafe
 
 import inspect
+from typing import Any
 
 
 class DecisionOperator:
@@ -16,11 +17,11 @@ class DecisionOperator:
 
 
 def DecisionOperation(op):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self.args = inspect.getcallargs(op, *args, **kwargs)
         DecisionOperator.__init__(self)
 
-    def arguments(self):
+    def arguments(self) -> dict[str, Any]:
         return self.args
 
     return type(
