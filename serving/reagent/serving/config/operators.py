@@ -31,7 +31,7 @@ def EpsilonGreedyRanker(epsilon: float, values: Dict, seed: int = None):
     pass
 
 
-def Expression(equation: str):
+def Expression(equation: str) -> None:
     """The operator that can do calculation based on the given equation
 
     Args:
@@ -41,7 +41,7 @@ def Expression(equation: str):
 
 
 # pyre-fixme[9]: seed has type `int`; used as `None`.
-def Frechet(values: Dict, rho: float, gamma: float, seed: int = None):
+def Frechet(values: Dict, rho: float, gamma: float, seed: int = None) -> None:
     """The operator that implements Frechet ranking
 
     Args:
