@@ -168,6 +168,7 @@ def run_ax_search(
             #  | int | str], tuple[dict[str, float], dict[str, dict[str, float]] |
             #  None] | None] | None` into 2 values.
             best_params, predicted_metrics = ax_client.get_best_parameters()
+            # pyrefly: ignore [unsupported-operation]
             predicted_metrics = predicted_metrics[0]  # choose expected metric values
             if verbose:
                 print(best_params, predicted_metrics)
@@ -199,4 +200,5 @@ def run_ax_search(
     except KeyboardInterrupt:
         # handle keyboard interruption to enable returning intermediate results if interrupted
         pass
+    # pyrefly: ignore [bad-return]
     return best_params, ax_client
