@@ -20,7 +20,7 @@ from reagent.training.cb.disjoint_linucb_trainer import DisjointLinUCBTrainer
 
 class TestDisjointLinearRegressionUCBUtils(unittest.TestCase):
     def test_batch_quadratic_form(self) -> None:
-        def check_correctness(x, A):
+        def check_correctness(x: torch.Tensor, A: torch.Tensor) -> None:
             batch_result = batch_quadratic_form_multi_arms(x, A)
             batch_size = x.size()[0]
             num_arms = A.size()[0]
@@ -102,13 +102,15 @@ class TestDisjointLinearRegressionUCB(unittest.TestCase):
         alpha = 1.5
         out = model(inp, ucb_alpha=alpha)
 
-        def calculate_mean(x, model_type):
+        def calculate_mean(x: torch.Tensor, model_type: int) -> torch.Tensor:
             if model_type == 1:
                 return x[0] + x[1]
             elif model_type == 2:
                 return 2 * x[0] + x[1]
             elif model_type == 3:
                 return 2 * x[0] + 2 * x[1]
+            else:
+                raise ValueError(f"Unknown model_type: {model_type}")
 
         expected_out = np.zeros((2, 3))
         for i in range(2):
