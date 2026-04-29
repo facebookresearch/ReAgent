@@ -22,6 +22,7 @@ class HorizonTestBase(unittest.TestCase):
     def setUp(self) -> None:
         SummaryWriterContext._reset_globals()
         logging.basicConfig(level=logging.INFO)
+        # pyrefly: ignore [bad-argument-type]
         np.random.seed(SEED)
         torch.manual_seed(SEED)
         random.seed(SEED)

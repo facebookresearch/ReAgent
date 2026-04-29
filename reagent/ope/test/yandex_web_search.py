@@ -180,10 +180,12 @@ class TrainingQuery:
 
     def pack(self):
         if isinstance(self._url_relevances, Mapping):
+            # pyrefly: ignore [bad-assignment]
             self._url_relevances = list(self._url_relevances.items())
 
     def _unpack(self):
         if isinstance(self._url_relevances, Sequence):
+            # pyrefly: ignore [bad-assignment]
             self._url_relevances = {v[0]: v[1] for v in self._url_relevances}
 
     @property
@@ -241,6 +243,7 @@ def create_cache(params):
                 tlen = len(tokens)
                 if tlen == 4 and tokens[1] == "M":
                     if last_click is not None:
+                        # pyrefly: ignore [unsupported-operation]
                         query = curr_sess[2][last_click[0]]
                         query.click(last_click[1], 10000)
                         last_click = None
@@ -279,6 +282,7 @@ def create_cache(params):
                         for r in tokens[6:]:
                             rs = r.split(",")
                             results.append((int(rs[0]), int(rs[1])))
+                        # pyrefly: ignore [bad-argument-type]
                         query = LoggedQuery(curr_user, query_id, query_terms, results)
                         curr_sess[2][serp_id] = query
                     elif tokens[2] == "C":
@@ -464,6 +468,7 @@ class TrainingDataset:
         # self._query_ids = None
         # self._query_terms = None
         # self._position_relevances = None
+        # pyrefly: ignore [bad-argument-type]
         logging.info(f"loaded training queries: {len(self._queries)}")
 
     def _process_training_queries(self):
@@ -478,6 +483,7 @@ class TrainingDataset:
         self._query_ids = {}
         self._query_terms = {}
         self._position_relevances = [RunningAverage() for _ in range(MAX_SLATE_SIZE)]
+        # pyrefly: ignore [not-iterable]
         for q in self._queries:
             self._query_ids[q.query_id] = q
             for t in q.query_terms:
@@ -502,13 +508,17 @@ class TrainingDataset:
         self, query_id: int, query_terms: Tuple[int], items: Iterable[Tuple[int, int]]
     ) -> SlateItemValues:
         self._process_training_queries()
+        # pyrefly: ignore [not-iterable]
         if query_id in self._query_ids:
+            # pyrefly: ignore [unsupported-operation]
             q = self._query_ids[query_id]
             rels = q.url_relevances
         else:
             ras = {}
             for t in query_terms:
+                # pyrefly: ignore [not-iterable]
                 if t in self._query_terms:
+                    # pyrefly: ignore [unsupported-operation]
                     q = self._query_terms[t]
                     for i, r in q.url_relevances:
                         if i in ras:
@@ -527,6 +537,7 @@ class TrainingDataset:
         return SlateItemValues(item_rels)
 
     def slot_relevances(self, slots: SlateSlots) -> SlateSlotValues:
+        # pyrefly: ignore [unsupported-operation]
         return SlateSlotValues(self._position_relevances[: len(slots)])
 
 
@@ -650,6 +661,7 @@ if __name__ == "__main__":
     logging.info(f"working dir - {os.getcwd()}")
 
     random.seed(1234)
+    # pyrefly: ignore [bad-argument-type]
     np.random.seed(1234)
     torch.random.manual_seed(1234)
 

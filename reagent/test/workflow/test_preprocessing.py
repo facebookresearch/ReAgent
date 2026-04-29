@@ -50,10 +50,16 @@ class TestPreprocessing(ReagentSQLTestBase):
         num_samples = NUM_ROWS // 2
         preprocessing_options = PreprocessingOptions(num_samples=num_samples)
 
+        # pyrefly: ignore [missing-argument, unexpected-keyword]
         table_spec = TableSpec(table_name=TABLE_NAME)
 
         normalization_params = identify_normalization_parameters(
-            table_spec, COL_NAME, preprocessing_options, seed=self.test_class_seed
+            # pyrefly: ignore [unexpected-keyword]
+            table_spec,
+            COL_NAME,
+            preprocessing_options,
+            # pyrefly: ignore [unexpected-keyword]
+            seed=self.test_class_seed,
         )
 
         logger.info(normalization_params)
@@ -62,11 +68,16 @@ class TestPreprocessing(ReagentSQLTestBase):
                 f"Expect {k} to be normal with "
                 f"mean {info['mean']}, stddev {info['stddev']}."
             )
+            # pyrefly: ignore [bad-index]
             assert normalization_params[k].feature_type == CONTINUOUS
+            # pyrefly: ignore [bad-index, unsupported-operation]
             assert abs(normalization_params[k].mean - info["mean"]) < 0.05, (
+                # pyrefly: ignore [bad-index]
                 f"{normalization_params[k].mean} not close to {info['mean']}"
             )
+            # pyrefly: ignore [bad-index, unsupported-operation]
             assert abs(normalization_params[k].stddev - info["stddev"] < 0.2), (
+                # pyrefly: ignore [bad-index]
                 f"{normalization_params[k].stddev} not close to {info['stddev']}"
             )
         logger.info("identify_normalization_parameters seems fine.")

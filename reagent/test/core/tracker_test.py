@@ -21,6 +21,7 @@ class TestObservable(unittest.TestCase):
                 self.c = c
 
             def do_something(self, i):
+                # pyrefly: ignore [missing-attribute]
                 self.notify_observers(td_loss=i, str_val="not_used")
 
         instance = DummyClass(1, 2)

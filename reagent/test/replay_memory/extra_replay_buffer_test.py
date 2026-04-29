@@ -111,6 +111,7 @@ def generic_stack_test_helper(buffer_size, trajectory_lengths, stack_size):
 
     expected["terminal"] = np.expand_dims(terminal_array, axis=1)
     for k in expected:
+        # pyrefly: ignore [unsupported-operation]
         expected[k] = torch.tensor(expected[k])
 
     for k in expected:
@@ -153,7 +154,9 @@ def generic_stack_multi_steps_test_helper(
 
     expected["terminal"] = np.expand_dims(terminal_array, axis=1)
     for k in expected:
+        # pyrefly: ignore [unsupported-operation]
         expected[k] = torch.tensor(expected[k])
+    # pyrefly: ignore [missing-attribute]
     batch_size = expected["state"].shape[0]
 
     for k in expected:
@@ -282,6 +285,7 @@ class ExtraReplayBufferTest(HorizonTestBase):
             replay_capacity=6,
             batch_size=1,
             update_horizon=multi_steps,
+            # pyrefly: ignore [bad-argument-type]
             return_everything_as_stack=None,
             return_as_timeline_format=True,
         )
@@ -421,6 +425,7 @@ class ExtraReplayBufferTest(HorizonTestBase):
                         res[k][feat_id][1].extend(feats_i[k][feat_id])
                     else:
                         res[k][feat_id][1].extend(feats_i[k][feat_id][0])
+                        # pyrefly: ignore [bad-index]
                         res[k][feat_id][2].extend(feats_i[k][feat_id][1])
 
             for k in ["next_id_list", "next_id_score_list"]:
@@ -431,6 +436,7 @@ class ExtraReplayBufferTest(HorizonTestBase):
                         res[k][feat_id][1].extend(feats_next[orig_k][feat_id])
                     else:
                         res[k][feat_id][1].extend(feats_next[orig_k][feat_id][0])
+                        # pyrefly: ignore [bad-index]
                         res[k][feat_id][2].extend(feats_next[orig_k][feat_id][1])
 
         for k in ["id_list", "id_score_list", "next_id_list", "next_id_score_list"]:
@@ -450,7 +456,9 @@ class ExtraReplayBufferTest(HorizonTestBase):
                         res[k][feat_id][1], getattr(batch, k)[feat_id][1]
                     )
                     npt.assert_array_equal(
-                        res[k][feat_id][2], getattr(batch, k)[feat_id][2]
+                        # pyrefly: ignore [bad-index]
+                        res[k][feat_id][2],
+                        getattr(batch, k)[feat_id][2],
                     )
 
         # sample random

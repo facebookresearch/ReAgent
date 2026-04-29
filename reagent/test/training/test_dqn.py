@@ -18,6 +18,7 @@ from reagent.workflow.types import RewardOptions
 
 class TestDQN(unittest.TestCase):
     def setUp(self):
+        # pyrefly: ignore [unexpected-keyword]
         self.params = DQNTrainerParameters(actions=["1", "2"])
         self.reward_options = RewardOptions()
         self.metrics_to_score = get_metrics_to_score(
@@ -38,6 +39,7 @@ class TestDQN(unittest.TestCase):
         self.x = FeatureData(float_features=torch.rand(5, self.state_dim))
         self.eval_parameters = EvaluationParameters(calc_cpe_in_training=True)
         self.num_output_nodes = (len(self.metrics_to_score) + 1) * len(
+            # pyrefly: ignore [missing-attribute]
             self.params.actions
         )
         self.reward_network = FullyConnectedDQN(
@@ -82,7 +84,10 @@ class TestDQN(unittest.TestCase):
         trainer = self._construct_trainer()
         self.assertTrue((torch.isclose(trainer.reward_boosts, torch.zeros(2))).all())
         param_copy = DQNTrainerParameters(
-            actions=["1", "2"], rl=RLParameters(reward_boost={"1": 1, "2": 2})
+            # pyrefly: ignore [unexpected-keyword]
+            actions=["1", "2"],
+            # pyrefly: ignore [unexpected-keyword]
+            rl=RLParameters(reward_boost={"1": 1, "2": 2}),
         )
         reward_boost_trainer = self._construct_trainer(new_params=param_copy)
         self.assertTrue(
@@ -146,7 +151,10 @@ class TestDQN(unittest.TestCase):
 
         # seq_num
         param_copy = DQNTrainerParameters(
-            actions=["1", "2"], rl=RLParameters(use_seq_num_diff_as_time_diff=True)
+            # pyrefly: ignore [unexpected-keyword]
+            actions=["1", "2"],
+            # pyrefly: ignore [unexpected-keyword]
+            rl=RLParameters(use_seq_num_diff_as_time_diff=True),
         )
         trainer = self._construct_trainer(new_params=param_copy)
         loss_gen = trainer.train_step_gen(inp, batch_idx=1)
@@ -155,7 +163,10 @@ class TestDQN(unittest.TestCase):
 
         # multi_steps
         param_copy = DQNTrainerParameters(
-            actions=["1", "2"], rl=RLParameters(multi_steps=2)
+            # pyrefly: ignore [unexpected-keyword]
+            actions=["1", "2"],
+            # pyrefly: ignore [unexpected-keyword]
+            rl=RLParameters(multi_steps=2),
         )
         trainer = self._construct_trainer(new_params=param_copy)
         loss_gen = trainer.train_step_gen(inp, batch_idx=1)
@@ -164,7 +175,10 @@ class TestDQN(unittest.TestCase):
 
         # non_max_q
         param_copy = DQNTrainerParameters(
-            actions=["1", "2"], rl=RLParameters(maxq_learning=False)
+            # pyrefly: ignore [unexpected-keyword]
+            actions=["1", "2"],
+            # pyrefly: ignore [unexpected-keyword]
+            rl=RLParameters(maxq_learning=False),
         )
         trainer = self._construct_trainer(new_params=param_copy)
         loss_gen = trainer.train_step_gen(inp, batch_idx=1)
@@ -236,7 +250,10 @@ class TestDQN(unittest.TestCase):
 
         # seq_num
         param_copy = DQNTrainerParameters(
-            actions=["1", "2"], rl=RLParameters(use_seq_num_diff_as_time_diff=True)
+            # pyrefly: ignore [unexpected-keyword]
+            actions=["1", "2"],
+            # pyrefly: ignore [unexpected-keyword]
+            rl=RLParameters(use_seq_num_diff_as_time_diff=True),
         )
         trainer = self._construct_trainer(new_params=param_copy)
         discount_tensor = trainer.compute_discount_tensor(
@@ -250,7 +267,10 @@ class TestDQN(unittest.TestCase):
 
         # multi_steps
         param_copy = DQNTrainerParameters(
-            actions=["1", "2"], rl=RLParameters(multi_steps=steps)
+            # pyrefly: ignore [unexpected-keyword]
+            actions=["1", "2"],
+            # pyrefly: ignore [unexpected-keyword]
+            rl=RLParameters(multi_steps=steps),
         )
         trainer = self._construct_trainer(new_params=param_copy)
         discount_tensor = trainer.compute_discount_tensor(
@@ -298,7 +318,10 @@ class TestDQN(unittest.TestCase):
 
         # huber loss
         param_copy = DQNTrainerParameters(
-            actions=["1", "2"], rl=RLParameters(q_network_loss="huber")
+            # pyrefly: ignore [unexpected-keyword]
+            actions=["1", "2"],
+            # pyrefly: ignore [unexpected-keyword]
+            rl=RLParameters(q_network_loss="huber"),
         )
         trainer = self._construct_trainer(new_params=param_copy)
         discount_tensor = trainer.compute_discount_tensor(
@@ -341,6 +364,7 @@ class TestDQN(unittest.TestCase):
         dense = torch.rand(trainer.num_actions)
         retval = trainer._dense_to_action_dict(dense)
         self.assertEqual(len(retval), trainer.num_actions)
+        # pyrefly: ignore [missing-attribute]
         for i, a in enumerate(self.params.actions):
             self.assertTrue(a in retval)
             self.assertTrue(torch.isclose(retval[a], dense[i]))

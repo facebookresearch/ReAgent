@@ -70,6 +70,7 @@ def _create_input():
         action=rlt.FeatureData(action),
         valid_step=valid_step,
         # the rest fields will not be used
+        # pyrefly: ignore [bad-argument-type]
         next_state=torch.tensor([]),
         reward=torch.tensor([]),
         step=torch.tensor([]),

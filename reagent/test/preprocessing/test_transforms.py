@@ -17,6 +17,7 @@ from reagent.preprocessing.types import InputColumn
 class TestTransforms(unittest.TestCase):
     def setUp(self) -> None:
         # add custom compare function for torch.Tensor
+        # pyrefly: ignore [bad-argument-type]
         self.addTypeEqualityFunc(torch.Tensor, TestTransforms.are_torch_tensor_equal)
 
     @staticmethod

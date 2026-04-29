@@ -65,6 +65,7 @@ class PyTorchPolicy(RLPolicy):
 
 class EnvironmentModel(torch.nn.Module):
     def __init__(self, state_dim, action_dim, hidden_dim, hidden_layers, activation):
+        # pyrefly: ignore [missing-attribute]
         super(EnvironmentModel.Network, self).__init__()
         self._state_dim = state_dim
         self._action_dim = action_dim

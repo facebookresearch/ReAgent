@@ -22,6 +22,7 @@ class ConfigBaseMeta(type):
         return annotations, defaults
 
     @property
+    # pyrefly: ignore [bad-override]
     def __annotations__(cls) -> OrderedDict:
         annotations, _ = cls.annotations_and_defaults()
         return annotations

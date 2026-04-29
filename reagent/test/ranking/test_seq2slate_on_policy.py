@@ -47,6 +47,7 @@ temperature_list = [1.0, 2.0]
 
 class TestSeq2SlateOnPolicy(unittest.TestCase):
     def setUp(self):
+        # pyrefly: ignore [bad-argument-type]
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)

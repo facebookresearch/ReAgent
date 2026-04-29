@@ -18,6 +18,7 @@ from reagent.workflow.types import RewardOptions
 class TestQRDQN(unittest.TestCase):
     def setUp(self):
         # preparing various components for qr-dqn trainer initialization
+        # pyrefly: ignore [unexpected-keyword]
         self.params = QRDQNTrainerParameters(actions=["1", "2"], num_atoms=11)
         self.reward_options = RewardOptions()
         self.metrics_to_score = get_metrics_to_score(
@@ -41,6 +42,7 @@ class TestQRDQN(unittest.TestCase):
         self.x = FeatureData(float_features=torch.rand(5, 10))
         self.eval_parameters = EvaluationParameters(calc_cpe_in_training=True)
         self.num_output_nodes = (len(self.metrics_to_score) + 1) * len(
+            # pyrefly: ignore [missing-attribute]
             self.params.actions
         )
         self.reward_network = FullyConnectedDQN(
@@ -87,8 +89,11 @@ class TestQRDQN(unittest.TestCase):
         self.assertTrue((torch.isclose(trainer.quantiles, quantiles)).all())
         self.assertTrue((torch.isclose(trainer.reward_boosts, torch.zeros(2))).all())
         param_copy = QRDQNTrainerParameters(
+            # pyrefly: ignore [unexpected-keyword]
             actions=["1", "2"],
+            # pyrefly: ignore [unexpected-keyword]
             num_atoms=11,
+            # pyrefly: ignore [unexpected-keyword]
             rl=RLParameters(reward_boost={"1": 1, "2": 2}),
         )
         reward_boost_trainer = self._construct_trainer(new_params=param_copy)
@@ -147,8 +152,11 @@ class TestQRDQN(unittest.TestCase):
 
         # seq_num
         param_copy = QRDQNTrainerParameters(
+            # pyrefly: ignore [unexpected-keyword]
             actions=["1", "2"],
+            # pyrefly: ignore [unexpected-keyword]
             num_atoms=11,
+            # pyrefly: ignore [unexpected-keyword]
             rl=RLParameters(use_seq_num_diff_as_time_diff=True),
         )
         trainer = self._construct_trainer(new_params=param_copy)
@@ -158,7 +166,12 @@ class TestQRDQN(unittest.TestCase):
 
         # multi_steps
         param_copy = QRDQNTrainerParameters(
-            actions=["1", "2"], num_atoms=11, rl=RLParameters(multi_steps=2)
+            # pyrefly: ignore [unexpected-keyword]
+            actions=["1", "2"],
+            # pyrefly: ignore [unexpected-keyword]
+            num_atoms=11,
+            # pyrefly: ignore [unexpected-keyword]
+            rl=RLParameters(multi_steps=2),
         )
         trainer = self._construct_trainer(new_params=param_copy)
         loss_gen = trainer.train_step_gen(inp, batch_idx=1)
@@ -167,7 +180,12 @@ class TestQRDQN(unittest.TestCase):
 
         # non_max_q
         param_copy = QRDQNTrainerParameters(
-            actions=["1", "2"], num_atoms=11, rl=RLParameters(maxq_learning=False)
+            # pyrefly: ignore [unexpected-keyword]
+            actions=["1", "2"],
+            # pyrefly: ignore [unexpected-keyword]
+            num_atoms=11,
+            # pyrefly: ignore [unexpected-keyword]
+            rl=RLParameters(maxq_learning=False),
         )
         trainer = self._construct_trainer(new_params=param_copy)
         loss_gen = trainer.train_step_gen(inp, batch_idx=1)

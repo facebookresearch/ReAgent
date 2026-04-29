@@ -95,9 +95,12 @@ class MSLRDatasets:
     ) -> None:
         if qid is None or len(feature_list) == 0:
             return
+        # pyrefly: ignore [not-iterable]
         if qid in self._dict:
+            # pyrefly: ignore [unsupported-operation]
             self._dict[qid].extend(feature_list)
         else:
+            # pyrefly: ignore [unsupported-operation]
             self._dict[qid] = feature_list
 
     def load(self) -> None:
@@ -110,6 +113,7 @@ class MSLRDatasets:
             del f
         else:
             self._dict = OrderedDict()
+            # pyrefly: ignore [no-matching-overload]
             text_file = os.path.join(self._folder, self._source_file)
             logging.info(f"loading {text_file}")
             if not os.access(text_file, os.R_OK):
@@ -136,6 +140,7 @@ class MSLRDatasets:
                         prev_qid = qid
                         features_list.append((rel, f_tensor))
                     elif prev_qid != qid:
+                        # pyrefly: ignore [bad-argument-type]
                         self._add(prev_qid, features_list)
                         prev_qid = qid
                         features_list = []
@@ -145,6 +150,7 @@ class MSLRDatasets:
                     c += 1
                     if c % 100000 == 0:
                         print(f"{c} - {(time.process_time() - st) / c}")
+                # pyrefly: ignore [bad-argument-type]
                 self._add(prev_qid, features_list)
 
     def save(self) -> None:
@@ -167,6 +173,7 @@ class MSLRDatasets:
         if self._queries is None:
             rows = []
             c = 0
+            # pyrefly: ignore [missing-attribute]
             for i in self._dict.items():
                 s = len(i[1])
                 rows.append([i[0], c, s])
@@ -176,11 +183,13 @@ class MSLRDatasets:
 
     def _load_features(self):
         if self._features is None:
+            # pyrefly: ignore [missing-attribute]
             self._features = torch.stack([r[1] for v in self._dict.values() for r in v])
 
     @property
     def features(self) -> Tensor:
         self._load_features()
+        # pyrefly: ignore [unsupported-operation]
         return self._features[:, 1:]
 
     @property
@@ -191,6 +200,7 @@ class MSLRDatasets:
     def anchor_url_features(self) -> Tensor:
         self._load_features()
         return (
+            # pyrefly: ignore [bad-return, unsupported-operation]
             self._features[:, self._anchor_url_features]
             if self._anchor_url_features is not None
             else None
@@ -200,6 +210,7 @@ class MSLRDatasets:
     def body_features(self) -> Tensor:
         self._load_features()
         return (
+            # pyrefly: ignore [bad-return, unsupported-operation]
             self._features[:, self._body_features]
             if self._body_features is not None
             else None
@@ -209,6 +220,7 @@ class MSLRDatasets:
     def relevances(self) -> Tensor:
         if self._relevances is None:
             self._relevances = torch.tensor(
+                # pyrefly: ignore [missing-attribute]
                 [r[0] for r in itertools.chain(self._dict.values())],
                 device=self._device,
             )
@@ -375,6 +387,7 @@ class MSLRModel(SlateModel):
     def item_relevances(self, context: SlateContext) -> Tensor:
         qv = context.query.value
         if context.params is None:
+            # pyrefly: ignore [bad-index]
             relevances = self._relevances[qv[1] : (qv[1] + qv[2])].detach().clone()
         else:
             relevances = (
@@ -539,6 +552,7 @@ if __name__ == "__main__":
     logging.info(f"working dir - {os.getcwd()}")
 
     random.seed(1234)
+    # pyrefly: ignore [bad-argument-type]
     np.random.seed(1234)
     torch.random.manual_seed(1234)
 

@@ -62,6 +62,7 @@ def get_dummy_batch(action_type, num_batches):
             action=action,
             possible_actions_mask=possible_actions_mask,
         )
+        # pyrefly: ignore [unsupported-operation]
         batches[i] = i_th_training_batch
     return batches
 

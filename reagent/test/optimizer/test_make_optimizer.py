@@ -32,7 +32,10 @@ class TestMakeOptimizer(unittest.TestCase):
     def test_make_optimizer_with_step_lr_scheduler(self):
         self._verify_optimizer(
             Adam(
-                lr=0.001, lr_schedulers=[StepLR(gamma=0.1, step_size=0.01)]
+                # pyrefly: ignore [bad-argument-type]
+                lr=0.001,
+                # pyrefly: ignore [bad-argument-type]
+                lr_schedulers=[StepLR(gamma=0.1, step_size=0.01)],
             ).make_optimizer_scheduler(self.model.parameters())
         )
 

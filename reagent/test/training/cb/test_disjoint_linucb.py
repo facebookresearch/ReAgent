@@ -52,6 +52,7 @@ class TestDisjointLinUCB(unittest.TestCase):
         ]
 
     def test_linucb_training_step(self):
+        # pyrefly: ignore [bad-argument-type]
         self.trainer.training_step(self.batch, 0)
 
     def test_linucb_training_batch_vs_online(self):
@@ -63,6 +64,7 @@ class TestDisjointLinUCB(unittest.TestCase):
                     context_arm_features=self.batch[0].context_arm_features[
                         i : i + 1, :
                     ],
+                    # pyrefly: ignore [unsupported-operation]
                     reward=self.batch[0].reward[[i]],
                 )
             )
@@ -71,6 +73,7 @@ class TestDisjointLinUCB(unittest.TestCase):
                     context_arm_features=self.batch[1].context_arm_features[
                         i : i + 1, :
                     ],
+                    # pyrefly: ignore [unsupported-operation]
                     reward=self.batch[1].reward[[i]],
                 )
             )
@@ -82,24 +85,38 @@ class TestDisjointLinUCB(unittest.TestCase):
         trainer_1 = DisjointLinUCBTrainer(policy_1)
         trainer_2 = DisjointLinUCBTrainer(policy_2)
 
+        # pyrefly: ignore [bad-argument-type]
         trainer_1.training_step(obss[0], 0)
+        # pyrefly: ignore [bad-argument-type]
         trainer_1.training_step(obss[1], 1)
         trainer_1.on_train_epoch_end()
+        # pyrefly: ignore [bad-argument-type]
         trainer_2.training_step(self.batch, 0)
         trainer_2.on_train_epoch_end()
 
         for arm in range(self.num_arms):
             npt.assert_array_less(
-                np.zeros(scorer_1.A[arm].shape), scorer_1.A[arm].numpy()
+                # pyrefly: ignore [bad-index]
+                np.zeros(scorer_1.A[arm].shape),
+                # pyrefly: ignore [bad-index]
+                scorer_1.A[arm].numpy(),
             )  # make sure A got updated
             npt.assert_allclose(
-                scorer_1.A[arm].numpy(), scorer_2.A[arm].numpy(), rtol=1e-4
+                # pyrefly: ignore [bad-index]
+                scorer_1.A[arm].numpy(),
+                # pyrefly: ignore [bad-index]
+                scorer_2.A[arm].numpy(),
+                rtol=1e-4,
             )
             npt.assert_allclose(
                 scorer_1.inv_A[arm].numpy(), scorer_2.inv_A[arm].numpy(), rtol=1e-4
             )
             npt.assert_allclose(
-                scorer_1.b[arm].numpy(), scorer_2.b[arm].numpy(), rtol=1e-4
+                # pyrefly: ignore [bad-index]
+                scorer_1.b[arm].numpy(),
+                # pyrefly: ignore [bad-index]
+                scorer_2.b[arm].numpy(),
+                rtol=1e-4,
             )
 
     def test_linucb_model_update_equations(self):
@@ -107,20 +124,25 @@ class TestDisjointLinUCB(unittest.TestCase):
         scorer = DisjointLinearRegressionUCB(self.num_arms, self.x_dim)
         policy = Policy(scorer=scorer, sampler=GreedyActionSampler())
         trainer = DisjointLinUCBTrainer(policy)
+        # pyrefly: ignore [bad-argument-type]
         trainer.training_step(self.batch, 0)
         trainer.on_train_epoch_end()
         # the feature matrix (computed by hand)
         for arm in range(self.num_arms):
             x = self.batch[arm].context_arm_features.numpy()
+            # pyrefly: ignore [bad-index]
             npt.assert_allclose(scorer.A[arm].numpy(), x.T @ x, rtol=1e-5)
             npt.assert_allclose(
+                # pyrefly: ignore [bad-index]
                 scorer.b[arm].numpy(),
+                # pyrefly: ignore [missing-attribute]
                 x.T @ self.batch[arm].reward.squeeze().numpy(),
                 rtol=1e-5,
             )
 
         for arm in range(self.num_arms):
             npt.assert_allclose(
+                # pyrefly: ignore [bad-index]
                 (np.eye(self.x_dim) + scorer.A[arm].numpy())
                 @ scorer.inv_A[arm].numpy(),
                 np.eye(self.x_dim),
@@ -128,13 +150,16 @@ class TestDisjointLinUCB(unittest.TestCase):
                 rtol=1e-3,
             )
             npt.assert_equal(
-                scorer.A[arm].numpy(), scorer.coefs_valid_for_A[arm].numpy()
+                # pyrefly: ignore [bad-index]
+                scorer.A[arm].numpy(),
+                scorer.coefs_valid_for_A[arm].numpy(),
             )
 
     def test_linucb_weights(self):
         # make sure that using a weight is same as processing an example several times
         batch_with_weight = copy.deepcopy(self.batch)
         for arm in range(self.num_arms):
+            # pyrefly: ignore [read-only]
             batch_with_weight[arm].weight = 3 * torch.ones((self.batch_size, 1))
 
         scorer_1 = DisjointLinearRegressionUCB(self.num_arms, self.x_dim)
@@ -144,17 +169,24 @@ class TestDisjointLinUCB(unittest.TestCase):
         trainer_1 = DisjointLinUCBTrainer(policy_1)
         trainer_2 = DisjointLinUCBTrainer(policy_2)
 
+        # pyrefly: ignore [bad-argument-type]
         trainer_1.training_step(batch_with_weight, 0)
         trainer_1.on_train_epoch_end()
         for i in range(3):
+            # pyrefly: ignore [bad-argument-type]
             trainer_2.training_step(self.batch, i)
         trainer_2.on_train_epoch_end()
 
         for arm in range(self.num_arms):
             npt.assert_array_less(
-                np.zeros(scorer_1.A[arm].shape), scorer_1.A[arm].numpy()
+                # pyrefly: ignore [bad-index]
+                np.zeros(scorer_1.A[arm].shape),
+                # pyrefly: ignore [bad-index]
+                scorer_1.A[arm].numpy(),
             )  # make sure A got updated
+        # pyrefly: ignore [not-callable]
         npt.assert_allclose(scorer_1.A.numpy(), scorer_2.A.numpy(), rtol=1e-6)
+        # pyrefly: ignore [not-callable]
         npt.assert_allclose(scorer_1.b.numpy(), scorer_2.b.numpy(), rtol=1e-6)
 
     def test_linucb_discount_factors(self) -> None:
@@ -166,6 +198,7 @@ class TestDisjointLinUCB(unittest.TestCase):
         trainer = DisjointLinUCBTrainer(policy)
 
         # 1st round training
+        # pyrefly: ignore [bad-argument-type]
         trainer.training_step(self.batch, 0)
         trainer.on_train_epoch_end()
 
@@ -194,9 +227,11 @@ class TestDisjointLinUCB(unittest.TestCase):
                 reward=torch.randn((3, 1)),
             ),
         ]
+        # pyrefly: ignore [bad-argument-type]
         trainer.training_step(self.batch_2nd_round, 0)
         # check if there are several training steps in a round
         # discount factor is only applied one time
+        # pyrefly: ignore [bad-argument-type]
         trainer.training_step(self.second_batch_2nd_round, 1)
         trainer.on_train_epoch_end()
 
@@ -214,17 +249,27 @@ class TestDisjointLinUCB(unittest.TestCase):
             x3 = self.second_batch_2nd_round[arm].context_arm_features.numpy()
             # pyre-fixme[16]: Optional type has no attribute `squeeze`.
             reward1 = self.batch[arm].reward.squeeze().numpy()
+            # pyrefly: ignore [missing-attribute]
             reward2 = self.batch_2nd_round[arm].reward.squeeze().numpy()
+            # pyrefly: ignore [missing-attribute]
             reward3 = self.second_batch_2nd_round[arm].reward.squeeze().numpy()
 
             # all matrix and vectors are the same
             A = scorer.gamma * x1.T @ x1 + x2.T @ x2 + x3.T @ x3
             b = scorer.gamma * x1.T @ reward1 + x2.T @ reward2 + x3.T @ reward3
             npt.assert_allclose(
-                scorer.A[arm].numpy(), scorer.gamma * A, atol=1e-5, rtol=1e-5
+                # pyrefly: ignore [bad-index]
+                scorer.A[arm].numpy(),
+                scorer.gamma * A,
+                atol=1e-5,
+                rtol=1e-5,
             )
             npt.assert_allclose(
-                scorer.b[arm].numpy(), scorer.gamma * b, atol=1e-5, rtol=1e-5
+                # pyrefly: ignore [bad-index]
+                scorer.b[arm].numpy(),
+                scorer.gamma * b,
+                atol=1e-5,
+                rtol=1e-5,
             )
 
             inv_A = np.linalg.inv(A + np.identity(self.x_dim) * scorer.l2_reg_lambda)

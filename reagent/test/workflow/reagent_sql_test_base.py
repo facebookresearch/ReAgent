@@ -56,6 +56,7 @@ class ReagentSQLTestBase(SQLTestCase):
 
         random.seed(self.test_class_seed)
         torch.manual_seed(self.test_class_seed)
+        # pyrefly: ignore [bad-argument-type]
         np.random.seed(self.test_class_seed)
         logging.basicConfig()
 

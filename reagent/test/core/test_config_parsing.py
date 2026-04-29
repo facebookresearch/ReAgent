@@ -54,6 +54,7 @@ class Bar(FooRegistry):
 
 
 @FooRegistry.fill_union()
+# pyrefly: ignore [invalid-inheritance]
 class FooUnion(TaggedUnion):
     pass
 

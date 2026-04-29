@@ -95,6 +95,7 @@ class TestDisjointLinearRegressionUCB(unittest.TestCase):
         trainer = DisjointLinUCBTrainer(
             Policy(scorer=model, sampler=GreedyActionSampler())
         )
+        # pyrefly: ignore [bad-argument-type]
         trainer.training_step(inputs, batch_idx=0)
         trainer.on_train_epoch_end()
 

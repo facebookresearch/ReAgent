@@ -45,6 +45,7 @@ class FrechetSortTest(HorizonTestBase):
         for p in range(3):
             log_prob -= torch.exp((s[p:] - s[p]) * shape).sum().log()
 
+        # pyrefly: ignore [no-matching-overload]
         self.assertAlmostEqual(log_prob, log_probs[1])
 
     def test_log_prob_padding(self) -> None:
@@ -80,4 +81,5 @@ class FrechetSortTest(HorizonTestBase):
         for p in range(2):
             log_prob -= torch.exp((s[p:] - s[p]) * shape).sum().log()
 
+        # pyrefly: ignore [no-matching-overload]
         self.assertAlmostEqual(log_prob, log_probs[1])

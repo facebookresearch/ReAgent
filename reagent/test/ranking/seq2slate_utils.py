@@ -58,6 +58,7 @@ def post_preprocess_batch(seq2slate_net, candidate_num, batch, device, epoch):
 
 
 class Seq2SlateOnPolicyTrainer(Seq2SlateTrainer):
+    # pyrefly: ignore [bad-override]
     def on_train_batch_start(self, batch, batch_idx, dataloader_idx):
         new_batch = post_preprocess_batch(
             self.seq2slate_net,
@@ -108,11 +109,13 @@ def create_trainer(
 
     param_dict = {
         "seq2slate_net": seq2slate_net,
+        # pyrefly: ignore [unbound-name]
         "params": seq2slate_params,
         "policy_optimizer": Optimizer__Union.default(lr=learning_rate),
         "print_interval": 1,
         "policy_gradient_interval": policy_gradient_interval,
     }
+    # pyrefly: ignore [unbound-name]
     return trainer_cls(**param_dict)
 
 
@@ -345,6 +348,7 @@ def run_seq2slate_tsp(
                 reward < best_test_reward, reward, best_test_reward
             )
         logger.info(
+            # pyrefly: ignore [unbound-name]
             f"Test mean model_propensities {torch.mean(model_propensities)}, "
             f"Test mean reward: {torch.mean(best_test_reward)}, "
             f"best possible reward {best_test_possible_reward}"

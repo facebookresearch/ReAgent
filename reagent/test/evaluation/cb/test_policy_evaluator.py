@@ -116,7 +116,9 @@ class TestPolicyEvaluator(unittest.TestCase):
         self.assertEqual(eval_module.sum_weight_accepted_local.item(), 0.0)
         self.assertEqual(eval_module.sum_weight_accepted.item(), 1.0)
         self.assertEqual(
-            eval_module.sum_importance_weight_accepted.item(), importance_weight
+            # pyrefly: ignore [not-callable]
+            eval_module.sum_importance_weight_accepted.item(),
+            importance_weight,
         )
         reward = self.batch.reward
         assert reward is not None
@@ -169,7 +171,10 @@ class TestPolicyEvaluator(unittest.TestCase):
         self.eval_module._aggregate_across_instances()
         # correct average reward
         self.assertEqual(
-            self.eval_module.get_avg_reward(), self.batch.reward[1, 0].item()
+            # pyrefly: ignore [unsupported-operation]
+            self.eval_module.get_avg_reward(),
+            # pyrefly: ignore [unsupported-operation]
+            self.batch.reward[1, 0].item(),
         )
 
     def test_formatted_output(self):

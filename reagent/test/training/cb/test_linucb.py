@@ -46,6 +46,7 @@ def _get_recmetric_module():
         world_size=1,
         my_rank=1,
         state_metrics_mapping={},
+        # pyrefly: ignore [bad-argument-type]
         device="cpu",
     )
 
@@ -93,7 +94,9 @@ class TestLinUCB(unittest.TestCase):
                     context_arm_features=self.batch.context_arm_features[
                         i : i + 1, :, :
                     ],
+                    # pyrefly: ignore [unsupported-operation]
                     action=self.batch.action[[i]],
+                    # pyrefly: ignore [unsupported-operation]
                     reward=self.batch.reward[[i]],
                 )
             )
@@ -127,7 +130,9 @@ class TestLinUCB(unittest.TestCase):
                     context_arm_features=self.batch.context_arm_features[
                         i : i + 1, :, :
                     ],
+                    # pyrefly: ignore [unsupported-operation]
                     action=self.batch.action[[i]],
+                    # pyrefly: ignore [unsupported-operation]
                     reward=self.batch.reward[[i]],
                 )
             )
@@ -165,11 +170,13 @@ class TestLinUCB(unittest.TestCase):
         trainer.training_step(self.batch, 0)
         trainer.on_train_epoch_end()
         # the feature matrix (computed by hand)
+        # pyrefly: ignore [missing-attribute]
         x = add_chosen_arm_features(self.batch).features_of_chosen_arm.numpy()
 
         npt.assert_allclose(scorer.avg_A.numpy(), x.T @ x / len(self.batch), rtol=1e-4)
         npt.assert_allclose(
             scorer.avg_b.numpy(),
+            # pyrefly: ignore [missing-attribute]
             x.T @ self.batch.reward.squeeze().numpy() / len(self.batch),
             rtol=1e-4,
         )
@@ -180,8 +187,10 @@ class TestLinUCB(unittest.TestCase):
         npt.assert_allclose(
             (
                 np.eye(self.x_dim) * scorer.l2_reg_lambda
+                # pyrefly: ignore [unsupported-operation]
                 + (scorer.avg_A * scorer.sum_weight).numpy()
             )
+            # pyrefly: ignore [unsupported-operation]
             @ (scorer.inv_avg_A / scorer.sum_weight).numpy(),
             np.eye(self.x_dim),
             atol=1e-3,
@@ -190,6 +199,7 @@ class TestLinUCB(unittest.TestCase):
     def test_linucb_weights(self):
         # make sure that using a weight is same as processing an example several times
         batch_with_weight = copy.deepcopy(self.batch)
+        # pyrefly: ignore [read-only]
         batch_with_weight.weight = 3 * torch.ones((self.batch_size, 1))
 
         scorer_1 = LinearRegressionUCB(self.x_dim)
@@ -269,7 +279,9 @@ class TestLinUCB(unittest.TestCase):
         ).features_of_chosen_arm.numpy()
         # pyre-fixme[16]: Optional type has no attribute `squeeze`.
         reward1 = self.batch.reward.squeeze().numpy()
+        # pyrefly: ignore [missing-attribute]
         reward2 = self.batch_2nd_round.reward.squeeze().numpy()
+        # pyrefly: ignore [missing-attribute]
         reward3 = self.second_batch_2nd_round.reward.squeeze().numpy()
 
         # all matrix and vectors are the same
@@ -278,12 +290,14 @@ class TestLinUCB(unittest.TestCase):
         # pyre-fixme[58]: `@` is not supported for operand types `float` and `Any`.
         b = scorer.gamma * x1.T @ reward1 + x2.T @ reward2 + x3.T @ reward3
         npt.assert_allclose(
+            # pyrefly: ignore [unsupported-operation]
             (scorer.avg_A * scorer.sum_weight).numpy(),
             A * scorer.gamma,
             atol=1e-5,
             rtol=1e-5,
         )
         npt.assert_allclose(
+            # pyrefly: ignore [unsupported-operation]
             (scorer.avg_b * scorer.sum_weight).numpy(),
             b * scorer.gamma,
             atol=1e-5,
@@ -292,6 +306,7 @@ class TestLinUCB(unittest.TestCase):
 
         inv_A = np.linalg.inv(A + np.identity(self.x_dim) * scorer.l2_reg_lambda)
         npt.assert_allclose(
+            # pyrefly: ignore [unsupported-operation]
             (scorer.inv_avg_A / scorer.sum_weight * scorer.gamma).numpy(),
             inv_A,
             atol=1e-4,

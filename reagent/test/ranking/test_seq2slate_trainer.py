@@ -122,6 +122,7 @@ def create_off_policy_batch(
 
 class TestSeq2SlateTrainer(unittest.TestCase):
     def setUp(self):
+        # pyrefly: ignore [bad-argument-type]
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
@@ -211,6 +212,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             rank_seed,
             device,
         )
+        # pyrefly: ignore [bad-argument-type]
         training_data = DataLoader([batch], collate_fn=lambda x: x[0], pin_memory=True)
         pl_trainer = pl.Trainer(
             max_epochs=policy_gradient_interval,
@@ -301,6 +303,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             seq2slate_net, batch_size, state_dim, candidate_num, candidate_dim, device
         )
 
+        # pyrefly: ignore [bad-argument-type]
         training_data = DataLoader([batch], collate_fn=lambda x: x[0], pin_memory=True)
         pl_trainer = pl.Trainer(
             max_epochs=policy_gradient_interval,
@@ -375,6 +378,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             seq2slate_net, batch_size, state_dim, candidate_num, candidate_dim, device
         )
 
+        # pyrefly: ignore [bad-argument-type]
         training_data = DataLoader([batch], collate_fn=lambda x: x[0], pin_memory=True)
         pl_trainer = pl.Trainer(max_epochs=policy_gradient_interval, logger=False)
         pl_trainer.fit(trainer, training_data)
@@ -464,6 +468,7 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             )
             if impt_smpl > clamp_max:
                 if clamp_method == IPSClampMethod.AGGRESSIVE:
+                    # pyrefly: ignore [missing-attribute]
                     npt.asset_allclose(clamped_impt_smpl.detach().numpy(), 0, rtol=1e-5)
                 else:
                     npt.assert_allclose(
@@ -483,7 +488,9 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             f"sum_of_model_propensity={sum_of_model_propensity}, "
             f"mean sum_of_ips_ratio={sum_of_ips_ratio / len(all_permt)}"
         )
+        # pyrefly: ignore [missing-attribute]
         npt.assert_allclose(sum_of_logged_propensity.detach().numpy(), 1, rtol=1e-5)
+        # pyrefly: ignore [missing-attribute]
         npt.assert_allclose(sum_of_model_propensity.detach().numpy(), 1, rtol=1e-5)
 
     @parameterized.expand(itertools.product(output_arch_list, frechet_sort_shape_list))
@@ -558,4 +565,5 @@ class TestSeq2SlateTrainer(unittest.TestCase):
             if i > 100 and np.allclose(mean_of_ips_ratio, 1, atol=0.03):
                 return
 
+        # pyrefly: ignore [unbound-name]
         raise Exception(f"Mean ips ratio {mean_of_ips_ratio} is not close to 1")

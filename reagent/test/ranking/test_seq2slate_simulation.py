@@ -18,6 +18,7 @@ from reagent.test.ranking.seq2slate_utils import (
 
 class TestSeq2SlateSimulation(unittest.TestCase):
     def setUp(self) -> None:
+        # pyrefly: ignore [bad-argument-type]
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)

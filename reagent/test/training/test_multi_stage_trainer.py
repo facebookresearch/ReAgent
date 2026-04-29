@@ -148,6 +148,7 @@ class TestMultiStageTrainer(unittest.TestCase):
             DummyReporter("stage1", expected_epochs=[0, 1, 2]),
             DummyReporter("stage2", expected_epochs=[3, 4, 5]),
         ]
+        # pyrefly: ignore [bad-argument-type]
         compound_reporter = CompoundReporter(reporters, _merge_report)
         multi_stage_trainer.set_reporter(compound_reporter)
 

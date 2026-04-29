@@ -32,6 +32,7 @@ class TestPPO(unittest.TestCase):
         self.softmax_temperature = 1
 
         self.actions = [str(i) for i in range(self.action_dim)]
+        # pyrefly: ignore [unexpected-keyword]
         self.params = PPOTrainerParameters(actions=self.actions, normalize=False)
         self.reward_options = RewardOptions()
         self.metrics_to_score = get_metrics_to_score(
@@ -73,14 +74,17 @@ class TestPPO(unittest.TestCase):
         )
 
         with self.assertRaises(AssertionError):
+            # pyrefly: ignore [unexpected-keyword]
             new_params = PPOTrainerParameters(ppo_epsilon=-1)
             self._construct_trainer(new_params)
 
         with self.assertRaises(AssertionError):
+            # pyrefly: ignore [unexpected-keyword]
             new_params = PPOTrainerParameters(ppo_epsilon=2)
             self._construct_trainer(new_params)
 
         with self.assertRaises(AssertionError):
+            # pyrefly: ignore [unexpected-keyword]
             params = PPOTrainerParameters(actions=["1", "2"], normalize=True)
             trainer = self._construct_trainer(new_params=params)
 
@@ -92,7 +96,12 @@ class TestPPO(unittest.TestCase):
         )
         # Normalize + offset clamp min
         params = PPOTrainerParameters(
-            actions=["1", "2"], normalize=True, offset_clamp_min=True
+            # pyrefly: ignore [unexpected-keyword]
+            actions=["1", "2"],
+            # pyrefly: ignore [unexpected-keyword]
+            normalize=True,
+            # pyrefly: ignore [unexpected-keyword]
+            offset_clamp_min=True,
         )
         trainer = self._construct_trainer(new_params=params, use_value_net=False)
         losses = trainer._trajectory_to_losses(inp)
@@ -157,9 +166,13 @@ class TestPPO(unittest.TestCase):
         # _update_model called with permutation of traj_buffer contents update_epoch # times
         trainer = self._construct_trainer(
             new_params=PPOTrainerParameters(
+                # pyrefly: ignore [unexpected-keyword]
                 ppo_batch_size=1,
+                # pyrefly: ignore [unexpected-keyword]
                 update_epochs=2,
+                # pyrefly: ignore [unexpected-keyword]
                 update_freq=2,
+                # pyrefly: ignore [unexpected-keyword]
                 normalize=False,
             )
         )

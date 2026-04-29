@@ -101,6 +101,7 @@ class GridWorld(Environment):
     def reset(self, state: Optional[State] = None) -> State:
         super().reset(state)
         if self._current_state is None:
+            # pyrefly: ignore [bad-argument-type]
             self._current_state = State(self.start)
         return self._current_state
 
@@ -148,6 +149,7 @@ class GridWorld(Environment):
             "Gridworld expects states to be Tuple[int, int]"
         )
         if state.value in self.walls or state.value == self.goal:
+            # pyrefly: ignore [bad-argument-type]
             return StateReward(State((x, y), state.is_terminal), 0.0)
         if action.value == 0:
             to_pos, reward, is_end = self._transit((x, y), (x + 1, y))
@@ -157,6 +159,7 @@ class GridWorld(Environment):
             to_pos, reward, is_end = self._transit((x, y), (x - 1, y))
         else:
             to_pos, reward, is_end = self._transit((x, y), (x, y - 1))
+        # pyrefly: ignore [bad-argument-type]
         return StateReward(State(to_pos, is_end), reward)
 
     def next_state_reward_dist(self, state: State, action: Action) -> StateDistribution:
@@ -174,6 +177,7 @@ class GridWorld(Environment):
             for y in range(self.size[1]):
                 state = (x, y)
                 if state != self.goal and state not in self.walls:
+                    # pyrefly: ignore [bad-argument-type]
                     yield State((x, y))
 
     def __repr__(self):
@@ -196,6 +200,7 @@ class GridWorld(Environment):
         dump = ""
         for x in range(self.size[0]):
             for y in range(self.size[1]):
+                # pyrefly: ignore [bad-argument-type]
                 pos = State((x, y))
                 value = 0.0
                 if pos in state_values:
@@ -208,6 +213,7 @@ class GridWorld(Environment):
         dump = ""
         for x in range(self.size[0]):
             for y in range(self.size[1]):
+                # pyrefly: ignore [bad-argument-type]
                 dump += "{:6.3}".format(valfunc(State((x, y))))
             dump += "\n"
         return dump
@@ -224,6 +230,7 @@ class GridWorld(Environment):
                 elif pos in self.walls:
                     dump += "\u2588"
                 else:
+                    # pyrefly: ignore [bad-argument-type]
                     action = policy(State(pos)).greedy()[0]
                     if action.value == 0:
                         dump += "\u21e9"
@@ -314,6 +321,7 @@ class NoiseGridWorldModel(Environment):
         return self._gridworld.states
 
     @property
+    # pyrefly: ignore [bad-override]
     def current_state(self):
         return self._gridworld.current_state
 
@@ -329,6 +337,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     random.seed(1234)
+    # pyrefly: ignore [bad-argument-type]
     np.random.seed(1234)
     torch.random.manual_seed(1234)
 

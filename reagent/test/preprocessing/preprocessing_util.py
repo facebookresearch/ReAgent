@@ -41,40 +41,56 @@ def id_to_type(id) -> str:
 
 
 def read_data():
+    # pyrefly: ignore [bad-argument-type]
     np.random.seed(1)
     feature_value_map = {}
+    # pyrefly: ignore [missing-attribute]
     feature_value_map[BINARY_FEATURE_ID] = stats.bernoulli.rvs(0.5, size=10000).astype(
         np.float32
     )
+    # pyrefly: ignore [missing-attribute]
     feature_value_map[BINARY_FEATURE_ID_2] = stats.bernoulli.rvs(
         0.5, size=10000
     ).astype(np.float32)
+    # pyrefly: ignore [missing-attribute]
     feature_value_map[CONTINUOUS_FEATURE_ID] = stats.norm.rvs(size=10000).astype(
         np.float32
     )
+    # pyrefly: ignore [missing-attribute]
     feature_value_map[CONTINUOUS_FEATURE_ID_2] = stats.norm.rvs(size=10000).astype(
         np.float32
     )
+    # pyrefly: ignore [missing-attribute]
     feature_value_map[BOXCOX_FEATURE_ID] = stats.expon.rvs(size=10000).astype(
         np.float32
     )
     feature_value_map[ENUM_FEATURE_ID] = (
+        # pyrefly: ignore [missing-attribute]
         stats.randint.rvs(0, 10, size=10000) * 1000
     ).astype(np.float32)
     feature_value_map[QUANTILE_FEATURE_ID] = np.concatenate(
+        # pyrefly: ignore [missing-attribute]
         (stats.norm.rvs(size=5000), stats.expon.rvs(size=5000))
     ).astype(np.float32)
     feature_value_map[PROBABILITY_FEATURE_ID] = np.clip(
-        stats.beta.rvs(a=2.0, b=2.0, size=10000).astype(np.float32), 0.01, 0.99
+        # pyrefly: ignore [missing-attribute]
+        stats.beta.rvs(a=2.0, b=2.0, size=10000).astype(np.float32),
+        0.01,
+        0.99,
     )
+    # pyrefly: ignore [missing-attribute]
     feature_value_map[CONTINUOUS_ACTION_FEATURE_ID] = stats.norm.rvs(size=10000).astype(
         np.float32
     )
+    # pyrefly: ignore [missing-attribute]
     feature_value_map[CONTINUOUS_ACTION_FEATURE_ID_2] = stats.norm.rvs(
         size=10000
     ).astype(np.float32)
     feature_value_map[CONTINUOUS_SMALL_FEATURE_ID] = np.clip(
-        stats.norm.rvs(scale=1e-6, size=10000).astype(np.float32), -1e-5, 1e-5
+        # pyrefly: ignore [missing-attribute]
+        stats.norm.rvs(scale=1e-6, size=10000).astype(np.float32),
+        -1e-5,
+        1e-5,
     )
 
     return feature_value_map

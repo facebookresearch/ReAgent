@@ -173,6 +173,7 @@ def train_mdnrnn_and_compute_feature_stats(
     trainer = manager.build_trainer(
         use_gpu=use_gpu,
         reward_options=RewardOptions(),
+        # pyrefly: ignore [bad-argument-type]
         normalization_data_map=build_normalizer(env),
     )
 
@@ -186,12 +187,14 @@ def train_mdnrnn_and_compute_feature_stats(
         return_everything_as_stack=True,
     )
     random_policy = make_random_policy_for_env(env)
+    # pyrefly: ignore [bad-argument-type]
     agent = Agent.create_for_env(env, policy=random_policy)
     fill_replay_buffer(env, test_replay_buffer, num_test_transitions, agent)
 
     if saved_mdnrnn_path is None:
         # train from scratch
         trainer = train_mdnrnn(
+            # pyrefly: ignore [bad-argument-type]
             env=env,
             trainer=trainer,
             trainer_preprocessor=trainer_preprocessor,
@@ -219,6 +222,7 @@ def train_mdnrnn_and_compute_feature_stats(
         )
 
         feature_sensitivity = calculate_feature_sensitivity(
+            # pyrefly: ignore [bad-argument-type]
             env=env,
             trainer=trainer,
             use_gpu=use_gpu,
@@ -390,6 +394,7 @@ def train_mdnrnn_and_train_on_embedded_env(
 class TestWorldModel(HorizonTestBase):
     @staticmethod
     def verify_result(result_dict: Dict[str, float], expected_top_features: List[str]):
+        # pyrefly: ignore [no-matching-overload]
         top_feature = max(result_dict, key=result_dict.get)
         assert top_feature in expected_top_features, (
             f"top_feature: {top_feature}, expected_top_features: {expected_top_features}"

@@ -238,6 +238,7 @@ class ReplayBufferTest(unittest.TestCase):
             np.array([(x + 1 + num_adds - replay_capacity) % 2 for x in indices]), 1
         )
         expected_extra2 = np.stack(
+            # pyrefly: ignore [bad-argument-type]
             [
                 [(x + num_adds - replay_capacity) % 2 for x in indices],
                 np.zeros((len(indices),)),
@@ -245,6 +246,7 @@ class ReplayBufferTest(unittest.TestCase):
             axis=1,
         )
         expected_next_extra2 = np.stack(
+            # pyrefly: ignore [bad-argument-type]
             [
                 [(x + 1 + num_adds - replay_capacity) % 2 for x in indices],
                 np.zeros((len(indices),)),

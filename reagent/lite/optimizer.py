@@ -358,6 +358,7 @@ class RandomSearchOptimizer(ComboOptimizerBase):
 
     def _optimize_step(self) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         sampled_solutions = self.sample_internal(self.batch_size)[0]
+        # pyrefly: ignore [not-callable]
         sampled_reward, _ = self.obj_func(sampled_solutions)
         sampled_reward = sampled_reward.detach()
         self.update_params(sampled_reward)
@@ -451,6 +452,7 @@ class NeverGradOptimizer(ComboOptimizerBase):
         assert temp is None, "temp is not used in Random Search"
         ng_sols_idx = {k: torch.zeros(batch_size) for k in self.param}
         for i in range(batch_size):
+            # pyrefly: ignore [missing-attribute]
             ng_sol = self.optimizer.ask().value
             for k in ng_sol:
                 ng_sols_idx[k][i] = self.choice_to_index[k][ng_sol[k]]
@@ -468,6 +470,7 @@ class NeverGradOptimizer(ComboOptimizerBase):
         ng_sols_idx = {k: torch.zeros(batch_size, dtype=torch.long) for k in self.param}
         ng_sols_raw = []
         for i in range(batch_size):
+            # pyrefly: ignore [missing-attribute]
             ng_sol = self.optimizer.ask()
             ng_sols_raw.append(ng_sol)
             ng_sol_val = ng_sol.value
@@ -477,13 +480,16 @@ class NeverGradOptimizer(ComboOptimizerBase):
         return ng_sols_idx, ng_sols_raw
 
     def update_params(self, reward: torch.Tensor) -> None:
+        # pyrefly: ignore [not-iterable]
         _, sampled_sols = self.last_sample_internal_res
         for ng_sol, r in zip(sampled_sols, reward):
+            # pyrefly: ignore [missing-attribute]
             self.optimizer.tell(ng_sol, r.item())
         self.last_sample_internal_res = None
 
     def _optimize_step(self) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         sampled_sol_idxs, sampled_sols = self.sample_internal(self.batch_size)
+        # pyrefly: ignore [not-callable]
         sampled_reward, _ = self.obj_func(sampled_sol_idxs)
         sampled_reward = sampled_reward.detach()
         self.update_params(sampled_reward)
@@ -634,8 +640,10 @@ class GumbelSoftmaxOptimizer(LogitBasedComboOptimizerBase):
         if self.update_params_within_optimizer:
             reward_mean = reward.mean()
             assert reward_mean.requires_grad
+            # pyrefly: ignore [missing-attribute]
             self.optimizer.zero_grad()
             reward_mean.backward()
+            # pyrefly: ignore [missing-attribute]
             self.optimizer.step()
 
         self.temp = np.maximum(self.temp * self.anneal_rate, self.min_temp)
@@ -643,6 +651,7 @@ class GumbelSoftmaxOptimizer(LogitBasedComboOptimizerBase):
 
     def _optimize_step(self) -> Tuple:
         sampled_softmax_vals = self.sample_internal(self.batch_size)[0]
+        # pyrefly: ignore [not-callable]
         sampled_reward, _ = self.obj_func(sampled_softmax_vals)
         self.update_params(sampled_reward)
 
@@ -743,6 +752,7 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
         return sampled_solutions, sampled_log_probs
 
     def update_params(self, reward: torch.Tensor):
+        # pyrefly: ignore [not-iterable]
         _, sampled_log_probs = self.last_sample_internal_res
         if self.batch_size == 1:
             adv = reward
@@ -756,8 +766,10 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
         assert adv.shape[-1] == 1
 
         loss = (adv * sampled_log_probs).mean()
+        # pyrefly: ignore [missing-attribute]
         self.optimizer.zero_grad()
         loss.backward()
+        # pyrefly: ignore [missing-attribute]
         self.optimizer.step()
 
         self.temp = np.maximum(self.temp * self.anneal_rate, self.min_temp)
@@ -766,6 +778,7 @@ class PolicyGradientOptimizer(LogitBasedComboOptimizerBase):
     def _optimize_step(self) -> Tuple:
         sampled_solutions, sampled_log_probs = self.sample_internal(self.batch_size)
 
+        # pyrefly: ignore [not-callable]
         sampled_reward, sampled_scaled_reward = self.obj_func(sampled_solutions)
         sampled_reward, sampled_scaled_reward = (
             sampled_reward.detach(),
@@ -933,6 +946,7 @@ class QLearningOptimizer(ComboOptimizerBase):
                 :, :, acc_input_dim : acc_input_dim + num_choices
             ] = torch.eye(num_choices)
             q_values = (
+                # pyrefly: ignore [not-callable]
                 self.q_net(next_state_action_all_pairs)
                 .detach()
                 .reshape(batch_size, num_choices)
@@ -970,6 +984,7 @@ class QLearningOptimizer(ComboOptimizerBase):
         return sampled_solutions
 
     def update_params(self, reward: torch.Tensor) -> None:
+        # pyrefly: ignore [not-iterable]
         _, exp_replay = self.last_sample_internal_res
 
         # insert reward placeholder to exp replay
@@ -986,7 +1001,9 @@ class QLearningOptimizer(ComboOptimizerBase):
             next_state_action_all_pairs,
             terminal,
             r,
+            # pyrefly: ignore [bad-argument-type]
         ) in enumerate(shuffle_exp_replay(self.exp_replay)):
+            # pyrefly: ignore [not-callable]
             q = self.q_net(cur_state_action)
             if terminal:
                 # negate reward to be consistent with other optimizers.
@@ -994,11 +1011,14 @@ class QLearningOptimizer(ComboOptimizerBase):
                 # but q-learning tries to maxmize accumulated rewards
                 loss = F.mse_loss(q, -r)
             else:
+                # pyrefly: ignore [not-callable]
                 q_next = self.q_net(next_state_action_all_pairs).detach()
                 # assume gamma=1 (no discounting)
                 loss = F.mse_loss(q, q_next.max(dim=1).values)
+            # pyrefly: ignore [missing-attribute]
             self.optimizer.zero_grad()
             loss.backward()
+            # pyrefly: ignore [missing-attribute]
             self.optimizer.step()
             avg_td_loss.append(loss.detach())
 
@@ -1015,6 +1035,7 @@ class QLearningOptimizer(ComboOptimizerBase):
         self,
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         sampled_solutions, exp_replay = self.sample_internal(self.batch_size)
+        # pyrefly: ignore [not-callable]
         sampled_reward, sampled_scaled_reward = self.obj_func(sampled_solutions)
         sampled_reward, sampled_scaled_reward = (
             sampled_reward.detach(),
@@ -1166,12 +1187,14 @@ class BayesianOptimizerBase(ComboOptimizerBase):
 
     def update_params(self, reward: torch.Tensor):
         sampled_solutions = self.last_sample_internal_res
+        # pyrefly: ignore [bad-argument-type]
         self.update_predictor(sampled_solutions, reward)
         self.temp = np.maximum(self.temp * self.anneal_rate, self.min_temp)
         self.last_sample_internal_res = None
 
     def _optimize_step(self) -> Tuple:
         sampled_solutions = self.sample_internal(self.batch_size)[0]
+        # pyrefly: ignore [not-callable]
         sampled_reward, _ = self.obj_func(sampled_solutions)
         sampled_reward = sampled_reward.detach()
         self.update_params(sampled_reward)
@@ -1342,6 +1365,7 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
                     nn.init.xavier_uniform_(p)
             self.predictor.append(model)
 
+        # pyrefly: ignore [not-callable]
         sampled_reward, _ = self.obj_func(sampled_solutions)
         sampled_reward = sampled_reward.detach()
         self._maintain_best_solutions(sampled_solutions, sampled_reward)
@@ -1374,6 +1398,7 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
         y = sampled_reward
         losses = []
 
+        # pyrefly: ignore [not-iterable]
         for model in self.predictor:
             model.train()
             optimizer = torch.optim.Adam(
@@ -1617,6 +1642,7 @@ class BayesianByBackpropOptimizer(BayesianOptimizerBase):
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
 
+        # pyrefly: ignore [not-callable]
         sampled_reward, _ = self.obj_func(sampled_solutions)
         sampled_reward = sampled_reward.detach()
         self._maintain_best_solutions(sampled_solutions, sampled_reward)
@@ -1627,6 +1653,7 @@ class BayesianByBackpropOptimizer(BayesianOptimizerBase):
         sampled_sol: Dict[str, torch.Tensor],
     ) -> torch.Tensor:
         batch_tensors = sol_to_tensors(sampled_sol, self.param)
+        # pyrefly: ignore [not-callable]
         acquisition_reward = self.predictor(batch_tensors)
         return acquisition_reward.view(-1)
 
@@ -1637,17 +1664,23 @@ class BayesianByBackpropOptimizer(BayesianOptimizerBase):
         y = sampled_reward
         losses = []
 
+        # pyrefly: ignore [missing-attribute]
         self.predictor.train()
         optimizer = torch.optim.Adam(
-            self.predictor.parameters(), lr=self.learning_rate, foreach=True
+            # pyrefly: ignore [missing-attribute]
+            self.predictor.parameters(),
+            lr=self.learning_rate,
+            foreach=True,
         )
         for _ in range(self.epochs):
             optimizer.zero_grad()
+            # pyrefly: ignore [missing-attribute]
             loss = self.predictor.sample_elbo(x, y, self.sample_size)
             loss.backward()
             optimizer.step()
 
         losses.append(loss.detach())
+        # pyrefly: ignore [missing-attribute]
         self.predictor.eval()
 
         self.last_predictor_loss_mean = np.mean(losses)

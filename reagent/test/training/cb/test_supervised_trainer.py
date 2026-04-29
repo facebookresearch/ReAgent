@@ -25,6 +25,7 @@ class TestSupervisedTrainer(unittest.TestCase):
         policy_network = CBFullyConnectedNetwork(self.x_dim, [8, 10])
         self.policy = Policy(scorer=policy_network, sampler=GreedyActionSampler())
 
+        # pyrefly: ignore [missing-attribute]
         self.trainer = SupervisedTrainer(self.policy, **self.params.asdict())
         self.batch = CBInput(
             context_arm_features=torch.tensor(

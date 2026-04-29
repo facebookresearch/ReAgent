@@ -23,7 +23,10 @@ class TestDeepRepresentLinUCB(unittest.TestCase):
 
     def setUp(self):
         self.params = DeepRepresentLinUCBTrainerParameters(
-            lr=1e-1, loss_type="cross_entropy"
+            # pyrefly: ignore [unexpected-keyword]
+            lr=1e-1,
+            # pyrefly: ignore [unexpected-keyword]
+            loss_type="cross_entropy",
         )
 
         input_dim = 100
@@ -57,7 +60,9 @@ class TestDeepRepresentLinUCB(unittest.TestCase):
 
     def test_linucb_training_step(self):
         self.trainer.training_step(self.batch, 0)
+        # pyrefly: ignore [bad-argument-type]
         assert len(self.batch.action) == len(self.batch.reward)
+        # pyrefly: ignore [bad-argument-type]
         assert len(self.batch.action) == self.batch.context_arm_features.shape[0]
 
         loss = self.trainer.training_step(batch=self.batch, batch_idx=0)

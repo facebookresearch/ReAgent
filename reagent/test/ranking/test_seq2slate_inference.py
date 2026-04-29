@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class TestSeq2SlateInference(unittest.TestCase):
     def setUp(self) -> None:
+        # pyrefly: ignore [bad-argument-type]
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)

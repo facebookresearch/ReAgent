@@ -122,6 +122,7 @@ class TestOPEModuleAlgs(unittest.TestCase):
 
         """
         random.seed(0)
+        # pyrefly: ignore [bad-argument-type]
         np.random.seed(0)
         torch.random.manual_seed(0)
 
@@ -266,12 +267,17 @@ class TestOPEModuleAlgs(unittest.TestCase):
             slate_reward=torch.tensor([4.0, 5.0, 7.0]),
             extras=rlt.ExtraData(
                 sequence_number=torch.tensor([0, 0, 0]),
+                # pyrefly: ignore [bad-argument-type]
                 mdp_id=np.array(["0", "1", "2"]),
             ),
         )
 
         edp = EvaluationDataPage.create_from_tensors_seq2slate(
-            seq2slate_net, reward_net, ptb, eval_greedy=True
+            # pyrefly: ignore [bad-argument-type]
+            seq2slate_net,
+            reward_net,
+            ptb,
+            eval_greedy=True,
         )
         logger.info("---------- Start evaluating eval_greedy=True -----------------")
         doubly_robust_estimator = OPEstimatorAdapter(DoublyRobustEstimator())
@@ -320,7 +326,11 @@ class TestOPEModuleAlgs(unittest.TestCase):
 
         logger.info("---------- Start evaluating eval_greedy=False -----------------")
         edp = EvaluationDataPage.create_from_tensors_seq2slate(
-            seq2slate_net, reward_net, ptb, eval_greedy=False
+            # pyrefly: ignore [bad-argument-type]
+            seq2slate_net,
+            reward_net,
+            ptb,
+            eval_greedy=False,
         )
         doubly_robust_estimator = OPEstimatorAdapter(DoublyRobustEstimator())
         dm_estimator = OPEstimatorAdapter(DMEstimator())

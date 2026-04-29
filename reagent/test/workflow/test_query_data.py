@@ -48,6 +48,7 @@ class TestQueryData(ReagentSQLTestBase):
     def _discrete_read_data(
         self, custom_reward_expression=None, gamma=None, multi_steps=None
     ):
+        # pyrefly: ignore [missing-argument, unexpected-keyword]
         ts = TableSpec(table_name=self.table_name)
         df = OssDataFetcher()
         dataset: Dataset = df.query_data(
@@ -58,6 +59,7 @@ class TestQueryData(ReagentSQLTestBase):
             multi_steps=multi_steps,
             gamma=gamma,
         )
+        # pyrefly: ignore [missing-attribute]
         df = self.sqlCtx.read.parquet(dataset.parquet_url)
         df = df.orderBy(asc("sequence_number"))
         logger.info("Read parquet dataframe: ")

@@ -49,12 +49,14 @@ def create_data(
         mask = torch.arange(seq_len).repeat(batch_size, 1)
         mask = (mask >= (seq_len - valid_step)).float()
         reward = (reward_matrix * mask).sum(dim=1).reshape(-1, 1)
+        # pyrefly: ignore [unsupported-operation]
         data[i] = rlt.MemoryNetworkInput(
             state=rlt.FeatureData(state),
             action=rlt.FeatureData(action),
             valid_step=valid_step,
             reward=reward,
             # the rest fields will not be used
+            # pyrefly: ignore [bad-argument-type]
             next_state=torch.tensor([]),
             step=torch.tensor([]),
             not_terminal=torch.tensor([]),
@@ -109,12 +111,14 @@ def create_sequence_data(state_dim, action_dim, seq_len, batch_size, num_batches
         mask = (mask >= (seq_len - valid_step)).float()
         reward = (reward_matrix * mask).sum(dim=1).reshape(-1, 1)
 
+        # pyrefly: ignore [unsupported-operation]
         data[i] = rlt.MemoryNetworkInput(
             state=rlt.FeatureData(state),
             action=rlt.FeatureData(action),
             valid_step=valid_step,
             reward=reward,
             # the rest fields will not be used
+            # pyrefly: ignore [bad-argument-type]
             next_state=torch.tensor([]),
             step=torch.tensor([]),
             not_terminal=torch.tensor([]),

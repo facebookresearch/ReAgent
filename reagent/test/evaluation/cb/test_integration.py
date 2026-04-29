@@ -62,7 +62,9 @@ class TestEvalDuringTraining(unittest.TestCase):
         self.trainer.training_step(batch_1, 0)
 
         # flush the buffers inside the model
+        # pyrefly: ignore [not-callable]
         self.trainer.scorer._calculate_coefs()
+        # pyrefly: ignore [not-callable]
         self.eval_module.eval_model._calculate_coefs()
 
         # update the evaluated model. this model will be used for evaluation (action selection) in both batch_2 and batch_3 bcs we won't update it after batch_2
@@ -82,13 +84,16 @@ class TestEvalDuringTraining(unittest.TestCase):
         # check if trained model state is correct
         batch_1_used_features = batch_1.context_arm_features[1, 1].numpy()
         npt.assert_allclose(
+            # pyrefly: ignore [unsupported-operation]
             (self.trainer.scorer.avg_A * self.trainer.scorer.sum_weight).numpy(),
             np.outer(batch_1_used_features, batch_1_used_features)
             * 2,  # *2 due to importance weight applied during offline eval
         )
         npt.assert_allclose(
+            # pyrefly: ignore [unsupported-operation]
             (self.trainer.scorer.avg_b * self.trainer.scorer.sum_weight).numpy(),
             batch_1_used_features
+            # pyrefly: ignore [unsupported-operation]
             * batch_1.reward[1, 0].item()
             * 2,  # *2 due to importance weight applied during offline eval
         )
@@ -96,6 +101,7 @@ class TestEvalDuringTraining(unittest.TestCase):
         # check if evaluated model state is correct (should be same as trained model)
         npt.assert_allclose(
             (
+                # pyrefly: ignore [unsupported-operation]
                 self.eval_module.eval_model.avg_A
                 * self.eval_module.eval_model.sum_weight
             ).numpy(),
@@ -104,10 +110,12 @@ class TestEvalDuringTraining(unittest.TestCase):
         )
         npt.assert_allclose(
             (
+                # pyrefly: ignore [unsupported-operation]
                 self.eval_module.eval_model.avg_b
                 * self.eval_module.eval_model.sum_weight
             ).numpy(),
             batch_1_used_features
+            # pyrefly: ignore [unsupported-operation]
             * batch_1.reward[1, 0].item()
             * 2,  # *2 due to importance weight applied during offline eval
         )
@@ -139,12 +147,15 @@ class TestEvalDuringTraining(unittest.TestCase):
         self.trainer.training_step(batch_2, 0)
 
         # flush the buffers inside the model
+        # pyrefly: ignore [not-callable]
         self.trainer.scorer._calculate_coefs()
+        # pyrefly: ignore [not-callable]
         self.eval_module.eval_model._calculate_coefs()
 
         # check that trained model state is correct
         batch_2_used_features = batch_2.context_arm_features[0, 1].numpy()
         npt.assert_allclose(
+            # pyrefly: ignore [unsupported-operation]
             (self.trainer.scorer.avg_A * self.trainer.scorer.sum_weight).numpy(),
             (
                 np.outer(batch_1_used_features, batch_1_used_features)
@@ -153,9 +164,12 @@ class TestEvalDuringTraining(unittest.TestCase):
             * 2,  # *2 due to importance weight applied during offline eval
         )
         npt.assert_allclose(
+            # pyrefly: ignore [unsupported-operation]
             (self.trainer.scorer.avg_b * self.trainer.scorer.sum_weight).numpy(),
             (
+                # pyrefly: ignore [unsupported-operation]
                 batch_1_used_features * batch_1.reward[1, 0].item()
+                # pyrefly: ignore [unsupported-operation]
                 + batch_2_used_features * batch_2.reward[0, 0].item()
             )
             * 2,  # *2 due to importance weight applied during offline eval
@@ -164,6 +178,7 @@ class TestEvalDuringTraining(unittest.TestCase):
         # check that evaluated model state is correct (same as it was after batch_1)
         npt.assert_allclose(
             (
+                # pyrefly: ignore [unsupported-operation]
                 self.eval_module.eval_model.avg_A
                 * self.eval_module.eval_model.sum_weight
             ).numpy(),
@@ -172,10 +187,12 @@ class TestEvalDuringTraining(unittest.TestCase):
         )
         npt.assert_allclose(
             (
+                # pyrefly: ignore [unsupported-operation]
                 self.eval_module.eval_model.avg_b
                 * self.eval_module.eval_model.sum_weight
             ).numpy(),
             batch_1_used_features
+            # pyrefly: ignore [unsupported-operation]
             * batch_1.reward[1, 0].item()
             * 2,  # *2 due to importance weight applied during offline eval
         )
@@ -212,7 +229,9 @@ class TestEvalDuringTraining(unittest.TestCase):
         self.trainer.training_step(batch_3, 0)
 
         # flush the buffers inside the model
+        # pyrefly: ignore [not-callable]
         self.trainer.scorer._calculate_coefs()
+        # pyrefly: ignore [not-callable]
         self.eval_module.eval_model._calculate_coefs()
 
         # finish training epoch
@@ -232,6 +251,7 @@ class TestEvalDuringTraining(unittest.TestCase):
         # check that trained model state is correct
         batch_3_used_features = batch_3.context_arm_features[1, 1].numpy()
         npt.assert_allclose(
+            # pyrefly: ignore [unsupported-operation]
             (self.trainer.scorer.avg_A * self.trainer.scorer.sum_weight).numpy(),
             (
                 np.outer(batch_1_used_features, batch_1_used_features)
@@ -241,10 +261,14 @@ class TestEvalDuringTraining(unittest.TestCase):
             * 2,  # *2 due to importance weight applied during offline eval
         )
         npt.assert_allclose(
+            # pyrefly: ignore [unsupported-operation]
             (self.trainer.scorer.avg_b * self.trainer.scorer.sum_weight).numpy(),
             (
+                # pyrefly: ignore [unsupported-operation]
                 batch_1_used_features * batch_1.reward[1, 0].item()
+                # pyrefly: ignore [unsupported-operation]
                 + batch_2_used_features * batch_2.reward[0, 0].item()
+                # pyrefly: ignore [unsupported-operation]
                 + batch_3_used_features * batch_3.reward[1, 0].item()
             )
             * 2,  # *2 due to importance weight applied during offline eval
@@ -253,6 +277,7 @@ class TestEvalDuringTraining(unittest.TestCase):
         # check that evaluated model state is correct (same as it was after batch_1)
         npt.assert_allclose(
             (
+                # pyrefly: ignore [unsupported-operation]
                 self.eval_module.eval_model.avg_A
                 * self.eval_module.eval_model.sum_weight
             ).numpy(),
@@ -261,10 +286,12 @@ class TestEvalDuringTraining(unittest.TestCase):
         )
         npt.assert_allclose(
             (
+                # pyrefly: ignore [unsupported-operation]
                 self.eval_module.eval_model.avg_b
                 * self.eval_module.eval_model.sum_weight
             ).numpy(),
             batch_1_used_features
+            # pyrefly: ignore [unsupported-operation]
             * batch_1.reward[1, 0].item()
             * 2,  # *2 due to importance weight applied during offline eval
         )
@@ -274,8 +301,11 @@ class TestEvalDuringTraining(unittest.TestCase):
             self.eval_module.get_avg_reward(),
             np.mean(
                 [
+                    # pyrefly: ignore [unsupported-operation]
                     batch_1.reward[1, 0].item(),
+                    # pyrefly: ignore [unsupported-operation]
                     batch_2.reward[0, 0].item(),
+                    # pyrefly: ignore [unsupported-operation]
                     batch_3.reward[1, 0].item(),
                 ]
             ),
@@ -294,4 +324,5 @@ class TestEvalDuringTraining(unittest.TestCase):
 
         # metrics should have been logged once, at the end of epoch
         # TODO: test logging logic triggered by eval_model_update_critical_weight
+        # pyrefly: ignore [missing-attribute]
         self.eval_module.logger.log_metrics.assert_called_once()

@@ -42,12 +42,18 @@ class TestSparseDQN(unittest.TestCase):
         # the dim of the input to overall arch is dimension of dense features plus
         # number of sparse features times embedding dimension for sparse features
         assert (
+            # pyrefly: ignore [bad-index]
             net[0][1].in_features
             == state_dense_dim + action_dense_dim + num_sparse_features * embedding_dim
         )
+        # pyrefly: ignore [bad-index]
         assert net[0][1].out_features == dense_sizes[0]
+        # pyrefly: ignore [bad-index]
         assert net[1][1].in_features == dense_sizes[0]
+        # pyrefly: ignore [bad-index]
         assert net[1][1].out_features == dense_sizes[1]
+        # pyrefly: ignore [bad-index]
         assert net[2][1].in_features == dense_sizes[1]
 
+        # pyrefly: ignore [bad-index]
         assert net[2][1].out_features == action_dense_dim

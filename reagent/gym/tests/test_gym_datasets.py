@@ -25,6 +25,7 @@ class TestEpisodicDataset(unittest.TestCase):
         norm = build_normalizer(env)
         net_builder = FullyConnected(sizes=[8], activations=["linear"])
         cartpole_scorer = net_builder.build_q_network(
+            # pyrefly: ignore [bad-argument-type]
             state_feature_config=None,
             state_normalization_data=norm["state"],
             output_dim=len(norm["action"].dense_normalization_parameters),

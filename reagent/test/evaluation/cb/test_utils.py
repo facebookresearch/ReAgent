@@ -45,11 +45,13 @@ class TestCBEvalUtils(unittest.TestCase):
             )
 
         # data weights should be unchanged
+        # pyrefly: ignore [missing-attribute]
         npt.assert_allclose(new_batch.weight.numpy(), self.batch.weight.numpy())
         # weights should be zero-ed out where action!= model_action
         self.assertEqual(new_batch.effective_weight[0, 0].item(), 0.0)
         # weights should be multiplied inverse probability of logged action where action == model_action
         self.assertEqual(
             new_batch.effective_weight[1, 0].item(),
+            # pyrefly: ignore [unsupported-operation]
             self.batch.weight[1, 0].item() * 2,
         )
