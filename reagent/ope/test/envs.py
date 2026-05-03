@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
+
+from __future__ import annotations
 
 import random
 from abc import abstractmethod
-from typing import Optional
 
 from reagent.ope.estimators.sequential_estimators import (
     Mdp,
@@ -23,20 +24,21 @@ class Environment(Model):
     """
 
     def __init__(self, max_horizon: int = -1) -> None:
-        self._current_state: Optional[State] = None
+        self._current_state: State | None = None
         self._steps_taken: int = 0
         self._max_horizon = max_horizon
 
     @abstractmethod
-    def reset(self, state: Optional[State] = None):
+    def reset(self, state: State | None = None) -> State | None:
         self.current_state = state
         self._steps_taken = 0
 
     @abstractmethod
-    def close(self):
+    def close(self) -> None:
         pass
 
-    def step(self, policy: RLPolicy):
+    def step(self, policy: RLPolicy) -> Transition:
+        assert self.current_state is not None
         a_dist = policy(self.current_state)
         a = a_dist.sample()[0]
         s_dist = self(self.current_state, a)
@@ -54,6 +56,7 @@ class Environment(Model):
         self._steps_taken += 1
 
         status = Transition.Status.NORMAL
+        assert self.current_state is not None
         if 0 < self._max_horizon <= self._steps_taken or self.current_state.is_terminal:
             status = Transition.Status.TERMINATED
         elif noop:
@@ -69,20 +72,20 @@ class Environment(Model):
 
     @property
     @abstractmethod
-    def observation_space(self):
+    def observation_space(self) -> object:
         pass
 
     @property
     @abstractmethod
-    def states(self):
+    def states(self) -> object:
         pass
 
     @property
-    def current_state(self):
+    def current_state(self) -> State | None:
         return self._current_state
 
     @current_state.setter
-    def current_state(self, state: Optional[State]):
+    def current_state(self, state: State | None) -> None:
         self._current_state = state
 
 
@@ -93,7 +96,7 @@ class PolicyLogGenerator:
 
     def generate_log(self, init_state: State, max_horizon: int = -1) -> Mdp:
         transition = Transition(state=self._env.reset(state=init_state))
-        mpd = []
+        mpd: list[Transition] = []
         while transition.status != Transition.Status.TERMINATED:
             if max_horizon > 0 and len(mpd) > max_horizon:
                 break
