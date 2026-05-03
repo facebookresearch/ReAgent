@@ -30,12 +30,12 @@ class TestPreprocessing(ReagentSQLTestBase):
         logging.getLogger(__name__).setLevel(logging.INFO)
 
     @pytest.mark.serial
-    def test_preprocessing(self):
+    def test_preprocessing(self) -> None:
         distributions = {}
         distributions["0"] = {"mean": 0, "stddev": 1}
         distributions["1"] = {"mean": 4, "stddev": 3}
 
-        def get_random_feature():
+        def get_random_feature() -> dict[str, float]:
             return {
                 k: np.random.normal(loc=info["mean"], scale=info["stddev"])
                 for k, info in distributions.items()
