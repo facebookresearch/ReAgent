@@ -34,7 +34,7 @@ class TestQueryDataParametric(ReagentSQLTestBase):
         self.table_name = "test_table"
         logger.info(f"Table name is {self.table_name}")
 
-    def generate_data(self, multi_steps=False):
+    def generate_data(self, multi_steps: bool = False) -> None:
         generate_data_parametric(
             self.sqlCtx, multi_steps=multi_steps, table_name=self.table_name
         )
@@ -61,7 +61,7 @@ class TestQueryDataParametric(ReagentSQLTestBase):
         return df
 
     @pytest.mark.serial
-    def test_query_data_parametric(self):
+    def test_query_data_parametric(self) -> None:
         # single step
         self.generate_data()
         df = self._parametric_read_data()
