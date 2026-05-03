@@ -28,7 +28,7 @@ from torchrec.fb.metrics.meta_config import (
 from torchrec.fb.metrics.meta_metrics import generate_metric_module, RecMetricModule
 
 
-def _get_recmetric_module():
+def _get_recmetric_module() -> RecMetricModule:
     rec_task = DefaultTaskInfo
 
     metrics_config = MetricsConfig(
@@ -81,7 +81,7 @@ class TestLinUCB(unittest.TestCase):
             reward=torch.tensor([[1.5], [2.3]], dtype=torch.float),
         )
 
-    def test_linucb_training_step(self):
+    def test_linucb_training_step(self) -> None:
         self.trainer.training_step(self.batch, 0)
         self.trainer.on_train_epoch_end()
 
