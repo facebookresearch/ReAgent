@@ -1,4 +1,4 @@
-# pyre-unsafe
+# pyre-strict
 import unittest
 
 import numpy as np
@@ -33,7 +33,7 @@ class TestCButils(unittest.TestCase):
         )
         npt.assert_equal(new_batch.chosen_arm_id.numpy(), np.array([[13], [15]]))
 
-    def test_argmax_random_tie_breaks_no_mask(self):
+    def test_argmax_random_tie_breaks_no_mask(self) -> None:
         scores = torch.tensor(
             [[1, 20, 20], [4, 4, 3], [15, 10, 15], [100, float("inf"), float("inf")]]
         )
@@ -51,7 +51,7 @@ class TestCButils(unittest.TestCase):
         self.assertSetEqual(argmax_values_returned[2], {0, 2})
         self.assertSetEqual(argmax_values_returned[3], {1, 2})
 
-    def test_argmax_random_tie_breaks_mask(self):
+    def test_argmax_random_tie_breaks_mask(self) -> None:
         scores = torch.tensor(
             [[1, 20, 20], [4, 4, 3], [15, 10, 15], [100, float("inf"), float("inf")]]
         )
@@ -85,7 +85,7 @@ class TestCButils(unittest.TestCase):
             },
         )
 
-    def test_get_model_actions_randomize(self):
+    def test_get_model_actions_randomize(self) -> None:
         scores = torch.tensor(
             [[1, 20, 20], [4, 4, 3], [15, 10, 15], [100, float("inf"), float("inf")]]
         )
