@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import unittest
 
@@ -17,7 +17,7 @@ from reagent.workflow.types import RewardOptions
 
 
 class TestDQN(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         # pyrefly: ignore [unexpected-keyword]
         self.params = DQNTrainerParameters(actions=["1", "2"])
         self.reward_options = RewardOptions()
@@ -56,7 +56,9 @@ class TestDQN(unittest.TestCase):
         )
         self.q_network_cpe_target = self.q_network_cpe.get_target_network()
 
-    def _construct_trainer(self, new_params=None, no_cpe=False):
+    def _construct_trainer(
+        self, new_params: DQNTrainerParameters | None = None, no_cpe: bool = False
+    ) -> DQNTrainer:
         reward_network = self.reward_network
         q_network_cpe = self.q_network_cpe
         q_network_cpe_target = self.q_network_cpe_target
@@ -80,8 +82,9 @@ class TestDQN(unittest.TestCase):
             **params.asdict(),
         )
 
-    def test_init(self):
+    def test_init(self) -> None:
         trainer = self._construct_trainer()
+        assert isinstance(trainer.reward_boosts, torch.Tensor)
         self.assertTrue((torch.isclose(trainer.reward_boosts, torch.zeros(2))).all())
         param_copy = DQNTrainerParameters(
             # pyrefly: ignore [unexpected-keyword]
@@ -90,6 +93,7 @@ class TestDQN(unittest.TestCase):
             rl=RLParameters(reward_boost={"1": 1, "2": 2}),
         )
         reward_boost_trainer = self._construct_trainer(new_params=param_copy)
+        assert isinstance(reward_boost_trainer.reward_boosts, torch.Tensor)
         self.assertTrue(
             (
                 torch.isclose(
@@ -98,7 +102,7 @@ class TestDQN(unittest.TestCase):
             ).all()
         )
 
-    def test_train_step_gen(self):
+    def test_train_step_gen(self) -> None:
         # mock training batch
         inp = DiscreteDqnInput(
             state=FeatureData(
@@ -202,7 +206,9 @@ class TestDQN(unittest.TestCase):
         ]
         for i in range(len(train_step_yield_order)):
             opt_param = optimizers[i]["optimizer"].param_groups[0]["params"][0]
-            loss_param = list(train_step_yield_order[i].parameters())[0]
+            network = train_step_yield_order[i]
+            assert network is not None
+            loss_param = list(network.parameters())[0]
             self.assertTrue(torch.all(torch.isclose(opt_param, loss_param)))
 
         trainer = self._construct_trainer(no_cpe=True)
@@ -213,10 +219,11 @@ class TestDQN(unittest.TestCase):
     def test_get_detached_model_outputs(self) -> None:
         trainer = self._construct_trainer()
         q_out, q_target = trainer.get_detached_model_outputs(self.x)
+        assert q_target is not None
         self.assertEqual(q_out.shape[0], q_target.shape[0], self.batch_size)
         self.assertEqual(q_out.shape[1], q_target.shape[1], self.action_dim)
 
-    def test_compute_discount_tensor(self):
+    def test_compute_discount_tensor(self) -> None:
         time_diff = 4
         steps = 3
         inp = DiscreteDqnInput(
@@ -282,7 +289,7 @@ class TestDQN(unittest.TestCase):
             torch.isclose(discount_tensor, torch.tensor(trainer.gamma**steps)).all()
         )
 
-    def test_compute_td_loss(self):
+    def test_compute_td_loss(self) -> None:
         inp = DiscreteDqnInput(
             state=FeatureData(
                 float_features=torch.rand(self.batch_size, self.state_dim)
@@ -337,7 +344,7 @@ class TestDQN(unittest.TestCase):
         )
         self.assertEqual(type(loss.grad_fn), smooth_l1_backward_type)
 
-    def test_validation_step(self):
+    def test_validation_step(self) -> None:
         inp = DiscreteDqnInput(
             state=FeatureData(
                 float_features=torch.rand(self.batch_size, self.state_dim)
@@ -359,7 +366,7 @@ class TestDQN(unittest.TestCase):
         data_page = trainer.validation_step(batch=inp, batch_idx=1)
         self.assertTrue(isinstance(data_page, EvaluationDataPage))
 
-    def test__dense_to_action_dict(self):
+    def test__dense_to_action_dict(self) -> None:
         trainer = self._construct_trainer()
         dense = torch.rand(trainer.num_actions)
         retval = trainer._dense_to_action_dict(dense)
