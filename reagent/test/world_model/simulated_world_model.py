@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 import torch
 import torch.nn as nn
 
@@ -15,11 +15,11 @@ class SimulatedWorldModel(nn.Module):
 
     def __init__(
         self,
-        action_dim,
-        state_dim,
-        num_gaussians,
-        lstm_num_hidden_layers,
-        lstm_num_hiddens,
+        action_dim: int,
+        state_dim: int,
+        num_gaussians: int,
+        lstm_num_hidden_layers: int,
+        lstm_num_hiddens: int,
     ) -> None:
         super().__init__()
         self.action_dim = action_dim
@@ -57,7 +57,9 @@ class SimulatedWorldModel(nn.Module):
         for _, p in self.gmm_linear.named_parameters():
             nn.init.normal_(p, 0, 1)
 
-    def forward(self, actions, cur_states):
+    def forward(
+        self, actions: torch.Tensor, cur_states: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         # actions: (SEQ_LEN, BATCH_SIZE, ACTION_SIZE)
         # cur_states: (SEQ_LEN, BATCH_SIZE, FEATURE_SIZE)
         seq_len, batch_size = actions.size(0), actions.size(1)
