@@ -7,7 +7,7 @@ from torchrec import EmbeddingBagCollection, EmbeddingBagConfig
 
 
 class TestSparseDQN(unittest.TestCase):
-    def test_single_step_sparse_dqn(self):
+    def test_single_step_sparse_dqn(self) -> None:
         state_dense_dim = 10
         action_dense_dim = 2
         dense_sizes = [256, 32]
