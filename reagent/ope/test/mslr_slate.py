@@ -56,8 +56,8 @@ class MSLRDatasets:
         self,
         params: Dict[str, Any],
         num_columns: int,
-        anchor_url_features: List[int],
-        body_features: List[int],
+        anchor_url_features: Optional[List[int]],
+        body_features: Optional[List[int]],
         dataset_name: str = "",
         device: Optional[torch.device] = None,
     ) -> None:
@@ -253,7 +253,7 @@ def train(
     train_dataset: MSLRDatasets,
     vali_dataset: MSLRDatasets,
     prefix: str = "",
-):
+) -> None:
     logging.info("training all features...")
     st = time.process_time()
     training_data = TrainingData(
@@ -333,7 +333,11 @@ def train(
 
 
 def load_dataset(
-    params, num_columns, anchor_url_features, body_features, dataset_name=""
+    params: Dict[str, Any],
+    num_columns: int,
+    anchor_url_features: Optional[List[int]],
+    body_features: Optional[List[int]],
+    dataset_name: str = "",
 ) -> MSLRDatasets:
     logging.info(f"loading {params['source_file']}")
     dataset = MSLRDatasets(
