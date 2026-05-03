@@ -59,7 +59,7 @@ class ReplayBufferTest(unittest.TestCase):
         )
         self.assertEqual(memory.add_count, 0)
 
-    def testAdd(self):
+    def testAdd(self) -> None:
         memory = circular_replay_buffer.ReplayBuffer(
             stack_size=STACK_SIZE, replay_capacity=5, batch_size=BATCH_SIZE
         )
@@ -188,7 +188,7 @@ class ReplayBufferTest(unittest.TestCase):
         npt.assert_array_equal(batch.terminal, expected_terminal)
         npt.assert_array_equal(batch.indices, np.expand_dims(np.array(indices), 1))
 
-    def testSampleTransitionBatchExtra(self):
+    def testSampleTransitionBatchExtra(self) -> None:
         replay_capacity = 10
         memory = circular_replay_buffer.ReplayBuffer(
             stack_size=1, replay_capacity=replay_capacity, batch_size=2
