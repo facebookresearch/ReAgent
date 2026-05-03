@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import unittest
 
@@ -18,7 +18,11 @@ from reagent.test.prediction.test_prediction_utils import (
 
 
 class TestModelWithPreprocessor(unittest.TestCase):
-    def verify_results(self, expected_output, scripted_output) -> None:
+    def verify_results(
+        self,
+        expected_output: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+        scripted_output: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+    ) -> None:
         for i, j in zip(expected_output, scripted_output):
             npt.assert_array_equal(i.detach(), j.detach())
 
