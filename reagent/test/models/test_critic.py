@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import logging
 import unittest
@@ -31,7 +31,7 @@ class FullyConnectedCriticTorchScriptWrapper(nn.Module):
 
 
 class TestFullyConnectedCritic(unittest.TestCase):
-    def check_save_load(self, model: FullyConnectedCritic):
+    def check_save_load(self, model: FullyConnectedCritic) -> None:
         """
         Test if a model is torch.jit.tracable
         """
@@ -68,7 +68,7 @@ class TestFullyConnectedCritic(unittest.TestCase):
         )
         self.check_save_load(model)
 
-    def test_save_load_batch_norm(self):
+    def test_save_load_batch_norm(self) -> None:
         state_dim = 8
         action_dim = 4
         model = FullyConnectedCritic(
