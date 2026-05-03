@@ -105,7 +105,7 @@ class TestQRDQN(unittest.TestCase):
             ).all()
         )
 
-    def test_train_step_gen(self):
+    def test_train_step_gen(self) -> None:
         inp = DiscreteDqnInput(
             state=FeatureData(float_features=torch.rand(3, 10)),
             next_state=FeatureData(float_features=torch.rand(3, 10)),
@@ -192,7 +192,7 @@ class TestQRDQN(unittest.TestCase):
         losses = list(loss_gen)
         self.assertEqual(len(losses), 4)
 
-    def test_configure_optimizers(self):
+    def test_configure_optimizers(self) -> None:
         trainer = self._construct_trainer()
         optimizers = trainer.configure_optimizers()
         self.assertEqual(len(optimizers), 4)
