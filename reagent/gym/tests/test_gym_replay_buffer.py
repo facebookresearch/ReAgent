@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 import logging
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import numpy as np
 import numpy.testing as npt
@@ -28,11 +28,11 @@ class TestEnv(SimpleObsWrapper):
         self.env = env
         self.action_space = self.env.action_space
         # mdp_id, sequence_number, state, action, reward, terminal
-        self.sart = []
+        self.sart: list[list[Any]] = []
         self.mdp_id = -1
         self.sequence_number = 0
 
-    def seed(self, *args, **kwargs):
+    def seed(self, *args: Any, **kwargs: Any) -> Any:
         return self.env.seed(*args, **kwargs)
 
     def reset(self, **kwargs: Any) -> np.ndarray:
@@ -42,7 +42,7 @@ class TestEnv(SimpleObsWrapper):
         self.sart.append([self.mdp_id, self.sequence_number, res, None, None, None])
         return res
 
-    def step(self, action: int) -> Tuple[np.ndarray, float, bool, Dict[str, Any]]:
+    def step(self, action: int) -> tuple[np.ndarray, float, bool, dict[str, Any]]:
         res = self.env.step(action)
         (
             _,
