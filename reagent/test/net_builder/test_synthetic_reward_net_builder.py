@@ -44,7 +44,7 @@ BATCH_SIZE = 2
 SEQ_LEN = 4
 
 
-def _create_norm(dim, offset: int = 0):
+def _create_norm(dim: int, offset: int = 0) -> NormalizationData:
     normalization_data = NormalizationData(
         dense_normalization_parameters={
             i: NormalizationParameters(feature_type=CONTINUOUS, mean=0.0, stddev=1.0)
@@ -84,7 +84,7 @@ def _create_preprocessed_input(
     input: rlt.MemoryNetworkInput,
     state_preprocessor: Preprocessor,
     action_preprocessor: Preprocessor,
-):
+) -> rlt.MemoryNetworkInput:
     preprocessed_state = state_preprocessor(
         input.state.float_features.reshape(SEQ_LEN * BATCH_SIZE, STATE_DIM),
         torch.ones(SEQ_LEN * BATCH_SIZE, STATE_DIM),
