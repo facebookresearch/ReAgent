@@ -5,7 +5,7 @@
 
 import collections
 import csv
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import six
@@ -179,7 +179,11 @@ class NumpyFeatureProcessor:
         return feature
 
     @classmethod
-    def preprocess(cls, features, parameters):
+    def preprocess(
+        cls,
+        features: Dict[Any, Any],
+        parameters: Dict[Any, NormalizationParameters],
+    ) -> Dict[Any, Any]:
         result = {}
         for feature_name in features:
             result[feature_name] = cls.preprocess_feature(
@@ -188,7 +192,12 @@ class NumpyFeatureProcessor:
         return result
 
     @classmethod
-    def preprocess_array(cls, arr, features, parameters):
+    def preprocess_array(
+        cls,
+        arr: np.ndarray,
+        features: List[Any],
+        parameters: Dict[Any, NormalizationParameters],
+    ) -> np.ndarray:
         assert len(arr.shape) == 2 and arr.shape[1] == len(features)
         preprocessed_values = [
             cls.preprocess({f: v for f, v in zip(features, row)}, parameters)
