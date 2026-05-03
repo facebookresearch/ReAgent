@@ -43,7 +43,9 @@ class FakeSeq2SlateRewardNetwork(nn.Module):
             rewards.append(self._forward(state[i], tgt_out_idx[i]))
         return torch.tensor(rewards).unsqueeze(1)
 
-    def _forward(self, state: torch.Tensor, tgt_out_idx: torch.Tensor):
+    def _forward(
+        self, state: torch.Tensor, tgt_out_idx: torch.Tensor
+    ) -> Optional[float]:
         if (state == torch.tensor([1.0, 0.0, 0.0])).all():
             if (tgt_out_idx == torch.tensor([2, 3])).all():
                 return 1.0
@@ -71,7 +73,7 @@ class FakeSeq2SlateTransformerNet(nn.Module):
         input: rlt.PreprocessedRankingInput,
         mode: str,
         greedy: Optional[bool] = None,
-    ):
+    ) -> rlt.RankingOutput:
         # The creation of evaluation data pages only uses these specific arguments
         assert mode in (Seq2SlateMode.RANK_MODE, Seq2SlateMode.PER_SEQ_LOG_PROB_MODE)
         if mode == Seq2SlateMode.RANK_MODE:
