@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+# pyre-strict
 
 import json
 import os
-from typing import Optional
 
 import click
 import reagent.serving.config.applications  # noqa
@@ -13,7 +13,7 @@ from reagent.serving.config.builder import DECISION_PLANS
 @click.command()
 @click.option("--app-id", default=None)
 @click.option("--config-dir", default=None)
-def export(app_id: Optional[str], config_dir: Optional[str]) -> None:
+def export(app_id: str | None, config_dir: str | None) -> None:
     if config_dir is None:
         config_parent_path = os.path.join(
             os.path.expanduser("~"), "configerator/raw_configs"
