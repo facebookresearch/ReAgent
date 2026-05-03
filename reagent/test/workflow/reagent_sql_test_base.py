@@ -31,7 +31,7 @@ GLOBAL_TEST_CLASS_COUNTER = 0
 
 # pyre-fixme[11]: Annotation `SQLTestCase` is not defined as a type.
 class ReagentSQLTestBase(SQLTestCase):
-    def getConf(self):
+    def getConf(self) -> SparkConf:
         conf = SparkConf()
         for k, v in DEFAULT_SPARK_CONFIG.items():
             conf.set(k, v)
@@ -60,7 +60,7 @@ class ReagentSQLTestBase(SQLTestCase):
         np.random.seed(self.test_class_seed)
         logging.basicConfig()
 
-    def assertEq(self, series_a, arr_b):
+    def assertEq(self, series_a: pd.Series, arr_b: np.ndarray) -> None:
         """Assert panda series is equal to np array"""
         arr_a = np.array(series_a.tolist())
         np.testing.assert_equal(arr_a, arr_b)
