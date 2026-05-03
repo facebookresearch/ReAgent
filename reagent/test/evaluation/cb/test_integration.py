@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import unittest
 from unittest.mock import MagicMock
@@ -19,7 +19,7 @@ from reagent.training.cb.linucb_trainer import LinUCBTrainer
 
 
 class TestEvalDuringTraining(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         x_dim = 2
         self.policy_network = LinearRegressionUCB(x_dim)
         policy = Policy(scorer=self.policy_network, sampler=GreedyActionSampler())
@@ -31,7 +31,7 @@ class TestEvalDuringTraining(unittest.TestCase):
         self.eval_module.attach_logger(logger)
         self.trainer.attach_eval_module(self.eval_module)
 
-    def test_eval_during_training(self):
+    def test_eval_during_training(self) -> None:
         """
         Test integration of evaluation into the training loop.
 
