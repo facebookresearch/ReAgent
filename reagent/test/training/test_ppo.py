@@ -5,6 +5,7 @@
 
 import unittest
 from collections import defaultdict
+from typing import Optional
 from unittest import mock
 
 import torch
@@ -56,7 +57,11 @@ class TestPPO(unittest.TestCase):
             use_layer_norm=self.use_layer_norm,
         )
 
-    def _construct_trainer(self, new_params=None, use_value_net=True):
+    def _construct_trainer(
+        self,
+        new_params: Optional[PPOTrainerParameters] = None,
+        use_value_net: bool = True,
+    ) -> PPOTrainer:
         value_network = self.value_network if use_value_net else None
         params = new_params if new_params else self.params
 
@@ -158,7 +163,7 @@ class TestPPO(unittest.TestCase):
         trainer.training_step(inp, batch_idx=1)
         trainer.update_model.assert_not_called()
 
-    def test_update_model(self):
+    def test_update_model(self) -> None:
         trainer = self._construct_trainer()
         # can't update empty model
         with self.assertRaises(AssertionError):
