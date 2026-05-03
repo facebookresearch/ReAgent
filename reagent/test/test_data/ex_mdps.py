@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
-
-from typing import Tuple
+# pyre-strict
 
 import pandas
 
 
 def generate_discrete_mdp_pandas_df(
     multi_steps: bool, use_seq_num_diff_as_time_diff: bool
-) -> Tuple[pandas.DataFrame, str]:
+) -> tuple[pandas.DataFrame, str]:
     # Simulate the following MDP:
     # state: 0, action: 7 ('L'), reward: 0,
     # state: 1, action: 8 ('R'), reward: 1,
@@ -82,7 +80,7 @@ def generate_discrete_mdp_pandas_df(
 
 def generate_parametric_mdp_pandas_df(
     multi_steps: bool, use_seq_num_diff_as_time_diff: bool
-):
+) -> tuple[pandas.DataFrame, str]:
     # Simulate the following MDP:
     # state: 0, action: 7 ('L'), reward: 0,
     # state: 1, action: 8 ('R'), reward: 1,
