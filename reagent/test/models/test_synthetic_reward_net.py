@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import logging
 import unittest
@@ -66,7 +66,7 @@ class TestSyntheticReward(unittest.TestCase):
             )
         )
 
-    def test_ngram_fc_synthetic_reward(self):
+    def test_ngram_fc_synthetic_reward(self) -> None:
         state_dim = 10
         action_dim = 2
         sizes = [256, 128]
@@ -106,7 +106,7 @@ class TestSyntheticReward(unittest.TestCase):
             )
         )
 
-    def test_ngram_conv_net_synthetic_reward(self):
+    def test_ngram_conv_net_synthetic_reward(self) -> None:
         state_dim = 10
         action_dim = 2
         sizes = [256, 128]
@@ -157,7 +157,7 @@ class TestSyntheticReward(unittest.TestCase):
         assert dnn[2][0].out_features == 1
         assert dnn[2][1]._get_name() == "LeakyReLU"
 
-    def test_lstm_synthetic_reward(self):
+    def test_lstm_synthetic_reward(self) -> None:
         state_dim = 10
         action_dim = 2
         last_layer_activation = "leaky_relu"
@@ -183,7 +183,7 @@ class TestSyntheticReward(unittest.TestCase):
         output_activation = reward_net.export_mlp().output_activation
         assert output_activation._get_name() == "LeakyReLU"
 
-    def test_transformer_synthetic_reward(self):
+    def test_transformer_synthetic_reward(self) -> None:
         state_dim = 10
         action_dim = 2
         d_model = 64
