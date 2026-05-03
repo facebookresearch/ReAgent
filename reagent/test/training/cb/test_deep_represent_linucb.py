@@ -1,4 +1,4 @@
-# pyre-unsafe
+# pyre-strict
 """
 How to use:
     buck test reagent:training_tests -- TestDeepRepresentLinUCB
@@ -21,7 +21,7 @@ class TestDeepRepresentLinUCB(unittest.TestCase):
     This tests the trainer of DeepRepresentLinUCB.
     """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.params = DeepRepresentLinUCBTrainerParameters(
             # pyrefly: ignore [unexpected-keyword]
             lr=1e-1,
@@ -58,7 +58,7 @@ class TestDeepRepresentLinUCB(unittest.TestCase):
             reward=torch.tensor([[0.3], [0.1]]),
         )  # random Gaussian features
 
-    def test_linucb_training_step(self):
+    def test_linucb_training_step(self) -> None:
         self.trainer.training_step(self.batch, 0)
         # pyrefly: ignore [bad-argument-type]
         assert len(self.batch.action) == len(self.batch.reward)
