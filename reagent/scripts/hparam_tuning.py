@@ -162,7 +162,6 @@ def run_ax_search(
             all_considered_params.extend(params_list)
             all_considered_metrics.extend(res)
             for t_i, v in zip(trial_indices_list, res):
-                # pyre-fixme[6]: For 2nd argument expected `Union[Dict[str, Union[Tup...
                 ax_client.complete_trial(trial_index=t_i, raw_data=v)
             # pyre-fixme[23]: Unable to unpack `tuple[dict[str, None | bool | float
             #  | int | str], tuple[dict[str, float], dict[str, dict[str, float]] |
