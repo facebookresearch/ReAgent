@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import logging
 import unittest
@@ -21,25 +21,25 @@ logger = logging.getLogger(__name__)
 
 
 class BatchConstrainedDQNTorchScriptWrapper(nn.Module):
-    def __init__(self, model: BatchConstrainedDQN):
+    def __init__(self, model: BatchConstrainedDQN) -> None:
         super().__init__()
         self.model = model
 
-    def forward(self, state_float_features: torch.Tensor):
+    def forward(self, state_float_features: torch.Tensor) -> torch.Tensor:
         return self.model(
             rlt.FeatureData(float_features=state_float_features),
         )
 
 
 class TestBCQ(unittest.TestCase):
-    def check_save_load(self, model: BatchConstrainedDQN):
+    def check_save_load(self, model: BatchConstrainedDQN) -> None:
         """
         Test if a model is torch.jit.tracable
         """
         script_model = BatchConstrainedDQNTorchScriptWrapper(model)
         run_model_jit_trace(model, script_model)
 
-    def test_basic(self):
+    def test_basic(self) -> None:
         state_dim = 8
         action_dim = 4
         q_network = FullyConnectedDQN(
@@ -60,7 +60,7 @@ class TestBCQ(unittest.TestCase):
         q_values = model(input)
         self.assertEqual((1, action_dim), q_values.shape)
 
-    def test_save_load(self):
+    def test_save_load(self) -> None:
         state_dim = 8
         action_dim = 4
         q_network = FullyConnectedDQN(
@@ -77,7 +77,7 @@ class TestBCQ(unittest.TestCase):
         )
         self.check_save_load(model)
 
-    def test_forward_pass(self):
+    def test_forward_pass(self) -> None:
         torch.manual_seed(123)
         state_dim = 1
         action_dim = 2
