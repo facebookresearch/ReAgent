@@ -5,6 +5,7 @@
 
 import logging
 import unittest
+from typing import Any
 
 import gym
 import numpy as np
@@ -27,7 +28,9 @@ except ModuleNotFoundError:
     HAS_RECSIM = False
 
 
-def _create_replay_buffer_and_insert(env: EnvWrapper):
+def _create_replay_buffer_and_insert(
+    env: EnvWrapper,
+) -> tuple[ReplayBuffer, list[dict[str, Any]]]:
     env.seed(1)
     replay_buffer = ReplayBuffer(replay_capacity=6, batch_size=1)
     replay_buffer_inserter = make_replay_buffer_inserter(env)
@@ -80,7 +83,7 @@ class TestBasicReplayBufferInserter(HorizonTestBase):
 
 class TestRecSimReplayBufferInserter(HorizonTestBase):
     @unittest.skipIf(not HAS_RECSIM, "RecSim not installed")
-    def test_recsim_interest_evolution(self):
+    def test_recsim_interest_evolution(self) -> None:
         num_candidate = 10
         slate_size = 3
         env = RecSim(
