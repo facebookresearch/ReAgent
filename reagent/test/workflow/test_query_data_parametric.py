@@ -27,7 +27,6 @@ def generate_data_parametric(sqlCtx, multi_steps: bool, table_name: str):
     df.createOrReplaceTempView(table_name)
 
 
-# pyre-fixme[11]: Annotation `ReagentSQLTestBase` is not defined as a type.
 class TestQueryDataParametric(ReagentSQLTestBase):
     def setUp(self):
         super().setUp()
