@@ -1,4 +1,4 @@
-# pyre-unsafe
+# pyre-strict
 import unittest
 
 import numpy.testing as npt
@@ -8,10 +8,10 @@ from reagent.models.residual_wrapper import ResidualWrapper
 
 
 class TestResidualWrapper(unittest.TestCase):
-    def test_zero_layer(self):
+    def test_zero_layer(self) -> None:
         # if the wrapped layer outputs zero, the residual block should be an identity mapping
         class ZeroLayer(nn.Module):
-            def __init__(self):
+            def __init__(self) -> None:
                 super().__init__()
 
             def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -24,7 +24,7 @@ class TestResidualWrapper(unittest.TestCase):
         y = wrapped_layer(x)
         npt.assert_array_equal(x.detach().numpy(), y.detach().numpy())
 
-    def test_linear_layer(self):
+    def test_linear_layer(self) -> None:
         # test that if the input and output dimensions are the same, the residual block returns the expected output `x+layer(x)`
         linear_layer = torch.nn.Linear(3, 3)
         wrapped_layer = ResidualWrapper(linear_layer)
@@ -35,7 +35,7 @@ class TestResidualWrapper(unittest.TestCase):
             (x + linear_layer(x)).detach().numpy(), y.detach().numpy()
         )
 
-    def test_mismatched_dims(self):
+    def test_mismatched_dims(self) -> None:
         # test that if the input and output dimensions are different, the residual block should throw an error during forward pass
         linear_layer = torch.nn.Linear(3, 5)
         wrapped_layer = ResidualWrapper(linear_layer)
