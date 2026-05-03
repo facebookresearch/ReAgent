@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import logging
 import unittest
@@ -33,7 +33,9 @@ class ActorTorchScriptWrapper(nn.Module):
         super().__init__()
         self.model = model
 
-    def forward(self, state_float_features: torch.Tensor):
+    def forward(
+        self, state_float_features: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor | None]:
         actor_output = self.model(rlt.FeatureData(float_features=state_float_features))
         return actor_output.action, actor_output.log_prob
 
@@ -47,23 +49,28 @@ class TestActorBase(unittest.TestCase):
             DirichletFullyConnectedActor,
         ],
         stochastic: bool,
-    ):
+    ) -> None:
         # jit.trace can't trace models with stochastic output
         if stochastic:
             return
 
         script_model = ActorTorchScriptWrapper(model)
 
-        def compare_func(model_output, script_model_output):
+        def compare_func(
+            model_output: rlt.ActorOutput,
+            script_model_output: tuple[torch.Tensor, torch.Tensor | None],
+        ) -> None:
             action, log_prob = script_model_output
             assert torch.all(action == model_output.action)
+            assert log_prob is not None
+            assert model_output.log_prob is not None
             assert torch.all(log_prob == model_output.log_prob)
 
         run_model_jit_trace(model, script_model, compare_func)
 
 
 class TestFullyConnectedActor(TestActorBase):
-    def test_basic(self):
+    def test_basic(self) -> None:
         state_dim = 8
         action_dim = 4
         model = FullyConnectedActor(
@@ -81,7 +88,7 @@ class TestFullyConnectedActor(TestActorBase):
         self.assertEqual((1, action_dim), action.action.shape)
         self.assertEqual((1, 1), action.log_prob.shape)
 
-    def test_save_load(self):
+    def test_save_load(self) -> None:
         state_dim = 8
         action_dim = 4
         model = FullyConnectedActor(
@@ -93,7 +100,7 @@ class TestFullyConnectedActor(TestActorBase):
         )
         self.check_save_load(model, stochastic=False)
 
-    def test_save_load_batch_norm(self):
+    def test_save_load_batch_norm(self) -> None:
         state_dim = 8
         action_dim = 4
         model = FullyConnectedActor(
@@ -109,7 +116,7 @@ class TestFullyConnectedActor(TestActorBase):
 
 
 class TestGaussianFullyConnectedActor(TestActorBase):
-    def test_basic(self):
+    def test_basic(self) -> None:
         state_dim = 8
         action_dim = 4
         model = GaussianFullyConnectedActor(
@@ -127,7 +134,7 @@ class TestGaussianFullyConnectedActor(TestActorBase):
         self.assertEqual((1, action_dim), action.action.shape)
         self.assertEqual((1, 1), action.log_prob.shape)
 
-    def test_save_load(self):
+    def test_save_load(self) -> None:
         state_dim = 8
         action_dim = 4
         model = GaussianFullyConnectedActor(
@@ -153,7 +160,7 @@ class TestGaussianFullyConnectedActor(TestActorBase):
         model.eval()
         self.check_save_load(model, stochastic=True)
 
-    def test_get_log_prob(self):
+    def test_get_log_prob(self) -> None:
         torch.manual_seed(0)
         state_dim = 8
         action_dim = 4
@@ -173,7 +180,7 @@ class TestGaussianFullyConnectedActor(TestActorBase):
 
 
 class TestDirichletFullyConnectedActor(TestActorBase):
-    def test_basic(self):
+    def test_basic(self) -> None:
         state_dim = 8
         action_dim = 4
         model = DirichletFullyConnectedActor(
@@ -191,7 +198,7 @@ class TestDirichletFullyConnectedActor(TestActorBase):
         self.assertEqual((1, action_dim), action.action.shape)
         self.assertEqual((1, 1), action.log_prob.shape)
 
-    def test_save_load(self):
+    def test_save_load(self) -> None:
         state_dim = 8
         action_dim = 4
         model = DirichletFullyConnectedActor(
@@ -203,7 +210,7 @@ class TestDirichletFullyConnectedActor(TestActorBase):
         )
         self.check_save_load(model, stochastic=True)
 
-    def test_save_load_batch_norm(self):
+    def test_save_load_batch_norm(self) -> None:
         state_dim = 8
         action_dim = 4
         model = DirichletFullyConnectedActor(
