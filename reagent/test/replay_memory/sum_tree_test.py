@@ -28,7 +28,7 @@ class SumTreeTest(unittest.TestCase):
     def setUp(self):
         self._tree = sum_tree.SumTree(capacity=100)
 
-    def testNegativeCapacity(self):
+    def testNegativeCapacity(self) -> None:
         with self.assertRaises(
             ValueError, msg="Sum tree capacity should be positive. Got: -1"
         ):
@@ -62,7 +62,7 @@ class SumTreeTest(unittest.TestCase):
             for i in range(1, nodes_at_this_depth):
                 self.assertEqual(level[i], 0.0)
 
-    def testCapacityGreaterThanRequested(self):
+    def testCapacityGreaterThanRequested(self) -> None:
         self.assertGreaterEqual(len(self._tree.nodes[-1]), 100)
 
     def testSampleFromEmptyTree(self):
