@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import unittest
 
@@ -69,7 +69,7 @@ class TestDisjointLinearRegressionUCBUtils(unittest.TestCase):
 
 class TestDisjointLinearRegressionUCB(unittest.TestCase):
     def test_call_ucb(self) -> None:
-        inputs = []
+        inputs: list[CBInput] = []
         # y = x1+x2
         inputs.append(
             CBInput(
