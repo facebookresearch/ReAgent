@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import unittest
 
@@ -12,7 +12,7 @@ from reagent.evaluation.cb.utils import add_importance_weights
 
 
 class TestCBEvalUtils(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.batch = CBInput(
             context_arm_features=torch.tensor(
                 [
@@ -35,7 +35,7 @@ class TestCBEvalUtils(unittest.TestCase):
             ),
         )
 
-    def test_add_importance_weights(self):
+    def test_add_importance_weights(self) -> None:
         model_actions = torch.tensor([[1], [1]], dtype=torch.long)
         new_batch = add_importance_weights(self.batch, model_actions)
         # everything except weights should remain the same in the new batch
