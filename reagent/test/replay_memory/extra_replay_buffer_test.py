@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import logging
-from typing import Any, List, Optional
+from typing import Any
 
 import numpy as np
 import numpy.testing as npt
@@ -25,7 +25,7 @@ Terminal states are derived from Trajectory lengths array.
 """
 
 
-def get_add_transition(i):
+def get_add_transition(i: int) -> dict[str, Any]:
     """For adding into RB"""
     return {
         "state": np.ones(OBS_SHAPE) * i,
@@ -43,7 +43,9 @@ ZERO_FEATURES = {
 }
 
 
-def get_stacked_transition(i, stack_size, traj_start_idx):
+def get_stacked_transition(
+    i: int, stack_size: int, traj_start_idx: int
+) -> dict[str, Any]:
     """For getting expected stacked state of i"""
     res = {k: [] for k in ["state", "action", "reward", "extra1"]}
     # must pad with some zero states
@@ -57,9 +59,9 @@ def get_stacked_transition(i, stack_size, traj_start_idx):
 
 def setup_buffer(
     buffer_size: int,
-    trajectory_lengths: List[int],
-    stack_size: Optional[int] = None,
-    multi_steps: Optional[int] = None,
+    trajectory_lengths: list[int],
+    stack_size: int | None = None,
+    multi_steps: int | None = None,
 ) -> Any:
     """We will insert one trajectory into the RB."""
     stack_size = stack_size if stack_size is not None else 1
@@ -89,7 +91,9 @@ def setup_buffer(
     return memory.sample_all_valid_transitions()
 
 
-def generic_stack_test_helper(buffer_size, trajectory_lengths, stack_size):
+def generic_stack_test_helper(
+    buffer_size: int, trajectory_lengths: list[int], stack_size: int
+) -> None:
     batch = setup_buffer(buffer_size, trajectory_lengths, stack_size=stack_size)
 
     expected = {k: [] for k in ["state", "action", "reward", "extra1"]}
@@ -125,8 +129,8 @@ def generic_stack_test_helper(buffer_size, trajectory_lengths, stack_size):
 
 
 def generic_stack_multi_steps_test_helper(
-    buffer_size, trajectory_lengths, stack_size, multi_steps
-):
+    buffer_size: int, trajectory_lengths: list[int], stack_size: int, multi_steps: int
+) -> None:
     batch = setup_buffer(
         buffer_size, trajectory_lengths, stack_size=stack_size, multi_steps=multi_steps
     )
@@ -240,7 +244,7 @@ class ExtraReplayBufferTest(HorizonTestBase):
         stack_size = 7
         for i in range(1, NUM_TRAJ_LIMIT):
             traj_lengths = torch.randint(1, MAX_TRAJ_LEN, (i,))
-            buffer_size = (traj_lengths.sum() + (i + 1) * (stack_size - 1)).item()
+            buffer_size = int((traj_lengths.sum() + (i + 1) * (stack_size - 1)).item())
             logger.info(
                 f"Inserting {i} trajectories...\nArguments are: "
                 f"buffer_size:{buffer_size}, "
@@ -250,12 +254,12 @@ class ExtraReplayBufferTest(HorizonTestBase):
             generic_stack_test_helper(buffer_size, traj_lengths.tolist(), stack_size)
             logger.info(f"Inserting {i} trajectories passed...")
 
-    def test_stack_multistep_flags_slaughter(self):
+    def test_stack_multistep_flags_slaughter(self) -> None:
         stack_size = 5
         multi_steps = 6
         for i in range(1, NUM_TRAJ_LIMIT):
             traj_lengths = torch.randint(1, MAX_TRAJ_LEN, (i,))
-            buffer_size = (traj_lengths.sum() + (i + 1) * (stack_size - 1)).item()
+            buffer_size = int((traj_lengths.sum() + (i + 1) * (stack_size - 1)).item())
             # handle edge case which would raise ValueError
             if buffer_size < stack_size + multi_steps:
                 buffer_size = stack_size + multi_steps
@@ -271,7 +275,7 @@ class ExtraReplayBufferTest(HorizonTestBase):
             )
             logger.info(f"Inserting {i} trajectories passed...")
 
-    def test_replay_overflow(self):
+    def test_replay_overflow(self) -> None:
         """
         hard to make a stress test for this, since tracking which indices
         gets replaced would be effectively building a second RB
@@ -290,7 +294,7 @@ class ExtraReplayBufferTest(HorizonTestBase):
             return_as_timeline_format=True,
         )
 
-        def trans(i):
+        def trans(i: int) -> dict[str, Any]:
             return {
                 "observation": np.ones(OBS_SHAPE, dtype=OBS_TYPE),
                 "action": int(2 * i),
@@ -373,14 +377,14 @@ class ExtraReplayBufferTest(HorizonTestBase):
 
         logger.info("Overflow test passes!")
 
-    def test_sparse_input(self):
+    def test_sparse_input(self) -> None:
         replay_capacity = 100
         num_transitions = replay_capacity // 2
         memory = ReplayBuffer(
             stack_size=1, replay_capacity=replay_capacity, update_horizon=1
         )
 
-        def trans(i):
+        def trans(i: int) -> dict[str, Any]:
             sparse_feat1 = list(range(0, i % 4))
             sparse_feat2 = list(range(i % 4, 4))
             id_list = {"sparse_feat1": sparse_feat1, "sparse_feat2": sparse_feat2}
