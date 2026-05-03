@@ -61,11 +61,11 @@ class TestMDNRNN(unittest.TestCase):
         )
         assert -(torch.log(p1 + p2)) == gl
 
-    def test_mdnrnn_simulate_world_cpu(self):
+    def test_mdnrnn_simulate_world_cpu(self) -> None:
         self._test_mdnrnn_simulate_world()
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_mdnrnn_simulate_world_gpu(self):
+    def test_mdnrnn_simulate_world_gpu(self) -> None:
         self._test_mdnrnn_simulate_world(use_gpu=True)
 
     def _test_mdnrnn_simulate_world(self, use_gpu: bool = False) -> None:
