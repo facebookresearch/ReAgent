@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 # Copyright 2018 The Dopamine Authors.
 #
@@ -32,12 +32,21 @@ REPLAY_CAPACITY = 100
 
 
 class PrioritizedReplayBufferTest(unittest.TestCase):
-    def create_default_memory(self):
+    def create_default_memory(
+        self,
+    ) -> prioritized_replay_buffer.PrioritizedReplayBuffer:
         return prioritized_replay_buffer.PrioritizedReplayBuffer(
             STACK_SIZE, REPLAY_CAPACITY, BATCH_SIZE, max_sample_attempts=10
         )  # For faster tests.
 
-    def add_blank(self, memory, action=0, reward=0.0, terminal=0, priority=1.0):
+    def add_blank(
+        self,
+        memory: prioritized_replay_buffer.PrioritizedReplayBuffer,
+        action: int = 0,
+        reward: float = 0.0,
+        terminal: int = 0,
+        priority: float = 1.0,
+    ) -> int:
         """Adds a replay transition with a blank observation.
         Allows setting action, reward, terminal.
         Args:
@@ -60,7 +69,7 @@ class PrioritizedReplayBufferTest(unittest.TestCase):
         index = (memory.cursor() - 1) % REPLAY_CAPACITY
         return index
 
-    def testAddWithAndWithoutPriority(self):
+    def testAddWithAndWithoutPriority(self) -> None:
         memory = self.create_default_memory()
         self.assertEqual(memory.cursor(), 0)
         zeros = np.zeros(SCREEN_SIZE)
@@ -74,13 +83,13 @@ class PrioritizedReplayBufferTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Add expects"):
             memory.add(observation=zeros, action=0, reward=0, terminal=0)
 
-    def testDummyScreensAddedToNewMemory(self):
+    def testDummyScreensAddedToNewMemory(self) -> None:
         memory = self.create_default_memory()
         index = self.add_blank(memory)
         for i in range(index):
             self.assertEqual(memory.sum_tree.get(i), 0.0)
 
-    def testGetPriorityWithInvalidIndices(self):
+    def testGetPriorityWithInvalidIndices(self) -> None:
         memory = self.create_default_memory()
         index = self.add_blank(memory)
         with self.assertRaises(AssertionError, msg="Indices must be an array."):
@@ -90,7 +99,7 @@ class PrioritizedReplayBufferTest(unittest.TestCase):
         ):
             memory.get_priority(np.array([index]))
 
-    def testSetAndGetPriority(self):
+    def testSetAndGetPriority(self) -> None:
         memory = self.create_default_memory()
         batch_size = 7
         indices = np.zeros(batch_size, dtype=np.int32)
@@ -104,12 +113,12 @@ class PrioritizedReplayBufferTest(unittest.TestCase):
         for i in range(batch_size):
             self.assertEqual(priorities[i], fetched_priorities[batch_size - 1 - i])
 
-    def testNewElementHasHighPriority(self):
+    def testNewElementHasHighPriority(self) -> None:
         memory = self.create_default_memory()
         index = self.add_blank(memory)
         self.assertEqual(memory.get_priority(np.array([index], dtype=np.int32))[0], 1.0)
 
-    def testLowPriorityElementNotFrequentlySampled(self):
+    def testLowPriorityElementNotFrequentlySampled(self) -> None:
         memory = self.create_default_memory()
         # Add an item and set its priority to 0.
         self.add_blank(memory, terminal=0, priority=0.0)
@@ -122,7 +131,7 @@ class PrioritizedReplayBufferTest(unittest.TestCase):
             # Ensure all terminals are set to 1.
             self.assertTrue((batch.terminal == 1).all())
 
-    def testSampleIndexBatchTooManyFailedRetries(self):
+    def testSampleIndexBatchTooManyFailedRetries(self) -> None:
         memory = self.create_default_memory()
         # Only adding a single observation is not enough to be able to sample
         # (as it both straddles the cursor and does not pass the
@@ -136,7 +145,7 @@ class PrioritizedReplayBufferTest(unittest.TestCase):
         ):
             memory.sample_index_batch(2)
 
-    def testSampleIndexBatch(self):
+    def testSampleIndexBatch(self) -> None:
         memory = prioritized_replay_buffer.PrioritizedReplayBuffer(
             STACK_SIZE, REPLAY_CAPACITY, BATCH_SIZE, max_sample_attempts=10
         )
