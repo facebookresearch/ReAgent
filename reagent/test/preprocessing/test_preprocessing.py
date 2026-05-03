@@ -25,7 +25,6 @@ from reagent.test.base.utils import NumpyFeatureProcessor
 from reagent.test.preprocessing.preprocessing_util import (
     BOXCOX_FEATURE_ID,
     CONTINUOUS_FEATURE_ID,
-    CONTINUOUS_SMALL_FEATURE_ID,
     ENUM_FEATURE_ID,
     id_to_type,
     PROBABILITY_FEATURE_ID,
