@@ -148,7 +148,7 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
             expect_per_seq_probs, computed_per_seq_probs, atol=0.001, rtol=0.0
         )
 
-    def test_subsequent_mask(self):
+    def test_subsequent_mask(self) -> None:
         expect_mask = torch.tensor([[1, 0, 0], [1, 1, 0], [1, 1, 1]])
         mask = subsequent_mask(3, torch.device("cpu"))
         assert torch.all(torch.eq(mask, expect_mask))
@@ -312,7 +312,7 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
                 computed_propensity, empirical_propensity, atol=0.01, rtol=0.0
             )
 
-    def test_seq2slate_transformer_on_policy_simple_tsp(self):
+    def test_seq2slate_transformer_on_policy_simple_tsp(self) -> None:
         """
         Solve Traveling Salesman Problem. Cities comes from a fixed set of nodes (cities).
         Easily hit reward threshold after one batch training
