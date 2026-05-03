@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 import unittest
 
 import numpy as np
+import numpy.typing as npt
 import torch
 from reagent.training.gradient_free.ars_util import ARSOptimizer
 
 
 class TestARSOptimizer(unittest.TestCase):
-    def metric(self, x):
+    def metric(self, x: npt.NDArray[np.floating]) -> np.floating:
         # Ackley Function
         # https://www.sfu.ca/~ssurjano/ackley.html
 
@@ -22,7 +23,7 @@ class TestARSOptimizer(unittest.TestCase):
             + np.e
         )
 
-    def test_ars_optimizer(self):
+    def test_ars_optimizer(self) -> None:
         dim = 10
         n_generations = 30
         X = torch.Tensor([[i] for i in range(dim)])
