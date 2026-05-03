@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 
 import unittest
@@ -14,13 +14,13 @@ class TestObservable(unittest.TestCase):
     def test_observable(self) -> None:
         @observable(td_loss=float, str_val=str)
         class DummyClass:
-            def __init__(self, a, b, c=10):
+            def __init__(self, a: int, b: int, c: int = 10) -> None:
                 super().__init__()
                 self.a = a
                 self.b = b
                 self.c = c
 
-            def do_something(self, i):
+            def do_something(self, i: float) -> None:
                 # pyrefly: ignore [missing-attribute]
                 self.notify_observers(td_loss=i, str_val="not_used")
 
