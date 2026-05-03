@@ -137,7 +137,7 @@ class TestPolicyEvaluator(unittest.TestCase):
         )
         self.assertEqual(eval_module.get_avg_reward(), reward[1, 0].item())
 
-    def test_update_eval_model(self):
+    def test_update_eval_model(self) -> None:
         policy_network_1 = LinearRegressionUCB(2)
         policy_network_1.avg_A += 0.3
         policy_network_2 = LinearRegressionUCB(2)
@@ -165,7 +165,7 @@ class TestPolicyEvaluator(unittest.TestCase):
             )
         )
 
-    def test_ingest_batch(self):
+    def test_ingest_batch(self) -> None:
         model_actions = torch.tensor([[1], [1]], dtype=torch.long)
         _ = self.eval_module.ingest_batch(self.batch, model_actions)
         self.eval_module._aggregate_across_instances()
