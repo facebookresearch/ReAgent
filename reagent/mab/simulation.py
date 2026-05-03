@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 from abc import ABC, abstractmethod
 from functools import partial
 from multiprocessing import Pool
-from typing import Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
 import torch
@@ -22,7 +21,7 @@ class MAB(ABC):
         self,
         max_steps: int,
         expected_rewards: Tensor,
-        arm_ids: Optional[List[str]] = None,
+        arm_ids: list[str] | None = None,
     ):
         self.max_steps = max_steps
         self.expected_rewards = expected_rewards
@@ -58,7 +57,7 @@ class BernoilliMAB(MAB):
         self,
         max_steps: int,
         probs: torch.Tensor,
-        arm_ids: Optional[List[str]] = None,
+        arm_ids: list[str] | None = None,
     ) -> None:
         """ """
         assert probs.max() <= 1.0
@@ -149,15 +148,15 @@ def single_evaluation_bandit_algo(
 
 
 def multiple_evaluations_bandit_algo(
-    algo_cls: Type[MABAlgo],
-    bandit_cls: Type[MAB],
+    algo_cls: type[MABAlgo],
+    bandit_cls: type[MAB],
     n_bandits: int,
     max_steps: int,
     update_every: int = 1,
     freeze_scores_btw_updates: bool = True,
-    num_processes: Optional[int] = None,
-    algo_kwargs: Optional[Dict] = None,
-    bandit_kwargs: Optional[Dict] = None,
+    num_processes: int | None = None,
+    algo_kwargs: dict | None = None,
+    bandit_kwargs: dict | None = None,
 ) -> np.ndarray:
     """
     Perform evaluations on multiple bandit instances and aggregate (average) the result
@@ -201,15 +200,15 @@ def multiple_evaluations_bandit_algo(
 
 
 def compare_bandit_algos(
-    algo_clss: List[Type[MABAlgo]],
-    bandit_cls: Type[MAB],
+    algo_clss: list[type[MABAlgo]],
+    bandit_cls: type[MAB],
     n_bandits: int,
     max_steps: int,
     update_every: int = 1,
     freeze_scores_btw_updates: bool = True,
-    algo_kwargs: Optional[Union[Dict, List[Dict]]] = None,
-    bandit_kwargs: Optional[Dict] = None,
-) -> Tuple[List[str], List[np.ndarray]]:
+    algo_kwargs: dict | list[dict] | None = None,
+    bandit_kwargs: dict | None = None,
+) -> tuple[list[str], list[np.ndarray]]:
     """
     Args:
         algo_clss: A list of MAB algorithm classes to be evaluated
@@ -230,7 +229,7 @@ def compare_bandit_algos(
         algo_kwargs = {}
     if bandit_kwargs is None:
         bandit_kwargs = {}
-    if isinstance(algo_kwargs, Dict):
+    if isinstance(algo_kwargs, dict):
         algo_kwargs = [algo_kwargs] * len(algo_clss)
     names = []
     pseudo_regrets = []
