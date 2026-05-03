@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import unittest
 
@@ -15,7 +15,7 @@ from reagent.training.parameters import SupervisedTrainerParameters
 
 
 class TestSupervisedTrainer(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.batch_size = 2
 
         self.num_arms = 2
