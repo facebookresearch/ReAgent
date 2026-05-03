@@ -1,4 +1,4 @@
-# pyre-unsafe
+# pyre-strict
 import unittest
 
 import torch
@@ -10,7 +10,7 @@ class TestDeepRepresentLinearRegressionUCB(unittest.TestCase):
     This tests the model (not trainer) of DeepRepresentLinUCB.
     """
 
-    def test_basic(self):
+    def test_basic(self) -> None:
         input_dim = 9
         sizes = [6]
         linucb_inp_dim = 3
