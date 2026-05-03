@@ -51,7 +51,7 @@ class TestDisjointLinUCB(unittest.TestCase):
             ),
         ]
 
-    def test_linucb_training_step(self):
+    def test_linucb_training_step(self) -> None:
         # pyrefly: ignore [bad-argument-type]
         self.trainer.training_step(self.batch, 0)
 
@@ -155,7 +155,7 @@ class TestDisjointLinUCB(unittest.TestCase):
                 scorer.coefs_valid_for_A[arm].numpy(),
             )
 
-    def test_linucb_weights(self):
+    def test_linucb_weights(self) -> None:
         # make sure that using a weight is same as processing an example several times
         batch_with_weight = copy.deepcopy(self.batch)
         for arm in range(self.num_arms):
