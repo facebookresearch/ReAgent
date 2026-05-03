@@ -3,7 +3,7 @@
 
 # pyre-unsafe
 
-from typing import Dict
+from typing import Dict, Optional
 
 import reagent.serving.config.namespace as namespace
 
@@ -21,8 +21,7 @@ def ActionValueScoring(model_id: int, snapshot_id: int):
     pass
 
 
-# pyre-fixme[9]: seed has type `int`; used as `None`.
-def EpsilonGreedyRanker(epsilon: float, values: Dict, seed: int = None):
+def EpsilonGreedyRanker(epsilon: float, values: Dict, seed: Optional[int] = None):
     """The operator that implements iterative epsilon greedy ranker
 
     Args:
