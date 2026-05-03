@@ -8,6 +8,7 @@ import unittest
 
 import numpy as np
 import pytest
+from pyspark.sql import SQLContext  # @manual=fbsource//third-party/pypi/pyspark:pyspark
 from pyspark.sql.functions import (  # @manual=fbsource//third-party/pypi/pyspark:pyspark
     asc,
 )
@@ -22,7 +23,9 @@ from reagent.workflow.types import Dataset, TableSpec
 logger = logging.getLogger(__name__)
 
 
-def generate_data_discrete(sqlCtx, multi_steps: bool, table_name: str):
+def generate_data_discrete(
+    sqlCtx: SQLContext, multi_steps: bool, table_name: str
+) -> None:
     df, _ = generate_discrete_mdp_pandas_df(
         multi_steps=multi_steps, use_seq_num_diff_as_time_diff=False
     )
@@ -67,7 +70,7 @@ class TestQueryData(ReagentSQLTestBase):
         return df
 
     @pytest.mark.serial
-    def test_query_data(self):
+    def test_query_data(self) -> None:
         # single step
         self.generate_data()
         df = self._discrete_read_data()
