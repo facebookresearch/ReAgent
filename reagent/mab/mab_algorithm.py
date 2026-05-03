@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple
 
 import torch
 from torch import Tensor
 
 
 def get_arm_indices(
-    ids_of_all_arms: List[str], ids_of_arms_in_batch: List[str]
-) -> List[int]:
+    ids_of_all_arms: list[str], ids_of_arms_in_batch: list[str]
+) -> list[int]:
     arm_idxs = []
     for i in ids_of_arms_in_batch:
         try:
@@ -21,7 +20,7 @@ def get_arm_indices(
     return arm_idxs
 
 
-def place_values_at_indices(values: Tensor, idxs: List[int], total_len: int) -> Tensor:
+def place_values_at_indices(values: Tensor, idxs: list[int], total_len: int) -> Tensor:
     """
     We place the values provided in `values` at indices provided in idxs. The values at indices
         not included in `idxs` are filled with zeros.
@@ -43,10 +42,10 @@ def place_values_at_indices(values: Tensor, idxs: List[int], total_len: int) -> 
 
 
 def reindex_multiple_tensors(
-    all_ids: List[str],
-    batch_ids: Optional[List[str]],
-    value_tensors: Tuple[Tensor, ...],
-) -> Tuple[Tensor, ...]:
+    all_ids: list[str],
+    batch_ids: list[str] | None,
+    value_tensors: tuple[Tensor, ...],
+) -> tuple[Tensor, ...]:
     """
     Each tensor from value_tensors is ordered by ids from batch_ids. In the output we
         return these tensors reindexed by all_ids, filling in zeros for missing entries.
@@ -107,8 +106,8 @@ class MABAlgo(torch.nn.Module, ABC):
         randomize_ties: bool = True,
         min_num_obs_per_arm: int = 1,
         *,
-        n_arms: Optional[int] = None,
-        arm_ids: Optional[List[str]] = None,
+        n_arms: int | None = None,
+        arm_ids: list[str] | None = None,
     ) -> None:
         super().__init__()
         if n_arms is not None:
@@ -129,7 +128,7 @@ class MABAlgo(torch.nn.Module, ABC):
         n_obs_per_arm: Tensor,
         sum_reward_per_arm: Tensor,
         sum_reward_squared_per_arm: Tensor,
-        arm_ids: Optional[List[str]] = None,
+        arm_ids: list[str] | None = None,
     ) -> None:
         (
             n_obs_per_arm,
@@ -189,7 +188,7 @@ class MABAlgo(torch.nn.Module, ABC):
     def get_scores(self) -> Tensor:
         pass
 
-    def forward(self):
+    def forward(self) -> Tensor:
         # set `inf` scores for arms which don't have the minimum number of observations
         return torch.where(
             self.total_n_obs_per_arm >= self.min_num_obs_per_arm,
