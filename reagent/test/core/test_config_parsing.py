@@ -61,10 +61,7 @@ class FooUnion(TaggedUnion):
 
 @dataclass
 class Config:
-    union: FooUnion = field(
-        # pyre-fixme[28]: Unexpected keyword argument `Foo`.
-        default_factory=lambda: FooUnion(Foo=Foo())
-    )
+    union: FooUnion = field(default_factory=lambda: FooUnion(Foo=Foo()))
 
 
 class TestConfigParsing(unittest.TestCase):
