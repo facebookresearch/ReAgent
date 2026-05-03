@@ -89,7 +89,7 @@ class TestConfigParsing(unittest.TestCase):
 
             @dataclass
             class Baz(FooRegistry):
-                def foo(self):
+                def foo(self) -> int:
                     return 20
 
         self.assertListEqual(sorted(FooRegistry.REGISTRY.keys()), ["Bar", "Foo"])
@@ -101,7 +101,7 @@ class TestConfigParsing(unittest.TestCase):
 
             @dataclass
             class Baz(FooRegistry):
-                def foo(self):
+                def foo(self) -> int:
                     return 20
 
         finally:
