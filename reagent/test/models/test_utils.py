@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 import logging
-from typing import Callable, Optional
+from typing import Callable
 
 import torch
 from reagent.models.base import ModelBase
 
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def run_model_jit_trace(
     model: ModelBase,
-    script_model,
-    compare_func: Optional[Callable] = None,
-):
+    script_model: torch.nn.Module,
+    compare_func: Callable[..., object] | None = None,
+) -> None:
     input_prototype = model.input_prototype()
     if not isinstance(input_prototype, (list, tuple)):
         input_prototype = (input_prototype,)
