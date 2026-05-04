@@ -49,7 +49,9 @@ class TestTransforms(unittest.TestCase):
         for key in a.keys():
             self.assertTrue(cmp(a[key], b[key]), msg=f"Different at key {key}")
 
-    def assertDictOfTensorEqual(self, a, b) -> None:
+    def assertDictOfTensorEqual(
+        self, a: Dict[str, torch.Tensor], b: Dict[str, torch.Tensor]
+    ) -> None:
         """
         Helper method to compare dicts with values of type Tensor.
 
@@ -57,7 +59,7 @@ class TestTransforms(unittest.TestCase):
         tensor1 == tensor2 results in a tensor of bools. Use this instead.
         """
 
-        def _tensor_cmp(a, b):
+        def _tensor_cmp(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
             return torch.all(a == b)
 
         self.assertDictComparatorEqual(a, b, _tensor_cmp)
