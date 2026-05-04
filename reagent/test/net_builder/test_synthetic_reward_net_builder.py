@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import unittest
 
@@ -54,7 +54,7 @@ def _create_norm(dim: int, offset: int = 0) -> NormalizationData:
     return normalization_data
 
 
-def _create_input():
+def _create_input() -> rlt.MemoryNetworkInput:
     state = torch.randn(SEQ_LEN, BATCH_SIZE, STATE_DIM)
     # generate valid_step with shape (BATCH_SIZE, 1), values ranging from [1, SEQ_LEN] (inclusive)
     valid_step = torch.randint(1, SEQ_LEN + 1, size=(BATCH_SIZE, 1))
