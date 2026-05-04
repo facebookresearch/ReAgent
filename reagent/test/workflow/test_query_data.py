@@ -37,13 +37,13 @@ def generate_data_discrete(
 
 # pyre-fixme[11]: Annotation `ReagentSQLTestBase` is not defined as a type.
 class TestQueryData(ReagentSQLTestBase):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         logging.getLogger(__name__).setLevel(logging.INFO)
         self.table_name = "test_table"
         logger.info(f"Table name is {self.table_name}")
 
-    def generate_data(self, multi_steps=False):
+    def generate_data(self, multi_steps: bool = False) -> None:
         generate_data_discrete(
             self.sqlCtx, multi_steps=multi_steps, table_name=self.table_name
         )
