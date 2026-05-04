@@ -20,7 +20,6 @@ from reagent.models.synthetic_reward import (
 from reagent.optimizer.union import classes, Optimizer__Union
 from reagent.reporting.reward_network_reporter import RewardNetworkReporter
 from reagent.training import RewardNetTrainer
-from reagent.training.reward_network_trainer import LossFunction
 from torch.utils.data import DataLoader
 
 
