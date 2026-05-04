@@ -1,23 +1,30 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import logging
 import unittest
 
 import numpy as np
+import pandas as pd
 import pytest
+from pyspark.sql import (  # @manual=fbsource//third-party/pypi/pyspark:pyspark
+    DataFrame as SparkDataFrame,
+    SQLContext,
+)
 from pyspark.sql.functions import asc
 from reagent.data.oss_data_fetcher import OssDataFetcher
 from reagent.test.oss_workflow.reagent_sql_test_base import ReagentSQLTestBase
 from reagent.test.test_data.ex_mdps import generate_parametric_mdp_pandas_df
 from reagent.workflow.types import Dataset, TableSpec
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
-def generate_data_parametric(sqlCtx, multi_steps: bool, table_name: str):
+def generate_data_parametric(
+    sqlCtx: SQLContext, multi_steps: bool, table_name: str
+) -> None:
     df, _ = generate_parametric_mdp_pandas_df(
         multi_steps=multi_steps, use_seq_num_diff_as_time_diff=False
     )
@@ -28,10 +35,10 @@ def generate_data_parametric(sqlCtx, multi_steps: bool, table_name: str):
 
 
 class TestQueryDataParametric(ReagentSQLTestBase):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         logging.getLogger(__name__).setLevel(logging.INFO)
-        self.table_name = "test_table"
+        self.table_name: str = "test_table"
         logger.info(f"Table name is {self.table_name}")
 
     def generate_data(self, multi_steps: bool = False) -> None:
@@ -40,8 +47,11 @@ class TestQueryDataParametric(ReagentSQLTestBase):
         )
 
     def _parametric_read_data(
-        self, custom_reward_expression=None, gamma=None, multi_steps=None
-    ):
+        self,
+        custom_reward_expression: str | None = None,
+        gamma: float | None = None,
+        multi_steps: int | None = None,
+    ) -> SparkDataFrame:
         # pyrefly: ignore [missing-argument, unexpected-keyword]
         ts = TableSpec(table_name=self.table_name)
         df = OssDataFetcher()
@@ -96,7 +106,7 @@ class TestQueryDataParametric(ReagentSQLTestBase):
         )
         logger.info("parametric multi-step seems fine.")
 
-    def verify_parametric_single_step_except_rewards(self, df):
+    def verify_parametric_single_step_except_rewards(self, df: pd.DataFrame) -> None:
         """expects a pandas dataframe"""
         self.assertEq(df["sequence_number"], np.array([1, 2, 3, 4], dtype="int32"))
 
@@ -194,7 +204,7 @@ class TestQueryDataParametric(ReagentSQLTestBase):
         self.assertEq(df["time_diff"], np.array([1, 3, 1, 1]))
         self.assertEq(df["step"], np.array([1, 1, 1, 1]))
 
-    def verify_parametric_multi_steps_except_rewards(self, df):
+    def verify_parametric_multi_steps_except_rewards(self, df: pd.DataFrame) -> None:
         self.assertEq(df["sequence_number"], np.array([1, 2, 3, 4], dtype="int32"))
 
         state_features_presence = np.array(
