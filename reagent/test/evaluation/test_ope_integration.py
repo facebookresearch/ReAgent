@@ -103,7 +103,7 @@ class TestOPEModuleAlgs(unittest.TestCase):
     NOISE_EPSILON = 0.3
     EPISODES = 2
 
-    def test_gridworld_sequential_adapter(self):
+    def test_gridworld_sequential_adapter(self) -> None:
         """
         Create a gridworld environment, logging policy, and target policy
         Evaluates target policy using the direct OPE sequential doubly robust estimator,
@@ -200,7 +200,7 @@ class TestOPEModuleAlgs(unittest.TestCase):
             f"OPE adapter results are too large ({adapter_results.raw} > {TestOPEModuleAlgs.CPE_MAX_VALUE})",
         )
 
-    def test_seq2slate_eval_data_page(self):
+    def test_seq2slate_eval_data_page(self) -> None:
         """
         Create 3 slate ranking logs and evaluate using Direct Method, Inverse
         Propensity Scores, and Doubly Robust.
