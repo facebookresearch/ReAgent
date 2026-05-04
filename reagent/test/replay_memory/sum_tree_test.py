@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 # Copyright 2018 The Dopamine Authors.
 #
@@ -25,7 +25,7 @@ from reagent.replay_memory import sum_tree
 
 
 class SumTreeTest(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self._tree = sum_tree.SumTree(capacity=100)
 
     def testNegativeCapacity(self) -> None:
@@ -34,24 +34,24 @@ class SumTreeTest(unittest.TestCase):
         ):
             sum_tree.SumTree(capacity=-1)
 
-    def testSetNegativeValue(self):
+    def testSetNegativeValue(self) -> None:
         with self.assertRaises(
             ValueError, msg="Sum tree values should be nonnegative. Got -1"
         ):
             self._tree.set(node_index=0, value=-1)
 
-    def testSmallCapacityConstructor(self):
+    def testSmallCapacityConstructor(self) -> None:
         tree = sum_tree.SumTree(capacity=1)
         self.assertEqual(len(tree.nodes), 1)
         tree = sum_tree.SumTree(capacity=2)
         self.assertEqual(len(tree.nodes), 2)
 
-    def testSetValueSmallCapacity(self):
+    def testSetValueSmallCapacity(self) -> None:
         tree = sum_tree.SumTree(capacity=1)
         tree.set(0, 1.5)
         self.assertEqual(tree.get(0), 1.5)
 
-    def testSetValue(self):
+    def testSetValue(self) -> None:
         self._tree.set(node_index=0, value=1.0)
         self.assertEqual(self._tree.get(0), 1.0)
 
@@ -65,24 +65,24 @@ class SumTreeTest(unittest.TestCase):
     def testCapacityGreaterThanRequested(self) -> None:
         self.assertGreaterEqual(len(self._tree.nodes[-1]), 100)
 
-    def testSampleFromEmptyTree(self):
+    def testSampleFromEmptyTree(self) -> None:
         with self.assertRaises(Exception, msg="Cannot sample from an empty sum tree."):
             self._tree.sample()
 
-    def testSampleWithInvalidQueryValue(self):
+    def testSampleWithInvalidQueryValue(self) -> None:
         self._tree.set(node_index=5, value=1.0)
         with self.assertRaises(ValueError, msg="query_value must be in [0, 1]."):
             self._tree.sample(query_value=-0.1)
         with self.assertRaises(ValueError, msg="query_value must be in [0, 1]."):
             self._tree.sample(query_value=1.1)
 
-    def testSampleSingleton(self):
+    def testSampleSingleton(self) -> None:
         self._tree.set(node_index=5, value=1.0)
         item = self._tree.sample()
 
         self.assertEqual(item, 5)
 
-    def testSamplePairWithUnevenProbabilities(self):
+    def testSamplePairWithUnevenProbabilities(self) -> None:
         self._tree.set(node_index=2, value=1.0)
         self._tree.set(node_index=3, value=3.0)
 
@@ -90,7 +90,7 @@ class SumTreeTest(unittest.TestCase):
             random.seed(1)
             self.assertEqual(self._tree.sample(), 2)
 
-    def testSamplePairWithUnevenProbabilitiesWithQueryValue(self):
+    def testSamplePairWithUnevenProbabilitiesWithQueryValue(self) -> None:
         self._tree.set(node_index=2, value=1.0)
         self._tree.set(node_index=3, value=3.0)
 
@@ -130,11 +130,11 @@ class SumTreeTest(unittest.TestCase):
             counts[self._tree.sample()] += 1
         self.assertLess(counts[2], counts[3])
 
-    def testStratifiedSamplingFromEmptyTree(self):
+    def testStratifiedSamplingFromEmptyTree(self) -> None:
         with self.assertRaises(Exception, msg="Cannot sample from an empty sum tree."):
             self._tree.stratified_sample(5)
 
-    def testStratifiedSampling(self):
+    def testStratifiedSampling(self) -> None:
         k = 32
         for i in range(k):
             self._tree.set(node_index=i, value=1)
