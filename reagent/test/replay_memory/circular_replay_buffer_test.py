@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 # Copyright 2018 The Dopamine Authors.
 #
@@ -40,7 +40,7 @@ class CheckpointableClass:
 
 
 class ReplayBufferTest(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.tmp_dir = tempfile.TemporaryDirectory()
         self._test_subdir = self.tmp_dir.name
         num_dims = 10
@@ -50,7 +50,7 @@ class ReplayBufferTest(unittest.TestCase):
         self._test_terminal = np.ones(num_dims) * 4
         self._test_add_count = np.array(7)
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.tmp_dir.cleanup()
 
     def testConstructor(self) -> None:
@@ -69,7 +69,7 @@ class ReplayBufferTest(unittest.TestCase):
         # Check if the cursor moved STACK_SIZE -1 padding adds + 1, (the one above).
         self.assertEqual(memory.cursor(), STACK_SIZE)
 
-    def testExtraAdd(self):
+    def testExtraAdd(self) -> None:
         memory = circular_replay_buffer.ReplayBuffer(
             stack_size=STACK_SIZE, replay_capacity=5, batch_size=BATCH_SIZE
         )
@@ -113,7 +113,7 @@ class ReplayBufferTest(unittest.TestCase):
             gamma=1.0,
         )
 
-    def testNSteprewardum(self):
+    def testNSteprewardum(self) -> None:
         memory = circular_replay_buffer.ReplayBuffer(
             stack_size=STACK_SIZE,
             replay_capacity=10,
@@ -269,7 +269,7 @@ class ReplayBufferTest(unittest.TestCase):
         npt.assert_array_equal(batch.extra2, expected_extra2)
         npt.assert_array_equal(batch.next_extra2, expected_next_extra2)
 
-    def testSamplingWithterminalInTrajectory(self):
+    def testSamplingWithterminalInTrajectory(self) -> None:
         replay_capacity = 10
         update_horizon = 3
         memory = circular_replay_buffer.ReplayBuffer(
@@ -312,7 +312,7 @@ class ReplayBufferTest(unittest.TestCase):
         npt.assert_array_equal(batch.terminal, expected_terminal)
         npt.assert_array_equal(batch.indices, np.expand_dims(np.array(indices), 1))
 
-    def testIsTransitionValid(self):
+    def testIsTransitionValid(self) -> None:
         memory = circular_replay_buffer.ReplayBuffer(
             stack_size=STACK_SIZE, replay_capacity=10, batch_size=2
         )
