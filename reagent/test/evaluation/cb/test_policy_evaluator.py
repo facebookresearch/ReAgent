@@ -5,7 +5,6 @@
 
 import copy
 import unittest
-from dataclasses import replace
 from unittest.mock import MagicMock
 
 import torch
