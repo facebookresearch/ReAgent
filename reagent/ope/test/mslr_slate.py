@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import argparse
 import itertools
@@ -181,7 +181,7 @@ class MSLRDatasets:
             self._queries = torch.tensor(rows, dtype=torch.int, device=self._device)
         return self._queries
 
-    def _load_features(self):
+    def _load_features(self) -> None:
         if self._features is None:
             # pyrefly: ignore [missing-attribute]
             self._features = torch.stack([r[1] for v in self._dict.values() for r in v])
@@ -361,7 +361,9 @@ def load_dataset(
     return dataset
 
 
-def train_all(train_dataset, vali_dataset, prefix: str = ""):
+def train_all(
+    train_dataset: MSLRDatasets, vali_dataset: MSLRDatasets, prefix: str = ""
+) -> None:
     # train(DecisionTreeClassifierTrainer(), train_dataset, vali_dataset)
     train(DecisionTreeTrainer(), train_dataset, vali_dataset, prefix)
     train(LassoTrainer(), train_dataset, vali_dataset, prefix)
@@ -369,7 +371,7 @@ def train_all(train_dataset, vali_dataset, prefix: str = ""):
     # train(SGDClassifierTrainer(), train_dataset, vali_dataset)
 
 
-def train_models(params):
+def train_models(params: Dict[str, Any]) -> None:
     all_dataset = load_dataset(
         params["all_set"], num_columns, anchor_url_features, body_features
     )
@@ -384,7 +386,9 @@ def train_models(params):
 
 
 class MSLRModel(SlateModel):
-    def __init__(self, relevances: Tensor, device=None):
+    def __init__(
+        self, relevances: Tensor, device: Optional[torch.device] = None
+    ) -> None:
         self._relevances = relevances
         self._device = device
 
@@ -422,8 +426,8 @@ def evaluate(
     tgt_features: str,
     dm_features: str,
     max_num_workers: int,
-    device=None,
-):
+    device: Optional[torch.device] = None,
+) -> None:
     assert slate_size < item_size
     print(
         f"Evaluate All:"
