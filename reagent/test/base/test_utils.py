@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import unittest
 
@@ -92,7 +92,7 @@ class TestUtils(unittest.TestCase):
         lengths = torch.tensor([2, 0, 1, 1, 1, 1, 3, 0, 0, 1, 0, 0])
         num_steps = 2
 
-        def verify_output(out):
+        def verify_output(out: list[KeyedJaggedTensor]) -> None:
             self.assertEqual(out[0].keys(), keys)
             assert torch.allclose(
                 out[0].values(), torch.tensor([0.0, 1.0, 2.0, 4.0, 6.0, 7.0, 8.0])
