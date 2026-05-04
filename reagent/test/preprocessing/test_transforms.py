@@ -185,12 +185,12 @@ class TestTransforms(unittest.TestCase):
             "c": 1,
         }
         for key in ["a", "b"]:
-            # pyre-fixme[16]: Item `int` of `Union[int, Tuple[typing.Any,
-            #  typing.Any]]` has no attribute `__getitem__`.
-            self.assertTrue(np.all(out[key][0] == expected[key][0]))
-            # pyre-fixme[16]: Item `int` of `Union[int, Tuple[typing.Any,
-            #  typing.Any]]` has no attribute `__getitem__`.
-            self.assertTrue(np.all(out[key][1] == expected[key][1]))
+            out_val = out[key]
+            expected_val = expected[key]
+            assert isinstance(out_val, tuple)
+            assert isinstance(expected_val, tuple)
+            self.assertTrue(np.all(out_val[0] == expected_val[0]))
+            self.assertTrue(np.all(out_val[1] == expected_val[1]))
         self.assertEqual(out["c"], expected["c"])
 
     @patch("reagent.preprocessing.transforms.Preprocessor")
