@@ -290,11 +290,10 @@ class NoiseGridWorldModel(Environment):
         pass
 
     def next_state_reward_dist(self, state: State, action: Action) -> StateDistribution:
-        probs = [self.noise_prob] * len(self.action_space)
+        probs: list[float] = [self.noise_prob] * len(self.action_space)
         assert isinstance(action.value, int), (
             f"got type {type(action.value)} instead of int"
         )
-        # pyre-fixme[16]: `int` has no attribute `__setitem__`.
         probs[action.value] = 1 - self.epsilon
         states = {}
         for a in self.action_space:
@@ -303,7 +302,6 @@ class NoiseGridWorldModel(Environment):
                 rp = states[sr.state]
                 states[sr.state] = RewardProbability(
                     rp.reward + sr.reward,
-                    # pyre-fixme[16]: `int` has no attribute `__getitem__`.
                     rp.prob + probs[a.value],
                 )
             else:
