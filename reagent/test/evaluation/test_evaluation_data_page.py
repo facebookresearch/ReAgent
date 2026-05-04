@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import logging
 import unittest
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class FakeSeq2SlateRewardNetwork(nn.Module):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.fake_parms = nn.Linear(1, 1)
 
@@ -87,7 +87,7 @@ class FakeSeq2SlateTransformerNet(nn.Module):
 
 
 class TestEvaluationDataPage(unittest.TestCase):
-    def test_seq2slate_eval_data_page(self):
+    def test_seq2slate_eval_data_page(self) -> None:
         """
         Create 3 slate ranking logs and evaluate using Direct Method, Inverse
         Propensity Scores, and Doubly Robust.
