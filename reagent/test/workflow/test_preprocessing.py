@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import logging
 import unittest
@@ -25,7 +25,7 @@ TABLE_NAME = "test_table"
 
 # pyre-fixme[11]: Annotation `ReagentSQLTestBase` is not defined as a type.
 class TestPreprocessing(ReagentSQLTestBase):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         logging.getLogger(__name__).setLevel(logging.INFO)
 
