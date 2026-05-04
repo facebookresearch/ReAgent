@@ -46,13 +46,13 @@ temperature_list = [1.0, 2.0]
 
 
 class TestSeq2SlateOnPolicy(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         # pyrefly: ignore [bad-argument-type]
         np.random.seed(0)
         random.seed(0)
         torch.manual_seed(0)
 
-    def test_pytorch_decoder_mask(self):
+    def test_pytorch_decoder_mask(self) -> None:
         batch_size = 3
         src_seq_len = 4
         num_heads = 2
@@ -122,7 +122,7 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
             expect_per_seq_log_probs, computed_per_seq_log_probs, atol=0.001, rtol=0.0
         )
 
-    def test_per_symbol_to_per_seq_probs(self):
+    def test_per_symbol_to_per_seq_probs(self) -> None:
         batch_size = 1
         seq_len = 3
         candidate_size = seq_len + 2
@@ -247,7 +247,9 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
         )
 
     @parameterized.expand(itertools.product(output_arch_list, temperature_list))
-    def test_seq2slate_transformer_onpolicy_basic_logic(self, output_arch, temperature):
+    def test_seq2slate_transformer_onpolicy_basic_logic(
+        self, output_arch: Seq2SlateOutputArch, temperature: float
+    ) -> None:
         """
         Test basic logic of seq2slate on policy sampling
         """
@@ -345,7 +347,7 @@ class TestSeq2SlateOnPolicy(unittest.TestCase):
 
     @pytest.mark.seq2slate_long
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_seq2slate_transformer_on_policy_hard_tsp(self):
+    def test_seq2slate_transformer_on_policy_hard_tsp(self) -> None:
         """
         Solve Traveling Salesman Problem. Data comes from different sets of cities.
         """
