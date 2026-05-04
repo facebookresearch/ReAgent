@@ -38,7 +38,7 @@ class ReagentSQLTestBase(SQLTestCase):
         return conf
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         super().setUpClass()
 
         # set up the seed for the class to prevent
@@ -48,7 +48,7 @@ class ReagentSQLTestBase(SQLTestCase):
         logger.info(f"Allocating seed {cls.test_class_seed} to {cls.__name__}.")
         GLOBAL_TEST_CLASS_COUNTER += 1
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         assert not os.path.isdir(HIVE_METASTORE), (
             f"{HIVE_METASTORE} already exists! Try deleting it."
@@ -79,7 +79,7 @@ class ReagentSQLTestBase(SQLTestCase):
         present_b = arr_b[presence]
         np.testing.assert_equal(present_a, present_b)
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         super().tearDown()
 
         # removes Derby from last runs
