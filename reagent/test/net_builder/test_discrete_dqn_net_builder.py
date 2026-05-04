@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import unittest
 
@@ -27,7 +27,9 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
         self,
         chooser: DiscreteDQNNetBuilder__Union,
         state_feature_config: rlt.ModelFeatureConfig,
-        serving_module_class=DiscreteDqnPredictorWrapper,
+        serving_module_class: type[
+            DiscreteDqnPredictorWrapper
+        ] = DiscreteDqnPredictorWrapper,
     ) -> None:
         builder = chooser.value
         state_normalization_data = NormalizationData(
