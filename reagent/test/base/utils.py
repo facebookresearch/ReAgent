@@ -112,7 +112,7 @@ def write_lists_to_csv(path: str, *args: Any) -> None:
 
 class NumpyFeatureProcessor:
     @staticmethod
-    def value_to_quantile(original_value, quantiles):
+    def value_to_quantile(original_value: float, quantiles: List[float]) -> float:
         if original_value <= quantiles[0]:
             return 0.0
         if original_value >= quantiles[-1]:
@@ -130,29 +130,34 @@ class NumpyFeatureProcessor:
         return interpolated
 
     @classmethod
-    def preprocess_feature(cls, feature, parameters):
+    def preprocess_feature(
+        cls, feature: np.ndarray, parameters: NormalizationParameters
+    ) -> np.ndarray:
         is_not_empty = 1 - np.isclose(feature, MISSING_VALUE)
         if parameters.feature_type == identify_types.BINARY:
             # Binary features are always 1 unless they are 0
             return ((feature != 0) * is_not_empty).astype(np.float32)
         if parameters.boxcox_lambda is not None:
-            feature = stats.boxcox(
-                np.maximum(feature + parameters.boxcox_shift, BOX_COX_MARGIN),
-                parameters.boxcox_lambda,
+            feature = np.asarray(
+                stats.boxcox(
+                    np.maximum(feature + parameters.boxcox_shift, BOX_COX_MARGIN),
+                    parameters.boxcox_lambda,
+                )
             )
         # No *= to ensure consistent out-of-place operation.
         if parameters.feature_type == identify_types.PROBABILITY:
             feature = np.clip(feature, 0.01, 0.99)
             feature = special.logit(feature)
         elif parameters.feature_type == identify_types.QUANTILE:
+            quantiles = parameters.quantiles
+            assert quantiles is not None
             transformed_feature = np.zeros_like(feature)
             for i in six.moves.range(feature.shape[0]):
-                transformed_feature[i] = cls.value_to_quantile(
-                    feature[i], parameters.quantiles
-                )
+                transformed_feature[i] = cls.value_to_quantile(feature[i], quantiles)
             feature = transformed_feature
         elif parameters.feature_type == identify_types.ENUM:
             possible_values = parameters.possible_values
+            assert possible_values is not None
             mapping = {}
             for i, possible_value in enumerate(possible_values):
                 mapping[possible_value] = i
@@ -166,6 +171,7 @@ class NumpyFeatureProcessor:
         elif parameters.feature_type == identify_types.CONTINUOUS_ACTION:
             min_value = parameters.min_value
             max_value = parameters.max_value
+            assert min_value is not None and max_value is not None
             feature = (
                 (feature - min_value) * ((1 - 1e-6) * 2 / (max_value - min_value))
                 - 1
