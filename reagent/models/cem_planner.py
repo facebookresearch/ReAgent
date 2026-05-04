@@ -22,7 +22,6 @@ import torch
 import torch.nn as nn
 from reagent.core import types as rlt
 from reagent.core.parameters import CONTINUOUS_TRAINING_ACTION_RANGE
-from reagent.models.base import ModelBase
 from reagent.models.world_model import MemoryNetwork
 from reagent.training.utils import rescale_actions
 from torch.distributions.bernoulli import Bernoulli
