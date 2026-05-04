@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import abc
 import os
@@ -42,7 +42,7 @@ class FooRegistry(metaclass=RegistryMeta):
 class Foo(FooRegistry):
     a_param: AParam = field(default_factory=AParam)
 
-    def foo(self):
+    def foo(self) -> int:
         a = A(**self.a_param.asdict())
         return a()
 
