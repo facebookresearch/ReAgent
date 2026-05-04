@@ -18,7 +18,7 @@ from reagent.training.parameters import DisjointLinUCBTrainerParameters
 
 
 class TestDisjointLinUCB(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.batch_size = 2
         self.num_arms = 2
         self.params = DisjointLinUCBTrainerParameters()
@@ -119,7 +119,7 @@ class TestDisjointLinUCB(unittest.TestCase):
                 rtol=1e-4,
             )
 
-    def test_linucb_model_update_equations(self):
+    def test_linucb_model_update_equations(self) -> None:
         # make sure that the model parameters match hand-computed values
         scorer = DisjointLinearRegressionUCB(self.num_arms, self.x_dim)
         policy = Policy(scorer=scorer, sampler=GreedyActionSampler())
