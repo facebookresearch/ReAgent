@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import json
 import os
 import unittest
 import zipfile
-from typing import Dict
 from unittest.mock import patch
 
 import reagent
@@ -45,7 +44,7 @@ NEW_CONFIG_NAME = "config.yaml"
 DISCRETE_DQN_BASE = "reagent.model_managers.discrete_dqn_base"
 
 
-def get_test_workflow_config(path_to_config: str, use_gpu: bool):
+def get_test_workflow_config(path_to_config: str, use_gpu: bool) -> dict[str, object]:
     """Loads and modifies config to fun fast."""
     # pyre-fixme[16]: Module `yaml` has no attribute `YAML`.
     yaml = YAML(typ="safe")
@@ -62,7 +61,7 @@ def get_test_workflow_config(path_to_config: str, use_gpu: bool):
     return config
 
 
-def mock_cartpole_normalization() -> Dict[int, NormalizationParameters]:
+def mock_cartpole_normalization() -> dict[int, NormalizationParameters]:
     """Get mock normalization from our local file."""
     with open(CARTPOLE_NORMALIZATION_JSON, "r") as f:
         norm = json.load(f)
@@ -76,7 +75,9 @@ def mock_cartpole_normalization() -> Dict[int, NormalizationParameters]:
 class TestOSSWorkflows(HorizonTestBase):
     """Run workflow to ensure no crashes, correctness/performance not tested."""
 
-    def _test_dqn_workflow(self, use_gpu=False, use_all_avail_gpus=False):
+    def _test_dqn_workflow(
+        self, use_gpu: bool = False, use_all_avail_gpus: bool = False
+    ) -> None:
         runner = CliRunner()
         config = get_test_workflow_config(
             path_to_config=DQN_WORKFLOW_YAML, use_gpu=use_gpu
@@ -122,11 +123,11 @@ class TestOSSWorkflows(HorizonTestBase):
             print(result.output)
             assert result.exit_code == 0, f"result = {result}"
 
-    def test_dqn_workflow(self):
+    def test_dqn_workflow(self) -> None:
         self._test_dqn_workflow()
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_dqn_workflow_gpu(self):
+    def test_dqn_workflow_gpu(self) -> None:
         self._test_dqn_workflow(use_gpu=True)
 
 
