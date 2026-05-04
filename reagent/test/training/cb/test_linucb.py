@@ -52,6 +52,9 @@ def _get_recmetric_module() -> RecMetricModule:
 
 
 class TestLinUCB(unittest.TestCase):
+    batch_2nd_round: CBInput
+    second_batch_2nd_round: CBInput
+
     def setUp(self):
         self.batch_size = 2
 
@@ -236,13 +239,11 @@ class TestLinUCB(unittest.TestCase):
 
         # 2nd round training
         torch.manual_seed(0)
-        # pyre-fixme[16]: `TestLinUCB` has no attribute `batch_2nd_round`.
         self.batch_2nd_round = CBInput(
             context_arm_features=torch.randn((10, self.num_arms, self.x_dim)),
             reward=torch.randn((10, 1)),
             action=torch.tensor([[0], [1]], dtype=torch.long).repeat(5, 1),
         )
-        # pyre-fixme[16]: `TestLinUCB` has no attribute `second_batch_2nd_round`.
         self.second_batch_2nd_round = CBInput(
             context_arm_features=torch.randn((6, self.num_arms, self.x_dim)),
             reward=torch.randn((6, 1)),
