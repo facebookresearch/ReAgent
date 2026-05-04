@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 from abc import abstractmethod
-from typing import List, Optional
 
 import torch
 from reagent.mab.mab_algorithm import MABAlgo, reindex_multiple_tensors
@@ -16,7 +15,7 @@ class BaseThompsonSampling(MABAlgo):
     def _get_posterior_samples(self) -> Tensor:
         pass
 
-    def get_scores(self):
+    def get_scores(self) -> Tensor:
         return self._get_posterior_samples()
 
 
@@ -49,8 +48,8 @@ class NormalGammaThompson(BaseThompsonSampling):
         randomize_ties: bool = True,
         min_num_obs_per_arm: int = 1,
         *,
-        n_arms: Optional[int] = None,
-        arm_ids: Optional[List[str]] = None,
+        n_arms: int | None = None,
+        arm_ids: list[str] | None = None,
     ) -> None:
         super().__init__(
             randomize_ties=randomize_ties,
@@ -79,7 +78,7 @@ class NormalGammaThompson(BaseThompsonSampling):
         n_obs_per_arm: Tensor,
         sum_reward_per_arm: Tensor,
         sum_reward_squared_per_arm: Tensor,
-        arm_ids: Optional[List[str]] = None,
+        arm_ids: list[str] | None = None,
     ) -> None:
         (
             n_obs_per_arm,
