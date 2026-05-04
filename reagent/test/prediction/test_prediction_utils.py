@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import torch
 from reagent.preprocessing.identify_types import CONTINUOUS, CONTINUOUS_ACTION
@@ -18,7 +18,12 @@ def _cont_action_norm() -> NormalizationParameters:
     )
 
 
-def change_cand_size_slate_ranking(input_prototype, candidate_size_override):
+def change_cand_size_slate_ranking(
+    input_prototype: tuple[
+        tuple[torch.Tensor, torch.Tensor], tuple[torch.Tensor, torch.Tensor]
+    ],
+    candidate_size_override: int,
+) -> tuple[tuple[torch.Tensor, torch.Tensor], tuple[torch.Tensor, torch.Tensor]]:
     state_prototype, candidate_prototype = input_prototype
     candidate_prototype = (
         candidate_prototype[0][:, :1, :].repeat(1, candidate_size_override, 1),
