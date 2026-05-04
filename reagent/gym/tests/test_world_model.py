@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 import logging
 import os
 import unittest
+from collections.abc import Callable
 from typing import Dict, List, Optional, Tuple
 
 import gym
@@ -84,7 +85,7 @@ def calculate_feature_sensitivity(
     trainer: MDNRNNTrainer,
     use_gpu: bool,
     test_batch: rlt.MemoryNetworkInput,
-):
+) -> Dict[str, float]:
     assert isinstance(env.action_space, gym.spaces.Discrete)
     assert isinstance(env.observation_space, gym.spaces.Box)
     assert len(env.observation_space.shape) == 1
@@ -111,14 +112,14 @@ def calculate_feature_sensitivity(
 def train_mdnrnn(
     env: EnvWrapper,
     trainer: MDNRNNTrainer,
-    trainer_preprocessor,
+    trainer_preprocessor: Callable[..., rlt.MemoryNetworkInput],
     num_train_transitions: int,
     seq_len: int,
     batch_size: int,
     num_train_epochs: int,
     # for optional validation
-    test_replay_buffer=None,
-):
+    test_replay_buffer: Optional[ReplayBuffer] = None,
+) -> MDNRNNTrainer:
     train_replay_buffer = ReplayBuffer(
         replay_capacity=num_train_transitions,
         batch_size=batch_size,
@@ -164,7 +165,7 @@ def train_mdnrnn_and_compute_feature_stats(
     num_train_epochs: int,
     use_gpu: bool,
     saved_mdnrnn_path: Optional[str] = None,
-):
+) -> Tuple[Dict[str, float], Dict[str, float]]:
     """Train MDNRNN Memory Network and compute feature importance/sensitivity."""
     env: gym.Env = Gym(env_name=env_name)
     env.seed(SEED)
@@ -293,7 +294,7 @@ def train_mdnrnn_and_train_on_embedded_env(
     passing_score_bar: float,
     # pyre-fixme[9]: saved_mdnrnn_path has type `str`; used as `None`.
     saved_mdnrnn_path: str = None,
-):
+) -> np.ndarray:
     """Train an agent on embedded states by the MDNRNN."""
     env = Gym(env_name=env_name)
     env.seed(SEED)
@@ -400,7 +401,7 @@ class TestWorldModel(HorizonTestBase):
             f"top_feature: {top_feature}, expected_top_features: {expected_top_features}"
         )
 
-    def test_mdnrnn(self):
+    def test_mdnrnn(self) -> None:
         """Test MDNRNN feature importance and feature sensitivity."""
         config_path = "configs/world_model/cartpole_features.yaml"
         feature_importance, feature_sensitivity = self.run_from_config(
@@ -413,7 +414,7 @@ class TestWorldModel(HorizonTestBase):
         logger.info("MDNRNN feature test passes!")
 
     @unittest.skip("This test has to be migrated to Lightning")
-    def test_world_model(self):
+    def test_world_model(self) -> None:
         """Train DQN on POMDP given features from world model."""
         config_path = "configs/world_model/discrete_dqn_string.yaml"
         HorizonTestBase.run_from_config(
