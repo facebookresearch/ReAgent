@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
+# pyre-strict
 
 import unittest
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 import numpy.testing as npt
@@ -34,7 +35,7 @@ from scipy import special
 
 
 class TestPreprocessing(unittest.TestCase):
-    def _feature_type_override(self, feature_id: int) -> Optional[str]:
+    def _feature_type_override(self, feature_id: int) -> str | None:
         """
         This should only be used to test CONTINUOUS_ACTION
         """
@@ -377,7 +378,7 @@ class TestPreprocessing(unittest.TestCase):
         self.assertEqual(parameter.feature_type, "QUANTILE")
 
     def test_columnvector(self) -> None:
-        def format_input2output(test_keys: List[str], inp_form: Any) -> Dict[str, Any]:
+        def format_input2output(test_keys: list[str], inp_form: Any) -> dict[str, Any]:
             test_data = {}
             for ky in test_keys:
                 test_data[ky] = inp_form
