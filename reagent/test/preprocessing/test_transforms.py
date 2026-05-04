@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 import unittest
 from copy import deepcopy
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -36,7 +36,7 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(tensor_0, tensor_1, msg=msg)
 
     def assertDictComparatorEqual(
-        self, a: Dict[str, Any], b: Dict[str, Any], cmp: Callable[..., Any]
+        self, a: dict[str, Any], b: dict[str, Any], cmp: Callable[..., Any]
     ) -> None:
         """
         assertDictEqual() compares args with ==. This allows caller to override
@@ -393,11 +393,11 @@ class TestTransforms(unittest.TestCase):
             },
         )
 
-        state_id_list_columns: List[str] = [
+        state_id_list_columns: list[str] = [
             InputColumn.STATE_ID_LIST_FEATURES,
             InputColumn.NEXT_STATE_ID_LIST_FEATURES,
         ]
-        state_id_score_list_columns: List[str] = [
+        state_id_score_list_columns: list[str] = [
             InputColumn.STATE_ID_SCORE_LIST_FEATURES,
             InputColumn.NEXT_STATE_ID_SCORE_LIST_FEATURES,
         ]
