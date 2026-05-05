@@ -4,7 +4,7 @@
 # pyre-unsafe
 
 import unittest
-from typing import List, Optional, Tuple
+from typing import cast, List, Optional, Tuple
 
 import torch
 from reagent.core.parameters import EvaluationParameters, RLParameters
@@ -44,8 +44,7 @@ class MockDQNTrainer(DQNTrainerBaseLightning):
         """Gets the q values from the model and target networks"""
         # pyre-fixme[29]: `Union[Tensor, Module]` is not a function.
         q_values = self.q_network(state)
-        # pyre-fixme[29]: `Union[Tensor, Module]` is not a function.
-        q_values_target = self.q_network_target(state)
+        q_values_target = cast(torch.nn.Module, self.q_network_target)(state)
         return q_values, q_values_target
 
 
