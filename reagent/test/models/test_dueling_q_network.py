@@ -44,7 +44,7 @@ class ParametricDuelingQNetworkTorchScriptWrapper(nn.Module):
 
     def forward(
         self, state_float_features: torch.Tensor, action_float_features: torch.Tensor
-    ):
+    ) -> torch.Tensor:
         return self.model(
             rlt.FeatureData(float_features=state_float_features),
             rlt.FeatureData(float_features=action_float_features),
@@ -108,7 +108,7 @@ class TestDuelingQNetwork(unittest.TestCase):
         )
         self.check_save_load(model)
 
-    def test_save_load_discrete_action_batch_norm(self):
+    def test_save_load_discrete_action_batch_norm(self) -> None:
         state_dim = 8
         action_dim = 4
         model = DuelingQNetwork.make_fully_connected(
