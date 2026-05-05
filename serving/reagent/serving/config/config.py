@@ -107,7 +107,6 @@ ConstantValue = Union[
 
 
 class Constant(ConfigBase):
-    # pyre-fixme[13]: Attribute `name` is never initialized.
     name: str
     # pyre-fixme[13]: Attribute `value` is never initialized.
     value: ConstantValue
