@@ -50,7 +50,7 @@ class TestTransforms(unittest.TestCase):
             self.assertTrue(cmp(a[key], b[key]), msg=f"Different at key {key}")
 
     def assertDictOfTensorEqual(
-        self, a: Dict[str, torch.Tensor], b: Dict[str, torch.Tensor]
+        self, a: dict[str, torch.Tensor], b: dict[str, torch.Tensor]
     ) -> None:
         """
         Helper method to compare dicts with values of type Tensor.
@@ -290,7 +290,7 @@ class TestTransforms(unittest.TestCase):
         # result contains original keys and new processed keys
         self.assertSetEqual(set(out.keys()), {"a", "b", "c", "a:1", "b:1"})
 
-        def assertKeySeqIdItem(item_0, item_1):
+        def assertKeySeqIdItem(item_0: Any, item_1: Any) -> None:
             self.assertTorchTensorEqual(item_0[0], item_1[0])
             self.assertTorchTensorEqual(item_0[1][0], item_1[1][0])
             self.assertTorchTensorEqual(item_0[1][1], item_1[1][1])
