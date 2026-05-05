@@ -55,7 +55,7 @@ class TestDisjointLinUCB(unittest.TestCase):
         # pyrefly: ignore [bad-argument-type]
         self.trainer.training_step(self.batch, 0)
 
-    def test_linucb_training_batch_vs_online(self):
+    def test_linucb_training_batch_vs_online(self) -> None:
         # make sure that feeding in a batch gives same result as feeding in examples one-by-one
         obss = [[], []]
         for i in range(self.batch_size):
@@ -280,7 +280,7 @@ class TestDisjointLinUCB(unittest.TestCase):
             npt.assert_allclose(scorer.coefs[arm].numpy(), theta, atol=1e-4, rtol=1e-4)
 
             # ucb scores are the same
-            def calculated_expected_ucb_scores(inp):
+            def calculated_expected_ucb_scores(inp) -> np.ndarray:
                 expected_out = np.zeros(inp.size()[0])
                 for i in range(inp.size()[0]):
                     x = inp[i].numpy()
