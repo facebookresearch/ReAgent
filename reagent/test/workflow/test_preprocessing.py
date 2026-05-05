@@ -9,9 +9,7 @@ import unittest
 import numpy as np
 import pytest
 from reagent.preprocessing.identify_types import CONTINUOUS
-
-# pyre-fixme[21]: Could not find `workflow`.
-from reagent.test.workflow.reagent_sql_test_base import ReagentSQLTestBase
+from reagent.test.oss_workflow.reagent_sql_test_base import ReagentSQLTestBase
 from reagent.workflow.identify_types_flow import identify_normalization_parameters
 from reagent.workflow.types import PreprocessingOptions, TableSpec
 
