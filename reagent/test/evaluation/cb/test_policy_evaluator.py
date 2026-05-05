@@ -15,7 +15,9 @@ from reagent.evaluation.cb.utils import add_importance_weights
 from reagent.models.linear_regression import LinearRegressionUCB
 
 
-def _compare_state_dicts(state_dict_1, state_dict_2):
+def _compare_state_dicts(
+    state_dict_1: dict[str, torch.Tensor], state_dict_2: dict[str, torch.Tensor]
+) -> bool:
     if len(state_dict_1) != len(state_dict_2):
         return False
 
@@ -176,7 +178,7 @@ class TestPolicyEvaluator(unittest.TestCase):
             self.batch.reward[1, 0].item(),
         )
 
-    def test_formatted_output(self):
+    def test_formatted_output(self) -> None:
         model_actions = torch.tensor([[1], [1]], dtype=torch.long)
         _ = self.eval_module.ingest_batch(self.batch, model_actions)
         self.eval_module._aggregate_across_instances()
