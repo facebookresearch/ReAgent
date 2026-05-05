@@ -55,7 +55,7 @@ class TestLinUCB(unittest.TestCase):
     batch_2nd_round: CBInput
     second_batch_2nd_round: CBInput
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.batch_size = 2
 
         self.num_arms = 2
@@ -199,7 +199,7 @@ class TestLinUCB(unittest.TestCase):
             atol=1e-3,
         )
 
-    def test_linucb_weights(self):
+    def test_linucb_weights(self) -> None:
         # make sure that using a weight is same as processing an example several times
         batch_with_weight = copy.deepcopy(self.batch)
         # pyrefly: ignore [read-only]
