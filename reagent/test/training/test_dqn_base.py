@@ -159,7 +159,7 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
             torch.equal(boosted_reward, torch.tensor([[3.0], [2.0], [3.0]]))
         )
 
-    def test__initialize_cpe(self):
+    def test__initialize_cpe(self) -> None:
         reward_network = self.reward_network
         q_network_cpe = self.q_network_cpe
         q_network_cpe_target = self.q_network_cpe_target
@@ -184,7 +184,7 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
         )
         self.assertIsNone(trainer.reward_network)
 
-    def test__initialize_cpe_extra_metrics(self):
+    def test__initialize_cpe_extra_metrics(self) -> None:
         reward_options = RewardOptions(
             metric_reward_values={"metric_a": 2, "metric_b": -2}
         )
