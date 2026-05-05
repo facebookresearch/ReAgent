@@ -23,11 +23,11 @@ class DuelingQNetworkTorchScriptWrapper(nn.Module):
             DuelingQNetwork,
             ParametricDuelingQNetwork,
         ],
-    ):
+    ) -> None:
         super().__init__()
         self.model = model
 
-    def forward(self, state_float_features: torch.Tensor):
+    def forward(self, state_float_features: torch.Tensor) -> torch.Tensor:
         return self.model(rlt.FeatureData(float_features=state_float_features))
 
 
