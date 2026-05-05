@@ -16,11 +16,11 @@ logger = logging.getLogger(__name__)
 
 
 class FullyConnectedDQNTorchScriptWrapper(nn.Module):
-    def __init__(self, model: FullyConnectedDQN):
+    def __init__(self, model: FullyConnectedDQN) -> None:
         super().__init__()
         self.model = model
 
-    def forward(self, state_float_features: torch.Tensor):
+    def forward(self, state_float_features: torch.Tensor) -> torch.Tensor:
         return self.model(
             rlt.FeatureData(float_features=state_float_features),
         )
