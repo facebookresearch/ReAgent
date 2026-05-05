@@ -6,7 +6,7 @@
 import random
 import unittest
 from collections import defaultdict
-from typing import Dict
+from typing import Callable, Dict, List
 
 import nevergrad as ng
 import numpy as np
@@ -449,12 +449,12 @@ class TestComboOptimizer(unittest.TestCase):
 
     def run_q_learning_optimizer(
         self,
-        input_param,
-        obj_func,
-        batch_size,
-        n_generations,
-        repeats,
-    ):
+        input_param: ng.p.Dict,
+        obj_func: Callable[[Dict[str, torch.Tensor]], torch.Tensor],
+        batch_size: int,
+        n_generations: int,
+        repeats: int,
+    ) -> List[torch.Tensor]:
         results = []
         for r in range(repeats):
             print(f"\n\n**** QLearning Optimizer, Repeat={r} ****")
@@ -651,7 +651,7 @@ class TestComboOptimizer(unittest.TestCase):
             f"Learning not converged. min acquisition reward={min_acq_reward}, best solution's acquisition reward={best_sol_acq_reward}"
         )
 
-    def test_bayessian_optimizer_its_random_mutation_backprop_discrete(self):
+    def test_bayessian_optimizer_its_random_mutation_backprop_discrete(self) -> None:
         batch_size = 8
         num_mutations = 10
         input_param = discrete_input_param()
