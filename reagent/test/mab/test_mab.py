@@ -325,7 +325,7 @@ class TestSimulation(unittest.TestCase):
     def setUp(self):
         seed_everything(1)
 
-    def test_single_evaluation(self):
+    def test_single_evaluation(self) -> None:
         bandit = BernoilliMAB(100, torch.tensor([0.3, 0.5]))
         algo = UCB1(n_arms=2)
         regret_trajectory = single_evaluation_bandit_algo(bandit, algo)
@@ -336,7 +336,7 @@ class TestSimulation(unittest.TestCase):
         # make sure regret is non-decreasing
         self.assertGreaterEqual(np.diff(regret_trajectory, prepend=0).min(), 0)
 
-    def test_single_evaluation_update_every(self):
+    def test_single_evaluation_update_every(self) -> None:
         num_steps = 100
         update_every = 10
 
