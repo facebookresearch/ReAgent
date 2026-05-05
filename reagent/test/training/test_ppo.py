@@ -122,7 +122,7 @@ class TestPPO(unittest.TestCase):
         entropy_losses = trainer._trajectory_to_losses(inp)
         self.assertTrue(entropy_losses["ppo_loss"] < losses["ppo_loss"])
 
-    def test_configure_optimizers(self):
+    def test_configure_optimizers(self) -> None:
         # Ordering is value then policy
         trainer = self._construct_trainer()
         optimizers = trainer.configure_optimizers()
