@@ -185,7 +185,7 @@ class TestPolicyEvaluator(unittest.TestCase):
         output = self.eval_module.get_formatted_result_string()
         self.assertIsInstance(output, str)
 
-    def test_logger(self):
+    def test_logger(self) -> None:
         logger = TensorBoardLogger("/tmp/tb")
         logger.log_metrics = MagicMock()
         self.eval_module.attach_logger(logger)
