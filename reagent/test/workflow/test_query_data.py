@@ -5,10 +5,15 @@
 
 import logging
 import unittest
+from typing import Optional
 
 import numpy as np
+import pandas as pd
 import pytest
-from pyspark.sql import SQLContext  # @manual=fbsource//third-party/pypi/pyspark:pyspark
+from pyspark.sql import (  # @manual=fbsource//third-party/pypi/pyspark:pyspark
+    DataFrame,
+    SQLContext,
+)
 from pyspark.sql.functions import (  # @manual=fbsource//third-party/pypi/pyspark:pyspark
     asc,
 )
@@ -49,8 +54,11 @@ class TestQueryData(ReagentSQLTestBase):
         )
 
     def _discrete_read_data(
-        self, custom_reward_expression=None, gamma=None, multi_steps=None
-    ):
+        self,
+        custom_reward_expression: Optional[str] = None,
+        gamma: Optional[float] = None,
+        multi_steps: Optional[int] = None,
+    ) -> DataFrame:
         # pyrefly: ignore [missing-argument, unexpected-keyword]
         ts = TableSpec(table_name=self.table_name)
         df = OssDataFetcher()
@@ -103,7 +111,7 @@ class TestQueryData(ReagentSQLTestBase):
         )
         logger.info("discrete multi-step seems fine.")
 
-    def verify_discrete_single_step_except_rewards(self, df):
+    def verify_discrete_single_step_except_rewards(self, df: pd.DataFrame) -> None:
         """expects a pandas dataframe"""
         self.assertEq(df["sequence_number"], np.array([1, 2, 3, 4], dtype="int32"))
 
@@ -170,7 +178,7 @@ class TestQueryData(ReagentSQLTestBase):
             np.array([[0, 1, 1, 0], [0, 0, 1, 1], [0, 0, 0, 1], [0, 0, 0, 0]]),
         )
 
-    def verify_discrete_multi_steps_except_rewards(self, df):
+    def verify_discrete_multi_steps_except_rewards(self, df: pd.DataFrame) -> None:
         self.assertEq(df["sequence_number"], np.array([1, 2, 3, 4], dtype="int32"))
 
         state_features_presence = np.array(
