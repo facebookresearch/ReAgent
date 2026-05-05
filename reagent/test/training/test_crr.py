@@ -145,7 +145,7 @@ class TestCRR(unittest.TestCase):
             ).all()
         )
 
-    def test_train_step_gen(self):
+    def test_train_step_gen(self) -> None:
         mse_backward_type = type(
             torch.nn.functional.mse_loss(
                 torch.tensor([1.0], requires_grad=True), torch.zeros(1)
@@ -237,7 +237,7 @@ class TestCRR(unittest.TestCase):
         optimizers = trainer.configure_optimizers()
         self.assertEqual(len(optimizers), 5)
 
-    def test_get_detached_model_outputs(self):
+    def test_get_detached_model_outputs(self) -> None:
         trainer = self._construct_trainer()
         action_scores, _ = trainer.get_detached_model_outputs(
             FeatureData(float_features=torch.rand(self.batch_size, self.state_dim))
