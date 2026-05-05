@@ -18,7 +18,7 @@ class TestPOMDPEnvironment(unittest.TestCase):
     def setUp(self):
         logging.getLogger().setLevel(logging.DEBUG)
 
-    def test_string_game_v1(self):
+    def test_string_game_v1(self) -> None:
         env = Gym(env_name="StringGame-v1")
         env.seed(313)
         mean_acc_reward = self._test_env(env)
@@ -30,7 +30,7 @@ class TestPOMDPEnvironment(unittest.TestCase):
         mean_acc_reward = self._test_env(env)
         assert 0.1 >= mean_acc_reward
 
-    def test_pocman(self):
+    def test_pocman(self) -> None:
         env = Gym(env_name="Pocman-v0")
         env.seed(313)
         mean_acc_reward = self._test_env(env)
