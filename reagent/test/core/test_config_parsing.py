@@ -77,8 +77,6 @@ class TestConfigParsing(unittest.TestCase):
 
     def test_parse_bar(self) -> None:
         raw_config = {"union": {"Bar": {}}}
-        # pyre-fixme[6]: For 1st param expected `FooUnion` but got `Dict[str,
-        #  Dict[typing.Any, typing.Any]]`.
         config = Config(**raw_config)
         self.assertEqual(config.union.value.foo(), 10)
 
