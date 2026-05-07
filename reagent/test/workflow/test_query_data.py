@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import logging
 import unittest
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -55,9 +54,9 @@ class TestQueryData(ReagentSQLTestBase):
 
     def _discrete_read_data(
         self,
-        custom_reward_expression: Optional[str] = None,
-        gamma: Optional[float] = None,
-        multi_steps: Optional[int] = None,
+        custom_reward_expression: str | None = None,
+        gamma: float | None = None,
+        multi_steps: int | None = None,
     ) -> DataFrame:
         # pyrefly: ignore [missing-argument, unexpected-keyword]
         ts = TableSpec(table_name=self.table_name)
