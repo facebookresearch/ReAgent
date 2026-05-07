@@ -3,10 +3,10 @@
 
 # pyre-unsafe
 from enum import Enum
-from typing import Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 
-def _get_class_type(cls):
+def _get_class_type(cls: Any) -> Any:
     """
     type(cls) has an inconsistent behavior between 3.6 and 3.7 because of
     changes in the typing module. We therefore rely on __extra (3.6) and
@@ -19,7 +19,7 @@ def _get_class_type(cls):
     return getattr(cls, "__extra__", getattr(cls, "__origin__", cls))
 
 
-def _is_optional(cls):
+def _is_optional(cls: Any) -> bool:
     return _get_class_type(cls) == Union and type(None) in cls.__args__
 
 
