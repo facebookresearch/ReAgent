@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import logging
 import time
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestPOMDPEnvironment(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         logging.getLogger().setLevel(logging.DEBUG)
 
     def test_string_game_v1(self) -> None:
@@ -37,13 +37,13 @@ class TestPOMDPEnvironment(unittest.TestCase):
         assert -80 <= mean_acc_reward <= -70
 
     def _test_env(self, env: Gym) -> float:
-        acc_rws = []
+        acc_rws: list[float] = []
         num_test_episodes = 200
 
         for e in range(num_test_episodes):
             start_time = time.time()
             env.reset()
-            acc_rw = 0
+            acc_rw: float = 0
             max_steps = env.max_steps
             assert max_steps is not None
             for i in range(1, max_steps + 1):
@@ -66,6 +66,6 @@ class TestPOMDPEnvironment(unittest.TestCase):
                     break
             acc_rws.append(acc_rw)
 
-        mean_acc_rw = np.mean(acc_rws)
+        mean_acc_rw: float = float(np.mean(acc_rws))
         logger.debug("Average accumulated reward {}".format(mean_acc_rw))
         return mean_acc_rw
