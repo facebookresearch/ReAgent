@@ -130,6 +130,7 @@ class TestPPO(unittest.TestCase):
             torch.all(
                 torch.isclose(
                     optimizers[0]["optimizer"].param_groups[0]["params"][0],
+                    # pyrefly: ignore [missing-attribute]
                     list(trainer.value_net.fc.dnn[0].parameters())[0],
                 )
             )
@@ -138,6 +139,7 @@ class TestPPO(unittest.TestCase):
             torch.all(
                 torch.isclose(
                     optimizers[1]["optimizer"].param_groups[0]["params"][0],
+                    # pyrefly: ignore [missing-attribute]
                     list(trainer.scorer.shared_network.fc.dnn[0].parameters())[0],
                 )
             )

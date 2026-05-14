@@ -169,21 +169,33 @@ class TestMDNRNN(unittest.TestCase):
                     "cum loss={}, cum bce={}, cum gmm={}, cum mse={}\n".format(
                         e,
                         i,
+                        # pyrefly: ignore [missing-attribute]
                         reporter.loss.values[-1],
+                        # pyrefly: ignore [missing-attribute]
                         reporter.bce.values[-1],
+                        # pyrefly: ignore [missing-attribute]
                         reporter.gmm.values[-1],
+                        # pyrefly: ignore [missing-attribute]
                         reporter.mse.values[-1],
+                        # pyrefly: ignore [missing-attribute]
                         np.mean(reporter.loss.values[-100:]),
+                        # pyrefly: ignore [missing-attribute]
                         np.mean(reporter.bce.values[-100:]),
+                        # pyrefly: ignore [missing-attribute]
                         np.mean(reporter.gmm.values[-100:]),
+                        # pyrefly: ignore [missing-attribute]
                         np.mean(reporter.mse.values[-100:]),
                     )
                 )
 
                 if (
+                    # pyrefly: ignore [missing-attribute]
                     np.mean(reporter.loss.values[-100:]) < 0
+                    # pyrefly: ignore [missing-attribute]
                     and np.mean(reporter.gmm.values[-100:]) < -3.0
+                    # pyrefly: ignore [missing-attribute]
                     and np.mean(reporter.bce.values[-100:]) < 0.6
+                    # pyrefly: ignore [missing-attribute]
                     and np.mean(reporter.mse.values[-100:]) < 0.2
                 ):
                     return
