@@ -133,9 +133,10 @@ class LoggedQuery:
             self._url_relevances[self._list[i]] = r
 
     @property
-    def position_relevances(self):
+    def position_relevances(self) -> List[float]:
         if self._position_relevances is None:
             self._click_to_relevances()
+        # pyre-fixme[7]: Expected `List[float]` but got `Optional[List[float]]`.
         return self._position_relevances
 
     @property
@@ -565,8 +566,8 @@ def evaluate(
     item_size: int,
     metric_func: str,
     max_num_workers: int,
-    device=None,
-):
+    device: Optional[torch.device] = None,
+) -> None:
     log_length = len(log_queries)
     slots = SlateSlots(slate_size)
 
