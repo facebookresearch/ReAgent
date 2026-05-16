@@ -88,7 +88,7 @@ class TestLinUCB(unittest.TestCase):
         self.trainer.training_step(self.batch, 0)
         self.trainer.on_train_epoch_end()
 
-    def test_linucb_training_batch_vs_online(self):
+    def test_linucb_training_batch_vs_online(self) -> None:
         # make sure that feeding in a batch gives same result as feeding in examples one-by-one
         obss = []
         for i in range(self.batch_size):
@@ -123,7 +123,7 @@ class TestLinUCB(unittest.TestCase):
         npt.assert_allclose(scorer_1.avg_A.numpy(), scorer_2.avg_A.numpy(), rtol=1e-4)
         npt.assert_allclose(scorer_1.avg_b.numpy(), scorer_2.avg_b.numpy(), rtol=1e-4)
 
-    def test_linucb_training_multiple_epochs(self):
+    def test_linucb_training_multiple_epochs(self) -> None:
         # make sure that splitting the data across multiple epochs is same as learning from all data in one epoch
         # this is only true when there is no discounting (gamma=1)
         obss = []
