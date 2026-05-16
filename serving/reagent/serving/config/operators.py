@@ -76,8 +76,7 @@ def Softmax(temperature: float, values: Dict):
     pass
 
 
-# pyre-fixme[9]: seed has type `int`; used as `None`.
-def SoftmaxRanker(temperature: float, values: Dict, seed: int = None):
+def SoftmaxRanker(temperature: float, values: Dict, seed: Optional[int] = None):
     """The operator that implements iterative softmax ranker
 
     Args:
