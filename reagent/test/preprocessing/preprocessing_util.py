@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import numpy as np
 from scipy import stats
@@ -20,7 +20,7 @@ CONTINUOUS_ACTION_FEATURE_ID_2 = 10
 CONTINUOUS_SMALL_FEATURE_ID = 11
 
 
-def id_to_type(id) -> str:
+def id_to_type(id: int) -> str:
     if id == BINARY_FEATURE_ID or id == BINARY_FEATURE_ID_2:
         return "BINARY"
     if id == BOXCOX_FEATURE_ID:
@@ -37,10 +37,10 @@ def id_to_type(id) -> str:
         return "CONTINUOUS_ACTION"
     if id == CONTINUOUS_SMALL_FEATURE_ID:
         return "DO_NOT_PREPROCESS"
-    assert False, "Invalid feature id: " + id
+    assert False, "Invalid feature id: " + id  # pyre-ignore[58]
 
 
-def read_data():
+def read_data() -> dict[int, np.ndarray]:
     # pyrefly: ignore [bad-argument-type]
     np.random.seed(1)
     feature_value_map = {}
