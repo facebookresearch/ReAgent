@@ -38,7 +38,7 @@ class ParametricDuelingQNetworkTorchScriptWrapper(nn.Module):
             DuelingQNetwork,
             ParametricDuelingQNetwork,
         ],
-    ):
+    ) -> None:
         super().__init__()
         self.model = model
 
@@ -100,7 +100,7 @@ class TestDuelingQNetwork(unittest.TestCase):
         )
         self.check_save_load(model)
 
-    def test_save_load_parametric_action(self):
+    def test_save_load_parametric_action(self) -> None:
         state_dim = 8
         action_dim = 4
         model = ParametricDuelingQNetwork.make_fully_connected(
