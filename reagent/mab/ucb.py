@@ -45,7 +45,7 @@ class BaseUCB(MABAlgo, ABC):
         self.alpha = alpha
 
     @property
-    def var(self):
+    def var(self) -> Tensor:
         # return empirical variance of rewards for each arm
         if self.estimate_variance:
             return torch.fmax(

@@ -22,7 +22,7 @@ class MAB(ABC):
         max_steps: int,
         expected_rewards: Tensor,
         arm_ids: list[str] | None = None,
-    ):
+    ) -> None:
         self.max_steps = max_steps
         self.expected_rewards = expected_rewards
         self.best_action_value = expected_rewards.max().item()
