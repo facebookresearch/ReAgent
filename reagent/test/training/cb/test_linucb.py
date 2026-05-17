@@ -165,7 +165,7 @@ class TestLinUCB(unittest.TestCase):
         )
         npt.assert_allclose(scorer_1.coefs.numpy(), scorer_2.coefs.numpy(), rtol=1e-3)
 
-    def test_linucb_model_update_equations(self):
+    def test_linucb_model_update_equations(self) -> None:
         # make sure that the model parameters match hand-computed values
         scorer = LinearRegressionUCB(self.x_dim)
         policy = Policy(scorer=scorer, sampler=GreedyActionSampler())
