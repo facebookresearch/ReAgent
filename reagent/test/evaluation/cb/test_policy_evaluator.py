@@ -32,7 +32,7 @@ def _compare_state_dicts(
 
 
 class TestPolicyEvaluator(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.policy_network = LinearRegressionUCB(2)
         self.eval_module = PolicyEvaluator(self.policy_network)
         self.batch = CBInput(
