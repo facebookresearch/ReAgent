@@ -17,7 +17,7 @@ class Model(nn.Module):
         super().__init__()
         self.embedding = NoSoftUpdateEmbedding(10, 3)
 
-    def forward(self, input) -> torch.Tensor:
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
         return self.embedding(input)
 
 
