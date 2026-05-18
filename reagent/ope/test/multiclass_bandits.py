@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import argparse
 import json
@@ -9,9 +9,10 @@ import logging
 import os
 import random
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import PurePath
-from typing import Iterable, Tuple
+from typing import cast, Iterable, Tuple
 
 import numpy as np
 import pandas as pd
@@ -27,7 +28,7 @@ from reagent.ope.estimators.contextual_bandits_estimators import (
     IPSEstimator,
     LogSample,
 )
-from reagent.ope.estimators.estimator import Estimator, Evaluator
+from reagent.ope.estimators.estimator import Estimator, EstimatorResults, Evaluator
 from reagent.ope.estimators.types import ActionSpace, Policy, Trainer, TrainingData
 from reagent.ope.trainers.linear_trainers import (
     DecisionTreeTrainer,
@@ -52,16 +53,20 @@ class UCIMultiClassDataset:
     References: https://arxiv.org/abs/1103.4601
     """
 
-    def __init__(self, params, device=None):
+    def __init__(
+        self, params: dict[str, object], device: torch.device | None = None
+    ) -> None:
         if "file" not in params:
             raise Exception('Please define "file" in "dataset"')
         if "label_col" not in params:
             raise Exception('Please define "label_col" in "dataset"')
 
-        index_col = params["index_col"] if "index_col" in params else None
-        label_col = params["label_col"]
-        sep = params["sep"] if "sep" in params else ","
-        self._config_file = params["file"]
+        index_col: int | None = (
+            cast(int, params["index_col"]) if "index_col" in params else None
+        )
+        label_col = cast(int, params["label_col"])
+        sep: str = cast(str, params["sep"]) if "sep" in params else ","
+        self._config_file: str = cast(str, params["file"])
         self._data_frame = pd.read_csv(
             self._config_file,
             sep=sep,
@@ -100,10 +105,10 @@ class UCIMultiClassDataset:
 
         self.device = device
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._data_frame)
 
-    def __getitem__(self, idx) -> MultiClassDataRow:
+    def __getitem__(self, idx: int) -> MultiClassDataRow:
         return MultiClassDataRow(
             self._features[idx], self._class_indices[idx], self._one_hots[idx]
         )
@@ -133,8 +138,21 @@ class UCIMultiClassDataset:
         return self._one_hots
 
     def train_val_test_split(
-        self, ratios: Tuple[float, float] = (0.8, 0.8), device=None
-    ):
+        self,
+        ratios: Tuple[float, float] = (0.8, 0.8),
+        device: torch.device | None = None,
+    ) -> tuple[
+        Tensor,
+        Tensor,
+        Tensor,
+        Tensor,
+        Tensor,
+        Tensor,
+        Tensor,
+        Tensor,
+        Tensor,
+        list[int],
+    ]:
         total_len = len(self._data_frame)
         train_len = int(total_len * ratios[0])
         train_choices = random.sample(range(total_len), train_len)
@@ -186,8 +204,8 @@ class MultiClassPolicy(Policy):
         action_space: ActionSpace,
         action_distributions: Tensor,
         epsilon: float,
-        device=None,
-    ):
+        device: torch.device | None = None,
+    ) -> None:
         super().__init__(action_space, device)
         self._action_distributions = action_distributions
         self._exploitation_prob = 1.0 - epsilon
@@ -215,8 +233,8 @@ def evaluate_all(
     tgt_epsilon: float,
     max_num_workers: int,
     random_reward_prob: float = 0.0,
-    device=None,
-):
+    device: torch.device | None = None,
+) -> Mapping[str, EstimatorResults]:
     action_space = ActionSpace(dataset.num_actions)
     config_path = PurePath(dataset.config_file)
     data_name = config_path.stem
