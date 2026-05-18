@@ -3,6 +3,8 @@
 
 # pyre-strict
 
+from typing import Any
+
 # pyre-fixme[21]: Could not find module `reagent.serving.config.builder`.
 from reagent.serving.config.builder import (
     DecisionPlanBuilder,
@@ -26,7 +28,7 @@ def softmaxranker_decision_plan():
     return DecisionPlanBuilder().set_root(op).build()
 
 
-def epsilongreedyranker_decision_plan():
+def epsilongreedyranker_decision_plan() -> dict[str, Any]:
     op = EpsilonGreedyRanker(epsilon=0.1, values={"action1": 10.0, "action2": 20.0})
     return DecisionPlanBuilder().set_root(op).build()
 
@@ -41,7 +43,7 @@ def ucb_decision_plan():
     return DecisionPlanBuilder().set_root(op).build()
 
 
-def input_from_request_decision_plan():
+def input_from_request_decision_plan() -> dict[str, Any]:
     op = Softmax(temperature=1.0, values=InputFromRequest())
     return DecisionPlanBuilder().set_root(op).build()
 
