@@ -61,7 +61,7 @@ class TestDuelingQNetwork(unittest.TestCase):
             script_model = DuelingQNetworkTorchScriptWrapper(model)
         run_model_jit_trace(model, script_model)
 
-    def test_discrete_action(self):
+    def test_discrete_action(self) -> None:
         state_dim = 8
         action_dim = 4
         model = DuelingQNetwork.make_fully_connected(
@@ -92,7 +92,7 @@ class TestDuelingQNetwork(unittest.TestCase):
         q_values = model(state, action)
         self.assertEqual((1, 1), q_values.shape)
 
-    def test_save_load_discrete_action(self):
+    def test_save_load_discrete_action(self) -> None:
         state_dim = 8
         action_dim = 4
         model = DuelingQNetwork.make_fully_connected(
