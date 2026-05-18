@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
+# pyre-strict
 
 import unittest
 from collections import defaultdict
@@ -21,7 +21,7 @@ from reagent.workflow.types import RewardOptions
 
 
 class TestPPO(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         # preparing various components for qr-dqn trainer initialization
         self.batch_size = 3
         self.state_dim = 10
@@ -71,7 +71,7 @@ class TestPPO(unittest.TestCase):
         trainer.optimizers = mock.Mock(return_value=[0, 0])
         return trainer
 
-    def test_init(self):
+    def test_init(self) -> None:
         trainer = self._construct_trainer()
 
         self.assertEqual(
@@ -93,7 +93,7 @@ class TestPPO(unittest.TestCase):
             params = PPOTrainerParameters(actions=["1", "2"], normalize=True)
             trainer = self._construct_trainer(new_params=params)
 
-    def test__trajectory_to_losses(self):
+    def test__trajectory_to_losses(self) -> None:
         inp = PolicyGradientInput.input_prototype(
             batch_size=self.batch_size,
             action_dim=self.action_dim,
@@ -145,7 +145,7 @@ class TestPPO(unittest.TestCase):
             )
         )
 
-    def test_get_optimizers(self):
+    def test_get_optimizers(self) -> None:
         # ordering covered in test_configure_optimizers
         trainer = self._construct_trainer()
         optimizers = trainer.get_optimizers()
@@ -154,7 +154,7 @@ class TestPPO(unittest.TestCase):
         optimizers = trainer.get_optimizers()
         self.assertIsNone(optimizers[0])
 
-    def test_training_step(self):
+    def test_training_step(self) -> None:
         trainer = self._construct_trainer()
         inp = defaultdict(lambda: torch.ones(1, 5))
         trainer.update_model = mock.Mock()
