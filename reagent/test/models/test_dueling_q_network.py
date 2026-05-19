@@ -78,7 +78,7 @@ class TestDuelingQNetwork(unittest.TestCase):
         q_values = model(input)
         self.assertEqual((1, action_dim), q_values.shape)
 
-    def test_parametric_action(self):
+    def test_parametric_action(self) -> None:
         state_dim = 8
         action_dim = 4
         model = ParametricDuelingQNetwork.make_fully_connected(
