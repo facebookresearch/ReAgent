@@ -27,7 +27,7 @@ class FullyConnectedDQNTorchScriptWrapper(nn.Module):
 
 
 class TestFullyConnectedDQN(unittest.TestCase):
-    def check_save_load(self, model: FullyConnectedDQN):
+    def check_save_load(self, model: FullyConnectedDQN) -> None:
         """
         Test if a model is torch.jit.tracable
         """
@@ -63,7 +63,7 @@ class TestFullyConnectedDQN(unittest.TestCase):
         )
         self.check_save_load(model)
 
-    def test_save_load_batch_norm(self):
+    def test_save_load_batch_norm(self) -> None:
         state_dim = 8
         action_dim = 4
         model = FullyConnectedDQN(
