@@ -34,7 +34,7 @@ class TestFullyConnectedDQN(unittest.TestCase):
         script_model = FullyConnectedDQNTorchScriptWrapper(model)
         run_model_jit_trace(model, script_model)
 
-    def test_basic(self):
+    def test_basic(self) -> None:
         state_dim = 8
         action_dim = 4
         model = FullyConnectedDQN(
