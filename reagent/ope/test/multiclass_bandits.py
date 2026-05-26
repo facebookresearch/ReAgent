@@ -190,7 +190,7 @@ class MultiClassContext:
 
 
 class MultiClassModel(BanditsModel):
-    def __init__(self, features: Tensor, rewards: Tensor):
+    def __init__(self, features: Tensor, rewards: Tensor) -> None:
         self._features = features
         self._rewards = rewards
 
