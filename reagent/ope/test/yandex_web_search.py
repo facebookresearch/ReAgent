@@ -211,7 +211,7 @@ class TrainingQuery:
         return self._position_relevances
 
 
-def create_cache(params):
+def create_cache(params) -> None:
     if "folder" not in params:
         raise Exception('Please define "folder" in "raw_data"')
     folder = params["folder"] if "folder" in params else ""
@@ -543,7 +543,7 @@ class TrainingDataset:
 
 
 class YandexSlateModel(SlateModel):
-    def __init__(self, dataset: TrainingDataset):
+    def __init__(self, dataset: TrainingDataset) -> None:
         self._dataset = dataset
 
     def item_rewards(self, context: SlateContext) -> SlateItemValues:
