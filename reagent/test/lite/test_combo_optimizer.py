@@ -93,7 +93,9 @@ def create_ground_truth_net(ng_param):
     return gt_net
 
 
-def create_discrete_choice_obj_func(ng_param, gt_net):
+def create_discrete_choice_obj_func(
+    ng_param, gt_net
+) -> Callable[[Dict[str, torch.Tensor]], torch.Tensor]:
     def obj_func(sampled_sol: Dict[str, torch.Tensor]) -> torch.Tensor:
         # sampled_sol format:
         #    key = choice_name
@@ -567,7 +569,7 @@ class TestComboOptimizer(unittest.TestCase):
         sampled_tensor = sol_to_tensors(sampled_sol, input_param)
         self.assertTrue(torch.all(tensor == sampled_tensor))
 
-    def test_bayesian_optimizer_its_random_mutation_discrete(self):
+    def test_bayesian_optimizer_its_random_mutation_discrete(self) -> None:
         acq_type = "its"
         mutation_type = "random"
         input_param = discrete_input_param()
