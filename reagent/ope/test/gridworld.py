@@ -57,7 +57,7 @@ class GridWorld(Environment):
         grid: Sequence[Sequence[str]],
         max_horizon: int = -1,
         use_taxicab_reward: bool = False,
-    ):
+    ) -> "GridWorld":
         size = (len(grid), len(grid[0]))
         start = (0, 0)
         goal = (0, 0)
@@ -286,7 +286,7 @@ class NoiseGridWorldModel(Environment):
         self._steps_taken = 0
         return self._gridworld.current_state
 
-    def close(self):
+    def close(self) -> None:
         pass
 
     def next_state_reward_dist(self, state: State, action: Action) -> StateDistribution:
