@@ -51,7 +51,7 @@ class TestFullyConnectedDQN(unittest.TestCase):
         q_values = model(input)
         self.assertEqual((1, action_dim), q_values.shape)
 
-    def test_save_load(self):
+    def test_save_load(self) -> None:
         state_dim = 8
         action_dim = 4
         model = FullyConnectedDQN(
