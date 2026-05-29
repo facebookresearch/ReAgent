@@ -18,7 +18,7 @@ from reagent.serving.config.builder import (
 )
 
 
-def softmax_decision_plan():
+def softmax_decision_plan() -> dict[str, Any]:
     op = Softmax(temperature=1.0, values={"action1": 10.0, "action2": 20.0})
     return DecisionPlanBuilder().set_root(op).build()
 
