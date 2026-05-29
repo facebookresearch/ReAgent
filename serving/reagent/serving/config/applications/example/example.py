@@ -23,7 +23,7 @@ def softmax_decision_plan() -> dict[str, Any]:
     return DecisionPlanBuilder().set_root(op).build()
 
 
-def softmaxranker_decision_plan():
+def softmaxranker_decision_plan() -> dict[str, Any]:
     op = SoftmaxRanker(temperature=1.0, values={"Bacon": 1.1, "Ribs": 1.0})
     return DecisionPlanBuilder().set_root(op).build()
 
