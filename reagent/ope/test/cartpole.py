@@ -4,6 +4,7 @@
 # pyre-unsafe
 
 import logging
+from typing import Any
 
 import gym
 import torch
@@ -122,7 +123,9 @@ class ModelWrapper(Model):
         self._model.to(device)
 
 
-def generate_logs(episodes: int, max_horizon: int, policy: RLPolicy):
+def generate_logs(
+    episodes: int, max_horizon: int, policy: RLPolicy
+) -> list[list[Transition]]:
     """
     Args:
         episodes: number of episodes to generate
@@ -188,7 +191,7 @@ def estimate_value(episodes: int, max_horizon: int, policy: RLPolicy, gamma: flo
     return avg.average
 
 
-def run_dualdice_test(model_path: str, alpha: float):
+def run_dualdice_test(model_path: str, alpha: float) -> dict[str, Any]:
     device = torch.device("cuda") if torch.cuda.is_available() else None
     logger.info(f"Device - {device}")
     model = torch.jit.load(model_path)
