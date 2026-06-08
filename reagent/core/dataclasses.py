@@ -11,7 +11,7 @@ import os
 from dataclasses import field  # noqa
 from typing import Any, Optional, TYPE_CHECKING
 
-import pydantic
+from pydantic.v1 import dataclasses as pydantic_dataclasses
 from reagent.core.fb_checker import IS_FB_ENVIRONMENT
 
 
@@ -88,7 +88,7 @@ else:
                     assert config not in kwargs
                     kwargs["config"] = Config
 
-                return pydantic.dataclasses.dataclass(cls, **kwargs)
+                return pydantic_dataclasses.dataclass(cls, **kwargs)
 
         if _cls is None:
             return wrap
