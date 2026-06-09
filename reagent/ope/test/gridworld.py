@@ -306,6 +306,7 @@ class NoiseGridWorldModel(Environment):
                 )
             else:
                 states[sr.state] = RewardProbability(sr.reward, probs[a.value])
+        # pyrefly: ignore [bad-return]
         return states
 
     @property
