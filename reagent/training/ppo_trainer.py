@@ -216,3 +216,53 @@ class PPOTrainer(ReAgentLightningModule):
         ppo_opt.zero_grad()
         self.manual_backward(ppo_loss)
         ppo_opt.step()
+
+        # Report training metrics so they surface in the training output.
+        self.reporter.log(
+            ppo_loss=ppo_loss.detach().reshape(1),
+            value_net_loss=(
+                value_net_loss.detach().reshape(1)
+                if self.value_net is not None
+                else torch.zeros(1)
+            ),
+        )
+        # Populate logger_data (the flow's line-plot metrics summary).
+        if self.logger is not None:
+            metrics = {"Training_loss/ppo_loss": ppo_loss.detach().cpu().item()}
+            if self.value_net is not None:
+                metrics["Training_loss/value_net_loss"] = (
+                    value_net_loss.detach().cpu().item()
+                )
+            metrics.update(self._eval_metrics(training_batch_list))
+            self.logger.log_metrics(metrics, step=self.all_batches_processed)
+
+    @torch.no_grad()
+    def _eval_metrics(
+        self, training_batch_list: List[rlt.PolicyGradientInput]
+    ) -> Dict[str, float]:
+        """Interpretable, policy-relevant signals (unlike the PPO surrogate loss).
+
+        - mean_reward: average logged reward across the update's trajectories
+          (a scale/sanity check on the data).
+        - ips_value: a one-step importance-sampled off-policy value estimate
+          E[(pi/mu) * return]. It rises as the policy shifts probability toward
+          higher-return actions, so it tracks policy quality. The importance
+          ratio is clamped to keep the estimate from exploding.
+        """
+        rewards = torch.cat([traj.reward.reshape(-1) for traj in training_batch_list])
+        ips_values = []
+        for traj in training_batch_list:
+            scorer_inputs = [traj.state]
+            if traj.possible_actions_mask is not None:
+                scorer_inputs.append(traj.possible_actions_mask)
+            scores = self.scorer(*scorer_inputs)
+            log_prob = self.sampler.log_prob(scores, traj.action).float()
+            ratio = torch.exp(log_prob - traj.log_prob).clamp(max=10.0)
+            returns = discounted_returns(
+                torch.clamp(traj.reward, max=self.reward_clip).clone(), self.gamma
+            )
+            ips_values.append((ratio * returns).mean())
+        return {
+            "Training/mean_reward": rewards.mean().cpu().item(),
+            "Training/ips_value": torch.stack(ips_values).mean().cpu().item(),
+        }

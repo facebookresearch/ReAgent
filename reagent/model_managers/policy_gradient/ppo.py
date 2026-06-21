@@ -20,6 +20,8 @@ from reagent.net_builder.unions import (
     DiscreteDQNNetBuilder__Union,
     ValueNetBuilder__Union,
 )
+from reagent.reporting.policy_gradient_reporter import PolicyGradientReporter
+from reagent.reporting.reporter_base import ReporterBase
 from reagent.training import PPOTrainer, PPOTrainerParameters, ReAgentLightningModule
 
 # pyre-fixme[21]: Could not find module `reagent.workflow.types`.
@@ -126,3 +128,6 @@ class PPO(ModelManager):
     @property
     def state_feature_config(self) -> rlt.ModelFeatureConfig:
         return self.state_feature_config_provider.value.get_model_feature_config()
+
+    def get_reporter(self) -> ReporterBase:
+        return PolicyGradientReporter()

@@ -31,10 +31,13 @@ def rescale_actions(
 
 
 def whiten(x: torch.Tensor, subtract_mean: bool) -> torch.Tensor:
-    numer = x
-    if subtract_mean:
-        numer -= x.mean()
-    return numer / (x.std() + EPS)
+    # Use population std (unbiased=False) so a single-element or zero-variance
+    # tensor yields 0 rather than NaN (the unbiased std of one element is NaN,
+    # which previously corrupted policy-gradient training on length-1
+    # trajectories). std is invariant to the mean shift, so compute it on x.
+    std = x.std(unbiased=False)
+    numer = x - x.mean() if subtract_mean else x
+    return numer / (std + EPS)
 
 
 def discounted_returns(rewards: torch.Tensor, gamma: float = 0) -> torch.Tensor:
