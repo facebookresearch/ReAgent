@@ -30,7 +30,7 @@ inline void to_json(json& j, const ActionDetails& p) {
 
 using RankedActionList = std::vector<ActionDetails>;
 
-typedef std::variant<
+using ConstantValue = std::variant<
     std::string,
     int64_t,
     double,
@@ -41,8 +41,7 @@ typedef std::variant<
     StringIntMap,
     StringDoubleMap,
     std::unordered_map<std::string, StringDoubleMap>,
-    RankedActionList>
-    ConstantValue;
+    RankedActionList>;
 
 ConstantValue json_to_constant_value(const json& j);
 void constant_value_to_json(const ConstantValue& value, json& j);

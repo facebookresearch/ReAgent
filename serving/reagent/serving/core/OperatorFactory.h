@@ -26,12 +26,11 @@ class DecisionService;
 
 class OperatorFactory {
  public:
-  typedef std::function<std::shared_ptr<Operator>(
+  using OperatorConstructor = std::function<std::shared_ptr<Operator>(
       const std::string& name,
       const std::string& planName,
       const StringStringMap& inputDepMap,
-      const DecisionService* const decisionService)>
-      OperatorConstructor;
+      const DecisionService* const decisionService)>;
 
   static std::shared_ptr<OperatorFactory> getInstance();
 
