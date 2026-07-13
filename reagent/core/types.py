@@ -927,6 +927,14 @@ class PolicyGradientInput(TensorDataClass):
     reward: torch.Tensor
     log_prob: torch.Tensor
     possible_actions_mask: Optional[torch.Tensor] = None
+    # Next state of each transition (s_1 ... s_T). Only needed to bootstrap the
+    # advantage (e.g. one-step TD error) for truncated / non-terminal
+    # trajectories; leave None for complete episodes ending at a terminal state.
+    next_state: Optional[FeatureData] = None
+    # Per-step mask, 1 if the transition is non-terminal (s_{t+1} is a valid
+    # bootstrap state) and 0 if the episode ended after the step. Leave None to
+    # treat the trajectory as a complete episode ending at a terminal state.
+    not_terminal: Optional[torch.Tensor] = None
 
     @classmethod
     def input_prototype(cls, action_dim=2, batch_size=10, state_dim=3):
@@ -944,12 +952,19 @@ class PolicyGradientInput(TensorDataClass):
     @classmethod
     def from_dict(cls, d: Dict[str, torch.Tensor]):
         # TODO: rename "observation" to "state" in Transition and return cls(**d)
+        next_observation = d.get("next_observation", None)
         return cls(
             state=FeatureData(float_features=d["observation"]),
             action=d["action"],
             reward=d["reward"],
             log_prob=d["log_prob"],
             possible_actions_mask=d.get("possible_actions_mask", None),
+            next_state=(
+                FeatureData(float_features=next_observation)
+                if next_observation is not None
+                else None
+            ),
+            not_terminal=d.get("not_terminal", None),
         )
 
     def __len__(self):

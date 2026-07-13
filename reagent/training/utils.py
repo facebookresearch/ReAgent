@@ -45,13 +45,14 @@ def discounted_returns(rewards: torch.Tensor, gamma: float = 0) -> torch.Tensor:
     and do a baseline subtraction."""
     if gamma == 0:
         return rewards.float()
-    else:
-        R = 0
-        returns = []
-        for r in rewards.numpy()[::-1]:
-            R = r + gamma * R
-            returns.insert(0, R)
-        return torch.tensor(returns).float()
+    # Compute the reverse discounted cumulative sum on-device (no .numpy(), which
+    # would fail on CUDA tensors and force the result onto CPU).
+    returns = torch.empty_like(rewards, dtype=torch.float)
+    running = torch.zeros((), dtype=torch.float, device=rewards.device)
+    for t in range(rewards.shape[0] - 1, -1, -1):
+        running = rewards[t].float() + gamma * running
+        returns[t] = running
+    return returns
 
 
 def gen_permutations(seq_len: int, num_action: int) -> torch.Tensor:
