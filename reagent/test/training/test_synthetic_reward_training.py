@@ -133,7 +133,9 @@ def train_and_eval(trainer, data, num_eval_batches=100, max_epochs=1):
     eval_data = data[-num_eval_batches:]
 
     # disable logging in tests
-    pl_trainer = pl.Trainer(max_epochs=max_epochs, logger=False)
+    pl_trainer = pl.Trainer(
+        max_epochs=max_epochs, logger=False, enable_checkpointing=False
+    )
     pl_trainer.fit(trainer, train_dataloader)
 
     total_loss = 0
@@ -168,8 +170,8 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         state_dim = 10
         action_dim = 2
         seq_len = 5
-        batch_size = 512
-        num_batches = 5000
+        batch_size = 1024
+        num_batches = 2500
         sizes = [256, 128]
         activations = ["relu", "relu"]
         last_layer_activation = "linear"
@@ -211,8 +213,8 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         state_dim = 10
         action_dim = 2
         seq_len = 5
-        batch_size = 512
-        num_batches = 10000
+        batch_size = 1024
+        num_batches = 2500
         sizes = [256, 128]
         activations = ["relu", "relu"]
         last_layer_activation = "linear"
@@ -226,7 +228,7 @@ class TestSyntheticRewardTraining(unittest.TestCase):
                 context_size=3,
             )
         )
-        optimizer = Optimizer__Union(Adam=classes["Adam"]())
+        optimizer = Optimizer__Union(Adam=classes["Adam"](lr=0.01))
         trainer = RewardNetTrainer(reward_net, optimizer)
         trainer.set_reporter(
             RewardNetworkReporter(
