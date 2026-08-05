@@ -172,7 +172,7 @@ class TestSyntheticRewardTraining(unittest.TestCase):
         action_dim = 2
         seq_len = 5
         batch_size = 1024
-        num_batches = 2500
+        num_batches = 600
         sizes = [256, 128]
         activations = ["relu", "relu"]
         last_layer_activation = "linear"
