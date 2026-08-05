@@ -147,6 +147,7 @@ def train_and_eval(trainer, data, num_eval_batches=100, max_epochs=1):
 
 class TestSyntheticRewardTraining(unittest.TestCase):
     def setUp(self):
+        torch.set_num_threads(1)
         pl.seed_everything(123)
 
     def test_linear_reward_parametric_reward_fail(self):
