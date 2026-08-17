@@ -284,7 +284,6 @@ class TestMAB(unittest.TestCase):
         if isinstance(b, BaseUCB):
             ucb_scores_after_load = b_loaded.get_scores()
             npt.assert_array_equal(
-                # pyrefly: ignore [unbound-name]
                 ucb_scores_before_save.numpy(),
                 ucb_scores_after_load.numpy(),
             )  # UCB scores are same before saving and after loading

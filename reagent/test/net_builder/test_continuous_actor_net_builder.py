@@ -67,7 +67,6 @@ class TestContinuousActorNetBuilder(unittest.TestCase):
 
     def test_gaussian_fully_connected(self) -> None:
         # Intentionally used this long path to make sure we included it in __init__.py
-        # pyre-fixme[28]: Unexpected keyword argument `GaussianFullyConnected`.
         chooser = ContinuousActorNetBuilder__Union(
             GaussianFullyConnected=continuous_actor.gaussian_fully_connected.GaussianFullyConnected()
         )
@@ -75,7 +74,6 @@ class TestContinuousActorNetBuilder(unittest.TestCase):
 
     def test_dirichlet_fully_connected(self) -> None:
         # Intentionally used this long path to make sure we included it in __init__.py
-        # pyre-fixme[28]: Unexpected keyword argument `DirichletFullyConnected`.
         chooser = ContinuousActorNetBuilder__Union(
             DirichletFullyConnected=continuous_actor.dirichlet_fully_connected.DirichletFullyConnected()
         )

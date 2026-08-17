@@ -48,7 +48,6 @@ def input_from_request_decision_plan() -> dict[str, Any]:
     return DecisionPlanBuilder().set_root(op).build()
 
 
-# pyre-fixme[16]: Module `config` has no attribute `builder`.
 export(
     app_id="example",
     configs={

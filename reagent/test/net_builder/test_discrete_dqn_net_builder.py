@@ -54,7 +54,6 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
 
     def test_fully_connected(self) -> None:
         # Intentionally used this long path to make sure we included it in __init__.py
-        # pyre-fixme[28]: Unexpected keyword argument `FullyConnected`.
         chooser = DiscreteDQNNetBuilder__Union(
             FullyConnected=discrete_dqn.fully_connected.FullyConnected()
         )
@@ -67,7 +66,6 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
 
     def test_dueling(self) -> None:
         # Intentionally used this long path to make sure we included it in __init__.py
-        # pyre-fixme[28]: Unexpected keyword argument `Dueling`.
         chooser = DiscreteDQNNetBuilder__Union(Dueling=discrete_dqn.dueling.Dueling())
         state_feature_config = rlt.ModelFeatureConfig(
             float_feature_infos=[
@@ -78,7 +76,6 @@ class TestDiscreteDQNNetBuilder(unittest.TestCase):
 
     def test_fully_connected_with_embedding(self) -> None:
         # Intentionally used this long path to make sure we included it in __init__.py
-        # pyre-fixme[28]: Unexpected keyword argument `FullyConnectedWithEmbedding`.
         chooser = DiscreteDQNNetBuilder__Union(
             FullyConnectedWithEmbedding=discrete_dqn.fully_connected_with_embedding.FullyConnectedWithEmbedding()
         )

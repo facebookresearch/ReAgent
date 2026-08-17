@@ -41,14 +41,11 @@ def id_to_type(id: int) -> str:
 
 
 def read_data() -> dict[int, np.ndarray]:
-    # pyrefly: ignore [bad-argument-type]
     np.random.seed(1)
     feature_value_map = {}
-    # pyrefly: ignore [missing-attribute]
     feature_value_map[BINARY_FEATURE_ID] = stats.bernoulli.rvs(0.5, size=10000).astype(
         np.float32
     )
-    # pyrefly: ignore [missing-attribute]
     feature_value_map[BINARY_FEATURE_ID_2] = stats.bernoulli.rvs(
         0.5, size=10000
     ).astype(np.float32)
@@ -65,11 +62,9 @@ def read_data() -> dict[int, np.ndarray]:
         np.float32
     )
     feature_value_map[ENUM_FEATURE_ID] = (
-        # pyrefly: ignore [missing-attribute]
         stats.randint.rvs(0, 10, size=10000) * 1000
     ).astype(np.float32)
     feature_value_map[QUANTILE_FEATURE_ID] = np.concatenate(
-        # pyrefly: ignore [missing-attribute]
         (stats.norm.rvs(size=5000), stats.expon.rvs(size=5000))
     ).astype(np.float32)
     feature_value_map[PROBABILITY_FEATURE_ID] = np.clip(

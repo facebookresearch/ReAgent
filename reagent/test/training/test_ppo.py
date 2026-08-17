@@ -23,8 +23,7 @@ from reagent.workflow.types import RewardOptions
 
 class TestPPO(unittest.TestCase):
     def _params(self, **kwargs: object) -> PPOTrainerParameters:
-        # pyrefly: ignore [unexpected-keyword]
-        return PPOTrainerParameters(**kwargs)  # pyre-ignore[28]
+        return PPOTrainerParameters(**kwargs)
 
     def setUp(self) -> None:
         # preparing various components for qr-dqn trainer initialization

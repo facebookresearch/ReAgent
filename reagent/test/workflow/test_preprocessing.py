@@ -21,7 +21,6 @@ COL_NAME = "states"
 TABLE_NAME = "test_table"
 
 
-# pyre-fixme[11]: Annotation `ReagentSQLTestBase` is not defined as a type.
 class TestPreprocessing(ReagentSQLTestBase):
     def setUp(self) -> None:
         super().setUp()
@@ -52,7 +51,6 @@ class TestPreprocessing(ReagentSQLTestBase):
         table_spec = TableSpec(table_name=TABLE_NAME)
 
         normalization_params = identify_normalization_parameters(
-            # pyrefly: ignore [unexpected-keyword]
             table_spec,
             COL_NAME,
             preprocessing_options,

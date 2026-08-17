@@ -29,7 +29,6 @@ HIVE_METASTORE = "metastore_db"
 GLOBAL_TEST_CLASS_COUNTER = 0
 
 
-# pyre-fixme[11]: Annotation `SQLTestCase` is not defined as a type.
 class ReagentSQLTestBase(SQLTestCase):
     def getConf(self) -> SparkConf:
         conf = SparkConf()
@@ -56,7 +55,6 @@ class ReagentSQLTestBase(SQLTestCase):
 
         random.seed(self.test_class_seed)
         torch.manual_seed(self.test_class_seed)
-        # pyrefly: ignore [bad-argument-type]
         np.random.seed(self.test_class_seed)
         logging.basicConfig()
 

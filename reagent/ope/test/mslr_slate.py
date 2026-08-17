@@ -560,7 +560,6 @@ if __name__ == "__main__":
     logging.info(f"working dir - {os.getcwd()}")
 
     random.seed(1234)
-    # pyrefly: ignore [bad-argument-type]
     np.random.seed(1234)
     torch.random.manual_seed(1234)
 

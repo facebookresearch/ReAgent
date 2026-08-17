@@ -169,7 +169,6 @@ def create_string_game_data(
             batch_seq_count += 1
 
         if batch_seq_count == batch_size:
-            # pyrefly: ignore [unsupported-operation]
             batches[batch_count] = rlt.MemoryNetworkInput(
                 reward=batch_reward,
                 action=rlt.FeatureData(float_features=batch_action),
@@ -191,13 +190,11 @@ def create_string_game_data(
 
     num_training_batches = int(training_data_ratio * num_batches)
     training_data = DataLoader(
-        # pyrefly: ignore [bad-argument-type]
         batches[:num_training_batches],
         collate_fn=lambda x: x[0],
         pin_memory=True,
     )
     eval_data = DataLoader(
-        # pyrefly: ignore [bad-argument-type]
         batches[num_training_batches:],
         collate_fn=lambda x: x[0],
         pin_memory=True,
@@ -306,7 +303,6 @@ def train_seq2reward_compress_model(
     )
 
     trainer = CompressModelTrainer(
-        # pyrefly: ignore [bad-argument-type]
         compress_model_network=compress_model_network,
         seq2reward_network=seq2reward_network,
         params=trainer_param,
@@ -366,9 +362,7 @@ class TestSeq2Reward(unittest.TestCase):
         if plan_short_sequence:
             step_prediction_model = FakeStepPredictionNetwork(seq_len)
             model_with_preprocessor = Seq2RewardPlanShortSeqWithPreprocessor(
-                # pyrefly: ignore [bad-argument-type]
                 model,
-                # pyrefly: ignore [bad-argument-type]
                 step_prediction_model,
                 state_preprocessor,
                 seq_len,
@@ -376,7 +370,6 @@ class TestSeq2Reward(unittest.TestCase):
             )
         else:
             model_with_preprocessor = Seq2RewardWithPreprocessor(
-                # pyrefly: ignore [bad-argument-type]
                 model,
                 state_preprocessor,
                 seq_len,
@@ -407,7 +400,6 @@ class TestSeq2Reward(unittest.TestCase):
         all_permut = gen_permutations(MULTI_STEPS, NUM_ACTION)
         seq2reward_network = FakeSeq2RewardNetwork()
         state = torch.zeros(BATCH_SIZE, STATE_DIM)
-        # pyrefly: ignore [bad-argument-type]
         q_values = get_Q(seq2reward_network, state, all_permut)
         expected_q_values = torch.tensor([[11.0, 111.0], [11.0, 111.0]])
         logger.info(f"q_values: {q_values}")
@@ -446,7 +438,6 @@ class TestSeq2Reward(unittest.TestCase):
     @parameterized.expand(STRING_GAME_TESTS)
     @unittest.skipIf("SANDCASTLE" in os.environ, "Skipping long test on sandcastle.")
     def test_seq2reward_on_string_game_v0(self, filter_short_sequence):
-        # pyrefly: ignore [bad-argument-type]
         np.random.seed(SEED)
         random.seed(SEED)
         torch.manual_seed(SEED)

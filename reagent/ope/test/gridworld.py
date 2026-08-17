@@ -177,7 +177,6 @@ class GridWorld(Environment):
             for y in range(self.size[1]):
                 state = (x, y)
                 if state != self.goal and state not in self.walls:
-                    # pyrefly: ignore [bad-argument-type]
                     yield State((x, y))
 
     def __repr__(self):
@@ -336,7 +335,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     random.seed(1234)
-    # pyrefly: ignore [bad-argument-type]
     np.random.seed(1234)
     torch.random.manual_seed(1234)
 

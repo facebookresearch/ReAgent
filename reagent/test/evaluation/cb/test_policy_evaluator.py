@@ -172,7 +172,6 @@ class TestPolicyEvaluator(unittest.TestCase):
         self.eval_module._aggregate_across_instances()
         # correct average reward
         self.assertEqual(
-            # pyrefly: ignore [unsupported-operation]
             self.eval_module.get_avg_reward(),
             # pyrefly: ignore [unsupported-operation]
             self.batch.reward[1, 0].item(),

@@ -140,7 +140,6 @@ class TestComboOptimizer(unittest.TestCase):
     def setUp(self) -> None:
         seed = 123
         random.seed(seed)
-        # pyrefly: ignore [bad-argument-type]
         np.random.seed(seed)
         torch.manual_seed(seed)
 
@@ -167,7 +166,6 @@ class TestComboOptimizer(unittest.TestCase):
             input_param,
             obj_func,
             batch_size=batch_size,
-            # pyrefly: ignore [bad-argument-type]
             sampling_weights=sampling_weights,
         )
         sampled_sol = optimizer.sample(batch_size)
@@ -223,7 +221,6 @@ class TestComboOptimizer(unittest.TestCase):
         for sample in sampled_sol:
             self.assertSetEqual(set(sample.keys()), set(input_param.keys()))
             for key in sample:
-                # pyrefly: ignore [missing-attribute]
                 self.assertIn(sample[key], input_param[key].choices.value)
 
     def test_random_sample_with_raw_choices_2(self):
@@ -245,7 +242,6 @@ class TestComboOptimizer(unittest.TestCase):
             input_param,
             obj_func,
             batch_size=batch_size,
-            # pyrefly: ignore [bad-argument-type]
             sampling_weights=sampling_weights,
         )
         sampled_sol = optimizer.sample(batch_size)

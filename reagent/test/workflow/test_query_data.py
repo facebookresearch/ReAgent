@@ -39,7 +39,6 @@ def generate_data_discrete(
     df.createOrReplaceTempView(table_name)
 
 
-# pyre-fixme[11]: Annotation `ReagentSQLTestBase` is not defined as a type.
 class TestQueryData(ReagentSQLTestBase):
     def setUp(self) -> None:
         super().setUp()

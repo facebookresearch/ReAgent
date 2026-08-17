@@ -218,7 +218,7 @@ class MABAlgo(torch.nn.Module, ABC):
             Tensor: Array of per-arm scores
         """
         n_arms = len(n_obs_per_arm)
-        b = cls(n_arms=n_arms)  # pyre-ignore[45]
+        b = cls(n_arms=n_arms)
         b.add_batch_observations(
             n_obs_per_arm, sum_reward_per_arm, sum_reward_squared_per_arm
         )

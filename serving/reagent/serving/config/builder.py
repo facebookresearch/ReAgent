@@ -57,10 +57,8 @@ class DecisionPlanBuilder:
 
             if isinstance(node, namespace.DecisionOperator):
                 if node in visited:
-                    # pyrefly: ignore [missing-attribute]
                     return node.name
                 else:
-                    # pyrefly: ignore [missing-attribute]
                     node.name = "{}_{}".format(node.op_name, _id())
                     visited.add(node)
                 input_dep_map = {}
@@ -68,7 +66,6 @@ class DecisionPlanBuilder:
                     if arg is not None:
                         input_dep_map[name] = create_node(arg)
                 op = config.Operator(
-                    # pyrefly: ignore [missing-attribute]
                     name=node.name,
                     op_name=node.op_name,
                     input_dep_map=input_dep_map,

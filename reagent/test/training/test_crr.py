@@ -30,7 +30,6 @@ class TestCRR(unittest.TestCase):
         self.exploration_variance = 1e-10
 
         self.actions = [str(i) for i in range(self.action_dim)]
-        # pyrefly: ignore [unexpected-keyword]
         self.params = CRRTrainerParameters(actions=self.actions)
         self.reward_options = RewardOptions()
         self.metrics_to_score = get_metrics_to_score(
@@ -65,7 +64,6 @@ class TestCRR(unittest.TestCase):
         self.q2_network_target = self.q2_network.get_target_network()
 
         self.num_output_nodes = (len(self.metrics_to_score) + 1) * len(
-            # pyrefly: ignore [missing-attribute]
             self.params.actions
         )
         self.eval_parameters = EvaluationParameters(calc_cpe_in_training=True)
@@ -131,9 +129,7 @@ class TestCRR(unittest.TestCase):
         trainer = self._construct_trainer()
         self.assertTrue((torch.isclose(trainer.reward_boosts, torch.zeros(2))).all())
         param_copy = CRRTrainerParameters(
-            # pyrefly: ignore [unexpected-keyword]
             actions=self.actions,
-            # pyrefly: ignore [unexpected-keyword]
             rl=RLParameters(reward_boost={i: int(i) + 1 for i in self.actions}),
         )
         reward_boost_trainer = self._construct_trainer(new_params=param_copy)

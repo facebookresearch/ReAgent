@@ -100,10 +100,8 @@ class NormalGammaThompson(BaseThompsonSampling):
         lambdas = self.lambda_0 + self.total_n_obs_per_arm
         self.gamma_rates += 0.5 * n_obs_per_arm * lambdas / (
             n_obs_per_arm + lambdas
-            # pyre-fixme[58]: `**` is not supported for operand types `Tensor` and `int`.
         ) * (mean_rewards_batch - self.mus) ** 2 + 0.5 * (
             sum_reward_squared_per_arm
-            # pyre-fixme[58]: `**` is not supported for operand types `Tensor` and
             #  `int`.
             - n_obs_per_arm * mean_rewards_batch**2
         )
@@ -128,7 +126,6 @@ class NormalGammaThompson(BaseThompsonSampling):
         ).sample()
         return torch.distributions.normal.Normal(
             self.mus,
-            # pyre-fixme[58]: `/` is not supported for operand types `float` and
             #  `Tensor`.
             1.0 / torch.sqrt(precisions),
         ).sample()

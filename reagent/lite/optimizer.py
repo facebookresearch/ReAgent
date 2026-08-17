@@ -86,7 +86,6 @@ def sol_to_tensors(
         )
         for k in sorted(sampled_sol.keys())
     ]
-    # pyre-fixme[6]: For 1st argument expected `Union[List[Tensor],
     #  typing.Tuple[Tensor, ...]]` but got `List[str]`.
     batch_tensors = torch.cat(one_hot, dim=-1)
     return batch_tensors
@@ -549,7 +548,6 @@ def sample_gumbel(shape: Tuple[int, ...], eps: float = 1e-20) -> torch.Tensor:
 
 
 def gumbel_softmax(logits: torch.Tensor, temperature: float) -> torch.Tensor:
-    # pyre-fixme[6]: For 1st param expected `Tuple[int, ...]` but got `Size`.
     y = logits + sample_gumbel(logits.size())
     return F.softmax(y / temperature, dim=-1)
 

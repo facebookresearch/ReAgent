@@ -50,7 +50,6 @@ class MockDQNTrainer(DQNTrainerBaseLightning):
 
 class TestDQNTrainerBaseLightning(unittest.TestCase):
     def setUp(self):
-        # pyrefly: ignore [unexpected-keyword]
         self.params = DQNTrainerParameters(actions=["1", "2"])
         self.reward_options = RewardOptions()
         self.metrics_to_score = get_metrics_to_score(
@@ -70,7 +69,6 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
         self.q_network_target = self.q_network.get_target_network()
         self.eval_parameters = EvaluationParameters(calc_cpe_in_training=True)
         self.num_output_nodes = (len(self.metrics_to_score) + 1) * len(
-            # pyrefly: ignore [missing-attribute]
             self.params.actions
         )
         self.reward_network = FullyConnectedDQN(
@@ -97,9 +95,7 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
             evaluation = EvaluationParameters(calc_cpe_in_training=False)
 
         return MockDQNTrainer(
-            # pyrefly: ignore [missing-attribute]
             actions=params.actions,
-            # pyrefly: ignore [missing-attribute]
             rl_parameters=params.rl,
             metrics_to_score=self.metrics_to_score,
             evaluation_parameters=evaluation,
@@ -147,9 +143,7 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
         rewards = torch.ones(3, 1)
         actions = torch.tensor([[0, 1], [1, 0], [0, 1]])
         param_copy = DQNTrainerParameters(
-            # pyrefly: ignore [unexpected-keyword]
             actions=["1", "2"],
-            # pyrefly: ignore [unexpected-keyword]
             rl=RLParameters(reward_boost={"1": 1.0, "2": 2.0}),
         )
         trainer = self._construct_trainer(new_params=param_copy)
@@ -162,7 +156,6 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
         reward_network = self.reward_network
         q_network_cpe = self.q_network_cpe
         q_network_cpe_target = self.q_network_cpe_target
-        # pyrefly: ignore [missing-attribute]
         optimizer = self.params.optimizer
         # CPE
         trainer = self._construct_trainer()
@@ -190,7 +183,6 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
         self.metrics_to_score = get_metrics_to_score(
             reward_options.metric_reward_values
         )
-        # pyrefly: ignore [missing-attribute]
         num_output_nodes = (len(self.metrics_to_score) + 1) * len(self.params.actions)
         reward_network = FullyConnectedDQN(
             state_dim=self.state_dim,
@@ -208,7 +200,6 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
         reward_network = self.reward_network
         q_network_cpe = self.q_network_cpe
         q_network_cpe_target = self.q_network_cpe_target
-        # pyrefly: ignore [missing-attribute]
         optimizer = self.params.optimizer
         # CPE
         trainer = self._construct_trainer()
@@ -237,11 +228,9 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
         q_network_cpe_target = self.q_network_cpe_target
         trainer = self._construct_trainer()
         trainer._initialize_cpe(
-            # pyrefly: ignore [missing-attribute]
             reward_network,
             q_network_cpe,
             q_network_cpe_target,
-            # pyrefly: ignore [missing-attribute]
             self.params.optimizer,
         )
         _, _, optimizers = trainer._configure_cpe_optimizers()
@@ -277,7 +266,6 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
             self.reward_network,
             self.q_network_cpe,
             self.q_network_cpe_target,
-            # pyrefly: ignore [missing-attribute]
             self.params.optimizer,
         )
         trainer.reward_network = self.reward_network
@@ -315,7 +303,6 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
         model_propensities_next_states = masked_softmax(
             all_next_action_scores,
             (
-                # pyrefly: ignore [bad-argument-type]
                 inp.possible_next_actions_mask
                 if trainer.maxq_learning
                 else inp.next_action
@@ -351,7 +338,6 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
         self.metrics_to_score = get_metrics_to_score(
             reward_options.metric_reward_values
         )
-        # pyrefly: ignore [missing-attribute]
         num_output_nodes = (len(self.metrics_to_score) + 1) * len(self.params.actions)
         # re-initialize networks with larger output layers
         reward_network = FullyConnectedDQN(
@@ -401,7 +387,6 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
             reward_network,
             q_network_cpe,
             q_network_cpe_target,
-            # pyrefly: ignore [missing-attribute]
             self.params.optimizer,
         )
         trainer.reward_network = reward_network
@@ -427,7 +412,6 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
         offset_tensor = torch.tensor([[1, 3, 5], [0, 2, 4], [1, 3, 5]])
         ## expected reward_loss
 
-        # pyrefly: ignore [no-matching-overload]
         reward_target = torch.cat((inp.reward, inp.extras.metrics), dim=1)
         reward_estimate = trainer.reward_network(inp.state)
         reward_estimate = reward_estimate.gather(1, offset_tensor)
@@ -438,7 +422,6 @@ class TestDQNTrainerBaseLightning(unittest.TestCase):
         model_propensities_next_states = masked_softmax(
             all_next_action_scores,
             (
-                # pyrefly: ignore [bad-argument-type]
                 inp.possible_next_actions_mask
                 if trainer.maxq_learning
                 else inp.next_action

@@ -62,7 +62,6 @@ def get_dummy_batch(action_type, num_batches):
             action=action,
             possible_actions_mask=possible_actions_mask,
         )
-        # pyrefly: ignore [unsupported-operation]
         batches[i] = i_th_training_batch
     return batches
 
@@ -97,7 +96,6 @@ def train_bc_model(train_dataloader, num_epochs) -> pl.LightningModule:
         activations=["relu", "relu", "relu"],
     )
 
-    # pyre-fixme[28]: Unexpected keyword argument `Adam`.
     optimizer = Optimizer__Union(Adam=classes["Adam"]())
     bc_trainer = BehavioralCloningTrainer(bc_net=bc_net, optimizer=optimizer)
     pl_trainer = pl.Trainer(max_epochs=num_epochs, deterministic=True)

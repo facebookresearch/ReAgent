@@ -286,9 +286,7 @@ class TestLinUCB(unittest.TestCase):
         reward3 = self.second_batch_2nd_round.reward.squeeze().numpy()
 
         # all matrix and vectors are the same
-        # pyre-fixme[58]: `@` is not supported for operand types `float` and `Any`.
         A = scorer.gamma * x1.T @ x1 + x2.T @ x2 + x3.T @ x3
-        # pyre-fixme[58]: `@` is not supported for operand types `float` and `Any`.
         b = scorer.gamma * x1.T @ reward1 + x2.T @ reward2 + x3.T @ reward3
         npt.assert_allclose(
             # pyrefly: ignore [unsupported-operation]

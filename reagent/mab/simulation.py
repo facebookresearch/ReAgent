@@ -182,8 +182,8 @@ def multiple_evaluations_bandit_algo(
     pseudo_regrets = []
     arguments = (
         (
-            bandit_cls(max_steps=max_steps, **bandit_kwargs),  # pyre-ignore[45]
-            algo_cls(**algo_kwargs),  # pyre-ignore[45]
+            bandit_cls(max_steps=max_steps, **bandit_kwargs),
+            algo_cls(**algo_kwargs),
         )
         for _ in range(n_bandits)
     )

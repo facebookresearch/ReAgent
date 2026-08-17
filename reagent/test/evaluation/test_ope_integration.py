@@ -122,7 +122,6 @@ class TestOPEModuleAlgs(unittest.TestCase):
 
         """
         random.seed(0)
-        # pyrefly: ignore [bad-argument-type]
         np.random.seed(0)
         torch.random.manual_seed(0)
 

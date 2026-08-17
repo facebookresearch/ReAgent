@@ -181,12 +181,10 @@ class TrainingQuery:
 
     def pack(self):
         if isinstance(self._url_relevances, Mapping):
-            # pyrefly: ignore [bad-assignment]
             self._url_relevances = list(self._url_relevances.items())
 
     def _unpack(self):
         if isinstance(self._url_relevances, Sequence):
-            # pyrefly: ignore [bad-assignment]
             self._url_relevances = {v[0]: v[1] for v in self._url_relevances}
 
     @property
@@ -469,7 +467,6 @@ class TrainingDataset:
         # self._query_ids = None
         # self._query_terms = None
         # self._position_relevances = None
-        # pyrefly: ignore [bad-argument-type]
         logging.info(f"loaded training queries: {len(self._queries)}")
 
     def _process_training_queries(self):
@@ -484,7 +481,6 @@ class TrainingDataset:
         self._query_ids = {}
         self._query_terms = {}
         self._position_relevances = [RunningAverage() for _ in range(MAX_SLATE_SIZE)]
-        # pyrefly: ignore [not-iterable]
         for q in self._queries:
             self._query_ids[q.query_id] = q
             for t in q.query_terms:
@@ -583,7 +579,6 @@ def evaluate(
         query_choices = np.random.choice(log_length, num_samples, replace=False)
         for i in query_choices:
             q = log_queries[i]
-            # pyre-fixme[60]: Expected to unpack an iterable, but got `unknown`.
             context = SlateContext(SlateQuery((q.query_id, *(q.query_terms))), slots)
             url_relevances = q.url_relevances
             if len(url_relevances) > item_size:
@@ -662,7 +657,6 @@ if __name__ == "__main__":
     logging.info(f"working dir - {os.getcwd()}")
 
     random.seed(1234)
-    # pyrefly: ignore [bad-argument-type]
     np.random.seed(1234)
     torch.random.manual_seed(1234)
 
