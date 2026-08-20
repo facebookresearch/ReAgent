@@ -1,4 +1,3 @@
-# pyre-unsafe
 import logging
 
 from reagent.core.types import CBInput

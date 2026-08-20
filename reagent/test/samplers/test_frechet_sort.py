@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-strict
 import torch
 from reagent.samplers.frechet import FrechetSort
 from reagent.test.base.horizon_test_base import HorizonTestBase

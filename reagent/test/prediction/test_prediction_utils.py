@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-strict
 
 import torch
 from reagent.preprocessing.identify_types import CONTINUOUS, CONTINUOUS_ACTION
