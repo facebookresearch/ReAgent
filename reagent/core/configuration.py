@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
 
 import functools
 import types
