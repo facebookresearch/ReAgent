@@ -1,4 +1,3 @@
-# pyre-strict
 import unittest
 
 import numpy.testing as npt

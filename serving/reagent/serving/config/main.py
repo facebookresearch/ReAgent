@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
-# pyre-strict
 
 import json
 import os
