@@ -1,4 +1,3 @@
-# pyre-unsafe
 import copy
 import logging
 from abc import ABC, abstractmethod

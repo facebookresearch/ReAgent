@@ -1,4 +1,3 @@
-# pyre-unsafe
 import logging
 
 import torch

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
 
 # CRITICAL: Set SKIP_FROZEN_REGISTRY_CHECK=1 BEFORE any module-level code runs.
 # This must happen at the very top of this file because this module contains

@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All rights reserved.
 
-# pyre-unsafe
 
 import logging
 from typing import Dict, List, Optional
