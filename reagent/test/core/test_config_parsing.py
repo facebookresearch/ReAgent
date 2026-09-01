@@ -3,8 +3,8 @@
 
 
 import abc
-import os
 import unittest
+import unittest.mock as mock
 
 from reagent.core.configuration import make_config_class, resolve_defaults
 from reagent.core.dataclasses import dataclass, field
@@ -31,76 +31,86 @@ class AParam:
     pass
 
 
-class FooRegistry(metaclass=RegistryMeta):
-    @abc.abstractmethod
-    def foo(self) -> int:
+def _new_foo_registry() -> tuple[type, type]:
+    class FooRegistry(metaclass=RegistryMeta):
+        @abc.abstractmethod
+        def foo(self) -> int:
+            pass
+
+    @dataclass
+    class Foo(FooRegistry):
+        a_param: AParam = field(default_factory=AParam)
+
+        def foo(self) -> int:
+            a = A(**self.a_param.asdict())
+            return a()
+
+    @dataclass
+    class Bar(FooRegistry):
+        def foo(self) -> int:
+            return 10
+
+    @FooRegistry.fill_union()
+    # pyrefly: ignore [invalid-inheritance]
+    class FooUnion(TaggedUnion):
         pass
 
+    @dataclass
+    class Config:
+        union: FooUnion = field(default_factory=lambda: FooUnion(Foo=Foo()))
 
-@dataclass
-class Foo(FooRegistry):
-    a_param: AParam = field(default_factory=AParam)
-
-    def foo(self) -> int:
-        a = A(**self.a_param.asdict())
-        return a()
-
-
-@dataclass
-class Bar(FooRegistry):
-    def foo(self) -> int:
-        return 10
-
-
-@FooRegistry.fill_union()
-# pyrefly: ignore [invalid-inheritance]
-class FooUnion(TaggedUnion):
-    pass
-
-
-@dataclass
-class Config:
-    union: FooUnion = field(default_factory=lambda: FooUnion(Foo=Foo()))
+    return FooRegistry, Config
 
 
 class TestConfigParsing(unittest.TestCase):
     def test_parse_foo_default(self) -> None:
+        _, Config = _new_foo_registry()
         raw_config = {}
         config = Config(**raw_config)
         self.assertEqual(config.union.value.foo(), 2)
 
     def test_parse_foo(self) -> None:
+        _, Config = _new_foo_registry()
         raw_config = {"union": {"Foo": {"a_param": {"a": 6}}}}
         config = Config(**raw_config)
         self.assertEqual(config.union.value.foo(), 12)
 
     def test_parse_bar(self) -> None:
+        _, Config = _new_foo_registry()
         raw_config = {"union": {"Bar": {}}}
         config = Config(**raw_config)
         self.assertEqual(config.union.value.foo(), 10)
 
-    def test_frozen_registry(self) -> None:
-        with self.assertRaises(RuntimeError):
+    @mock.patch("reagent.core.registry_meta.skip_frozen_registry_check")
+    def test_frozen_registry(
+        self, mock_skip_frozen_registry_check: mock.MagicMock
+    ) -> None:
+        FooRegistry, _ = _new_foo_registry()
+        mock_skip_frozen_registry_check.return_value = False
+
+        with self.assertRaises(RuntimeError) as context:
 
             @dataclass
             class Baz(FooRegistry):
                 def foo(self) -> int:
                     return 20
 
+        self.assertIn(
+            "FooRegistry has been used to fill a union and is now frozen, so Baz can't be added to the registry.",
+            str(context.exception),
+        )
         self.assertListEqual(sorted(FooRegistry.REGISTRY.keys()), ["Bar", "Foo"])
 
-    def test_frozen_registry_skip(self) -> None:
-        _environ = dict(os.environ)
-        os.environ.update({"SKIP_FROZEN_REGISTRY_CHECK": "1"})
-        try:
+    @mock.patch("reagent.core.registry_meta.skip_frozen_registry_check")
+    def test_frozen_registry_skip(
+        self, mock_skip_frozen_registry_check: mock.MagicMock
+    ) -> None:
+        FooRegistry, _ = _new_foo_registry()
+        mock_skip_frozen_registry_check.return_value = True
 
-            @dataclass
-            class Baz(FooRegistry):
-                def foo(self) -> int:
-                    return 20
+        @dataclass
+        class Baz(FooRegistry):
+            def foo(self) -> int:
+                return 20
 
-        finally:
-            os.environ.clear()
-            os.environ.update(_environ)
-
-        self.assertListEqual(sorted(FooRegistry.REGISTRY.keys()), ["Bar", "Foo"])
+        self.assertListEqual(sorted(FooRegistry.REGISTRY.keys()), ["Bar", "Baz", "Foo"])

@@ -1,6 +1,6 @@
 env:
   Gym:
-    env_name: Pendulum-v0
+    env_name: Pendulum-v1
 model:
   TD3:
     trainer_param:
