@@ -116,7 +116,6 @@ class TestPolicyEvaluator(unittest.TestCase):
         self.assertEqual(eval_module.sum_weight_accepted_local.item(), 0.0)
         self.assertEqual(eval_module.sum_weight_accepted.item(), 1.0)
         self.assertEqual(
-            # pyrefly: ignore [not-callable]
             eval_module.sum_importance_weight_accepted.item(),
             importance_weight,
         )

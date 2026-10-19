@@ -189,10 +189,8 @@ class TestLinUCB(unittest.TestCase):
         npt.assert_allclose(
             (
                 np.eye(self.x_dim) * scorer.l2_reg_lambda
-                # pyrefly: ignore [unsupported-operation]
                 + (scorer.avg_A * scorer.sum_weight).numpy()
             )
-            # pyrefly: ignore [unsupported-operation]
             @ (scorer.inv_avg_A / scorer.sum_weight).numpy(),
             np.eye(self.x_dim),
             atol=1e-3,
@@ -288,14 +286,12 @@ class TestLinUCB(unittest.TestCase):
         A = scorer.gamma * x1.T @ x1 + x2.T @ x2 + x3.T @ x3
         b = scorer.gamma * x1.T @ reward1 + x2.T @ reward2 + x3.T @ reward3
         npt.assert_allclose(
-            # pyrefly: ignore [unsupported-operation]
             (scorer.avg_A * scorer.sum_weight).numpy(),
             A * scorer.gamma,
             atol=1e-5,
             rtol=1e-5,
         )
         npt.assert_allclose(
-            # pyrefly: ignore [unsupported-operation]
             (scorer.avg_b * scorer.sum_weight).numpy(),
             b * scorer.gamma,
             atol=1e-5,
@@ -304,7 +300,6 @@ class TestLinUCB(unittest.TestCase):
 
         inv_A = np.linalg.inv(A + np.identity(self.x_dim) * scorer.l2_reg_lambda)
         npt.assert_allclose(
-            # pyrefly: ignore [unsupported-operation]
             (scorer.inv_avg_A / scorer.sum_weight * scorer.gamma).numpy(),
             inv_A,
             atol=1e-4,
