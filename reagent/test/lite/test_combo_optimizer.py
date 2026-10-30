@@ -478,6 +478,7 @@ class TestComboOptimizer(unittest.TestCase):
                     f"min_reward={min_reward_ql_optimizer}, "
                     f"temp={temp}"
                 )
+            # pyrefly: ignore[unbound-name]
             results.append(mean_reward_ql_optimizer)
 
         return results

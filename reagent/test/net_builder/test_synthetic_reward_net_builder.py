@@ -266,6 +266,7 @@ class TestSyntheticRewardNetBuilder(unittest.TestCase):
         output = reward_net(preprocessed_input).predicted_reward
         assert output.shape == (BATCH_SIZE, 1)
 
+        # pyrefly: ignore[not-callable]
         export_net = reward_net.export_mlp().cpu().eval()
         export_output = export_net(
             preprocessed_input.state.float_features,

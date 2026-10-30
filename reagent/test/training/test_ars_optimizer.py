@@ -57,4 +57,5 @@ class TestARSOptimizer(unittest.TestCase):
             )
             perf = self.metric(new_weight.numpy())
             print(f"gen {i}: perf {perf}")
+        # pyrefly: ignore[unbound-name]
         self.assertLessEqual(perf, 1e-15)

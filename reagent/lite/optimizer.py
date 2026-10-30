@@ -1407,6 +1407,7 @@ class BayesianMLPEnsemblerOptimizer(BayesianOptimizerBase):
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+            # pyrefly: ignore[unbound-name]
             losses.append(loss.detach())
             model.eval()
         self.last_predictor_loss_mean = np.mean(losses)
@@ -1676,6 +1677,7 @@ class BayesianByBackpropOptimizer(BayesianOptimizerBase):
             loss.backward()
             optimizer.step()
 
+        # pyrefly: ignore[unbound-name]
         losses.append(loss.detach())
         # pyrefly: ignore [missing-attribute]
         self.predictor.eval()
