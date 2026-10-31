@@ -41,4 +41,5 @@ class HorizonTestBase(unittest.TestCase):
             pass
 
         config = ConfigClass(**config_dict)
+        # pyrefly: ignore [missing-attribute]
         return run_test(**config.asdict())
