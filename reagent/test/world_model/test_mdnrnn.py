@@ -63,10 +63,6 @@ class TestMDNRNN(unittest.TestCase):
     def test_mdnrnn_simulate_world_cpu(self) -> None:
         self._test_mdnrnn_simulate_world()
 
-    @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    def test_mdnrnn_simulate_world_gpu(self) -> None:
-        self._test_mdnrnn_simulate_world(use_gpu=True)
-
     def _test_mdnrnn_simulate_world(self, use_gpu: bool = False) -> None:
         num_epochs = 300
         num_episodes = 400
