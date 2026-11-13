@@ -530,6 +530,7 @@ class TrainingDataset:
                 item_rels[i] = rels[i]
             else:
                 item_rels[i] = 0.0
+        # pyrefly: ignore [bad-argument-type]
         return SlateItemValues(item_rels)
 
     def slot_relevances(self, slots: SlateSlots) -> SlateSlotValues:
